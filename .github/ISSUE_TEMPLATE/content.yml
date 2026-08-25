@@ -1,0 +1,37 @@
+name: Propuesta o corrección de contenido
+description: Proponer una lección, ejercicio, fuente o corrección científica
+labels: ["content"]
+body:
+  - type: textarea
+    id: objective
+    attributes:
+      label: Resultado de aprendizaje
+      description: ¿Qué debería poder hacer el estudiante?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto y ubicación sugerida
+      description: Zona, prerrequisitos y relación con los dos grafos.
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Fuentes
+      description: Incluye referencias científicas o históricas trazables.
+    validations:
+      required: true
+  - type: textarea
+    id: exercise
+    attributes:
+      label: Actividad propuesta
+      description: Explica el ejercicio y por qué evidencia el aprendizaje.
+  - type: checkboxes
+    id: rights
+    attributes:
+      label: Derechos
+      options:
+        - label: El material propuesto es original o tiene licencia compatible y no proviene de una evaluación interna restringida.
+          required: true

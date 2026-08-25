@@ -1,0 +1,34 @@
+name: Error técnico o de progresión
+description: Reportar un problema del mundo, guardado, interfaz o debugger
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Versión o commit
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para reproducir
+      placeholder: Incluye perfil, URL, conceptos adquiridos y controles usados.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Resultado esperado
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Resultado observado
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnóstico
+      description: Adjunta errores de consola o `AtlasDebug.snapshot()` sin datos personales.

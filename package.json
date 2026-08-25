@@ -1,0 +1,27 @@
+{
+  "name": "atlas-electromagnetismo-aplicado",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Prototipo abierto de un atlas narrativo e interactivo de electromagnetismo aplicado.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JoaquinDiazM/ATLAS.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JoaquinDiazM/ATLAS/issues"
+  },
+  "homepage": "https://joaquindiazm.github.io/ATLAS/",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "test": "node --test",
+    "validate": "node scripts/validate-content.mjs",
+    "build": "node scripts/build.mjs",
+    "check": "npm run validate && npm test && npm run repo-check && npm run build",
+    "repo-check": "node scripts/check-repository.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "license": "MIT"
+}

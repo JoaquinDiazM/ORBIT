@@ -1,0 +1,96 @@
+# Checklist de control de calidad
+
+## Antes de revisar
+
+- [ ] Leer los `AGENTS.md` aplicables.
+- [ ] Usar un perfil de prueba separado.
+- [ ] Ejecutar `npm run check`.
+- [ ] Confirmar que no hay errores ni advertencias inesperadas en consola.
+
+## Mundo y movimiento
+
+- [ ] El personaje se mueve con WASD y flechas.
+- [ ] El movimiento diagonal no es más rápido que el axial.
+- [ ] El personaje no está fijado a nodos ni caminos.
+- [ ] Las fronteras bloqueadas impiden el paso sin vibración severa.
+- [ ] Las fronteras abiertas permiten cruzar en ambos sentidos.
+- [ ] Cada zona nueva abre todas sus aristas compartidas con zonas ya abiertas.
+- [ ] No existe una zona aislada.
+- [ ] Cámara y zoom mantienen el personaje localizable.
+
+## Árbol I
+
+- [ ] Cada requisito de zona existe.
+- [ ] Cada requisito puede obtenerse desde contenido previamente accesible.
+- [ ] Ninguna zona depende de una llave situada solo dentro de ella.
+- [ ] La apertura territorial se deriva, no se guarda como segunda verdad.
+- [ ] El panel de conocimiento refleja el estado real.
+
+## Árbol II
+
+- [ ] Cada lugar se encuentra dentro del margen seguro de su hexágono.
+- [ ] Los lugares visibles e invisibles respetan su política de visibilidad.
+- [ ] Los elementos opcionales no bloquean por accidente el tronco principal.
+- [ ] Las recompensas se conceden una sola vez.
+- [ ] Los transportes adquiridos se pueden alternar.
+- [ ] Los gadgets tienen control y explicación visibles.
+
+## Ejercicios
+
+- [ ] El enunciado es autosuficiente.
+- [ ] La respuesta correcta se acepta.
+- [ ] Una respuesta incorrecta razonable se rechaza.
+- [ ] La entrada vacía no concede progreso.
+- [ ] La coma decimal se acepta en ejercicios numéricos.
+- [ ] La tolerancia está justificada.
+- [ ] La unidad aparece en enunciado o campo de respuesta.
+- [ ] La explicación incluye razonamiento físico, no solo número.
+- [ ] El lugar no concede un concepto que exige.
+
+## Contenido científico e histórico
+
+- [ ] Las afirmaciones específicas tienen fuentes.
+- [ ] Se distinguen observación, formulación y aplicación.
+- [ ] No se presenta una atribución discutida como certeza simple.
+- [ ] Se usan unidades y símbolos consistentes.
+- [ ] Las aproximaciones están declaradas.
+- [ ] El problema es original o tiene licencia compatible.
+- [ ] No contiene material interno de evaluaciones sin autorización.
+
+## Persistencia
+
+- [ ] El progreso sobrevive a recarga.
+- [ ] Perfiles distintos no se mezclan.
+- [ ] Exportación produce JSON válido.
+- [ ] Importación rechaza o sanea IDs desconocidos.
+- [ ] Reset devuelve a un estado inicial utilizable.
+- [ ] Los cambios de esquema incluyen migración o decisión documentada.
+
+## Debugger
+
+- [ ] F2 y tecla grave abren/cierra el panel.
+- [ ] Noclip funciona.
+- [ ] Al apagar noclip fuera de una zona abierta se retorna a spawn.
+- [ ] Teletransporte por selector funciona.
+- [ ] `Shift` + clic funciona dentro de la cartografía.
+- [ ] `AtlasDebug.help()` y `snapshot()` funcionan.
+- [ ] Completar cercano no selecciona contenido inaccesible en modo normal.
+
+## Interfaz y accesibilidad
+
+- [ ] Todas las acciones esenciales tienen teclado.
+- [ ] El foco es visible.
+- [ ] El texto es legible a zoom del navegador de 200 %.
+- [ ] Los estados no dependen solo del color.
+- [ ] La reducción de movimiento del sistema se respeta.
+- [ ] La interfaz sigue siendo utilizable en una ventana estrecha razonable.
+- [ ] Los controles nuevos aparecen en ayuda.
+
+## Publicación
+
+- [ ] `dist/` contiene `index.html`, `404.html`, `src/` y `public/`.
+- [ ] Todas las rutas son relativas.
+- [ ] El workflow de Pages termina correctamente.
+- [ ] La página funciona bajo una subruta de repositorio.
+- [ ] README, captura y versión corresponden al comportamiento publicado.
+- [ ] `CHANGELOG.md` registra los cambios visibles.
