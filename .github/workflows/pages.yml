@@ -1,4 +1,4 @@
-name: Validate and deploy to GitHub Pages
+name: Validate ATLAS and optionally deploy Pages
 
 on:
   push:
@@ -7,8 +7,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -18,10 +16,7 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,13 +33,26 @@ jobs:
       - name: Validate, test and build
         run: npm run check
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
       - name: Upload static artifact
+        if: ${{ vars.ENABLE_PAGES == 'true' }}
         uses: actions/upload-pages-artifact@v4
         with:
           path: ./dist
+
+  deploy:
+    if: ${{ vars.ENABLE_PAGES == 'true' }}
+    needs: validate
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
 
       - name: Deploy to GitHub Pages
         id: deployment

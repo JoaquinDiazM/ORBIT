@@ -144,7 +144,7 @@ Más detalles:
 ├── scripts/                  # servidor, build y validador
 ├── docs/                     # diseño, decisiones y guías
 ├── public/                   # favicon y manifiesto
-└── .github/workflows/        # publicación automática en Pages
+└── .github/workflows/        # validación remota y publicación opcional en Pages
 ```
 
 ## Debugger
@@ -175,10 +175,14 @@ Consulta [docs/DEBUGGING.md](docs/DEBUGGING.md) para la referencia completa.
 
 ## Publicación en GitHub Pages
 
-1. Crea el repositorio y sube la rama `main`.
-2. En GitHub, abre **Settings → Pages**.
-3. En **Build and deployment**, selecciona **GitHub Actions**.
-4. El workflow `.github/workflows/pages.yml` valida, prueba, construye `dist/` y publica el artefacto.
+Cada push a `main` ejecuta instalación reproducible, validación, pruebas y build sin publicar el repositorio privado. Para activar Pages explícitamente:
+
+1. En GitHub, abre **Settings → Pages**.
+2. En **Build and deployment**, selecciona **GitHub Actions**.
+3. En **Settings → Secrets and variables → Actions → Variables**, crea `ENABLE_PAGES` con valor `true`.
+4. Vuelve a ejecutar el workflow o realiza un nuevo push; entonces publicará `dist/`.
+
+No definas esa variable mientras quieras conservar el proyecto únicamente como repositorio privado sin sitio público.
 
 Todas las rutas del prototipo son relativas, por lo que funciona tanto en `usuario.github.io` como en `usuario.github.io/nombre-del-repositorio/`.
 

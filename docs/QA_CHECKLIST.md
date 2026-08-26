@@ -105,7 +105,7 @@
 - [ ] `dist/` contiene `index.html`, `404.html`, `src/`, `public/` y `vendor/katex/`.
 - [ ] `dist/index.html` y `dist/404.html` no contienen rutas a `node_modules/`.
 - [ ] Todas las rutas son relativas.
-- [ ] El workflow de Pages termina correctamente.
+- [ ] El job de validación remota termina correctamente; el job de Pages se omite mientras `ENABLE_PAGES` no sea `true`.
 - [ ] La página funciona bajo una subruta de repositorio.
 - [ ] README, captura y versión corresponden al comportamiento publicado.
 - [ ] `CHANGELOG.md` registra los cambios visibles.
