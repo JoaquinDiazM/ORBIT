@@ -2,6 +2,15 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [Sin publicar]
+
+### Corregido
+
+- El servidor de desarrollo evita automáticamente un puerto predeterminado ocupado y destaca la URL de la ejecución nueva.
+- KaTeX se resuelve sin rutas especiales del servidor durante el desarrollo; el build conserva el directorio publicable `vendor/katex/`.
+- La pantalla inicial muestra un diagnóstico accionable si un módulo o recurso crítico falla, en lugar de esperar indefinidamente.
+- El workflow de GitHub Pages instala las dependencias fijadas antes de validar y construir.
+
 ## [0.2.0] - 2026-08-26
 
 ### Añadido

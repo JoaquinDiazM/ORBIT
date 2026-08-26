@@ -9,7 +9,7 @@ Las ecuaciones se muestran actualmente como texto Unicode. Esto limita fraccione
 
 ## Decisión
 
-Incorporar KaTeX `0.18.1` como única dependencia npm, con versión exacta y licencia MIT. El servidor de desarrollo expone solamente su distribución precompilada y el build copia `katex.min.css`, `katex.mjs` y las fuentes requeridas a `vendor/katex/`. El navegador no contacta servicios externos.
+Incorporar KaTeX `0.18.1` como única dependencia npm, con versión exacta y licencia MIT. En desarrollo, el HTML referencia directamente su distribución precompilada dentro de `node_modules/katex/dist/`; así cualquier servidor estático iniciado desde la raíz resuelve los recursos sin una tabla de rutas dependiente de la versión. El build reescribe esas referencias y copia solamente `katex.min.css`, `katex.mjs` y las fuentes requeridas a `vendor/katex/`. El navegador no contacta servicios externos.
 
 La UI usa la API DOM `katex.render` con contenido editorial controlado, `trust: false`, salida HTML+MathML y manejo explícito de errores. No se usa auto-render ni se inserta HTML mediante `innerHTML`. Las lecciones conservan el formato declarativo de JavaScript, que funciona como un árbol seguro semejante a Markdown; esta decisión no añade un parser Markdown/MDX.
 
@@ -25,7 +25,7 @@ Costo aproximado: una dependencia de desarrollo y publicación, unos cientos de 
 
 ## Consecuencias
 
-Ejecutar el proyecto desde un clon requiere `npm install` antes de `npm run dev`. El producto construido continúa siendo un sitio estático y funciona sin conexión. Las fuentes deben permanecer junto a la hoja de estilos. Si KaTeX no carga o una expresión es inválida, la UI conserva el TeX como fallback legible y registra el error sin bloquear el juego.
+Ejecutar el proyecto desde un clon requiere `npm install` antes de `npm run dev`. El producto construido continúa siendo un sitio estático, no conserva rutas a `node_modules` y funciona sin conexión. Las fuentes deben permanecer junto a la hoja de estilos. Si un módulo de inicio no carga, la pantalla inicial muestra un diagnóstico accionable; si una expresión aislada es inválida, la UI conserva el TeX como fallback legible y registra el error sin bloquear el juego.
 
 ## Regla de revisión
 

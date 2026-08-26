@@ -3,8 +3,10 @@
 ## Perfil recomendado
 
 ```text
-http://127.0.0.1:4173/?debug=1&profile=debug
+http://127.0.0.1:<puerto>/?debug=1&profile=debug
 ```
+
+Sustituye `<puerto>` por el número que imprimió la ejecución actual de `npm run dev`.
 
 Usa perfiles más específicos para tareas independientes:
 

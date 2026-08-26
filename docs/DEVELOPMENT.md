@@ -36,9 +36,11 @@ npm run check
 
 ### `npm run dev`
 
-Sirve el directorio del proyecto en `http://127.0.0.1:4173/`. No transforma los módulos; el navegador carga el código fuente directamente.
+Sirve el directorio del proyecto sin transformar los módulos; el navegador carga el código fuente directamente. Intenta usar `http://127.0.0.1:4173/` y, si ese puerto está ocupado, avanza hasta encontrar uno libre. Siempre abre la URL exacta que imprime la ejecución actual.
 
-Si aparece `EADDRINUSE`, otro proceso ya escucha en 4173. Reutiliza el servidor existente, detén su terminal con `Ctrl+C` o usa en PowerShell `$env:PORT = 4174` antes de `npm run dev`.
+No reutilices un servidor iniciado antes de actualizar el repositorio: su lógica puede no corresponder al código actual. Detén su terminal con `Ctrl+C` y vuelve a ejecutar `npm run dev`. Para exigir un puerto concreto, define por ejemplo `$env:PORT = 4200`; un puerto explícito ocupado produce un error breve en vez de seleccionar otro.
+
+En desarrollo, el navegador obtiene KaTeX desde `node_modules/katex/dist/`. El build reemplaza esas dos referencias por `vendor/katex/` y copia únicamente el runtime publicable; ninguna ruta a `node_modules` llega a `dist/`.
 
 ### `npm run validate`
 
@@ -50,7 +52,7 @@ Ejecuta las pruebas de `tests/` mediante `node:test`.
 
 ### `npm run build`
 
-Copia los recursos publicables a `dist/`, añade la distribución local de KaTeX y genera `build-info.json`. El build es intencionalmente transparente: no minifica ni empaqueta el código del proyecto.
+Copia los recursos publicables a `dist/`, reescribe las rutas de desarrollo, añade la distribución local de KaTeX y genera `build-info.json`. El build falla si queda una ruta a `node_modules` o si falta un recurso matemático. Es intencionalmente transparente: no minifica ni empaqueta el código del proyecto.
 
 ### `npm run check`
 

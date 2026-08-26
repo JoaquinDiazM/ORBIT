@@ -76,7 +76,7 @@ Incluye esa evaluación en tu resumen de cambios o en el mensaje de commit.
 ```bash
 npm install
 npm run dev
-# abre http://127.0.0.1:4173/?debug=1&profile=debug
+# abre la URL impresa por el servidor y añade ?debug=1&profile=debug
 
 npm run check
 ```

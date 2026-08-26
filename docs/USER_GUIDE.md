@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-Abre `http://127.0.0.1:4173/`.
+Abre la URL exacta que imprime la terminal. Normalmente es `http://127.0.0.1:4173/`; si ese puerto ya está ocupado, el servidor selecciona el siguiente disponible.
 
 `npm install` se ejecuta una vez para disponer del render matemático local.
 
@@ -66,14 +66,16 @@ El progreso se guarda automáticamente en el navegador usando un perfil.
 Perfil normal:
 
 ```text
-http://127.0.0.1:4173/
+http://127.0.0.1:<puerto>/
 ```
 
 Perfil separado:
 
 ```text
-http://127.0.0.1:4173/?profile=prueba-1
+http://127.0.0.1:<puerto>/?profile=prueba-1
 ```
+
+Usa en ambos casos el puerto indicado por la ejecución actual de `npm run dev`.
 
 Los nombres de perfil se normalizan para evitar claves inválidas. El progreso de un navegador no se sincroniza automáticamente con otro equipo.
 

@@ -37,7 +37,7 @@ npm install
 npm run dev
 ```
 
-Abre:
+Abre la URL exacta que imprime la terminal; normalmente será:
 
 ```text
 http://127.0.0.1:4173/
@@ -54,17 +54,19 @@ Get-ExecutionPolicy -List
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 ```
 
-Como alternativa puntual, `npm.cmd` evita el wrapper de PowerShell. Si `npm run dev` informa `EADDRINUSE` para el puerto 4173, ya hay otro servidor activo: reutiliza esa pestaña, detén su terminal con `Ctrl+C` o inicia otra instancia con:
+Como alternativa puntual, `npm.cmd` evita el wrapper de PowerShell. Si el puerto 4173 está ocupado, `npm run dev` prueba automáticamente los puertos siguientes y muestra con claridad la URL del servidor nuevo. Abre esa URL, no una pestaña antigua que conserve otro puerto.
+
+Después de actualizar el repositorio, detén cualquier servidor anterior con `Ctrl+C` y vuelve a iniciarlo. Para exigir un puerto específico:
 
 ```powershell
-$env:PORT = 4174
+$env:PORT = 4200
 npm run dev
 ```
 
-Para una sesión de pruebas separada del progreso normal:
+Para una sesión de pruebas separada del progreso normal, usa el puerto indicado por la terminal:
 
 ```text
-http://127.0.0.1:4173/?debug=1&profile=debug
+http://127.0.0.1:<puerto>/?debug=1&profile=debug
 ```
 
 ## Controles
@@ -86,7 +88,7 @@ http://127.0.0.1:4173/?debug=1&profile=debug
 ## Comandos del repositorio
 
 ```bash
-npm run dev       # servidor local en 127.0.0.1:4173
+npm run dev       # servidor local; parte en 4173 y evita puertos ocupados
 npm run validate  # referencias, coordenadas y alcanzabilidad del contenido
 npm test          # pruebas con node:test
 npm run build     # crea dist/

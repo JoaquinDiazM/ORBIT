@@ -732,6 +732,22 @@ code {
   font-size: 1.25rem;
 }
 
+.startup-detail {
+  max-width: 38rem;
+  margin: 1rem auto 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(255, 209, 102, 0.46);
+  border-radius: 0.8rem;
+  color: #fff3cf;
+  background: rgba(76, 43, 12, 0.48);
+  line-height: 1.55;
+}
+
+.loading-screen.has-error .loading-orbit {
+  animation: none;
+  border-color: rgba(255, 209, 102, 0.72);
+}
+
 .loading-orbit {
   width: 5rem;
   height: 5rem;

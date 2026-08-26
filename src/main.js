@@ -66,7 +66,10 @@ ui.bindGameApi(gameApi);
 
 if (debugInitiallyEnabled) ui.openDebugPanel();
 game.start();
-requestAnimationFrame(() => ui.hideLoadingScreen());
+requestAnimationFrame(() => {
+  ui.hideLoadingScreen();
+  window.AtlasStartup?.ready();
+});
 
 window.AtlasDebug = Object.freeze({
   help() {

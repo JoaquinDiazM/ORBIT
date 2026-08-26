@@ -6,6 +6,7 @@
 - [ ] Usar un perfil de prueba separado.
 - [ ] Ejecutar `npm run check`.
 - [ ] Confirmar que no hay errores ni advertencias inesperadas en consola.
+- [ ] Abrir la URL impresa por la ejecución actual, no una pestaña servida por un proceso anterior.
 
 ## Mundo y movimiento
 
@@ -87,6 +88,7 @@
 - [ ] Los controles nuevos aparecen en ayuda.
 - [ ] Cada ecuación se renderiza, conserva caption y puede desplazarse con teclado si desborda.
 - [ ] La salida matemática expone representación MathML y el fallback TeX es legible.
+- [ ] Un fallo de recurso durante el arranque reemplaza la espera infinita por una alerta con pasos de recuperación.
 
 ## Audio
 
@@ -101,6 +103,7 @@
 ## Publicación
 
 - [ ] `dist/` contiene `index.html`, `404.html`, `src/`, `public/` y `vendor/katex/`.
+- [ ] `dist/index.html` y `dist/404.html` no contienen rutas a `node_modules/`.
 - [ ] Todas las rutas son relativas.
 - [ ] El workflow de Pages termina correctamente.
 - [ ] La página funciona bajo una subruta de repositorio.

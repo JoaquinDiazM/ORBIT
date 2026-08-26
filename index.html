@@ -10,7 +10,7 @@
     <meta name="theme-color" content="#08111f" />
     <link rel="icon" href="./public/favicon.svg" type="image/svg+xml" />
     <link rel="manifest" href="./public/manifest.webmanifest" />
-    <link rel="stylesheet" href="./vendor/katex/katex.min.css" />
+    <link rel="stylesheet" href="./node_modules/katex/dist/katex.min.css" />
     <link rel="stylesheet" href="./src/styles.css" />
     <title>Atlas de Electromagnetismo Aplicado</title>
   </head>
@@ -156,19 +156,21 @@
       <div id="loading-screen" class="loading-screen">
         <div class="loading-card">
           <div class="loading-orbit" aria-hidden="true"></div>
-          <p class="eyebrow">Inicializando mundo</p>
-          <h2>Cartografiando campos y fronteras…</h2>
+          <p id="loading-eyebrow" class="eyebrow">Inicializando mundo</p>
+          <h2 id="loading-title">Cartografiando campos y fronteras…</h2>
+          <p id="loading-detail" class="startup-detail" role="alert" hidden></p>
         </div>
       </div>
     </main>
 
+    <script src="./src/startup-guard.js"></script>
     <script type="importmap">
       {
         "imports": {
-          "katex": "./vendor/katex/katex.mjs"
+          "katex": "./node_modules/katex/dist/katex.mjs"
         }
       }
     </script>
-    <script type="module" src="./src/main.js"></script>
+    <script type="module" src="./src/bootstrap.js"></script>
   </body>
 </html>

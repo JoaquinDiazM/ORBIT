@@ -1,12 +1,16 @@
 import { createReadStream, existsSync, statSync } from "node:fs";
 import { createServer } from "node:http";
-import { extname, join, normalize, resolve, sep } from "node:path";
+import { extname, join, normalize, resolve } from "node:path";
 import process from "node:process";
 
 const root = resolve(process.cwd());
-const katexRoot = resolve(root, "node_modules", "katex", "dist");
 const requestedPort = Number(process.env.PORT ?? process.argv[2] ?? 4173);
-const port = Number.isInteger(requestedPort) && requestedPort > 0 ? requestedPort : 4173;
+const port =
+  Number.isInteger(requestedPort) && requestedPort > 0 && requestedPort <= 65_535
+    ? requestedPort
+    : 4173;
+const hasExplicitPort = process.env.PORT !== undefined || process.argv[2] !== undefined;
+const fallbackAttempts = hasExplicitPort ? 0 : 10;
 
 const mimeTypes = new Map([
   [".html", "text/html; charset=utf-8"],
@@ -31,13 +35,6 @@ const mimeTypes = new Map([
 function safeFilePath(requestUrl) {
   const parsed = new URL(requestUrl, "http://localhost");
   const decodedPath = decodeURIComponent(parsed.pathname);
-  if (decodedPath.startsWith("/vendor/katex/")) {
-    const relativeVendorPath = normalize(decodedPath.slice("/vendor/katex/".length));
-    const vendorCandidate = resolve(join(katexRoot, relativeVendorPath));
-    return vendorCandidate === katexRoot || vendorCandidate.startsWith(`${katexRoot}${sep}`)
-      ? vendorCandidate
-      : null;
-  }
   const relative = normalize(decodedPath).replace(/^([/\\])+/, "");
   const candidate = resolve(join(root, relative || "index.html"));
   if (!candidate.startsWith(root)) return null;
@@ -47,7 +44,7 @@ function safeFilePath(requestUrl) {
   return candidate;
 }
 
-const server = createServer((request, response) => {
+function handleRequest(request, response) {
   if (!request.url || !["GET", "HEAD"].includes(request.method ?? "")) {
     response.writeHead(405, { "content-type": "text/plain; charset=utf-8" });
     response.end("Método no permitido");
@@ -72,16 +69,46 @@ const server = createServer((request, response) => {
     return;
   }
   createReadStream(filePath).pipe(response);
-});
+}
 
-server.listen(port, "127.0.0.1", () => {
-  console.log(`Atlas disponible en http://127.0.0.1:${port}/`);
-  console.log(`Debugger aislado: http://127.0.0.1:${port}/?debug=1&profile=debug`);
-  console.log("Presiona Ctrl+C para detener el servidor.");
-});
+let activeServer = null;
+
+function listen(candidatePort, attemptsRemaining) {
+  const candidateServer = createServer(handleRequest);
+
+  candidateServer.once("error", (error) => {
+    if (error.code === "EADDRINUSE" && attemptsRemaining > 0 && candidatePort < 65_535) {
+      console.warn(`ATENCIÓN: el puerto ${candidatePort} está ocupado por otro proceso.`);
+      console.warn(`El servidor nuevo se abrirá en ${candidatePort + 1}; usa la URL que aparecerá abajo.`);
+      listen(candidatePort + 1, attemptsRemaining - 1);
+      return;
+    }
+
+    if (error.code === "EADDRINUSE") {
+      console.error(`No se pudo iniciar ATLAS: el puerto ${candidatePort} ya está ocupado.`);
+      console.error("Detén el servidor anterior con Ctrl+C o elige otro puerto con $env:PORT.");
+    } else {
+      console.error("No se pudo iniciar el servidor local de ATLAS.", error);
+    }
+    process.exitCode = 1;
+  });
+
+  candidateServer.listen(candidatePort, "127.0.0.1", () => {
+    activeServer = candidateServer;
+    console.log(`Atlas disponible en http://127.0.0.1:${candidatePort}/`);
+    console.log(`Debugger aislado: http://127.0.0.1:${candidatePort}/?debug=1&profile=debug`);
+    console.log("Presiona Ctrl+C para detener el servidor.");
+  });
+}
+
+listen(port, fallbackAttempts);
 
 function shutdown() {
-  server.close(() => process.exit(0));
+  if (!activeServer?.listening) {
+    process.exit(0);
+    return;
+  }
+  activeServer.close(() => process.exit(0));
 }
 
 process.on("SIGINT", shutdown);
