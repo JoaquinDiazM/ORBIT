@@ -5,14 +5,25 @@ import { spawnSync } from "node:child_process";
 import process from "node:process";
 
 const root = resolve(process.cwd());
+const ignoredDirectoryNames = new Set([".git", "dist", "node_modules"]);
+const approvedDependencies = new Map([
+  [
+    "katex",
+    {
+      field: "dependencies",
+      decision: "docs/decisions/0005-local-katex-rendering.md",
+    },
+  ],
+]);
 
 async function walk(directory, predicate = () => true) {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
   for (const entry of entries) {
     const absolute = resolve(directory, entry.name);
-    if (entry.isDirectory()) files.push(...(await walk(absolute, predicate)));
-    else if (entry.isFile() && predicate(absolute)) files.push(absolute);
+    if (entry.isDirectory() && !ignoredDirectoryNames.has(entry.name)) {
+      files.push(...(await walk(absolute, predicate)));
+    } else if (entry.isFile() && predicate(absolute)) files.push(absolute);
   }
   return files;
 }
@@ -71,8 +82,29 @@ async function checkPackagePolicy() {
   const packageJson = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
   const failures = [];
   for (const field of ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"]) {
-    if (packageJson[field] && Object.keys(packageJson[field]).length > 0) {
-      failures.push(`package.json contiene ${field}; una dependencia requiere ADR.`);
+    for (const [packageName, version] of Object.entries(packageJson[field] ?? {})) {
+      const approval = approvedDependencies.get(packageName);
+      if (!approval || approval.field !== field) {
+        failures.push(`${field}.${packageName} no tiene una excepción de dependencia aprobada.`);
+        continue;
+      }
+
+      const decisionPath = resolve(root, approval.decision);
+      if (!existsSync(decisionPath)) {
+        failures.push(`${field}.${packageName} exige el ADR inexistente ${approval.decision}.`);
+        continue;
+      }
+
+      const decisionText = await readFile(decisionPath, "utf8");
+      if (!/- Estado:\s*aceptado/i.test(decisionText)) {
+        failures.push(`${approval.decision} debe estar aceptado para permitir ${packageName}.`);
+      }
+      if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) {
+        failures.push(`${field}.${packageName} debe usar una versión exacta; se encontró ${version}.`);
+      }
+      if (!decisionText.includes(`KaTeX \`${version}\``)) {
+        failures.push(`${approval.decision} no respalda explícitamente KaTeX ${version}.`);
+      }
     }
   }
 

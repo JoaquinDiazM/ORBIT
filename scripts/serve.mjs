@@ -1,9 +1,10 @@
 import { createReadStream, existsSync, statSync } from "node:fs";
 import { createServer } from "node:http";
-import { extname, join, normalize, resolve } from "node:path";
+import { extname, join, normalize, resolve, sep } from "node:path";
 import process from "node:process";
 
 const root = resolve(process.cwd());
+const katexRoot = resolve(root, "node_modules", "katex", "dist");
 const requestedPort = Number(process.env.PORT ?? process.argv[2] ?? 4173);
 const port = Number.isInteger(requestedPort) && requestedPort > 0 ? requestedPort : 4173;
 
@@ -21,11 +22,22 @@ const mimeTypes = new Map([
   [".md", "text/markdown; charset=utf-8"],
   [".webmanifest", "application/manifest+json; charset=utf-8"],
   [".txt", "text/plain; charset=utf-8"],
+  [".ogg", "audio/ogg"],
+  [".woff2", "font/woff2"],
+  [".woff", "font/woff"],
+  [".ttf", "font/ttf"],
 ]);
 
 function safeFilePath(requestUrl) {
   const parsed = new URL(requestUrl, "http://localhost");
   const decodedPath = decodeURIComponent(parsed.pathname);
+  if (decodedPath.startsWith("/vendor/katex/")) {
+    const relativeVendorPath = normalize(decodedPath.slice("/vendor/katex/".length));
+    const vendorCandidate = resolve(join(katexRoot, relativeVendorPath));
+    return vendorCandidate === katexRoot || vendorCandidate.startsWith(`${katexRoot}${sep}`)
+      ? vendorCandidate
+      : null;
+  }
   const relative = normalize(decodedPath).replace(/^([/\\])+/, "");
   const candidate = resolve(join(root, relative || "index.html"));
   if (!candidate.startsWith(root)) return null;

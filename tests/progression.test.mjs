@@ -34,11 +34,13 @@ test("el perfil nuevo comienza solamente con el Campamento Base abierto", () => 
   assert.equal(progression.isLocationAccessible("coulomb-observatory"), false);
 });
 
-test("completar Vectores abre Electrostática y revela el gadget", () => {
+test("completar Vectores abre las tres rutas fundamentales iniciales y revela el gadget", () => {
   const progression = model();
   const result = progression.completeLocation("vector-workshop");
   assert.equal(result.ok, true);
   assert.equal(progression.isAreaUnlocked("electrostatics"), true);
+  assert.equal(progression.isAreaUnlocked("circuits"), true);
+  assert.equal(progression.isAreaUnlocked("differential-equations"), true);
   assert.equal(progression.isLocationAccessible("field-lens-cache"), true);
   assert.equal(progression.isLocationVisible("field-lens-cache"), true);
 });
@@ -58,7 +60,7 @@ test("una zona nueva abre todas sus fronteras compartidas con zonas previas", ()
   assert.equal(unlocked.has("magnetism"), true);
   assert.deepEqual(
     new Set(openNeighbors.map((area) => area.id)),
-    new Set(["origin", "electrostatics"]),
+    new Set(["origin", "electrostatics", "differential-equations"]),
   );
 });
 
@@ -67,11 +69,24 @@ test("la cadena académica completa alcanza la misión lunar", () => {
   const sequence = [
     "vector-workshop",
     "coulomb-observatory",
+    "circuit-analysis-bench",
+    "differential-equations-lab",
     "ampere-foundry",
     "faraday-station",
     "maxwell-archive",
     "hertz-beacon",
+    "sensor-calibration-lab",
+    "rotating-machine-lab",
+    "power-network-station",
+    "field-solver-lab",
+    "spectrum-workshop",
+    "optics-bench",
+    "shielding-chamber",
+    "waveguide-mode-gallery",
+    "transmission-line-bench",
+    "antenna-range",
     "atacama-array",
+    "wireless-link-station",
     "lunar-relay",
   ];
 

@@ -153,6 +153,11 @@ export function validateProjectData({ areas = AREAS, locations = LOCATIONS } = {
         errors.push(`La zona ${area.id} exige una recompensa inexistente: ${reward}.`);
       }
     }
+    for (const areaId of requirements.areas) {
+      if (!knownAreaIds.has(areaId)) {
+        errors.push(`La zona ${area.id} exige una zona inexistente: ${areaId}.`);
+      }
+    }
   }
 
   for (const location of locations) {
@@ -189,6 +194,11 @@ export function validateProjectData({ areas = AREAS, locations = LOCATIONS } = {
         errors.push(`El lugar ${location.id} exige una recompensa inexistente: ${reward}.`);
       }
     }
+    for (const areaId of requirements.areas) {
+      if (!knownAreaIds.has(areaId)) {
+        errors.push(`El lugar ${location.id} exige una zona inexistente: ${areaId}.`);
+      }
+    }
     for (const conceptId of location.grants?.concepts ?? []) {
       if (!knownConceptIds.has(conceptId)) {
         errors.push(`El lugar ${location.id} concede un concepto inexistente: ${conceptId}.`);
@@ -202,6 +212,14 @@ export function validateProjectData({ areas = AREAS, locations = LOCATIONS } = {
   }
 
   const simulation = simulateFullProgression({ areas, locations });
+  const grantedConceptIds = new Set(
+    locations.flatMap((location) => location.grants?.concepts ?? []),
+  );
+  for (const concept of CONCEPTS) {
+    if (!grantedConceptIds.has(concept.id)) {
+      errors.push(`El concepto ${concept.id} no es concedido por ningún lugar.`);
+    }
+  }
   for (const area of areas) {
     if (!simulation.unlockedAreas.has(area.id)) {
       errors.push(

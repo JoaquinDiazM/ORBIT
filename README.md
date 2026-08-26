@@ -6,22 +6,25 @@ Prototipo abierto de un curso complementario de electromagnetismo aplicado con u
 
 El proyecto está dirigido a estudiantes que ya manejan cálculo, álgebra lineal y física clásica, especialmente quienes consideran estudiar Ingeniería Eléctrica o comienzan los primeros semestres de la especialidad.
 
-> **Estado:** base técnica y pedagógica `0.1.0`. El contenido científico incluido es demostrativo y no sustituye todavía un curso formal ni una guía de ejercicios revisada.
+> **Estado:** prototipo técnico y pedagógico `0.2.0`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
 
 ## Qué demuestra esta versión
 
 - Movimiento continuo en 2D con teclado; el personaje no está restringido a nodos ni caminos.
-- Mundo abstracto de siete hexágonos con cámara, zoom y fronteras visibles.
+- Mundo de 19 hexágonos: Campamento Base, seis fundamentos y doce áreas de aplicación.
 - **Árbol del conocimiento I:** abre zonas completas.
 - **Árbol del conocimiento II:** revela lugares, gadgets, transportes, personajes y misiones dentro de zonas ya accesibles.
 - Regla de fronteras: cuando se abre un hexágono, quedan transitables todas sus aristas compartidas con hexágonos previamente abiertos.
-- Doce desbloqueos progresivos y siete conceptos demostrativos.
+- Veinte conceptos y 27 lugares alcanzables, incluida una misión integradora Tierra–Luna.
 - Ejercicios de alternativa, respuesta numérica con tolerancia y actividades de confirmación.
 - Persistencia local por perfiles, exportación e importación JSON.
 - Debugger visual y API de consola.
+- Ambiente global y efectos para cambio de zona e inicio de misión, con mute y pruebas directas.
+- Ecuaciones TeX renderizadas localmente con KaTeX y salida visual + MathML.
+- Migración automática de perfiles `v1` al esquema `v2`.
 - Validación automática contra bloqueos lógicos de progresión.
 - Build estático y despliegue preparado para GitHub Pages.
-- Cero dependencias de ejecución y cero dependencias de desarrollo.
+- Una dependencia npm fijada y documentada: KaTeX 0.18.1; el sitio construido no usa CDN ni backend.
 
 ## Inicio rápido
 
@@ -30,6 +33,7 @@ Requisito: [Node.js](https://nodejs.org/) 24 LTS o posterior.
 ```bash
 git clone https://github.com/JoaquinDiazM/ATLAS.git
 cd ATLAS
+npm install
 npm run dev
 ```
 
@@ -39,7 +43,23 @@ Abre:
 http://127.0.0.1:4173/
 ```
 
-No es necesario ejecutar `npm install`: los comandos usan únicamente módulos incorporados en Node.js.
+`npm install` prepara el render matemático local. Los estudiantes que reciben el contenido ya construido no necesitan instalar nada.
+
+### PowerShell y Visual Studio Code
+
+El proyecto funciona de forma nativa en la terminal PowerShell de VSC. Si PowerShell bloquea `npm.ps1`, habilita scripts locales firmados para tu usuario y abre una terminal nueva:
+
+```powershell
+Get-ExecutionPolicy -List
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+Como alternativa puntual, `npm.cmd` evita el wrapper de PowerShell. Si `npm run dev` informa `EADDRINUSE` para el puerto 4173, ya hay otro servidor activo: reutiliza esa pestaña, detén su terminal con `Ctrl+C` o inicia otra instancia con:
+
+```powershell
+$env:PORT = 4174
+npm run dev
+```
 
 Para una sesión de pruebas separada del progreso normal:
 
@@ -56,6 +76,7 @@ http://127.0.0.1:4173/?debug=1&profile=debug
 | Rueda del ratón | Zoom |
 | `G` | Activar o desactivar el Lente de campo, una vez adquirido |
 | `T` | Alternar transportes adquiridos |
+| `M` | Activar o silenciar ambiente y efectos |
 | `K` | Ver los dos árboles de progresión |
 | `H` | Ver ayuda |
 | `F2` o `` ` `` | Abrir/cerrar el debugger |
@@ -69,7 +90,7 @@ npm run dev       # servidor local en 127.0.0.1:4173
 npm run validate  # referencias, coordenadas y alcanzabilidad del contenido
 npm test          # pruebas con node:test
 npm run build     # crea dist/
-npm run repo-check # sintaxis, enlaces y política sin dependencias
+npm run repo-check # sintaxis, enlaces y dependencias respaldadas por ADR
 npm run check     # validate + test + repo-check + build
 ```
 
@@ -115,6 +136,7 @@ Más detalles:
 │   ├── core/                 # geometría, progreso, ejercicios y validación
 │   ├── data/                 # definición declarativa de mundo y contenido
 │   ├── game/                 # loop, cámara, entrada y renderer Canvas
+│   ├── audio/                # carga local, ambiente, efectos y mute
 │   └── ui/                   # paneles, ejercicios, HUD y debugger
 ├── tests/                    # pruebas unitarias y de progresión
 ├── scripts/                  # servidor, build y validador
@@ -134,6 +156,7 @@ La interfaz de depuración permite:
 - conceder el siguiente concepto;
 - abrir todas las zonas;
 - completar todo el prototipo;
+- probar directamente los tres recursos de audio;
 - reiniciar, exportar e importar un perfil.
 
 También existe una API en consola:
@@ -172,4 +195,6 @@ Las modificaciones grandes deben preservar los invariantes de progresión y acom
 
 - Código fuente: [MIT](LICENSE).
 - Contenido pedagógico original y documentación: [CC BY-SA 4.0](LICENSE-CONTENT.md), salvo indicación distinta.
+- KaTeX: MIT, copiado al build desde la dependencia fijada.
+- Audio incluido: CC0 1.0; procedencia en [public/assets/audio/ATTRIBUTION.md](public/assets/audio/ATTRIBUTION.md).
 - Los enlaces externos conservan sus propias condiciones de uso; no se redistribuyen sus recursos dentro del repositorio.

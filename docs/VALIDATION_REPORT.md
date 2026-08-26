@@ -1,6 +1,6 @@
-# Informe de validación de la versión 0.1.0
+# Informe de validación de la versión 0.2.0
 
-Fecha: 2026-08-25
+Fecha: 2026-08-26
 
 ## Validación automatizada
 
@@ -12,14 +12,14 @@ npm run check
 
 Resultado: correcto.
 
-- Cartografía y progresión: 7 zonas alcanzables.
-- Conceptos: 7 alcanzables.
-- Lugares: 14 alcanzables.
+- Cartografía y progresión: 19 zonas alcanzables con distribución axial `1 + 6 + 12`.
+- Conceptos: 20 alcanzables.
+- Lugares: 27 alcanzables.
 - Secuencia progresiva completa: llega al hito `milestones:lunar-link`.
-- Pruebas unitarias: 11 aprobadas, 0 fallidas.
-- Sintaxis JavaScript: 24 archivos comprobados.
-- Enlaces Markdown relativos: 26 archivos comprobados.
-- Política de dependencias: no existen dependencias npm.
+- Pruebas unitarias: 25 aprobadas; cubren geometría, progresión, migración, audio, ejercicios y KaTeX.
+- Sintaxis JavaScript: 32 archivos comprobados.
+- Enlaces Markdown relativos: 31 archivos comprobados.
+- Política de dependencias: KaTeX 0.18.1 fijado y respaldado por ADR 0005.
 - Versión de `package.json` y `APP_CONFIG`: consistente.
 - Build estático: generado correctamente en `dist/`.
 
@@ -36,12 +36,16 @@ Resultado: correcto.
 - Apertura de todas las fronteras compartidas al abrir una zona.
 - Cadena académica hasta la misión lunar.
 - Detección de zonas o recompensas progresivas inalcanzables.
+- Inventario y controlador de audio, incluidos fallos que degradan a silencio.
+- Compilación de todas las ecuaciones con la configuración KaTeX de producción.
+- Migración de perfiles y posiciones desde el esquema 1.
+- Distribución exacta de los seis fundamentos y doce aplicaciones.
 
 ## Revisión visual y de interfaz
 
 Se generó e inspeccionó `docs/screenshots/prototype.png`. La revisión comprobó:
 
-- representación del hexágono inicial y seis regiones vecinas;
+- representación de los 19 hexágonos y etiquetas de los dos anillos;
 - fronteras bloqueadas visibles;
 - HUD, misión, controles y perfil;
 - marcadores de lugares;
@@ -52,7 +56,7 @@ Durante la construcción también se realizó un smoke test de la interfaz en na
 
 ## Limitaciones de la validación
 
-- No hay todavía pruebas automatizadas end-to-end incluidas en el repositorio.
+- No hay todavía pruebas automatizadas end-to-end incluidas en el repositorio; la revisión de navegador sigue siendo manual.
 - No se ha realizado auditoría formal de accesibilidad.
 - No se ha probado en una matriz amplia de navegadores y dispositivos.
 - El contenido científico es demostrativo y no ha pasado aún por revisión académica completa.

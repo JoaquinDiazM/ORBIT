@@ -12,6 +12,7 @@ const ACTION_KEYS = Object.freeze({
   help: ["KeyH"],
   gadget: ["KeyG"],
   transport: ["KeyT"],
+  audio: ["KeyM"],
   escape: ["Escape"],
 });
 

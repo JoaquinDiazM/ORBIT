@@ -37,19 +37,15 @@ La tabla curricular no obliga a que cada fila sea exactamente un hexágono. Una 
 
 ```text
 Campamento Base
-  └─ Electrostática discreta
-       ├─ Flujo y simetría
-       └─ Potencial y materiales
-             └─ Magnetostática
-                   └─ Inducción
-                         └─ Maxwell y conservación
-                               ├─ Energía electromagnética
-                               └─ Ondas
-                                     ├─ Sistemas guiados
-                                     └─ Radiación y antenas
-                                           ├─ Instrumentación astronómica
-                                           ├─ máquinas y conversión
-                                           └─ comunicaciones espaciales
+  ├─ Electroestática ─ Magnetismo ─ Maxwell (incluye Inducción) ─ Ondas
+  ├─ Circuitos
+  └─ Ecuaciones diferenciales
+       │
+       └─ convergencia de prerrequisitos
+            ├─ Sensores, máquinas y potencia
+            ├─ Fourier, óptica y electromagnetismo computacional
+            ├─ Compatibilidad, líneas y guías de onda
+            └─ Antenas, radioastronomía y comunicaciones espaciales
 ```
 
 No tiene que ser un árbol estricto. Las aplicaciones avanzadas probablemente requerirán varios conceptos convergentes.

@@ -3,6 +3,7 @@ import { CONCEPTS, REWARDS, getReward, parseRewardKey, rewardKey } from "../data
 import { LOCATIONS } from "../data/locations.js";
 import { AREAS, WORLD_CONFIG } from "../data/world.js";
 import { meetsRequirements } from "./requirements.js";
+import { migrateProgressState } from "./progress-migrations.js";
 import { ProgressStorage } from "./storage.js";
 import {
   createWorldIndex,
@@ -34,6 +35,8 @@ function createInitialState(profile, worldIndex) {
     activeTransport: initialTransport,
     settings: {
       fieldLensEnabled: false,
+      audioMuted: false,
+      audioVolume: 1,
     },
     player: {
       x: center.x + WORLD_CONFIG.spawnOffset.x,
@@ -62,10 +65,10 @@ export class ProgressionModel {
     this.#save();
   }
 
-  static create({ profile, storageKey }) {
+  static create({ profile, storageKey, legacyStorageKeys = [] }) {
     return new ProgressionModel({
       profile,
-      storage: new ProgressStorage(storageKey),
+      storage: new ProgressStorage(storageKey, globalThis.localStorage, legacyStorageKeys),
     });
   }
 
@@ -82,6 +85,7 @@ export class ProgressionModel {
   #sanitizeState(candidate) {
     const initial = createInitialState(this.profile, this.worldIndex);
     if (!candidate || typeof candidate !== "object") return initial;
+    const migrated = migrateProgressState(candidate);
 
     const knownConcepts = new Set(this.concepts.map((concept) => concept.id));
     const knownLocations = new Set(this.locations.map((location) => location.id));
@@ -90,22 +94,22 @@ export class ProgressionModel {
 
     const state = {
       ...initial,
-      ...candidate,
+      ...migrated,
       schemaVersion: APP_CONFIG.progressSchemaVersion,
       profile: this.profile,
-      completedLocations: uniqueKnown(candidate.completedLocations, knownLocations),
-      concepts: uniqueKnown(candidate.concepts, knownConcepts),
-      rewards: uniqueKnown(candidate.rewards, knownRewards),
-      debugUnlockedAreas: uniqueKnown(candidate.debugUnlockedAreas, knownAreas),
+      completedLocations: uniqueKnown(migrated.completedLocations, knownLocations),
+      concepts: uniqueKnown(migrated.concepts, knownConcepts),
+      rewards: uniqueKnown(migrated.rewards, knownRewards),
+      debugUnlockedAreas: uniqueKnown(migrated.debugUnlockedAreas, knownAreas),
       settings: {
         ...initial.settings,
-        ...(candidate.settings && typeof candidate.settings === "object"
-          ? candidate.settings
+        ...(migrated.settings && typeof migrated.settings === "object"
+          ? migrated.settings
           : {}),
       },
       player: {
-        x: Number.isFinite(candidate.player?.x) ? candidate.player.x : initial.player.x,
-        y: Number.isFinite(candidate.player?.y) ? candidate.player.y : initial.player.y,
+        x: Number.isFinite(migrated.player?.x) ? migrated.player.x : initial.player.x,
+        y: Number.isFinite(migrated.player?.y) ? migrated.player.y : initial.player.y,
       },
       updatedAt: new Date().toISOString(),
     };
@@ -115,6 +119,12 @@ export class ProgressionModel {
 
     const ownedTransportIds = this.#ownedTransportIdsFromRewards(state.rewards);
     if (!ownedTransportIds.includes(state.activeTransport)) state.activeTransport = "walk";
+    state.settings.fieldLensEnabled = Boolean(state.settings.fieldLensEnabled);
+    state.settings.audioMuted = Boolean(state.settings.audioMuted);
+    state.settings.audioVolume = Math.min(
+      1,
+      Math.max(0, Number.isFinite(state.settings.audioVolume) ? state.settings.audioVolume : 1),
+    );
 
     return state;
   }
@@ -306,6 +316,26 @@ export class ProgressionModel {
     this.#save();
     this.#emit("field-lens-toggled", { enabled: this.state.settings.fieldLensEnabled });
     return { ok: true, enabled: this.state.settings.fieldLensEnabled };
+  }
+
+  setAudioMuted(muted) {
+    this.state.settings.audioMuted = Boolean(muted);
+    this.#save();
+    this.#emit("audio-muted-changed", { muted: this.state.settings.audioMuted });
+    return this.state.settings.audioMuted;
+  }
+
+  toggleAudioMuted() {
+    return this.setAudioMuted(!this.state.settings.audioMuted);
+  }
+
+  setAudioVolume(volume) {
+    const numeric = Number(volume);
+    if (!Number.isFinite(numeric)) return this.state.settings.audioVolume;
+    this.state.settings.audioVolume = Math.min(1, Math.max(0, numeric));
+    this.#save();
+    this.#emit("audio-volume-changed", { volume: this.state.settings.audioVolume });
+    return this.state.settings.audioVolume;
   }
 
   setPlayerPosition(x, y, { save = true } = {}) {

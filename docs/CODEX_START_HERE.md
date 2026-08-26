@@ -16,14 +16,17 @@ En este orden:
 
 ## 2. Estado actual
 
-La versión `0.1.0` es un prototipo estático sin dependencias externas. Ya incluye:
+La versión `0.2.0` es un prototipo estático con una dependencia local respaldada por ADR. Ya incluye:
 
 - movimiento continuo en Canvas 2D;
-- siete hexágonos abstractos;
+- 19 hexágonos en tres niveles: base, seis fundamentos y doce aplicaciones;
 - fronteras físicas derivadas del Árbol I;
 - lugares y recompensas derivados del Árbol II;
 - ejercicios de alternativa, número y confirmación;
 - guardado por perfil en `localStorage`;
+- migración de progreso `v1 → v2`;
+- audio local con tres eventos verificables y mute;
+- ecuaciones TeX renderizadas con KaTeX y MathML;
 - debugger visual y `window.AtlasDebug`;
 - validador que simula la progresión completa;
 - pruebas unitarias;
@@ -59,9 +62,11 @@ Incluye esa evaluación en tu resumen de cambios o en el mensaje de commit.
 | Reglas de requisitos | `src/core/requirements.js` |
 | Derivación de zonas/fronteras | `src/core/world-graph.js` |
 | Estado, progreso y guardado | `src/core/progression.js`, `src/core/storage.js` |
+| Migraciones de progreso | `src/core/progress-migrations.js` |
 | Geometría hexagonal | `src/core/hex.js` |
 | Entrada y movimiento | `src/game/input-controller.js`, `src/game/game-app.js` |
 | Dibujo del mundo | `src/game/renderer.js` |
+| Audio | `src/audio/audio-manager.js`, `public/assets/audio/` |
 | Paneles y ejercicios | `src/ui/ui-controller.js` |
 | Validación estática | `src/core/validator.js`, `scripts/validate-content.mjs` |
 | Pruebas | `tests/` |
@@ -69,6 +74,7 @@ Incluye esa evaluación en tu resumen de cambios o en el mensaje de commit.
 ## 5. Flujo mínimo de trabajo
 
 ```bash
+npm install
 npm run dev
 # abre http://127.0.0.1:4173/?debug=1&profile=debug
 
@@ -96,6 +102,7 @@ No:
 - hagas que una zona dependa de una llave situada únicamente dentro de ella;
 - renombres IDs publicados sin migración;
 - agregues React, Phaser, Vite, un CDN o cualquier paquete “por comodidad” sin ADR;
+- ignores un audio nuevo o inventes su ubicación: audita el manifiesto y pregunta al usuario si no indicó el evento;
 - copies problemas de pruebas universitarias internas;
 - inventes datos históricos o fuentes;
 - declares terminada una tarea sin `npm run check`.

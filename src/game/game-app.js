@@ -12,10 +12,11 @@ import { InputController } from "./input-controller.js";
 import { CanvasRenderer } from "./renderer.js";
 
 export class GameApp {
-  constructor({ canvas, progression, ui, debugInitiallyEnabled = false }) {
+  constructor({ canvas, progression, ui, audio, debugInitiallyEnabled = false }) {
     this.canvas = canvas;
     this.progression = progression;
     this.ui = ui;
+    this.audio = audio;
     this.worldIndex = createWorldIndex(AREAS);
     this.renderer = new CanvasRenderer(canvas);
     this.input = new InputController(canvas);
@@ -39,6 +40,7 @@ export class GameApp {
     });
     this.nearestLocation = null;
     this.currentArea = null;
+    this.lastAreaSoundAt = 0;
     this.lastTimestamp = null;
     this.lastPositionSave = 0;
     this.lastDebugUpdate = 0;
@@ -99,12 +101,22 @@ export class GameApp {
     this.#updateMovement(deltaSeconds);
 
     const snapshot = this.progression.getSnapshot();
+    const previousAreaId = this.currentArea?.id ?? null;
     this.currentArea = getAreaAtWorldPosition(
       this.player.x,
       this.player.y,
       WORLD_CONFIG.hexSize,
       this.worldIndex,
     );
+    if (
+      previousAreaId &&
+      this.currentArea?.id &&
+      previousAreaId !== this.currentArea.id &&
+      timestamp - this.lastAreaSoundAt > 500
+    ) {
+      void this.audio?.play("hexagon_transition");
+      this.lastAreaSoundAt = timestamp;
+    }
     this.nearestLocation = this.#findNearestAccessibleLocation(snapshot);
 
     if (this.input.consume("interact") && !this.ui.isBlockingModalOpen()) {
@@ -146,6 +158,7 @@ export class GameApp {
     }
     if (this.input.consume("knowledge")) this.ui.toggleKnowledgePanel();
     if (this.input.consume("help")) this.ui.toggleHelpPanel();
+    if (this.input.consume("audio")) void this.ui.toggleAudio();
 
     if (this.input.consume("gadget") && !this.ui.isBlockingModalOpen()) {
       const result = this.progression.toggleFieldLens();
@@ -362,6 +375,7 @@ export class GameApp {
         rewards: [...snapshot.rewards],
         activeTransport: snapshot.activeTransport.id,
         fieldLensEnabled: snapshot.state.settings.fieldLensEnabled,
+        audioMuted: snapshot.state.settings.audioMuted,
       },
     };
   }

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "base_path": ".",
+  "assets": {
+    "mission_start": {
+      "id": "mission_start_roger_beep_01",
+      "src": "interactions/mission_start_roger_beep_01.ogg",
+      "metadata": "interactions/mission_start_roger_beep_01.json",
+      "loop": false,
+      "volume": 0.75
+    },
+    "hexagon_transition": {
+      "id": "hexagon_transition_scifi_inspect_01",
+      "src": "transitions/hexagon_transition_scifi_inspect_01.ogg",
+      "metadata": "transitions/hexagon_transition_scifi_inspect_01.json",
+      "loop": false,
+      "volume": 0.65
+    },
+    "global_ambience": {
+      "id": "global_space_ambient_loop_01",
+      "src": "ambience/global_space_ambient_loop_01.ogg",
+      "metadata": "ambience/global_space_ambient_loop_01.json",
+      "loop": true,
+      "volume": 0.28
+    }
+  }
+}

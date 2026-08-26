@@ -234,6 +234,7 @@ code {
   display: flex;
   gap: 0.45rem;
   margin-top: 0.74rem;
+  flex-wrap: wrap;
 }
 
 .secondary-button {
@@ -359,14 +360,44 @@ code {
 }
 
 .equation-card {
+  margin: 0.9rem 0;
   padding: 0.78rem 0.9rem;
   overflow-x: auto;
   border: 1px solid rgba(120, 227, 255, 0.18);
   color: #e7f7ff;
   background: rgba(4, 15, 27, 0.72);
-  font-family: "Cambria Math", "STIX Two Math", Georgia, serif;
   font-size: 1rem;
   text-align: center;
+}
+
+.equation-render {
+  min-width: max-content;
+  padding: 0.2rem;
+}
+
+.equation-render:focus-visible {
+  outline: 2px solid rgba(120, 227, 255, 0.72);
+  outline-offset: 3px;
+}
+
+.equation-card .katex-display {
+  margin: 0;
+}
+
+.equation-caption {
+  max-width: 68ch;
+  margin: 0.65rem auto 0;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.math-render-error {
+  color: var(--danger);
+  font-family: "Cambria Math", "STIX Two Math", Georgia, serif;
+  white-space: pre-wrap;
 }
 
 .callout {

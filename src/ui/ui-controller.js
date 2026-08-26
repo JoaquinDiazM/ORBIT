@@ -3,6 +3,7 @@ import { LOCATIONS } from "../data/locations.js";
 import { AREAS } from "../data/world.js";
 import { evaluateExercise } from "../core/exercises.js";
 import { describeMissingRequirements } from "../core/requirements.js";
+import { createEquationFigure } from "./math-renderer.js";
 
 function element(tagName, options = {}) {
   const node = document.createElement(tagName);
@@ -34,8 +35,9 @@ function locationKindLabel(kind) {
 }
 
 export class UIController {
-  constructor({ progression }) {
+  constructor({ progression, audio }) {
     this.progression = progression;
+    this.audio = audio;
     this.gameApi = null;
     this.openPanels = [];
 
@@ -58,6 +60,7 @@ export class UIController {
       debugState: document.querySelector("#debug-state"),
       toastRegion: document.querySelector("#toast-region"),
       loadingScreen: document.querySelector("#loading-screen"),
+      audioToggle: document.querySelector("#toggle-audio"),
       debugNoclip: document.querySelector("#debug-noclip"),
       debugShowIds: document.querySelector("#debug-show-ids"),
       debugShowGraph: document.querySelector("#debug-show-graph"),
@@ -69,8 +72,10 @@ export class UIController {
     this.elements.profileBadge.textContent = `perfil: ${progression.profile}`;
     this.#populateDebugAreaSelect();
     this.#bindStaticControls();
+    this.#updateAudioControl();
     this.progression.subscribe(() => {
       this.updateKnowledgePanel();
+      this.#updateAudioControl();
     });
   }
 
@@ -90,6 +95,20 @@ export class UIController {
     document.querySelector("#open-help").addEventListener("click", () => {
       this.toggleHelpPanel();
     });
+    this.elements.audioToggle.addEventListener("click", () => {
+      void this.toggleAudio();
+    });
+
+    const audioPreviews = [
+      ["#debug-audio-ambience", "global_ambience", 5000],
+      ["#debug-audio-transition", "hexagon_transition", undefined],
+      ["#debug-audio-mission", "mission_start", undefined],
+    ];
+    for (const [selector, assetKey, durationMs] of audioPreviews) {
+      document.querySelector(selector).addEventListener("click", () => {
+        void this.#previewAudio(assetKey, durationMs);
+      });
+    }
 
     document.querySelectorAll("[data-close-panel]").forEach((button) => {
       button.addEventListener("click", () => this.closePanel(button.dataset.closePanel));
@@ -210,6 +229,8 @@ export class UIController {
       return;
     }
 
+    if (location.kind === "mission") void this.audio?.play("mission_start");
+
     this.closePanel("knowledge-panel");
     this.closePanel("help-panel");
     this.elements.lessonEyebrow.textContent = locationKindLabel(location.kind);
@@ -267,7 +288,7 @@ export class UIController {
       section.append(list);
     }
     if (sectionData.equation) {
-      section.append(element("div", { className: "equation-card", text: sectionData.equation }));
+      section.append(createEquationFigure(sectionData.equation));
     }
     if (sectionData.callout) {
       section.append(element("p", { className: "callout", text: sectionData.callout }));
@@ -422,10 +443,10 @@ export class UIController {
       this.closePanel("knowledge-panel");
       return;
     }
-    this.updateKnowledgePanel();
     this.closePanel("lesson-panel");
     this.closePanel("help-panel");
     this.openPanel("knowledge-panel");
+    this.updateKnowledgePanel();
   }
 
   updateKnowledgePanel() {
@@ -498,6 +519,35 @@ export class UIController {
       this.closePanel("knowledge-panel");
       this.openPanel("help-panel");
     }
+  }
+
+  async toggleAudio() {
+    const muted = this.progression.toggleAudioMuted();
+    const result = await this.audio?.setMuted(muted);
+    this.#updateAudioControl();
+    this.toast(
+      muted ? "Audio silenciado." : "Audio activado.",
+      result?.ok === false ? "warning" : "success",
+    );
+    return !muted;
+  }
+
+  #updateAudioControl() {
+    const muted = Boolean(this.progression.getSnapshot().state.settings.audioMuted);
+    this.elements.audioToggle.setAttribute("aria-pressed", String(!muted));
+    this.elements.audioToggle.firstChild.textContent = muted ? "Audio silenciado " : "Audio activo ";
+  }
+
+  async #previewAudio(assetKey, durationMs) {
+    if (this.progression.getSnapshot().state.settings.audioMuted) {
+      this.progression.setAudioMuted(false);
+      await this.audio?.setMuted(false);
+    }
+    const result = await this.audio?.preview(assetKey, { durationMs });
+    this.toast(
+      result?.ok ? "Prueba de audio iniciada." : "No fue posible reproducir este recurso.",
+      result?.ok ? "success" : "warning",
+    );
   }
 
   openDebugPanel() {

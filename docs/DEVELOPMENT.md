@@ -5,7 +5,7 @@
 - Node.js 24 LTS o posterior.
 - Navegador moderno con módulos ES, Canvas 2D y `localStorage`.
 
-El prototipo no tiene dependencias npm. Los scripts usan únicamente APIs incorporadas en Node.js.
+Ejecuta `npm install` una vez por clon. KaTeX 0.18.1 es la única dependencia npm y se usa localmente para render matemático; no hay CDN, framework ni backend.
 
 ## Windows y Visual Studio Code
 
@@ -13,9 +13,19 @@ El proyecto funciona de forma nativa en Windows con PowerShell; no requiere WSL.
 
 Si instalas Node.js con Visual Studio Code ya abierto, reinicia la aplicación para que la terminal integrada reciba el `PATH` actualizado. Cuando la carpeta esté sincronizada por OneDrive, mantenla disponible sin conexión y evita editar el mismo checkout simultáneamente desde otro equipo durante operaciones Git.
 
+Si `npm.ps1` queda bloqueado, revisa la política y habilita scripts locales firmados en el alcance del usuario:
+
+```powershell
+Get-ExecutionPolicy -List
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+Abre una terminal nueva después del cambio. `npm.cmd` es una alternativa puntual que no usa el wrapper de PowerShell.
+
 ## Comandos
 
 ```bash
+npm install
 npm run dev
 npm run validate
 npm test
@@ -28,6 +38,8 @@ npm run check
 
 Sirve el directorio del proyecto en `http://127.0.0.1:4173/`. No transforma los módulos; el navegador carga el código fuente directamente.
 
+Si aparece `EADDRINUSE`, otro proceso ya escucha en 4173. Reutiliza el servidor existente, detén su terminal con `Ctrl+C` o usa en PowerShell `$env:PORT = 4174` antes de `npm run dev`.
+
 ### `npm run validate`
 
 Comprueba IDs, referencias, coordenadas, recompensas, requisitos y alcanzabilidad global. Simula completar todo el contenido accesible hasta alcanzar un punto fijo.
@@ -38,7 +50,7 @@ Ejecuta las pruebas de `tests/` mediante `node:test`.
 
 ### `npm run build`
 
-Copia los recursos publicables a `dist/` y genera `build-info.json`. El build es intencionalmente transparente: no minifica ni empaqueta el código.
+Copia los recursos publicables a `dist/`, añade la distribución local de KaTeX y genera `build-info.json`. El build es intencionalmente transparente: no minifica ni empaqueta el código del proyecto.
 
 ### `npm run check`
 

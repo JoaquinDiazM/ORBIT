@@ -79,7 +79,10 @@ Esqueleto mínimo:
     },
     {
       title: "Modelo",
-      equation: "Φ_E = ∬_S E · dA",
+      equation: {
+        tex: String.raw`\Phi_E=\iint_S\mathbf{E}\cdot\mathrm{d}\mathbf{A}`,
+        caption: "Flujo eléctrico a través de la superficie S.",
+      },
     },
   ],
   exercise: {
@@ -96,6 +99,8 @@ Esqueleto mínimo:
   ],
 }
 ```
+
+Las ecuaciones usan TeX compatible con KaTeX y siempre incluyen una descripción visible. La UI genera DOM y MathML mediante `katex.render`; no introduzcas HTML, delimitadores `$$...$$` ni comandos que requieran `trust: true`. `npm test` compila todas las expresiones con la configuración de producción.
 
 ## Requisitos
 

@@ -11,7 +11,13 @@ El espacio físico y el espacio curricular se relacionan, pero no son el mismo g
 
 ## Mundo hexagonal
 
-Se utilizan hexágonos pointy-top con coordenadas axiales `(q, r)`. El prototipo forma un anillo de seis regiones alrededor del Campamento Base.
+Se utilizan hexágonos pointy-top con coordenadas axiales `(q, r)`. El prototipo forma un disco de radio dos con 19 regiones:
+
+- radio 0: Campamento Base;
+- radio 1: Electroestática, Magnetismo, Maxwell —que incorpora Inducción—, Ondas, Circuitos y Ecuaciones Diferenciales;
+- radio 2: Sensores e Instrumentación, Máquinas Eléctricas, Sistemas de Potencia, Electromagnetismo Computacional, Fourier, Óptica y Fotónica, Compatibilidad Electromagnética, Guías de Onda, Radioastronomía, Antenas, Comunicaciones Inalámbricas y Líneas de Transmisión.
+
+El ID publicado `applications` se conserva para la zona especializada de Radioastronomía. Esta continuidad evita invalidar perfiles antiguos aunque cambie su posición y alcance pedagógico.
 
 Una zona puede contener cualquier número razonable de lugares. Los lugares se ubican con un `offset` local respecto del centro del hexágono, no mediante coordenadas geográficas reales.
 

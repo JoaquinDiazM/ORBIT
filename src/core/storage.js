@@ -1,15 +1,18 @@
 export class ProgressStorage {
-  constructor(key, storage = globalThis.localStorage) {
+  constructor(key, storage = globalThis.localStorage, legacyKeys = []) {
     this.key = key;
     this.storage = storage;
+    this.legacyKeys = [...new Set(legacyKeys)].filter((legacyKey) => legacyKey !== key);
     this.memoryFallback = null;
   }
 
   load() {
     try {
-      const serialized = this.storage?.getItem(this.key);
-      if (!serialized) return this.memoryFallback;
-      return JSON.parse(serialized);
+      for (const key of [this.key, ...this.legacyKeys]) {
+        const serialized = this.storage?.getItem(key);
+        if (serialized) return JSON.parse(serialized);
+      }
+      return this.memoryFallback;
     } catch (error) {
       console.warn("No fue posible leer el progreso persistente.", error);
       return this.memoryFallback;
@@ -29,7 +32,7 @@ export class ProgressStorage {
   clear() {
     this.memoryFallback = null;
     try {
-      this.storage?.removeItem(this.key);
+      for (const key of [this.key, ...this.legacyKeys]) this.storage?.removeItem(key);
     } catch (error) {
       console.warn("No fue posible borrar el progreso persistente.", error);
     }

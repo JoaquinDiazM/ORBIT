@@ -33,7 +33,7 @@ La experiencia combina dos modos que deberán coexistir en una versión futura:
 - **Modo Expedición:** progresión narrativa y desbloqueos espaciales.
 - **Modo Atlas:** acceso académico directo por tema, útil para repasar antes de una evaluación.
 
-La versión `0.1.0` implementa la Expedición y deja el modo Atlas como siguiente hito.
+La versión `0.2.0` implementa la Expedición, expande la cartografía a dos anillos y deja el modo Atlas como siguiente hito.
 
 ## Dos grafos de conocimiento
 

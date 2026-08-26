@@ -1,0 +1,23 @@
+{
+  "asset_id": "hexagon_transition_scifi_inspect_01",
+  "runtime_file": "hexagon_transition_scifi_inspect_01.ogg",
+  "category": "transitions",
+  "intended_use": "Se reproduce cuando el personaje cruza a una zona o hexágono diferente.",
+  "playback": {
+    "loop": false,
+    "suggested_volume": 0.65
+  },
+  "source": {
+    "sound_url": "https://freesound.org/people/LilMati/sounds/657945/",
+    "sound_name": "SciFi Inspect Sound, UI, or In-Game Notification 01.wav",
+    "author_url": "https://freesound.org/people/LilMati/",
+    "author_name": "LilMati",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "license_name": "Creative Commons 0"
+  },
+  "conversion": {
+    "source_format": "WAV PCM 16-bit, 44.1 kHz, mono",
+    "runtime_format": "Ogg Vorbis, quality 6",
+    "audio_content_modified": false
+  }
+}

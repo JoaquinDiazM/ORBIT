@@ -1,4 +1,5 @@
 import { APP_CONFIG } from "./config.js";
+import { AudioManager } from "./audio/audio-manager.js";
 import { ProgressionModel } from "./core/progression.js";
 import { sanitizeProfileName } from "./core/storage.js";
 import { validateProjectData } from "./core/validator.js";
@@ -15,6 +16,10 @@ const profile = sanitizeProfileName(
   APP_CONFIG.defaultProfile,
 );
 const storageKey = `${APP_CONFIG.storagePrefix}:v${APP_CONFIG.progressSchemaVersion}:${profile}`;
+const legacyStorageKeys = Array.from(
+  { length: Math.max(0, APP_CONFIG.progressSchemaVersion - 1) },
+  (_, index) => `${APP_CONFIG.storagePrefix}:v${index + 1}:${profile}`,
+);
 
 const validation = validateProjectData();
 if (validation.errors.length > 0) {
@@ -30,9 +35,23 @@ if (!(canvas instanceof HTMLCanvasElement)) {
   throw new Error("No se encontró el canvas principal.");
 }
 
-const progression = ProgressionModel.create({ profile, storageKey });
-const ui = new UIController({ progression });
-const game = new GameApp({ canvas, progression, ui, debugInitiallyEnabled });
+const progression = ProgressionModel.create({ profile, storageKey, legacyStorageKeys });
+const initialSettings = progression.getSnapshot().state.settings;
+const audio = new AudioManager({
+  muted: initialSettings.audioMuted,
+  masterVolume: initialSettings.audioVolume,
+}).start();
+const ui = new UIController({ progression, audio });
+const game = new GameApp({ canvas, progression, ui, audio, debugInitiallyEnabled });
+
+progression.subscribe((event) => {
+  if (["reset", "state-imported", "audio-muted-changed"].includes(event.type)) {
+    void audio.setMuted(event.snapshot.state.settings.audioMuted);
+  }
+  if (["reset", "state-imported", "audio-volume-changed"].includes(event.type)) {
+    audio.setMasterVolume(event.snapshot.state.settings.audioVolume);
+  }
+});
 
 const gameApi = {
   getDebugState: () => game.getDebugState(),
@@ -64,6 +83,7 @@ window.AtlasDebug = Object.freeze({
         "teleport(x, y)",
         "setNoclip(boolean)",
         "toggleFieldLens()",
+        "toggleAudio()",
         "reset()",
         "exportProgress()",
         "importProgress(object)",
@@ -80,6 +100,11 @@ window.AtlasDebug = Object.freeze({
   teleport: (x, y) => game.teleportToWorld(Number(x), Number(y)),
   setNoclip: (enabled) => game.setDebugOption("noclip", Boolean(enabled)),
   toggleFieldLens: () => progression.toggleFieldLens(),
+  toggleAudio: () => {
+    const muted = progression.toggleAudioMuted();
+    void audio.setMuted(muted);
+    return { muted };
+  },
   reset: () => {
     progression.reset();
     game.syncPlayerFromProgress();

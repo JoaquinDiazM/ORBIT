@@ -1,0 +1,26 @@
+{
+  "asset_id": "global_space_ambient_loop_01",
+  "runtime_file": "global_space_ambient_loop_01.ogg",
+  "category": "ambience",
+  "intended_use": "Ambiente global provisional; debe reproducirse continuamente en bucle mientras no exista una pista ambiental específica para la zona.",
+  "playback": {
+    "loop": true,
+    "suggested_volume": 0.28,
+    "fade_in_seconds": 1.5,
+    "fade_out_seconds": 1.5
+  },
+  "source": {
+    "sound_url": "https://freesound.org/people/evanjones4/sounds/243998/",
+    "sound_name": "space music ambient",
+    "author_url": "https://freesound.org/people/evanjones4/",
+    "author_name": "evanjones4",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "license_name": "Creative Commons 0"
+  },
+  "conversion": {
+    "source_format": "WAV PCM 16-bit, 44.1 kHz, stereo",
+    "runtime_format": "Ogg Vorbis, quality 5",
+    "audio_content_modified": false,
+    "loop_note": "El archivo no fue reeditado para crear un empalme perfecto; revisar el punto de repetición durante la integración."
+  }
+}

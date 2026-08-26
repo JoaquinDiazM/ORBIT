@@ -6,6 +6,3 @@ coverage/
 *.log
 .vscode/
 .idea/
-
-# Guía local de pruebas manuales; contiene notas específicas del entorno.
-/test_instruction.md

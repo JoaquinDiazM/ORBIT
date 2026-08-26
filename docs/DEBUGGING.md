@@ -29,6 +29,7 @@ Usa perfiles más específicos para tareas independientes:
 - **Conceder siguiente concepto:** avanza por el orden demostrativo.
 - **Abrir todas las zonas:** agrega overrides de área al perfil.
 - **Completar todo:** concede todos los conceptos, recompensas y lugares.
+- **Probar audio:** reproduce ambiente, transición e inicio de misión sin exigir progresión previa.
 - **Reiniciar:** borra el perfil activo.
 - **Exportar/importar:** intercambia el JSON del perfil.
 
@@ -72,7 +73,7 @@ AtlasDebug.unlockAllAreas();
 ### Teletransporte
 
 ```js
-AtlasDebug.teleportArea("applications");
+AtlasDebug.teleportArea("applications"); // Radioastronomía, segundo anillo
 AtlasDebug.teleport(120, -240);
 ```
 
@@ -92,6 +93,14 @@ AtlasDebug.toggleFieldLens();
 ```
 
 Solo tiene efecto normal cuando la recompensa correspondiente pertenece al perfil.
+
+### Audio
+
+```js
+AtlasDebug.toggleAudio();
+```
+
+El botón `M` y la API modifican la preferencia mediante `ProgressionModel`; el debugger visual incluye pruebas individuales de los tres recursos.
 
 ### Estado
 

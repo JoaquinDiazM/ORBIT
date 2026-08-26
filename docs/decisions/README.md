@@ -7,6 +7,8 @@ Los ADR registran decisiones que afectan estructura, dependencias, persistencia 
 - [0001 — Prototipo estático sin dependencias](0001-static-no-dependencies.md)
 - [0002 — Dos grafos de conocimiento separados](0002-dual-knowledge-graphs.md)
 - [0003 — Guardar logros y derivar disponibilidad](0003-derived-progress-state.md)
+- [0004 — Audio local con APIs nativas](0004-native-audio-system.md)
+- [0005 — Render matemático local con KaTeX](0005-local-katex-rendering.md)
 
 ## Crear un ADR
 

@@ -61,12 +61,14 @@ La interfaz narrativa apoya el aprendizaje. No es el objetivo principal ni debe 
 
 1. Lee `README.md`, este archivo y el `AGENTS.md` más cercano a los archivos que modificarás.
 2. Lee `docs/CODEX_START_HERE.md` y las decisiones relevantes.
-3. Describe brevemente qué invariante puede afectar tu cambio.
-4. Implementa el cambio mínimo que resuelva la tarea.
-5. Añade o actualiza pruebas.
-6. Ejecuta `npm run check`.
-7. Revisa manualmente el mundo en perfil de depuración.
-8. Actualiza documentación y `CHANGELOG.md` cuando cambie comportamiento visible.
+3. Audita `public/assets/audio/`: compara archivos `.ogg` y metadatos `.json` con `audio-manifest.json` y busca cada ID en `src/`.
+4. Si aparece audio nuevo sin un punto de reproducción verificable y la instrucción no indica dónde usarlo, pregunta al usuario dónde debe escucharse antes de asignarle un destino. No asumas que un recurso fue añadido por azar; puedes continuar otras partes independientes y seguras de la tarea.
+5. Describe brevemente qué invariante puede afectar tu cambio.
+6. Implementa el cambio mínimo que resuelva la tarea.
+7. Añade o actualiza pruebas. Todo audio versionado debe tener atribución, entrada de manifiesto y una forma accesible de ser escuchado; nunca debe ser la única señal de un estado.
+8. Ejecuta `npm run check`.
+9. Revisa manualmente el mundo en perfil de depuración, incluidos los eventos de audio aplicables.
+10. Actualiza documentación y `CHANGELOG.md` cuando cambie comportamiento visible.
 
 ## Criterios de término
 

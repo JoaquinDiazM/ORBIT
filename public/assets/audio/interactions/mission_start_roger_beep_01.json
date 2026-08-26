@@ -1,0 +1,23 @@
+{
+  "asset_id": "mission_start_roger_beep_01",
+  "runtime_file": "mission_start_roger_beep_01.ogg",
+  "category": "interactions",
+  "intended_use": "Se reproduce cuando el personaje inicia una misión.",
+  "playback": {
+    "loop": false,
+    "suggested_volume": 0.75
+  },
+  "source": {
+    "sound_url": "https://freesound.org/people/stano458/sounds/842282/",
+    "sound_name": "Roger_beep_rus",
+    "author_url": "https://freesound.org/people/stano458/",
+    "author_name": "stano458",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "license_name": "Creative Commons 0"
+  },
+  "conversion": {
+    "source_format": "WAV PCM 16-bit, 44.1 kHz, stereo",
+    "runtime_format": "Ogg Vorbis, quality 6",
+    "audio_content_modified": false
+  }
+}

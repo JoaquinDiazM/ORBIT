@@ -5,12 +5,13 @@
 Con Node.js 24 LTS o posterior instalado:
 
 ```bash
+npm install
 npm run dev
 ```
 
 Abre `http://127.0.0.1:4173/`.
 
-No se requiere `npm install` para esta versión.
+`npm install` se ejecuta una vez para disponer del render matemático local.
 
 ## Objetivo de la demostración
 
@@ -31,9 +32,9 @@ Las líneas luminosas indican fronteras transitables. Las barreras marcadas con 
 
 1. Visita el **Taller Vectorial** en Campamento Base.
 2. Cruza al **Altiplano Electrostático** y completa el Observatorio de Coulomb.
-3. Continúa por Magnetismo, Inducción, Maxwell y Ondas.
-4. Llega a la Frontera de Aplicaciones.
-5. Completa la misión interferométrica y después el enlace lunar.
+3. Explora en paralelo Circuitos y Ecuaciones Diferenciales; continúa por Magnetismo, Maxwell —que incorpora Inducción— y Ondas.
+4. Recorre el segundo anillo de doce aplicaciones: entre ellas Antenas, Líneas de Transmisión, Guías de Onda, Máquinas Eléctricas y Fourier.
+5. Integra esas ramas en Radioastronomía, Comunicaciones y el enlace lunar.
 
 También existen recompensas opcionales que no son necesarias para abrir la siguiente zona.
 
@@ -50,8 +51,13 @@ El mundo no obliga a caminar por las líneas de esos árboles. Los grafos contro
 
 - `G`: activa o desactiva la Lente de campo después de adquirirla.
 - `T`: alterna entre los transportes disponibles.
+- `M`: activa o silencia ambiente y efectos.
 
 Los transportes cambian la velocidad de exploración, no los prerrequisitos académicos.
+
+## Audio y ecuaciones
+
+El ambiente comienza solo después de tu primer clic o tecla. El cruce de una zona y la apertura de una misión tienen efectos breves; las mismas acciones siempre conservan indicación visual. Las ecuaciones se escriben en TeX, se muestran con tipografía matemática y exponen MathML para tecnologías de asistencia.
 
 ## Guardado
 

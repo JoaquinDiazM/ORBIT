@@ -308,14 +308,16 @@ export class CanvasRenderer {
         }
         break;
       }
-      case "induction": {
-        context.beginPath();
-        for (let x = -170; x <= 170; x += 5) {
-          const y = Math.sin(x * 0.07 + timeSeconds * 0.4) * 22;
-          if (x === -170) context.moveTo(center.x + x, center.y + y);
-          else context.lineTo(center.x + x, center.y + y);
+      case "differential-equations": {
+        for (let x = -140; x <= 140; x += 56) {
+          for (let y = -120; y <= 120; y += 48) {
+            const slope = Math.sin((x + y) * 0.018) * 13;
+            context.beginPath();
+            context.moveTo(center.x + x - 12, center.y + y + slope);
+            context.lineTo(center.x + x + 12, center.y + y - slope);
+            context.stroke();
+          }
         }
-        context.stroke();
         break;
       }
       case "maxwell": {
@@ -343,6 +345,19 @@ export class CanvasRenderer {
         }
         break;
       }
+      case "circuits": {
+        for (let row = -100; row <= 100; row += 50) {
+          context.beginPath();
+          context.moveTo(center.x - 150, center.y + row);
+          context.lineTo(center.x - 45, center.y + row);
+          context.lineTo(center.x - 25, center.y + row - 18);
+          context.lineTo(center.x + 15, center.y + row + 18);
+          context.lineTo(center.x + 35, center.y + row);
+          context.lineTo(center.x + 150, center.y + row);
+          context.stroke();
+        }
+        break;
+      }
       case "applications": {
         for (let index = -2; index <= 2; index += 1) {
           const x = center.x + index * 66;
@@ -357,6 +372,12 @@ export class CanvasRenderer {
         break;
       }
       default:
+        for (let radius = 44; radius <= 154; radius += 36) {
+          const phase = (area.order % 6) * (Math.PI / 3) + timeSeconds * 0.04;
+          context.beginPath();
+          context.arc(center.x, center.y, radius, phase, phase + Math.PI * 1.35);
+          context.stroke();
+        }
         break;
     }
     context.restore();

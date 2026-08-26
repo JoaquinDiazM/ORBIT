@@ -85,10 +85,22 @@
 - [ ] La reducción de movimiento del sistema se respeta.
 - [ ] La interfaz sigue siendo utilizable en una ventana estrecha razonable.
 - [ ] Los controles nuevos aparecen en ayuda.
+- [ ] Cada ecuación se renderiza, conserva caption y puede desplazarse con teclado si desborda.
+- [ ] La salida matemática expone representación MathML y el fallback TeX es legible.
+
+## Audio
+
+- [ ] No se reproduce nada antes del primer gesto del usuario.
+- [ ] `M` y el botón del HUD alternan el mute y persisten tras recargar.
+- [ ] El ambiente se pausa al ocultar la pestaña y vuelve solo si sigue habilitado.
+- [ ] Cruzar un hexágono reproduce transición sin sustituir el cambio visual de zona.
+- [ ] Abrir una misión reproduce el beep y conserva el panel visible.
+- [ ] Los tres botones de prueba del debugger reproducen los recursos correctos.
+- [ ] Todo `.ogg` tiene metadatos, atribución, manifiesto y un uso verificable.
 
 ## Publicación
 
-- [ ] `dist/` contiene `index.html`, `404.html`, `src/` y `public/`.
+- [ ] `dist/` contiene `index.html`, `404.html`, `src/`, `public/` y `vendor/katex/`.
 - [ ] Todas las rutas son relativas.
 - [ ] El workflow de Pages termina correctamente.
 - [ ] La página funciona bajo una subruta de repositorio.

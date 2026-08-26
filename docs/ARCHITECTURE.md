@@ -24,6 +24,8 @@ loop + Canvas      DOM + paneles + ejercicios
             src/main.js
 ```
 
+`src/audio/` aporta un servicio lateral basado en `HTMLAudioElement`. Recibe eventos del juego y de la UI, pero no modifica progreso ni participa en la derivación de grafos.
+
 ## Datos declarativos
 
 ### `src/data/world.js`
@@ -73,6 +75,8 @@ Define lugares, secciones, actividades, requisitos y concesiones del Árbol II.
 - expone snapshots inmutables para game/UI;
 - exporta e importa perfiles.
 
+`src/core/progress-migrations.js` transforma perfiles publicados antes del saneamiento. El esquema 2 conserva logros del esquema 1 y traslada posiciones y overrides asociados a las antiguas zonas de Inducción y Aplicaciones.
+
 ### Persistencia
 
 `src/core/storage.js` encapsula `localStorage`. El formato está versionado por `APP_CONFIG.progressSchemaVersion`.
@@ -118,7 +122,11 @@ Orquesta el loop:
 
 ## Interfaz
 
-`src/ui/ui-controller.js` controla HUD, modal de lecciones, ejercicios, inventario, árboles, ayuda, avisos y debugger. Construye contenido mediante APIs DOM y `textContent`.
+`src/ui/ui-controller.js` controla HUD, modal de lecciones, ejercicios, inventario, árboles, ayuda, avisos y debugger. Construye contenido mediante APIs DOM y `textContent`. `src/ui/math-renderer.js` entrega a KaTeX únicamente expresiones editoriales TeX y conserva un fallback textual; el build sirve KaTeX localmente y nunca desde CDN.
+
+## Audio
+
+`src/audio/audio-manager.js` carga `public/assets/audio/audio-manifest.json` después del primer gesto del usuario. El ambiente global, la transición de hexágono y el inicio de misión poseen señal visual equivalente y pruebas directas en el debugger. El mute y volumen se persisten mediante `ProgressionModel`; el servicio de audio solo ejecuta la preferencia.
 
 ## Arranque
 

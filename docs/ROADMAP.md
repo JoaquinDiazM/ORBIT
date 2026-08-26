@@ -18,7 +18,7 @@ Estado: completado en este prototipo.
 
 ## 0.2 — Esqueleto académico
 
-Prioridad inmediata.
+Estado: cartografía y mecánicas de soporte implementadas; profundidad académica aún provisional.
 
 - Definir entre diez y doce resultados de aprendizaje principales.
 - Elaborar matriz resultado–prerrequisito–evidencia–ejercicio–aplicación.
@@ -26,6 +26,7 @@ Prioridad inmediata.
 - Determinar alcance respecto de un curso universitario real.
 - Diseñar taxonomía de dificultad y tipos de solución.
 - Implementar modo Atlas básico.
+- Poblar y revisar los 19 hexágonos actuales más allá de sus nodos demostrativos.
 
 Criterio de salida: el mapa completo puede representarse como grafo curricular aunque la mayoría de los nodos todavía sean placeholders.
 
@@ -50,7 +51,7 @@ Criterio de salida: sirve como plantilla de calidad para todos los nodos posteri
 
 - Evaluar Markdown/MDX mediante ADR.
 - Separar enunciados y soluciones.
-- Añadir ecuaciones renderizadas de forma robusta.
+- Extender el render TeX/MathML ya incorporado a ejemplos, soluciones y vista imprimible.
 - Incorporar banco de ejercicios parametrizados sin perder trazabilidad.
 - Añadir validación de metadatos pedagógicos.
 - Crear vista imprimible.
@@ -92,6 +93,6 @@ Criterio de salida: sirve como plantilla de calidad para todos los nodos posteri
 - Idioma inglés.
 - Integración con LMS mediante un estándar abierto.
 - Simulaciones interactivas propias.
-- Audio y ambientación mínima.
+- Audio regional más allá del ambiente global provisional.
 
 Cada idea debe demostrar que mejora el aprendizaje o la mantenibilidad antes de aumentar la complejidad.

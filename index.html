@@ -10,6 +10,7 @@
     <meta name="theme-color" content="#08111f" />
     <link rel="icon" href="./public/favicon.svg" type="image/svg+xml" />
     <link rel="manifest" href="./public/manifest.webmanifest" />
+    <link rel="stylesheet" href="./vendor/katex/katex.min.css" />
     <link rel="stylesheet" href="./src/styles.css" />
     <title>Atlas de Electromagnetismo Aplicado</title>
   </head>
@@ -22,7 +23,7 @@
       <section id="hud" class="glass-card" aria-label="Estado de la expedición">
         <div class="hud-heading">
           <div>
-            <p class="eyebrow">Prototipo 0.1</p>
+            <p class="eyebrow">Prototipo 0.2</p>
             <h1>Atlas de Electromagnetismo Aplicado</h1>
           </div>
           <span id="profile-badge" class="status-badge">perfil: normal</span>
@@ -30,12 +31,13 @@
         <dl class="hud-stats">
           <div><dt>Zona</dt><dd id="hud-area">Campamento Base</dd></div>
           <div><dt>Transporte</dt><dd id="hud-transport">A pie</dd></div>
-          <div><dt>Conceptos</dt><dd id="hud-concepts">0 / 7</dd></div>
+          <div><dt>Conceptos</dt><dd id="hud-concepts">0 / 20</dd></div>
           <div><dt>Misión</dt><dd id="hud-mission">Encuentra el Taller Vectorial</dd></div>
         </dl>
         <div class="hud-actions">
           <button id="open-knowledge" class="secondary-button" type="button">Árboles <kbd>K</kbd></button>
           <button id="open-help" class="secondary-button" type="button">Controles <kbd>H</kbd></button>
+          <button id="toggle-audio" class="secondary-button" type="button" aria-pressed="true">Audio activo <kbd>M</kbd></button>
         </div>
       </section>
 
@@ -44,6 +46,7 @@
         <span><kbd>E</kbd>: interactuar</span>
         <span><kbd>G</kbd>: gadget</span>
         <span><kbd>T</kbd>: transporte</span>
+        <span><kbd>M</kbd>: audio</span>
         <span><kbd>F2</kbd>: debugger</span>
       </section>
 
@@ -91,6 +94,7 @@
             <div><dt><kbd>T</kbd></dt><dd>Cambiar entre transportes adquiridos.</dd></div>
             <div><dt>Rueda del ratón</dt><dd>Ajustar el zoom.</dd></div>
             <div><dt><kbd>K</kbd></dt><dd>Abrir los dos árboles de progresión.</dd></div>
+            <div><dt><kbd>M</kbd></dt><dd>Activar o silenciar ambiente y efectos.</dd></div>
             <div><dt><kbd>F2</kbd></dt><dd>Abrir el debugger para pruebas.</dd></div>
             <div><dt><kbd>Esc</kbd></dt><dd>Cerrar paneles.</dd></div>
           </dl>
@@ -130,6 +134,14 @@
             <button id="debug-reset" class="danger-button" type="button">Reiniciar perfil</button>
           </div>
 
+          <h3>Probar audio</h3>
+          <p class="debug-note">Estas pruebas reproducen los mismos recursos usados por los eventos del mundo.</p>
+          <div class="button-grid">
+            <button id="debug-audio-ambience" type="button">Ambiente global</button>
+            <button id="debug-audio-transition" type="button">Cambio de hexágono</button>
+            <button id="debug-audio-mission" type="button">Inicio de misión</button>
+          </div>
+
           <div class="button-grid">
             <button id="debug-export" type="button">Exportar progreso</button>
             <label class="file-button">Importar progreso<input id="debug-import" type="file" accept="application/json" /></label>
@@ -150,6 +162,13 @@
       </div>
     </main>
 
+    <script type="importmap">
+      {
+        "imports": {
+          "katex": "./vendor/katex/katex.mjs"
+        }
+      }
+    </script>
     <script type="module" src="./src/main.js"></script>
   </body>
 </html>
