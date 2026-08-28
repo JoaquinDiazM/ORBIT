@@ -1,65 +1,75 @@
-# Informe de validación de la versión 0.2.0
+# Informe de validación de la versión 0.3.0
 
-Fecha: 2026-08-26
+Fecha: 2026-08-27
 
 ## Validación automatizada
 
-Comando ejecutado:
+El comando canónico del repositorio y del workflow remoto es:
 
 ```bash
 npm run check
 ```
 
-Resultado: correcto.
+El runtime administrado de esta sesión no expuso el ejecutable `npm`. Se ejecutaron, con Node.js 24.19.0, las mismas cuatro etapas declaradas por ese script y en el mismo orden:
+
+```bash
+node scripts/validate-content.mjs
+node --test
+node scripts/check-repository.mjs
+node scripts/build.mjs
+```
+
+Resultado local: correcto.
 
 - Cartografía y progresión: 19 zonas alcanzables con distribución axial `1 + 6 + 12`.
 - Conceptos: 20 alcanzables.
 - Lugares: 27 alcanzables.
 - Secuencia progresiva completa: llega al hito `milestones:lunar-link`.
-- Pruebas unitarias: 25 aprobadas; cubren geometría, progresión, migración, audio, ejercicios y KaTeX.
-- Sintaxis JavaScript: 32 archivos comprobados.
-- Enlaces Markdown relativos: 31 archivos comprobados.
-- Política de dependencias: KaTeX 0.18.1 fijado y respaldado por ADR 0005.
-- Versión de `package.json` y `APP_CONFIG`: consistente.
+- Pruebas unitarias: 52 aprobadas, sin fallos ni omisiones.
+- Sintaxis JavaScript: 47 archivos comprobados.
+- Enlaces Markdown relativos: 34 archivos comprobados.
+- Política de dependencias: KaTeX 0.18.1 fijado y respaldado por ADR 0005; no se añadieron dependencias.
+- Versión de `package.json` y `APP_CONFIG`: consistente en `0.3.0`.
+- Esquema persistido: permanece en `v2`; no se añadió estado durable.
 - Build estático: generado correctamente en `dist/`.
 
 ## Casos cubiertos por pruebas
 
-- Parser numérico con coma decimal y notación científica.
-- Tolerancia absoluta en respuesta numérica.
-- Corrección de alternativas.
-- Conversión axial–píxel–axial.
-- Vecindad en seis direcciones hexagonales.
-- Pertenencia geométrica a un hexágono.
-- Estado inicial con una sola zona abierta.
-- Primer desbloqueo territorial y revelado de gadget.
-- Apertura de todas las fronteras compartidas al abrir una zona.
-- Cadena académica hasta la misión lunar.
-- Detección de zonas o recompensas progresivas inalcanzables.
-- Inventario y controlador de audio, incluidos fallos que degradan a silencio.
-- Compilación de todas las ecuaciones con la configuración KaTeX de producción.
-- Migración de perfiles y posiciones desde el esquema 1.
-- Distribución exacta de los seis fundamentos y doce aplicaciones.
+- Parser numérico con coma decimal y notación científica, unidad y tolerancia.
+- Alternativas, índices correctos y definiciones de ejercicios por etapas incompletables o mal formadas.
+- Conversión axial–píxel–axial, vecindad y pertenencia geométrica.
+- Estado inicial, apertura de fronteras compartidas y cadena académica hasta la misión lunar.
+- Detección de zonas, referencias o recompensas inalcanzables y prerrequisitos inexistentes.
+- Migración de perfiles y posiciones desde el esquema 1 y lectura/escritura del respaldo mediante `ProgressStorage`.
+- Inventario y controlador de audio, degradación a silencio y cue previo a toda interacción válida.
+- Compilación KaTeX y descripción accesible de todas las ecuaciones de contenido y referencia.
+- Normalización de lugares antiguos, avance de etapas y revisión completa tras finalizar.
+- Disponibilidad derivada de símbolos, constantes, fórmulas y glosario, incluido un desbloqueo por personaje secundario.
+- Proyección de sombras para ocho rumbos y perfiles a pie, carro y deslizador.
+- Coexistencia de ventana principal y secundaria, exclusividad del menú, pila de cierre, restauración de foco y contención móvil.
+- Activación nativa de botones con Espacio sin perder los atajos globales.
 
-## Revisión visual y de interfaz
+## Revisión visual, de audio y de interfaz
 
-Se generó e inspeccionó `docs/screenshots/prototype.png`. La revisión comprobó:
+Se regeneró e inspeccionó `docs/screenshots/prototype.png` desde la aplicación local. La revisión manual se realizó con un perfil de depuración separado y comprobó:
 
-- representación de los 19 hexágonos y etiquetas de los dos anillos;
-- fronteras bloqueadas visibles;
-- HUD, misión, controles y perfil;
-- marcadores de lugares;
-- personaje y cámara;
-- legibilidad general del prototipo.
+- carga sin errores ni advertencias inesperadas en consola;
+- barra superior compacta y ausencia de la tarjeta permanente de 0.2;
+- lección principal y formulario simultáneos en 1280 × 720 y 800 × 720, sin solapamiento;
+- vista móvil de 390 × 844 con un panel visible, foco contenido y retorno al panel subyacente;
+- apertura del Taller Vectorial mediante `E`, avance por cuatro etapas y aceptación de `5 N/C` como ejercicio de salida;
+- desbloqueo de 10 de 11 fórmulas al completar el taller; el teorema de divergencia conserva su requisito de personaje secundario;
+- simbología inicial completa con localizadores y atribuciones diferenciadas;
+- reproducción del cue de interacción desde el debugger y durante la interacción normal, sin warnings;
+- sombras abajo-derecha en los tres transportes y recogida del perfil al avanzar abajo-derecha;
+- apertura y cierre sincronizados del debugger mediante F2 y su botón de cierre.
 
-Durante la construcción también se realizó un smoke test de la interfaz en navegador sobre una representación empaquetada local: carga sin errores, primera concesión conceptual, apertura de Electrostática y control de noclip del debugger.
+## Limitaciones vigentes
 
-## Limitaciones de la validación
-
-- No hay todavía pruebas automatizadas end-to-end incluidas en el repositorio; la revisión de navegador sigue siendo manual.
-- No se ha realizado auditoría formal de accesibilidad.
-- No se ha probado en una matriz amplia de navegadores y dispositivos.
-- El contenido científico es demostrativo y no ha pasado aún por revisión académica completa.
+- No hay una suite end-to-end versionada; la revisión de navegador sigue siendo manual.
+- No se ha realizado una auditoría formal de accesibilidad ni una matriz amplia de navegadores y dispositivos.
+- El avance intermedio entre etapas es efímero durante la sesión; solo la finalización del lugar se persiste.
+- El contenido científico sigue siendo provisional y no ha pasado por revisión académica completa.
 - No se ha realizado una prueba piloto con estudiantes.
 
-Estas limitaciones forman parte de la hoja de ruta y no afectan la demostración de la arquitectura base.
+La versión 0.3.0 es un corte intermedio verificable y no se declara como la versión final 1.0.0.

@@ -16,13 +16,16 @@ const ACTION_KEYS = Object.freeze({
   escape: ["Escape"],
 });
 
-function isEditableTarget(target) {
-  return (
-    target instanceof HTMLInputElement ||
-    target instanceof HTMLTextAreaElement ||
-    target instanceof HTMLSelectElement ||
-    target?.isContentEditable
-  );
+function matchesClosest(target, selector) {
+  return Boolean(target?.closest?.(selector));
+}
+
+export function isTextEntryTarget(target) {
+  return matchesClosest(target, "input, textarea, select, [contenteditable='true']");
+}
+
+export function isActivatableControlTarget(target) {
+  return matchesClosest(target, "button, a[href], [role='button'], [role='link']");
 }
 
 export class InputController {
@@ -32,7 +35,7 @@ export class InputController {
     this.actions = new Set();
 
     this.onKeyDown = (event) => {
-      if (isEditableTarget(event.target)) {
+      if (isTextEntryTarget(event.target)) {
         if (event.code === "Escape") this.actions.add("escape");
         return;
       }
@@ -43,6 +46,11 @@ export class InputController {
       const actionEntry = Object.entries(ACTION_KEYS).find(([, keys]) =>
         keys.includes(event.code),
       );
+      const uiShortcutActions = new Set(["debug", "knowledge", "help", "audio", "escape"]);
+      if (isActivatableControlTarget(event.target)) {
+        if (["Space", "Enter"].includes(event.code)) return;
+        if (!actionEntry || !uiShortcutActions.has(actionEntry[0])) return;
+      }
 
       if (isMappedMovement || actionEntry || event.code === "Space") {
         event.preventDefault();

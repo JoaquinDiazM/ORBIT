@@ -2,14 +2,32 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
-## [Sin publicar]
+## [0.3.0] - 2026-08-27
+
+### Añadido
+
+- Menú secundario para árboles, simbología, constantes, formulario, glosario y ayuda, compatible en escritorio con la ventana principal del lugar.
+- Lugares por etapas con avance por lectura o ejercicio y revisión completa al terminar; el formato anterior se normaliza como una etapa.
+- Biblioteca declarativa de símbolos, constantes CODATA 2022, identidades vectoriales y glosario, con disponibilidad derivada y fuentes BibTeX.
+- Plantilla Markdown y ejemplo no aplicable para altas, actualizaciones y bajas de contenido asistidas por agentes.
+- Pruebas de etapas, referencias, TeX, interacción de audio, inventario de assets y sombras direccionales.
 
 ### Corregido
 
+- Las sombras de a pie, carro y deslizador mantienen una luz fija arriba-izquierda en todos los rumbos y se recogen al avanzar abajo-derecha.
+- El beep de interacción se reproduce al usar `E` sobre cualquier objeto válido, sin sustituir la apertura visual de su ventana.
+- Espacio vuelve a activar botones y controles enfocados de forma nativa; los paneles y las etapas restauran o trasladan el foco tras cada cambio.
 - El servidor de desarrollo evita automáticamente un puerto predeterminado ocupado y destaca la URL de la ejecución nueva.
 - KaTeX se resuelve sin rutas especiales del servidor durante el desarrollo; el build conserva el directorio publicable `vendor/katex/`.
 - La pantalla inicial muestra un diagnóstico accionable si un módulo o recurso crítico falla, en lugar de esperar indefinidamente.
 - El workflow remoto instala las dependencias fijadas y valida cada push; Pages queda como opt-in mediante `ENABLE_PAGES`, sin publicar por accidente el repositorio privado.
+
+### Cambiado
+
+- La tarjeta permanente del prototipo se reemplaza por una barra de estado compacta; la interfaz conserva navegación por teclado y estados textuales.
+- El Taller Vectorial se organiza en cuatro etapas y usa notación coherente con el catálogo, sin reutilizar ejercicios ni soluciones del material docente consultado.
+- El nombre histórico `mission_start` se conserva como clave de manifiesto, pero su propósito visible pasa a ser confirmación de interacción.
+- La versión visible y de paquete avanza a `0.3.0`; el esquema de progreso permanece en `v2` porque no cambió el estado persistido.
 
 ## [0.2.0] - 2026-08-26
 

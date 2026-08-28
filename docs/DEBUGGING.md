@@ -31,7 +31,7 @@ Usa perfiles más específicos para tareas independientes:
 - **Conceder siguiente concepto:** avanza por el orden demostrativo.
 - **Abrir todas las zonas:** agrega overrides de área al perfil.
 - **Completar todo:** concede todos los conceptos, recompensas y lugares.
-- **Probar audio:** reproduce ambiente, transición e inicio de misión sin exigir progresión previa.
+- **Probar audio:** reproduce ambiente, transición y confirmación de interacción sin exigir progresión previa.
 - **Reiniciar:** borra el perfil activo.
 - **Exportar/importar:** intercambia el JSON del perfil.
 

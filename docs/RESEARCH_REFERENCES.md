@@ -2,6 +2,8 @@
 
 Esta lista orienta la etapa de diseño. No sustituye una bibliografía académica completa ni autoriza la redistribución de material externo.
 
+La fuente canónica de metadatos es [`docs/references/references.bib`](references/references.bib). Cada entrada curricular debe citar una clave y un localizador concreto.
+
 ## Cursos y textos abiertos
 
 - MIT OpenCourseWare, *Physics II: Electricity and Magnetism*.
@@ -10,6 +12,9 @@ Esta lista orienta la etapa de diseño. No sustituye una bibliografía académic
   - https://phys.libretexts.org/Bookshelves/Electricity_and_Magnetism/Electromagnetics_I_(Ellingson)
 - OpenStax, *University Physics Volume 2*.
   - https://openstax.org/details/books/university-physics-volume-2
+- Gilbert Strang y Edwin Herman, *Calculus Volume 3*, OpenStax.
+  - https://openstax.org/details/books/calculus-volume-3
+  - Se usa solo como consulta para condiciones topológicas; su licencia es CC BY-NC-SA 4.0 y ATLAS conserva redacción original.
 
 ## Simulaciones y divulgación institucional
 
@@ -49,6 +54,10 @@ Antes de incorporar una conclusión pedagógica al diseño, registrar:
 5. limitaciones;
 6. decisión concreta que justifica.
 
-## Registro futuro de fuentes
+## Material docente de consulta
 
-Se recomienda crear una bibliografía estructurada —por ejemplo BibTeX o CSL-JSON— cuando el contenido pase de demostrativo a académico. La elección del formato debe acompañarse de un ADR si implica una herramienta nueva.
+Los apuntes EL3103 registrados en BibTeX tienen licencia no indicada. Se usan para seleccionar notación y verificar temas, sin copiar o redistribuir PDF, tablas, ejercicios ni soluciones. Las reformulaciones científicas se contrastan con fuentes abiertas compatibles, como Ellingson (CC BY-SA 4.0).
+
+Los valores CODATA se atribuyen con la cita recomendada por NIST y se reutilizan conforme a sus [términos oficiales](https://www.nist.gov/open/copyright-fair-use-and-licensing-statements-srd-data-software-and-technical-series-publications). Las constantes derivadas se identifican como tales.
+
+El archivo BibTeX es documentación estática y no agrega una dependencia ni un parser al producto.

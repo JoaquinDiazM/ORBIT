@@ -2,7 +2,7 @@
   "asset_id": "mission_start_roger_beep_01",
   "runtime_file": "mission_start_roger_beep_01.ogg",
   "category": "interactions",
-  "intended_use": "Se reproduce cuando el personaje inicia una misión.",
+  "intended_use": "Confirma cualquier interacción válida con un objeto o lugar del mapa. El nombre de archivo histórico se conserva para trazabilidad.",
   "playback": {
     "loop": false,
     "suggested_volume": 0.75

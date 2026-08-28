@@ -4,6 +4,8 @@
 
 El contenido se define en objetos JavaScript dentro de `src/data/`. Esta decisión mantiene el prototipo sin parser ni dependencia adicional. Una migración futura a Markdown/MDX requiere ADR.
 
+La [plantilla de cambios](content-changes/CONTENT_CHANGE_TEMPLATE.md) es una especificación breve para agentes, no una fuente runtime. El [ejemplo del Taller Vectorial](content-changes/examples/update-vector-workshop.example.md) tiene `apply: false` y no se importa durante el build.
+
 Antes de editar `src/data/`, lee `src/data/AGENTS.md`.
 
 ## Agregar un concepto
@@ -176,6 +178,45 @@ Debe reservarse para orientación, recompensas narrativas o acciones sin una res
 
 Existe un tipo interno `action` para abrir herramientas como el debugger. No lo uses como ejercicio académico.
 
+## Dividir un lugar en etapas
+
+Usa `steps` cuando una misión o lección no deba ocupar un único espacio de desplazamiento. Los lugares antiguos con `sections` y `exercise` siguen funcionando como una sola etapa.
+
+```js
+steps: [
+  {
+    id: "model",
+    title: "Modelo",
+    sections: [{ title: "Lectura", paragraphs: ["..."] }],
+    exercise: { type: "none" },
+  },
+  {
+    id: "exit-check",
+    title: "Comprobación",
+    sections: [{ title: "Aplicación", paragraphs: ["..."] }],
+    exercise: {
+      type: "choice",
+      prompt: "...",
+      choices: ["...", "..."],
+      answerIndex: 0,
+      explanation: "...",
+    },
+  },
+]
+```
+
+- El ID de etapa es estable y único dentro del lugar.
+- Una etapa de lectura abre la siguiente con **Continuar**.
+- Una etapa evaluada abre la siguiente solo después de una respuesta correcta.
+- Si el lugar concede progreso, la última etapa debe terminar con un ejercicio evaluable.
+- El avance entre etapas se conserva durante la sesión; el hecho durable sigue siendo el lugar completado. No se añadió estado persistente ni migración.
+
+## Biblioteca de referencia
+
+La simbología, las constantes, el formulario y el glosario viven en `src/data/reference/`. Cada entrada declara un ID, requisitos y una clave de `docs/references/references.bib`.
+
+Su disponibilidad se deriva mediante las mismas categorías de requisitos del Árbol II. No guardes listas de fórmulas o definiciones desbloqueadas. Consulta [Nomenclatura e IDs](CONTENT_NAMING.md).
+
 ## Estándar pedagógico futuro
 
 Un nodo listo para publicación debería incorporar:
@@ -200,6 +241,8 @@ Un nodo listo para publicación debería incorporar:
 - No uses una fuente secundaria popular como único respaldo de una afirmación histórica discutida.
 - No incorpores imágenes o textos ajenos solo porque son accesibles en internet.
 - Registra autor, título, institución/editorial, año y enlace estable cuando el formato final lo permita.
+- Registra la clave canónica en `docs/references/references.bib` y el localizador exacto en cada entrada.
+- Un adjunto con licencia no indicada puede orientar una reformulación independiente, pero no autoriza copiar prosa, tablas, ejercicios ni soluciones.
 
 ## Control de calidad
 

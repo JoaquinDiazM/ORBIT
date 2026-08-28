@@ -1,9 +1,23 @@
 import { CONCEPTS, REWARDS, getConcept, getReward, parseRewardKey } from "../data/knowledge.js";
 import { LOCATIONS } from "../data/locations.js";
+import {
+  CONSTANTS,
+  FORMULAS,
+  GLOSSARY,
+  REFERENCE_VIEWS,
+  SYMBOLS,
+} from "../data/reference/index.js";
 import { AREAS } from "../data/world.js";
 import { evaluateExercise } from "../core/exercises.js";
-import { describeMissingRequirements } from "../core/requirements.js";
-import { createEquationFigure } from "./math-renderer.js";
+import {
+  getLocationSteps,
+  markLocationStepPassed,
+  normalizeLocationStepState,
+  selectLocationStep,
+  unlockLocationStep,
+} from "../core/location-steps.js";
+import { describeMissingRequirements, meetsRequirements } from "../core/requirements.js";
+import { createEquationFigure, renderMath } from "./math-renderer.js";
 
 function element(tagName, options = {}) {
   const node = document.createElement(tagName);
@@ -40,6 +54,10 @@ export class UIController {
     this.audio = audio;
     this.gameApi = null;
     this.openPanels = [];
+    this.panelReturnFocus = new Map();
+    this.locationStepStates = new Map();
+    this.activeReferenceView = "symbols";
+    this.secondaryPanelIds = ["knowledge-panel", "reference-panel", "help-panel"];
 
     this.elements = {
       area: document.querySelector("#hud-area"),
@@ -55,6 +73,10 @@ export class UIController {
       lessonBody: document.querySelector("#lesson-body"),
       knowledgePanel: document.querySelector("#knowledge-panel"),
       knowledgeBody: document.querySelector("#knowledge-body"),
+      referencePanel: document.querySelector("#reference-panel"),
+      referenceEyebrow: document.querySelector("#reference-eyebrow"),
+      referenceTitle: document.querySelector("#reference-title"),
+      referenceBody: document.querySelector("#reference-body"),
       helpPanel: document.querySelector("#help-panel"),
       debugPanel: document.querySelector("#debug-panel"),
       debugState: document.querySelector("#debug-state"),
@@ -75,6 +97,7 @@ export class UIController {
     this.#updateAudioControl();
     this.progression.subscribe(() => {
       this.updateKnowledgePanel();
+      this.updateReferencePanel();
       this.#updateAudioControl();
     });
   }
@@ -95,6 +118,11 @@ export class UIController {
     document.querySelector("#open-help").addEventListener("click", () => {
       this.toggleHelpPanel();
     });
+    for (const button of document.querySelectorAll("[data-reference-view]")) {
+      button.addEventListener("click", () => {
+        this.toggleReferencePanel(button.dataset.referenceView);
+      });
+    }
     this.elements.audioToggle.addEventListener("click", () => {
       void this.toggleAudio();
     });
@@ -113,6 +141,7 @@ export class UIController {
     document.querySelectorAll("[data-close-panel]").forEach((button) => {
       button.addEventListener("click", () => this.closePanel(button.dataset.closePanel));
     });
+    document.addEventListener("keydown", (event) => this.#trapFocusInCompactPanel(event));
 
     const debugOptionMap = [
       [this.elements.debugNoclip, "noclip"],
@@ -155,6 +184,7 @@ export class UIController {
     document.querySelector("#debug-reset").addEventListener("click", () => {
       const accepted = window.confirm(`¿Reiniciar por completo el perfil “${this.progression.profile}”?`);
       if (!accepted) return;
+      this.#clearTransientLocationState();
       this.progression.reset();
       this.gameApi?.syncPlayerFromProgress();
       this.toast("Perfil reiniciado.", "warning");
@@ -167,6 +197,7 @@ export class UIController {
       if (!file) return;
       try {
         const candidate = JSON.parse(await file.text());
+        this.#clearTransientLocationState();
         this.progression.importState(candidate);
         this.gameApi?.syncPlayerFromProgress();
         this.toast("Progreso importado y saneado correctamente.", "success");
@@ -200,6 +231,12 @@ export class UIController {
     URL.revokeObjectURL(url);
   }
 
+  #clearTransientLocationState() {
+    this.locationStepStates.clear();
+    this.closePanel("lesson-panel");
+    this.elements.lessonBody.replaceChildren();
+  }
+
   hideLoadingScreen() {
     this.elements.loadingScreen.classList.add("is-hidden");
     window.setTimeout(() => {
@@ -228,15 +265,35 @@ export class UIController {
       this.openDebugPanel();
       return;
     }
-
-    if (location.kind === "mission") void this.audio?.play("mission_start");
-
-    this.closePanel("knowledge-panel");
-    this.closePanel("help-panel");
     this.elements.lessonEyebrow.textContent = locationKindLabel(location.kind);
     this.elements.lessonTitle.textContent = location.title;
+    const state = normalizeLocationStepState(
+      location,
+      this.locationStepStates.get(location.id),
+      { completed: this.progression.isLocationCompleted(location.id) },
+    );
+    this.locationStepStates.set(location.id, state);
     this.#renderLocationBody(location);
     this.openPanel("lesson-panel");
+  }
+
+  #getLocationStepState(location) {
+    const state = normalizeLocationStepState(
+      location,
+      this.locationStepStates.get(location.id),
+      { completed: this.progression.isLocationCompleted(location.id) },
+    );
+    this.locationStepStates.set(location.id, state);
+    return state;
+  }
+
+  #setLocationStepState(location, state) {
+    this.locationStepStates.set(
+      location.id,
+      normalizeLocationStepState(location, state, {
+        completed: this.progression.isLocationCompleted(location.id),
+      }),
+    );
   }
 
   #renderLocationBody(location) {
@@ -244,20 +301,43 @@ export class UIController {
     body.replaceChildren();
     body.classList.add("prose");
 
+    const steps = getLocationSteps(location);
+    const state = this.#getLocationStepState(location);
+    const activeStep = steps[state.activeIndex];
+
     const objective = element("section", { className: "lesson-section" });
     objective.append(element("h3", { text: "Objetivo de aprendizaje" }));
     appendTextParagraph(objective, location.objective);
     body.append(objective);
 
-    for (const sectionData of location.sections ?? []) {
+    if (steps.length > 1) body.append(this.#renderStepNavigation(location, steps, state));
+
+    const stepHeading = element("section", {
+      className: "lesson-step-heading",
+      attributes: { tabindex: "-1" },
+    });
+    stepHeading.append(
+      element("p", {
+        className: "eyebrow",
+        text: `Etapa ${state.activeIndex + 1} de ${steps.length}`,
+      }),
+      element("h3", { text: activeStep.title }),
+    );
+    body.append(stepHeading);
+
+    for (const sectionData of activeStep.sections) {
       body.append(this.#renderLessonSection(sectionData));
     }
 
     const completed = this.progression.isLocationCompleted(location.id);
     if (completed) {
-      body.append(this.#renderCompletionCard(location));
-    } else if (location.exercise?.type !== "none") {
-      body.append(this.#renderExercise(location));
+      body.append(this.#renderCompletionCard(location, activeStep.exercise));
+    } else if (state.passedStepIds.has(activeStep.id)) {
+      body.append(this.#renderStepContinue(location, activeStep, state.activeIndex, steps.length));
+    } else if (activeStep.exercise?.type !== "none") {
+      body.append(this.#renderExercise(location, activeStep, state.activeIndex, steps.length));
+    } else if (state.activeIndex < steps.length - 1) {
+      body.append(this.#renderStepContinue(location, activeStep, state.activeIndex, steps.length));
     }
 
     if ((location.sources ?? []).length > 0) {
@@ -266,16 +346,95 @@ export class UIController {
       const list = element("ul", { className: "source-list" });
       for (const source of location.sources) {
         const item = element("li");
-        const link = element("a", {
-          text: source.label,
-          attributes: { href: source.url, target: "_blank", rel: "noreferrer noopener" },
-        });
-        item.append(link);
+        if (source.url) {
+          const link = element("a", {
+            text: source.label,
+            attributes: { href: source.url, target: "_blank", rel: "noreferrer noopener" },
+          });
+          item.append(link);
+        } else item.textContent = source.label;
         list.append(item);
       }
       sources.append(list);
       body.append(sources);
     }
+  }
+
+  #renderStepNavigation(location, steps, state) {
+    const navigation = element("nav", {
+      className: "lesson-step-navigation",
+      attributes: { "aria-label": "Etapas del lugar" },
+    });
+    const progress = element("p", {
+      className: "step-progress",
+      text: `${state.maxUnlockedIndex + 1} de ${steps.length} etapas disponibles`,
+    });
+    const list = element("ol", { className: "step-list" });
+
+    steps.forEach((step, index) => {
+      const item = element("li");
+      const unlocked = index <= state.maxUnlockedIndex;
+      const active = index === state.activeIndex;
+      const button = element("button", {
+        className: `step-button ${active ? "active" : ""}`,
+        attributes: {
+          type: "button",
+          "aria-current": active ? "step" : "false",
+          "aria-label": `${step.title}: ${active ? "etapa actual" : unlocked ? "disponible" : "bloqueada"}`,
+        },
+      });
+      button.append(
+        element("span", { className: "step-number", text: String(index + 1) }),
+        element("span", { className: "step-label", text: step.title }),
+        element("span", {
+          className: "step-state",
+          text: active ? "actual" : unlocked ? "disponible" : "bloqueada",
+        }),
+      );
+      if (!unlocked) button.disabled = true;
+      button.addEventListener("click", () => {
+        this.#setLocationStepState(location, selectLocationStep(state, index));
+        this.#renderLocationBody(location);
+        this.#focusActiveStep();
+      });
+      item.append(button);
+      list.append(item);
+    });
+
+    navigation.append(progress, list);
+    return navigation;
+  }
+
+  #renderStepContinue(location, step, stepIndex, stepCount) {
+    const section = element("section", { className: "lesson-section" });
+    const passed = this.#getLocationStepState(location).passedStepIds.has(step.id);
+    const card = element("div", { className: "step-continue-card" });
+    if (passed && step.exercise?.explanation) {
+      card.append(element("p", { className: "callout", text: step.exercise.explanation }));
+    } else {
+      appendTextParagraph(
+        card,
+        passed
+          ? "Actividad superada. Puedes avanzar o volver a una etapa anterior."
+          : "Etapa de lectura terminada. Continúa cuando quieras abrir la siguiente.",
+      );
+    }
+    const button = element("button", {
+      text: "Continuar",
+      attributes: { type: "button" },
+    });
+    button.addEventListener("click", () => {
+      let state = this.#getLocationStepState(location);
+      state = unlockLocationStep(state, stepIndex, stepCount);
+      state = selectLocationStep(state, Math.min(stepIndex + 1, stepCount - 1));
+      this.#setLocationStepState(location, state);
+      this.#renderLocationBody(location);
+      this.elements.lessonBody.scrollTo({ top: 0, behavior: "auto" });
+      this.#focusActiveStep();
+    });
+    card.append(button);
+    section.append(card);
+    return section;
   }
 
   #renderLessonSection(sectionData) {
@@ -296,10 +455,13 @@ export class UIController {
     return section;
   }
 
-  #renderExercise(location) {
-    const exercise = location.exercise;
+  #renderExercise(location, step, stepIndex, stepCount) {
+    const exercise = step.exercise;
+    const isFinalStep = stepIndex === stepCount - 1;
     const section = element("section", { className: "lesson-section" });
-    section.append(element("h3", { text: "Misión de salida" }));
+    section.append(
+      element("h3", { text: isFinalStep ? "Misión de salida" : "Actividad de etapa" }),
+    );
     const card = element("div", { className: "exercise-card" });
     appendTextParagraph(card, exercise.prompt);
 
@@ -309,7 +471,7 @@ export class UIController {
     if (exercise.type === "choice") {
       const fieldset = element("fieldset");
       fieldset.append(element("legend", { className: "eyebrow", text: "Selecciona una alternativa" }));
-      const inputName = `exercise-${location.id}`;
+      const inputName = `exercise-${location.id}-${step.id}`;
       exercise.choices.forEach((choice, index) => {
         const label = element("label", { className: "choice-option" });
         const input = element("input", {
@@ -343,12 +505,16 @@ export class UIController {
 
     const actions = element("div", { className: "exercise-actions" });
     const submit = element("button", {
-      text: exercise.buttonLabel ?? "Comprobar y completar",
+      text:
+        exercise.buttonLabel ?? (isFinalStep ? "Comprobar y completar" : "Comprobar etapa"),
       attributes: { type: "submit" },
     });
     actions.append(submit);
     form.append(actions);
-    const feedback = element("p", { className: "exercise-feedback" });
+    const feedback = element("p", {
+      className: "exercise-feedback",
+      attributes: { role: "status", "aria-live": "polite", "aria-atomic": "true" },
+    });
     form.append(feedback);
 
     form.addEventListener("submit", (event) => {
@@ -365,13 +531,33 @@ export class UIController {
         return;
       }
 
-      const before = this.progression.getSnapshot();
-      const result = this.progression.completeLocation(location.id);
-      if (!result.ok) {
-        feedback.className = "exercise-feedback error";
-        feedback.textContent = "El lugar ya no cumple sus condiciones de acceso.";
+      if (!isFinalStep) {
+        let state = this.#getLocationStepState(location);
+        state = markLocationStepPassed(state, step.id);
+        state = unlockLocationStep(state, stepIndex, stepCount);
+        this.#setLocationStepState(location, state);
+        this.toast("Actividad superada. La etapa siguiente ya está disponible.", "success");
+        this.#renderLocationBody(location);
+        this.#focusActiveStep();
         return;
       }
+
+      this.#completeLocation(location, exercise, feedback);
+    });
+
+    card.append(form);
+    section.append(card);
+    return section;
+  }
+
+  #completeLocation(location, exercise, feedback) {
+    const before = this.progression.getSnapshot();
+    const result = this.progression.completeLocation(location.id);
+    if (!result.ok) {
+      feedback.className = "exercise-feedback error";
+      feedback.textContent = "El lugar ya no cumple sus condiciones de acceso.";
+      return;
+    }
       const after = this.progression.getSnapshot();
       const newlyOpenedAreas = [...after.unlockedAreaIds].filter(
         (areaId) => !before.unlockedAreaIds.has(areaId),
@@ -392,20 +578,22 @@ export class UIController {
       }
       this.toast(messageParts.join(" "), "success", 5200);
       this.#renderLocationBody(location);
-    });
-
-    card.append(form);
-    section.append(card);
-    return section;
+      this.#focusActiveStep();
   }
 
-  #renderCompletionCard(location) {
+  #focusActiveStep() {
+    this.elements.lessonBody
+      .querySelector(".lesson-step-heading")
+      ?.focus({ preventScroll: true });
+  }
+
+  #renderCompletionCard(location, exercise) {
     const section = element("section", { className: "lesson-section" });
     section.append(element("h3", { text: "Estado" }));
     const card = element("div", { className: "completion-card" });
     appendTextParagraph(card, "Lugar completado. La solución queda disponible para revisión.");
-    if (location.exercise?.explanation) {
-      const solution = element("p", { className: "callout", text: location.exercise.explanation });
+    if (exercise?.explanation) {
+      const solution = element("p", { className: "callout", text: exercise.explanation });
       card.append(solution);
     }
 
@@ -443,8 +631,6 @@ export class UIController {
       this.closePanel("knowledge-panel");
       return;
     }
-    this.closePanel("lesson-panel");
-    this.closePanel("help-panel");
     this.openPanel("knowledge-panel");
     this.updateKnowledgePanel();
   }
@@ -512,13 +698,279 @@ export class UIController {
     body.append(inventory);
   }
 
+  toggleReferencePanel(viewId) {
+    if (!REFERENCE_VIEWS[viewId]) return;
+    if (!this.elements.referencePanel.hidden && this.activeReferenceView === viewId) {
+      this.closePanel("reference-panel");
+      return;
+    }
+    this.activeReferenceView = viewId;
+    this.openPanel("reference-panel");
+    this.updateReferencePanel();
+  }
+
+  updateReferencePanel() {
+    if (!this.elements.referencePanel) return;
+    if (
+      this.elements.referencePanel.hidden &&
+      !this.openPanels.includes("reference-panel")
+    ) {
+      return;
+    }
+    const view = REFERENCE_VIEWS[this.activeReferenceView];
+    if (!view) return;
+
+    this.elements.referenceEyebrow.textContent = view.eyebrow;
+    this.elements.referenceTitle.textContent = view.title;
+    const body = this.elements.referenceBody;
+    body.replaceChildren();
+    body.classList.add("prose");
+    const snapshot = this.progression.getSnapshot();
+
+    if (view.id === "symbols") this.#renderSymbolReference(body, snapshot);
+    else if (view.id === "constants") this.#renderConstantReference(body, snapshot);
+    else if (view.id === "formulas") this.#renderFormulaReference(body, snapshot);
+    else if (view.id === "glossary") this.#renderGlossaryReference(body, snapshot);
+    this.#syncPanelControls();
+  }
+
+  #requirementContext(snapshot) {
+    return {
+      concepts: snapshot.concepts,
+      completedLocations: snapshot.completedLocationIds,
+      rewards: snapshot.rewards,
+      unlockedAreas: snapshot.unlockedAreaIds,
+    };
+  }
+
+  #isReferenceUnlocked(entry, snapshot) {
+    return meetsRequirements(entry.requirements, this.#requirementContext(snapshot));
+  }
+
+  #referenceSummary(entries, snapshot) {
+    const unlocked = entries.filter((entry) => this.#isReferenceUnlocked(entry, snapshot)).length;
+    return `${unlocked} de ${entries.length} entradas disponibles`;
+  }
+
+  #renderReferenceIntro(parent, text, entries, snapshot) {
+    const intro = element("section", { className: "reference-intro" });
+    appendTextParagraph(intro, text);
+    intro.append(
+      element("p", {
+        className: "reference-count",
+        text: this.#referenceSummary(entries, snapshot),
+        attributes: { "aria-live": "polite" },
+      }),
+    );
+    parent.append(intro);
+  }
+
+  #renderInlineMath(tex, label) {
+    const node = element("span", {
+      className: "inline-math",
+      attributes: { "aria-label": label },
+    });
+    renderMath(node, tex, { displayMode: false });
+    return node;
+  }
+
+  #renderSourceLine(source) {
+    const text = [source?.label, source?.locator].filter(Boolean).join(", ");
+    const usage = [source?.usage, source?.license].filter(Boolean).join("; ");
+    const validationSource = [source?.validationLabel, source?.validationLocator]
+      .filter(Boolean)
+      .join("; ");
+    const validation = [validationSource, source?.validationLicense].filter(Boolean).join("; ");
+    const selection = [source?.selectionLabel, source?.selectionLocator]
+      .filter(Boolean)
+      .join(", ");
+    const details = [
+      text ? `Fuente: ${text}${usage ? ` (${usage})` : ""}.` : "Fuente bibliográfica pendiente.",
+      validation ? `Validación abierta: ${validation}.` : "",
+      selection ? `Selección nomenclatural: ${selection}.` : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+    return element("p", {
+      className: "reference-source",
+      text: details,
+    });
+  }
+
+  #renderCollectionSources(entries, snapshot) {
+    const sources = element("section", {
+      className: "reference-sources",
+      attributes: { "aria-label": "Fuentes de la tabla" },
+    });
+    const seen = new Set();
+    for (const entry of entries) {
+      if (!this.#isReferenceUnlocked(entry, snapshot)) continue;
+      const source = entry.source;
+      const key = [
+        source?.citationKey,
+        source?.locator,
+        source?.validationCitationKey,
+        source?.validationLocator,
+        source?.selectionCitationKey,
+        source?.selectionLocator,
+      ].join("|");
+      if (seen.has(key)) continue;
+      seen.add(key);
+      sources.append(this.#renderSourceLine(source));
+    }
+    return sources;
+  }
+
+  #renderSymbolReference(body, snapshot) {
+    this.#renderReferenceIntro(
+      body,
+      "Convención inicial de magnitudes y operadores. Las letras en negrita representan vectores; las unidades se expresan en SI.",
+      SYMBOLS,
+      snapshot,
+    );
+    const table = element("table", { className: "reference-table" });
+    const head = element("thead");
+    const headRow = element("tr");
+    for (const label of ["Símbolo", "Magnitud", "Unidad SI"]) {
+      headRow.append(element("th", { text: label, attributes: { scope: "col" } }));
+    }
+    head.append(headRow);
+    const tbody = element("tbody");
+    for (const entry of SYMBOLS) {
+      if (!this.#isReferenceUnlocked(entry, snapshot)) continue;
+      const row = element("tr");
+      const symbolCell = element("td");
+      symbolCell.append(this.#renderInlineMath(entry.tex, entry.symbol));
+      const nameCell = element("td");
+      nameCell.append(element("strong", { text: entry.name }));
+      nameCell.append(element("span", { className: "reference-category", text: entry.category }));
+      if (entry.note) nameCell.append(element("span", { className: "reference-note", text: entry.note }));
+      row.append(symbolCell, nameCell, element("td", { text: entry.unit }));
+      tbody.append(row);
+    }
+    table.append(head, tbody);
+    body.append(table, this.#renderCollectionSources(SYMBOLS, snapshot));
+  }
+
+  #renderConstantReference(body, snapshot) {
+    this.#renderReferenceIntro(
+      body,
+      "Valores de consulta en SI. El símbolo ≈ identifica cifras redondeadas; las evaluaciones pueden declarar su propio redondeo.",
+      CONSTANTS,
+      snapshot,
+    );
+    const table = element("table", { className: "reference-table constants-table" });
+    const head = element("thead");
+    const headRow = element("tr");
+    for (const label of ["Símbolo", "Constante", "Valor", "Unidad SI"]) {
+      headRow.append(element("th", { text: label, attributes: { scope: "col" } }));
+    }
+    head.append(headRow);
+    const tbody = element("tbody");
+    for (const entry of CONSTANTS) {
+      if (!this.#isReferenceUnlocked(entry, snapshot)) continue;
+      const row = element("tr");
+      const symbolCell = element("td");
+      symbolCell.append(this.#renderInlineMath(entry.tex, entry.symbol));
+      const nameCell = element("td");
+      nameCell.append(element("strong", { text: entry.name }));
+      if (entry.note) nameCell.append(element("span", { className: "reference-note", text: entry.note }));
+      row.append(
+        symbolCell,
+        nameCell,
+        element("td", { text: entry.value }),
+        element("td", { text: entry.unit }),
+      );
+      tbody.append(row);
+    }
+    table.append(head, tbody);
+    body.append(table, this.#renderCollectionSources(CONSTANTS, snapshot));
+  }
+
+  #renderFormulaReference(body, snapshot) {
+    this.#renderReferenceIntro(
+      body,
+      "El formulario crece al completar lugares y rutas del Árbol II. Cada identidad declara las condiciones bajo las que puede aplicarse.",
+      FORMULAS,
+      snapshot,
+    );
+    const list = element("div", { className: "reference-card-list" });
+    for (const entry of FORMULAS) {
+      const unlocked = this.#isReferenceUnlocked(entry, snapshot);
+      const card = element("article", {
+        className: `reference-card ${unlocked ? "unlocked" : "locked"}`,
+      });
+      card.append(element("h3", { text: unlocked ? entry.title : "Fórmula bloqueada" }));
+      card.append(
+        element("span", {
+          className: "state-chip",
+          text: unlocked ? "disponible" : "bloqueada",
+        }),
+      );
+      if (unlocked) {
+        card.append(createEquationFigure(entry.equation));
+        appendTextParagraph(card, `Condiciones: ${entry.conditions}`);
+        card.append(this.#renderSourceLine(entry.source));
+      } else appendTextParagraph(card, this.#referenceUnlockHint(entry, snapshot));
+      list.append(card);
+    }
+    body.append(list);
+  }
+
+  #renderGlossaryReference(body, snapshot) {
+    this.#renderReferenceIntro(
+      body,
+      "Definiciones, propiedades y teoremas se mantienen separados de las fórmulas para dejar visibles sus hipótesis.",
+      GLOSSARY,
+      snapshot,
+    );
+    const list = element("div", { className: "reference-card-list" });
+    for (const entry of GLOSSARY) {
+      const unlocked = this.#isReferenceUnlocked(entry, snapshot);
+      const card = element("article", {
+        className: `reference-card ${unlocked ? "unlocked" : "locked"}`,
+      });
+      card.append(element("h3", { text: unlocked ? entry.term : "Entrada bloqueada" }));
+      card.append(
+        element("span", {
+          className: "state-chip",
+          text: unlocked ? entry.kind : "bloqueada",
+        }),
+      );
+      if (unlocked) {
+        appendTextParagraph(card, entry.statement);
+        card.append(this.#renderInlineMath(entry.notation, `Notación de ${entry.term}`));
+        card.append(this.#renderSourceLine(entry.source));
+      } else appendTextParagraph(card, this.#referenceUnlockHint(entry, snapshot));
+      list.append(card);
+    }
+    body.append(list);
+  }
+
+  #referenceUnlockHint(entry, snapshot) {
+    const missing = describeMissingRequirements(
+      entry.requirements,
+      this.#requirementContext(snapshot),
+    );
+    const labels = [
+      ...missing.completedLocations.map(
+        (id) => LOCATIONS.find((location) => location.id === id)?.title ?? id,
+      ),
+      ...missing.concepts.map((id) => getConcept(id)?.title ?? id),
+      ...missing.areas.map((id) => AREAS.find((area) => area.id === id)?.title ?? id),
+      ...missing.rewards.map((id) => {
+        const reward = parseRewardKey(id);
+        return getReward(reward.type, reward.id)?.title ?? id;
+      }),
+    ];
+    return labels.length > 0
+      ? `Se desbloquea al completar o adquirir: ${labels.join(", ")}.`
+      : "Esta entrada todavía no está disponible.";
+  }
+
   toggleHelpPanel() {
     if (!this.elements.helpPanel.hidden) this.closePanel("help-panel");
-    else {
-      this.closePanel("lesson-panel");
-      this.closePanel("knowledge-panel");
-      this.openPanel("help-panel");
-    }
+    else this.openPanel("help-panel");
   }
 
   async toggleAudio() {
@@ -551,6 +1003,7 @@ export class UIController {
   }
 
   openDebugPanel() {
+    this.gameApi?.setDebugOption("enabled", true);
     this.openPanel("debug-panel");
   }
 
@@ -562,16 +1015,107 @@ export class UIController {
   openPanel(panelId) {
     const panel = document.getElementById(panelId);
     if (!panel) return;
+    let returnTarget = document.activeElement;
+    if (this.secondaryPanelIds.includes(panelId)) {
+      for (const secondaryPanelId of this.secondaryPanelIds) {
+        if (secondaryPanelId === panelId) continue;
+        const secondaryPanel = document.getElementById(secondaryPanelId);
+        if (secondaryPanel?.contains(returnTarget)) {
+          returnTarget = this.panelReturnFocus.get(secondaryPanelId) ?? returnTarget;
+        }
+        this.closePanel(secondaryPanelId, { restoreFocus: false });
+      }
+    }
+    if (
+      returnTarget &&
+      !panel.contains(returnTarget) &&
+      typeof returnTarget.focus === "function"
+    ) {
+      this.panelReturnFocus.set(panelId, returnTarget);
+    }
     panel.hidden = false;
     this.openPanels = this.openPanels.filter((id) => id !== panelId);
     this.openPanels.push(panelId);
+    this.#syncPanelControls();
+    panel.querySelector("[data-close-panel]")?.focus({ preventScroll: true });
   }
 
-  closePanel(panelId) {
+  #usesCompactPanelLayout() {
+    return (
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(max-width: 760px)").matches
+    );
+  }
+
+  #trapFocusInCompactPanel(event) {
+    if (event.key !== "Tab" || !this.#usesCompactPanelLayout()) return;
+    const panelId = this.openPanels.at(-1);
+    const panel = panelId ? document.getElementById(panelId) : null;
+    if (!panel || panel.hidden) return;
+    const controls = [...panel.querySelectorAll(
+      "button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex='-1'])",
+    )].filter((control) => control.getAttribute("aria-hidden") !== "true");
+    if (controls.length === 0) return;
+    const first = controls[0];
+    const last = controls.at(-1);
+    const focusIsOutside = !panel.contains(document.activeElement);
+    if (focusIsOutside || (event.shiftKey && document.activeElement === first)) {
+      event.preventDefault();
+      last.focus({ preventScroll: true });
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus({ preventScroll: true });
+    }
+  }
+
+  closePanel(panelId, { restoreFocus = true } = {}) {
     const panel = document.getElementById(panelId);
     if (!panel) return;
+    const wasOpen = !panel.hidden;
+    if (panelId === "debug-panel") this.gameApi?.setDebugOption("enabled", false);
     panel.hidden = true;
     this.openPanels = this.openPanels.filter((id) => id !== panelId);
+    this.#syncPanelControls();
+    const returnTarget = this.panelReturnFocus.get(panelId);
+    this.panelReturnFocus.delete(panelId);
+    const compactTopPanelId = this.#usesCompactPanelLayout() ? this.openPanels.at(-1) : null;
+    const compactTopPanel = compactTopPanelId
+      ? document.getElementById(compactTopPanelId)
+      : null;
+    if (wasOpen && restoreFocus && compactTopPanel && !compactTopPanel.hidden) {
+      compactTopPanel
+        .querySelector("[data-close-panel]")
+        ?.focus({ preventScroll: true });
+    } else if (
+      wasOpen &&
+      restoreFocus &&
+      returnTarget?.isConnected !== false &&
+      typeof returnTarget?.focus === "function"
+    ) {
+      returnTarget.focus({ preventScroll: true });
+    }
+  }
+
+  #syncPanelControls() {
+    const compactTopPanelId = this.#usesCompactPanelLayout() ? this.openPanels.at(-1) : null;
+    for (const panelId of ["lesson-panel", ...this.secondaryPanelIds, "debug-panel"]) {
+      document
+        .getElementById(panelId)
+        ?.setAttribute("data-compact-top", String(panelId === compactTopPanelId));
+    }
+    for (const button of document.querySelectorAll("[aria-controls]")) {
+      const panelId = button.getAttribute("aria-controls");
+      const panel = panelId ? document.getElementById(panelId) : null;
+      let expanded = Boolean(panel && !panel.hidden);
+      if (expanded && panelId === "reference-panel" && button.dataset.referenceView) {
+        expanded = button.dataset.referenceView === this.activeReferenceView;
+      }
+      button.setAttribute("aria-expanded", String(expanded));
+      if (button.dataset.referenceView) {
+        button.setAttribute("aria-current", expanded ? "true" : "false");
+      }
+    }
   }
 
   closeTopPanel() {
@@ -580,7 +1124,7 @@ export class UIController {
   }
 
   isBlockingModalOpen() {
-    return ["lesson-panel", "knowledge-panel", "help-panel"].some(
+    return ["lesson-panel", ...this.secondaryPanelIds].some(
       (panelId) => !document.getElementById(panelId).hidden,
     );
   }

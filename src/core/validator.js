@@ -1,5 +1,6 @@
 import { CONCEPTS, REWARDS, rewardKey } from "../data/knowledge.js";
 import { LOCATIONS } from "../data/locations.js";
+import { REFERENCE_COLLECTIONS } from "../data/reference/index.js";
 import { AREAS, WORLD_CONFIG } from "../data/world.js";
 import { pointInHex } from "./hex.js";
 import { meetsRequirements, normalizeRequirements } from "./requirements.js";
@@ -25,6 +26,51 @@ function knownRewardKeys() {
       rewards.map((reward) => rewardKey(type, reward.id)),
     ),
   );
+}
+
+function validateExerciseDefinition(exercise, context, errors) {
+  if (!exercise) return;
+  const type = exercise.type ?? "none";
+  if (!["none", "action", "acknowledge", "choice", "numeric"].includes(type)) {
+    errors.push(`${context} usa un tipo de ejercicio desconocido: ${type}.`);
+    return;
+  }
+  if (type === "action" && (typeof exercise.action !== "string" || !exercise.action.trim())) {
+    errors.push(`${context} declara action sin una acción identificable.`);
+  }
+  if (type === "choice") {
+    if (
+      !Array.isArray(exercise.choices) ||
+      exercise.choices.length < 2 ||
+      exercise.choices.some((choice) => typeof choice !== "string" || !choice.trim())
+    ) {
+      errors.push(`${context} debe declarar al menos dos alternativas de texto.`);
+    }
+    if (
+      !Number.isInteger(exercise.answerIndex) ||
+      exercise.answerIndex < 0 ||
+      exercise.answerIndex >= (exercise.choices?.length ?? 0)
+    ) {
+      errors.push(`${context} tiene answerIndex fuera del rango de alternatives.`);
+    }
+  }
+  if (type === "numeric") {
+    if (!Number.isFinite(exercise.expected)) {
+      errors.push(`${context} debe declarar expected como número finito.`);
+    }
+    const tolerances = [exercise.absoluteTolerance, exercise.relativeTolerance].filter(
+      (value) => value !== undefined,
+    );
+    if (
+      tolerances.length === 0 ||
+      tolerances.some((value) => !Number.isFinite(value) || value < 0)
+    ) {
+      errors.push(`${context} debe declarar una tolerancia finita y no negativa.`);
+    }
+    if (typeof exercise.unit !== "string" || !exercise.unit.trim()) {
+      errors.push(`${context} debe declarar la unidad de la respuesta numérica.`);
+    }
+  }
 }
 
 export function simulateFullProgression({ areas = AREAS, locations = LOCATIONS } = {}) {
@@ -120,6 +166,11 @@ export function validateProjectData({ areas = AREAS, locations = LOCATIONS } = {
   for (const duplicate of duplicateValues(CONCEPTS.map((concept) => concept.id))) {
     errors.push(`ID de concepto duplicado: ${duplicate}`);
   }
+  for (const [collectionId, entries] of Object.entries(REFERENCE_COLLECTIONS)) {
+    for (const duplicate of duplicateValues(entries.map((entry) => entry.id))) {
+      errors.push(`ID de referencia duplicado en ${collectionId}: ${duplicate}`);
+    }
+  }
 
   const initialAreas = areas.filter((area) => area.initial);
   if (initialAreas.length !== 1) {
@@ -207,6 +258,76 @@ export function validateProjectData({ areas = AREAS, locations = LOCATIONS } = {
     for (const reward of location.grants?.rewards ?? []) {
       if (!rewards.has(reward)) {
         errors.push(`El lugar ${location.id} concede una recompensa inexistente: ${reward}.`);
+      }
+    }
+
+    validateExerciseDefinition(location.exercise, `El lugar ${location.id}`, errors);
+
+    if (Array.isArray(location.steps)) {
+      if (location.steps.length === 0) {
+        errors.push(`El lugar ${location.id} declara steps pero no contiene ninguna etapa.`);
+      }
+      for (const duplicate of duplicateValues(location.steps.map((step) => step.id))) {
+        errors.push(`El lugar ${location.id} repite el ID de etapa ${duplicate}.`);
+      }
+      for (const [index, step] of location.steps.entries()) {
+        if (typeof step.id !== "string" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(step.id)) {
+          errors.push(`El lugar ${location.id} tiene un ID de etapa inválido en la posición ${index + 1}.`);
+        }
+        if (typeof step.title !== "string" || !step.title.trim()) {
+          errors.push(`El lugar ${location.id} tiene una etapa sin título en la posición ${index + 1}.`);
+        }
+        const exerciseType = step.exercise?.type ?? "none";
+        if (!["none", "choice", "numeric", "acknowledge"].includes(exerciseType)) {
+          errors.push(
+            `El lugar ${location.id} usa un ejercicio de etapa no compatible: ${exerciseType}.`,
+          );
+        }
+        validateExerciseDefinition(
+          step.exercise,
+          `La etapa ${step.id ?? index + 1} del lugar ${location.id}`,
+          errors,
+        );
+      }
+      const finalExerciseType = location.steps.at(-1)?.exercise?.type ?? "none";
+      if (!["choice", "numeric", "acknowledge"].includes(finalExerciseType)) {
+        errors.push(
+          `El lugar por etapas ${location.id} debe cerrar con choice, numeric o acknowledge para poder completarse.`,
+        );
+      }
+    }
+  }
+
+  for (const [collectionId, entries] of Object.entries(REFERENCE_COLLECTIONS)) {
+    for (const entry of entries) {
+      const requirements = normalizeRequirements(entry.requirements);
+      for (const conceptId of requirements.concepts) {
+        if (!knownConceptIds.has(conceptId)) {
+          errors.push(
+            `La referencia ${collectionId}:${entry.id} exige un concepto inexistente: ${conceptId}.`,
+          );
+        }
+      }
+      for (const locationId of requirements.completedLocations) {
+        if (!knownLocationIds.has(locationId)) {
+          errors.push(
+            `La referencia ${collectionId}:${entry.id} exige un lugar inexistente: ${locationId}.`,
+          );
+        }
+      }
+      for (const reward of requirements.rewards) {
+        if (!rewards.has(reward)) {
+          errors.push(
+            `La referencia ${collectionId}:${entry.id} exige una recompensa inexistente: ${reward}.`,
+          );
+        }
+      }
+      for (const areaId of requirements.areas) {
+        if (!knownAreaIds.has(areaId)) {
+          errors.push(
+            `La referencia ${collectionId}:${entry.id} exige una zona inexistente: ${areaId}.`,
+          );
+        }
       }
     }
   }

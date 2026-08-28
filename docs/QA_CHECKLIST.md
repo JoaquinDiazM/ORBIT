@@ -18,6 +18,7 @@
 - [ ] Cada zona nueva abre todas sus aristas compartidas con zonas ya abiertas.
 - [ ] No existe una zona aislada.
 - [ ] Cámara y zoom mantienen el personaje localizable.
+- [ ] A pie, en carro y en deslizador, la sombra queda abajo-derecha en los ocho rumbos y se recoge al avanzar abajo-derecha.
 
 ## Árbol I
 
@@ -69,7 +70,7 @@
 
 ## Debugger
 
-- [ ] F2 y tecla grave abren/cierra el panel.
+- [ ] F2 y tecla grave abren/cierran el panel; cerrarlo con × mantiene el siguiente atajo sincronizado.
 - [ ] Noclip funciona.
 - [ ] Al apagar noclip fuera de una zona abierta se retorna a spawn.
 - [ ] Teletransporte por selector funciona.
@@ -81,6 +82,14 @@
 
 - [ ] Todas las acciones esenciales tienen teclado.
 - [ ] El foco es visible.
+- [ ] Abrir un panel mueve el foco a su cierre; `Esc` o el botón de cierre lo devuelve al control que lo abrió.
+- [ ] En la vista móvil, `Tab` y `Shift` + `Tab` permanecen dentro del panel visible hasta cerrarlo.
+- [ ] La lección principal puede permanecer abierta junto con una referencia secundaria.
+- [ ] Abrir árboles, símbolos, constantes, formulario, glosario o ayuda sustituye cualquier otra referencia secundaria abierta.
+- [ ] Las etapas de una lección anuncian por texto cuál está activa, disponible o bloqueada.
+- [ ] Continuar una lectura y aprobar un ejercicio intermedio desbloquean solamente la etapa siguiente.
+- [ ] El ejercicio de salida concede el progreso del lugar una sola vez.
+- [ ] Símbolos y constantes iniciales están disponibles; fórmulas y glosario explican sus requisitos cuando siguen bloqueados.
 - [ ] El texto es legible a zoom del navegador de 200 %.
 - [ ] Los estados no dependen solo del color.
 - [ ] La reducción de movimiento del sistema se respeta.
@@ -96,8 +105,8 @@
 - [ ] `M` y el botón del HUD alternan el mute y persisten tras recargar.
 - [ ] El ambiente se pausa al ocultar la pestaña y vuelve solo si sigue habilitado.
 - [ ] Cruzar un hexágono reproduce transición sin sustituir el cambio visual de zona.
-- [ ] Abrir una misión reproduce el beep y conserva el panel visible.
-- [ ] Los tres botones de prueba del debugger reproducen los recursos correctos.
+- [ ] Interactuar con una lección, misión u otro objeto reproduce el beep y conserva su señal visual.
+- [ ] Los tres botones de prueba del debugger reproducen los recursos correctos; el tercero confirma una interacción válida.
 - [ ] Todo `.ogg` tiene metadatos, atribución, manifiesto y un uso verificable.
 
 ## Publicación

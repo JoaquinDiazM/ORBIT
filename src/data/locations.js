@@ -44,44 +44,158 @@ export const LOCATIONS = Object.freeze([
     visibility: "always",
     requirements: {},
     grants: { concepts: ["vectors-and-fields"] },
-    objective: "Interpretar un campo como una función vectorial y distinguir magnitud de componentes.",
-    sections: [
+    objective: "Distinguir campos escalares y vectoriales, interpretar componentes y reconocer qué tipo de campo produce cada operador vectorial.",
+    steps: [
       {
-        title: "Por qué empezar aquí",
-        paragraphs: [
-          "El electromagnetismo no describe solamente números asignados a objetos: describe magnitudes con dirección definidas en cada punto del espacio. Antes de introducir cargas o corrientes, necesitamos leer esas representaciones con soltura.",
-          "En el curso completo, este lugar será un diagnóstico breve de vectores, coordenadas, gradiente, divergencia, rotacional, unidades SI y análisis dimensional.",
+        id: "fields-and-notation",
+        title: "Campos y notación",
+        sections: [
+          {
+            title: "Por qué empezar aquí",
+            paragraphs: [
+              "El electromagnetismo no describe solamente números asignados a objetos: describe magnitudes escalares y vectoriales definidas en cada punto del espacio. Antes de introducir cargas o corrientes, necesitamos leer esas representaciones con soltura.",
+              "ATLAS escribe los escalares en cursiva, los vectores en negrita y las unidades SI en letra recta. La Simbología del menú secundario conserva esta convención durante toda la expedición.",
+            ],
+          },
+          {
+            title: "Dos tipos de campo",
+            paragraphs: [
+              "Un campo escalar asigna un número a cada posición; un campo vectorial asigna un vector. Bajo un cambio entre bases ortonormales, las componentes cambian, pero la norma y la magnitud física representada no.",
+            ],
+            equation: {
+              tex: String.raw`f:\Omega\subseteq\mathbb{R}^3\to\mathbb{R}
+                \qquad
+                \mathbf{F}:\Omega\subseteq\mathbb{R}^3\to\mathbb{R}^3`,
+              caption: "Tipos de entrada y salida de un campo escalar f y un campo vectorial F.",
+            },
+          },
         ],
+        exercise: { type: "none" },
       },
       {
-        title: "Modelo mínimo",
-        paragraphs: [
-          "Un campo vectorial asigna un vector a cada posición. Sus componentes dependen del sistema de coordenadas, pero la magnitud física no cambia por renombrar los ejes.",
+        id: "vector-operators",
+        title: "Operadores",
+        sections: [
+          {
+            title: "Gradiente, divergencia y rotacional",
+            paragraphs: [
+              "El gradiente transforma un escalar en vector, señala la dirección de máximo crecimiento local y su norma da la tasa máxima. La divergencia transforma un vector en escalar y mide flujo neto saliente local. El rotacional transforma un vector en vector y caracteriza circulación local.",
+            ],
+            equation: {
+              tex: String.raw`f\xrightarrow{\;\nabla\;}\nabla f
+                \qquad
+                \mathbf{F}\xrightarrow{\;\nabla\cdot\;}\nabla\cdot\mathbf{F}
+                \qquad
+                \mathbf{F}\xrightarrow{\;\nabla\times\;}\nabla\times\mathbf{F}`,
+              caption: "Tipos de campo de entrada y salida para los tres operadores básicos.",
+            },
+          },
+          {
+            title: "Laplaciano escalar",
+            paragraphs: [
+              "Aplicar la divergencia al gradiente produce el laplaciano. Para un campo escalar, su resultado también es escalar.",
+            ],
+            equation: {
+              tex: String.raw`\nabla^2 f=\nabla\cdot(\nabla f)=\frac{\partial^2 f}{\partial x^2}+\frac{\partial^2 f}{\partial y^2}+\frac{\partial^2 f}{\partial z^2}`,
+              caption: "Laplaciano de un campo escalar en coordenadas cartesianas.",
+            },
+            callout: "El signo de la divergencia informa un balance local de flujo; por sí solo no determina cómo cambia la rapidez de un flujo al alejarse de un punto.",
+          },
         ],
-        equation: {
-          tex: String.raw`\mathbf{E}=3\,\hat{\mathbf{x}}+4\,\hat{\mathbf{y}}\;\mathrm{N/C}
-            \quad\Longrightarrow\quad \lVert\mathbf{E}\rVert=\sqrt{3^2+4^2}=5\;\mathrm{N/C}`,
-          caption: "Magnitud de un campo a partir de sus componentes cartesianas.",
+        exercise: { type: "none" },
+      },
+      {
+        id: "vector-identities",
+        title: "Identidades",
+        sections: [
+          {
+            title: "Composiciones que se anulan",
+            paragraphs: [
+              "Si las derivadas mixtas necesarias son continuas, la divergencia de un rotacional y el rotacional de un gradiente se anulan.",
+            ],
+            equation: {
+              tex: String.raw`\nabla\cdot(\nabla\times\mathbf{F})=0
+                \qquad
+                \nabla\times(\nabla f)=\mathbf{0}`,
+              caption: "Identidades para F y f con derivadas segundas continuas.",
+            },
+          },
+          {
+            title: "Reglas del producto",
+            paragraphs: [
+              "Las identidades siguientes requieren campos diferenciables. El Formulario conservará el conjunto completo después de terminar este taller.",
+            ],
+            equation: {
+              tex: String.raw`\begin{aligned}
+                \nabla\cdot(f\mathbf{F})&=f\,\nabla\cdot\mathbf{F}+\mathbf{F}\cdot\nabla f\\
+                \nabla\times(f\mathbf{F})&=f\,\nabla\times\mathbf{F}+(\nabla f)\times\mathbf{F}\\
+                \nabla\cdot(\mathbf{F}\times\mathbf{G})&=\mathbf{G}\cdot(\nabla\times\mathbf{F})-\mathbf{F}\cdot(\nabla\times\mathbf{G})
+              \end{aligned}`,
+              caption: "Tres reglas del producto usadas en cálculo vectorial electromagnético.",
+            },
+          },
+          {
+            title: "Campos conservativos",
+            paragraphs: [
+              "Un campo que deriva de un potencial es irrotacional si el potencial es suficientemente regular. El recíproco necesita además una condición sobre el dominio: en un abierto simplemente conexo —conectado y sin agujeros topológicos—, un campo C¹ con rotacional nulo admite un potencial.",
+            ],
+            equation: {
+              tex: String.raw`\mathbf{E}=-\nabla V\quad\Longrightarrow\quad\nabla\times\mathbf{E}=\mathbf{0}`,
+              caption: "Convención electrostática para el campo eléctrico y el potencial.",
+            },
+          },
+        ],
+        exercise: { type: "none" },
+      },
+      {
+        id: "exit-check",
+        title: "Comprobación de salida",
+        sections: [
+          {
+            title: "Puente ingenieril",
+            paragraphs: [
+              "Las componentes permiten proyectar fuerzas, tensiones y flujos sobre direcciones relevantes para sensores, máquinas, líneas de transmisión y antenas.",
+              "Esta comprobación es deliberadamente breve: las identidades avanzadas quedan como material de consulta y no bloquean el tronco común.",
+            ],
+            equation: {
+              tex: String.raw`\mathbf{E}=3\,\hat{\mathbf{x}}+4\,\hat{\mathbf{y}}\;\mathrm{N/C}
+                \quad\Longrightarrow\quad \lVert\mathbf{E}\rVert=\sqrt{3^2+4^2}`,
+              caption: "Magnitud de un campo a partir de sus componentes cartesianas.",
+            },
+          },
+        ],
+        exercise: {
+          type: "choice",
+          prompt: "Para E = (3 x̂ + 4 ŷ) N/C, ¿cuál es la magnitud del campo?",
+          choices: ["3 N/C", "4 N/C", "5 N/C", "7 N/C"],
+          answerIndex: 2,
+          explanation: "La magnitud euclidiana es √(3² + 4²) = 5 N/C.",
         },
       },
-      {
-        title: "Puente ingenieril",
-        paragraphs: [
-          "Las componentes permiten proyectar fuerzas, tensiones y flujos sobre direcciones relevantes para sensores, máquinas, líneas de transmisión y antenas.",
-        ],
-      },
     ],
-    exercise: {
-      type: "choice",
-      prompt: "Para E = (3 x̂ + 4 ŷ) N/C, ¿cuál es la magnitud del campo?",
-      choices: ["3 N/C", "4 N/C", "5 N/C", "7 N/C"],
-      answerIndex: 2,
-      explanation: "La magnitud euclidiana es √(3² + 4²) = 5 N/C.",
-    },
     sources: [
       {
-        label: "MIT OpenCourseWare 8.02 — Electricity and Magnetism",
-        url: "https://ocw.mit.edu/courses/8-02-physics-ii-electricity-and-magnetism-spring-2007/",
+        citationKey: "el3103-team-vector-2025",
+        locator: "sección 1, pp. 1–2",
+        usage: "consulta",
+        license: "no indicada",
+        label: "Equipo docente EL3103, Clase auxiliar extra (2025), sección 1, pp. 1–2 — consulta; licencia no indicada",
+      },
+      {
+        citationKey: "ellingson-electromagnetics-i-2018",
+        locator: "caps. 1 y 4; sec. 4.7; apéndice 10.6",
+        usage: "validación científica",
+        license: "CC BY-SA 4.0",
+        label: "Steven W. Ellingson, Electromagnetics I, caps. 1 y 4 y apéndice 10.6 — CC BY-SA 4.0",
+        url: "https://phys.libretexts.org/Bookshelves/Electricity_and_Magnetism/Electromagnetics_I_(Ellingson)/04%3A_Vector_Analysis",
+      },
+      {
+        citationKey: "openstax-calculus-volume-3-2016",
+        locator: "secs. 6.3 y 6.5",
+        usage: "consulta para condiciones topológicas; redacción original",
+        license: "CC BY-NC-SA 4.0",
+        label: "OpenStax, Calculus Volume 3, secs. 6.3 y 6.5 — consulta, sin adaptación de texto",
+        url: "https://openstax.org/books/calculus-volume-3/pages/6-3-conservative-vector-fields",
       },
     ],
   },

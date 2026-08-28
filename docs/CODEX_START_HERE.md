@@ -16,7 +16,7 @@ En este orden:
 
 ## 2. Estado actual
 
-La versión `0.2.0` es un prototipo estático con una dependencia local respaldada por ADR. Ya incluye:
+La versión `0.3.0` es un prototipo estático con una dependencia local respaldada por ADR. Ya incluye:
 
 - movimiento continuo en Canvas 2D;
 - 19 hexágonos en tres niveles: base, seis fundamentos y doce aplicaciones;
@@ -26,6 +26,8 @@ La versión `0.2.0` es un prototipo estático con una dependencia local respalda
 - guardado por perfil en `localStorage`;
 - migración de progreso `v1 → v2`;
 - audio local con tres eventos verificables y mute;
+- ventana principal compatible con un panel secundario de consulta;
+- lugares por etapas y biblioteca derivada de símbolos, constantes, fórmulas y glosario;
 - ecuaciones TeX renderizadas con KaTeX y MathML;
 - debugger visual y `window.AtlasDebug`;
 - validador que simula la progresión completa;
@@ -59,6 +61,7 @@ Incluye esa evaluación en tu resumen de cambios o en el mensaje de commit.
 | Agregar o cambiar zonas | `src/data/world.js` |
 | Agregar conceptos o recompensas | `src/data/knowledge.js` |
 | Agregar lugares o ejercicios | `src/data/locations.js` |
+| Agregar referencias académicas | `src/data/reference/`, `docs/references/references.bib` |
 | Reglas de requisitos | `src/core/requirements.js` |
 | Derivación de zonas/fronteras | `src/core/world-graph.js` |
 | Estado, progreso y guardado | `src/core/progression.js`, `src/core/storage.js` |
@@ -122,6 +125,8 @@ Un nuevo lugar debe:
 - superar el validador de alcanzabilidad.
 
 Consulta `docs/CONTENT_AUTHORING.md`.
+
+Para pedir un alta, actualización o baja sin conocer el backend, copia `docs/content-changes/CONTENT_CHANGE_TEMPLATE.md`. El Markdown resultante es una orden para agentes; no se importa en el sitio.
 
 ## 8. Qué hacer al ampliar el motor
 

@@ -2,11 +2,11 @@
 
 ![Captura del prototipo](docs/screenshots/prototype.png)
 
-Prototipo abierto de un curso complementario de electromagnetismo aplicado con una interfaz narrativa en dos dimensiones. El estudiante explora libremente un mundo abstracto dividido en hexágonos, resuelve actividades universitarias y abre nuevas regiones mediante conocimiento adquirido.
+Prototipo abierto de un curso complementario de electromagnetismo aplicado con una interfaz narrativa en dos dimensiones. El estudiante explora libremente un mundo abstracto dividido en hexágonos, resuelve actividades universitarias y abre nuevas regiones mediante conocimiento adquirido. El autor del proyecto sitúa su origen pedagógico en su experiencia docente del curso EL3103 Electromagnetismo Aplicado de la Universidad de Chile, pero ATLAS es un recurso abierto e independiente.
 
 El proyecto está dirigido a estudiantes que ya manejan cálculo, álgebra lineal y física clásica, especialmente quienes consideran estudiar Ingeniería Eléctrica o comienzan los primeros semestres de la especialidad.
 
-> **Estado:** prototipo técnico y pedagógico `0.2.0`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
+> **Estado:** prototipo técnico y pedagógico `0.3.0`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
 
 ## Qué demuestra esta versión
 
@@ -17,9 +17,12 @@ El proyecto está dirigido a estudiantes que ya manejan cálculo, álgebra linea
 - Regla de fronteras: cuando se abre un hexágono, quedan transitables todas sus aristas compartidas con hexágonos previamente abiertos.
 - Veinte conceptos y 27 lugares alcanzables, incluida una misión integradora Tierra–Luna.
 - Ejercicios de alternativa, respuesta numérica con tolerancia y actividades de confirmación.
+- Lugares extensos divididos en etapas desbloqueables dentro de la ventana principal.
+- Menú secundario compatible con la ventana del lugar: árboles, simbología, constantes, formulario, glosario y ayuda.
+- Referencias académicas derivadas desde el progreso: la disponibilidad no se duplica en el guardado.
 - Persistencia local por perfiles, exportación e importación JSON.
 - Debugger visual y API de consola.
-- Ambiente global y efectos para cambio de zona e inicio de misión, con mute y pruebas directas.
+- Ambiente global y efectos para cambio de zona e interacción, con mute y pruebas directas.
 - Ecuaciones TeX renderizadas localmente con KaTeX y salida visual + MathML.
 - Migración automática de perfiles `v1` al esquema `v2`.
 - Validación automática contra bloqueos lógicos de progresión.
@@ -82,7 +85,7 @@ http://127.0.0.1:<puerto>/?debug=1&profile=debug
 | `K` | Ver los dos árboles de progresión |
 | `H` | Ver ayuda |
 | `F2` o `` ` `` | Abrir/cerrar el debugger |
-| `Esc` | Cerrar el panel superior |
+| `Esc` | Cerrar el último panel abierto |
 | `Shift` + clic | Teletransportarse con el debugger activo |
 
 ## Comandos del repositorio
@@ -125,6 +128,10 @@ Más detalles:
 - [Principios pedagógicos](docs/PEDAGOGICAL_PRINCIPLES.md)
 - [Esqueleto curricular preliminar](docs/CURRICULUM_SKELETON.md)
 - [Autoría de contenido](docs/CONTENT_AUTHORING.md)
+- [Nomenclatura e IDs](docs/CONTENT_NAMING.md)
+- [Plantilla mínima de cambios de contenido](docs/content-changes/CONTENT_CHANGE_TEMPLATE.md)
+- [Ejemplo no aplicable](docs/content-changes/examples/update-vector-workshop.example.md)
+- [Bibliografía BibTeX](docs/references/references.bib)
 - [Debugger](docs/DEBUGGING.md)
 - [Informe de validación](docs/VALIDATION_REPORT.md)
 
@@ -203,4 +210,6 @@ Las modificaciones grandes deben preservar los invariantes de progresión y acom
 - Contenido pedagógico original y documentación: [CC BY-SA 4.0](LICENSE-CONTENT.md), salvo indicación distinta.
 - KaTeX: MIT, copiado al build desde la dependencia fijada.
 - Audio incluido: CC0 1.0; procedencia en [public/assets/audio/ATTRIBUTION.md](public/assets/audio/ATTRIBUTION.md).
+- Texto abierto adaptado cuando se indica: CC BY-SA 4.0; referencias completas en [docs/references/references.bib](docs/references/references.bib).
+- Material docente EL3103 citado como consulta: licencia no indicada; no se redistribuyen los PDF, sus tablas, ejercicios ni soluciones.
 - Los enlaces externos conservan sus propias condiciones de uso; no se redistribuyen sus recursos dentro del repositorio.

@@ -48,6 +48,7 @@ La interfaz narrativa apoya el aprendizaje. No es el objetivo principal ni debe 
 ## Reglas de implementación
 
 - Usa JavaScript moderno con módulos ES y nombres de código en inglés; conserva la interfaz y documentación para usuarios en español.
+- Trata los archivos adjuntos a una tarea como material temporal de consulta: no los copies ni los versiones en el repositorio salvo petición explícita.
 - No uses `innerHTML` con contenido de datos o usuarios. Construye DOM con `textContent` y atributos explícitos.
 - Solo `ProgressionModel` debe modificar el progreso persistente.
 - Solo `ProgressStorage` debe acceder directamente a `localStorage`.

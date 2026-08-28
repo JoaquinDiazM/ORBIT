@@ -61,6 +61,25 @@ test("la entrada de desarrollo usa recursos instalados que cualquier servidor es
   assert.ok(index.indexOf("./src/startup-guard.js") < index.indexOf("./src/bootstrap.js"));
 });
 
+test("el shell expone el menú Atlas y no conserva la tarjeta fija de la versión anterior", async () => {
+  const index = await readFile(INDEX_PATH, "utf8");
+  const requiredIds = [
+    "atlas-menu",
+    "lesson-panel",
+    "reference-panel",
+    "open-knowledge",
+    "open-symbols",
+    "open-constants",
+    "open-formulas",
+    "open-glossary",
+    "open-help",
+  ];
+
+  for (const id of requiredIds) assert.match(index, new RegExp(`id=["']${id}["']`));
+  assert.doesNotMatch(index, /Prototipo 0\.2/);
+  assert.match(index, /Confirmar interacción/);
+});
+
 test("la guardia convierte un fallo de módulo en un diagnóstico visible", async () => {
   const source = await readFile(GUARD_PATH, "utf8");
   const harness = createGuardHarness();

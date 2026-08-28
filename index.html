@@ -20,12 +20,9 @@
         Tu navegador necesita soporte para Canvas 2D.
       </canvas>
 
-      <section id="hud" class="glass-card" aria-label="Estado de la expedición">
-        <div class="hud-heading">
-          <div>
-            <p class="eyebrow">Prototipo 0.2</p>
-            <h1>Atlas de Electromagnetismo Aplicado</h1>
-          </div>
+      <section id="hud" class="glass-card hud-bar" aria-label="Estado de la expedición">
+        <div class="hud-brand">
+          <h1><span class="atlas-wordmark">ATLAS</span><span class="atlas-name"> · Electromagnetismo Aplicado</span></h1>
           <span id="profile-badge" class="status-badge">perfil: normal</span>
         </div>
         <dl class="hud-stats">
@@ -34,12 +31,63 @@
           <div><dt>Conceptos</dt><dd id="hud-concepts">0 / 20</dd></div>
           <div><dt>Misión</dt><dd id="hud-mission">Encuentra el Taller Vectorial</dd></div>
         </dl>
-        <div class="hud-actions">
-          <button id="open-knowledge" class="secondary-button" type="button">Árboles <kbd>K</kbd></button>
-          <button id="open-help" class="secondary-button" type="button">Controles <kbd>H</kbd></button>
-          <button id="toggle-audio" class="secondary-button" type="button" aria-pressed="true">Audio activo <kbd>M</kbd></button>
-        </div>
       </section>
+
+      <nav id="atlas-menu" class="glass-card tool-dock" aria-label="Herramientas del Atlas">
+        <button
+          id="open-knowledge"
+          class="dock-button"
+          data-mark="I · II"
+          type="button"
+          aria-controls="knowledge-panel"
+          aria-expanded="false"
+        >Árboles <kbd>K</kbd></button>
+        <button
+          id="open-symbols"
+          class="dock-button"
+          data-mark="∑"
+          data-reference-view="symbols"
+          type="button"
+          aria-controls="reference-panel"
+          aria-expanded="false"
+        >Símbolos</button>
+        <button
+          id="open-constants"
+          class="dock-button"
+          data-mark="c"
+          data-reference-view="constants"
+          type="button"
+          aria-controls="reference-panel"
+          aria-expanded="false"
+        >Constantes</button>
+        <button
+          id="open-formulas"
+          class="dock-button"
+          data-mark="ƒ"
+          data-reference-view="formulas"
+          type="button"
+          aria-controls="reference-panel"
+          aria-expanded="false"
+        >Formulario</button>
+        <button
+          id="open-glossary"
+          class="dock-button"
+          data-mark="Aa"
+          data-reference-view="glossary"
+          type="button"
+          aria-controls="reference-panel"
+          aria-expanded="false"
+        >Glosario</button>
+        <button
+          id="open-help"
+          class="dock-button"
+          data-mark="?"
+          type="button"
+          aria-controls="help-panel"
+          aria-expanded="false"
+        >Ayuda <kbd>H</kbd></button>
+        <button id="toggle-audio" class="dock-button" data-mark="◉" type="button" aria-pressed="true">Audio activo <kbd>M</kbd></button>
+      </nav>
 
       <section id="controls-hint" class="glass-card compact-card" aria-label="Controles principales">
         <span><kbd>WASD</kbd> / flechas: mover</span>
@@ -55,7 +103,7 @@
         <span id="interaction-text">Interactuar</span>
       </div>
 
-      <aside id="lesson-panel" class="side-panel" aria-label="Contenido del lugar" hidden>
+      <aside id="lesson-panel" class="side-panel primary-panel" role="dialog" aria-labelledby="lesson-title" hidden>
         <header class="panel-header">
           <div>
             <p id="lesson-eyebrow" class="eyebrow"></p>
@@ -66,27 +114,45 @@
         <div id="lesson-body" class="panel-body"></div>
       </aside>
 
-      <aside id="knowledge-panel" class="side-panel wide-panel" aria-label="Árboles del conocimiento" hidden>
+      <aside
+        id="knowledge-panel"
+        class="side-panel secondary-panel wide-panel"
+        role="dialog"
+        aria-labelledby="knowledge-title"
+        hidden
+      >
         <header class="panel-header">
           <div>
             <p class="eyebrow">Progresión derivada</p>
-            <h2>Árboles del conocimiento</h2>
+            <h2 id="knowledge-title">Árboles del conocimiento</h2>
           </div>
           <button class="icon-button" data-close-panel="knowledge-panel" type="button" aria-label="Cerrar">×</button>
         </header>
         <div id="knowledge-body" class="panel-body"></div>
       </aside>
 
-      <aside id="help-panel" class="side-panel" aria-label="Ayuda de controles" hidden>
+      <aside id="reference-panel" class="side-panel secondary-panel wide-panel" role="dialog" aria-labelledby="reference-title" hidden>
+        <header class="panel-header">
+          <div>
+            <p id="reference-eyebrow" class="eyebrow">Convención del curso</p>
+            <h2 id="reference-title">Simbología</h2>
+          </div>
+          <button class="icon-button" data-close-panel="reference-panel" type="button" aria-label="Cerrar">×</button>
+        </header>
+        <div id="reference-body" class="panel-body"></div>
+      </aside>
+
+      <aside id="help-panel" class="side-panel secondary-panel" role="dialog" aria-labelledby="help-title" hidden>
         <header class="panel-header">
           <div>
             <p class="eyebrow">Guía rápida</p>
-            <h2>Cómo recorrer el prototipo</h2>
+            <h2 id="help-title">Cómo recorrer el prototipo</h2>
           </div>
           <button class="icon-button" data-close-panel="help-panel" type="button" aria-label="Cerrar">×</button>
         </header>
         <div class="panel-body prose">
           <p>El movimiento del personaje es continuo: no estás restringido a caminos ni a los lugares de aprendizaje.</p>
+          <p>El menú lateral abre una referencia secundaria a la vez. Esa referencia puede permanecer visible junto con la lección principal; las lecciones extensas se recorren por etapas.</p>
           <dl class="controls-list">
             <div><dt><kbd>WASD</kbd> o flechas</dt><dd>Movimiento libre.</dd></div>
             <div><dt><kbd>E</kbd></dt><dd>Interactuar con el lugar más cercano.</dd></div>
@@ -102,7 +168,7 @@
         </div>
       </aside>
 
-      <aside id="debug-panel" class="debug-panel" aria-label="Debugger del prototipo" hidden>
+      <aside id="debug-panel" class="debug-panel" role="dialog" aria-label="Debugger del prototipo" hidden>
         <header class="panel-header">
           <div>
             <p class="eyebrow">Herramientas de prueba</p>
@@ -139,7 +205,7 @@
           <div class="button-grid">
             <button id="debug-audio-ambience" type="button">Ambiente global</button>
             <button id="debug-audio-transition" type="button">Cambio de hexágono</button>
-            <button id="debug-audio-mission" type="button">Inicio de misión</button>
+            <button id="debug-audio-mission" type="button">Confirmar interacción</button>
           </div>
 
           <div class="button-grid">

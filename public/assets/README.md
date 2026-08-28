@@ -118,7 +118,7 @@ audio.volume = definition.volume;
 
 Los navegadores suelen bloquear audio automático antes de la primera interacción del usuario. El sistema de audio debe inicializarse después de un clic, una tecla o una acción equivalente.
 
-La implementación activa está en `src/audio/audio-manager.js`. El ambiente comienza tras el primer gesto, `M` alterna el mute, el cruce de hexágono y el inicio de misión disparan sus efectos, y el debugger permite probar los tres recursos sin completar el recorrido.
+La implementación activa está en `src/audio/audio-manager.js`. El ambiente comienza tras el primer gesto, `M` alterna el mute, el cruce de hexágono y cada interacción válida disparan sus efectos, y el debugger permite probar los tres recursos sin completar el recorrido.
 
 ## Reglas para colaboradores y agentes
 
@@ -134,7 +134,7 @@ La implementación activa está en `src/audio/audio-manager.js`. El ambiente com
 
 ## Recursos incluidos
 
-- Inicio de misión: `audio/interactions/mission_start_roger_beep_01.ogg`.
+- Confirmación de interacción: `audio/interactions/mission_start_roger_beep_01.ogg` (nombre histórico conservado).
 - Cambio de hexágono: `audio/transitions/hexagon_transition_scifi_inspect_01.ogg`.
 - Ambiente global: `audio/ambience/global_space_ambient_loop_01.ogg`.
 

@@ -5,7 +5,7 @@
 
 ## Contexto
 
-El prototipo incorpora tres recursos Ogg Vorbis para ambiente global, cruce de hexágono e inicio de misión. Todos son CC0 1.0, están acompañados por metadatos y suman aproximadamente 1.23 MiB. Cada recurso versionado debe tener un camino de reproducción verificable, sin convertir el audio en el único medio para comunicar un estado.
+El prototipo incorpora tres recursos Ogg Vorbis para ambiente global, cruce de hexágono y confirmación de interacción. Todos son CC0 1.0, están acompañados por metadatos y suman aproximadamente 1.23 MiB. Cada recurso versionado debe tener un camino de reproducción verificable, sin convertir el audio en el único medio para comunicar un estado.
 
 ## Decisión
 
@@ -20,6 +20,8 @@ El audio:
 - degrada a silencio si un archivo o la reproducción fallan;
 - conserva siempre una señal visual o textual equivalente;
 - expone una prueba directa de los tres recursos en el debugger.
+
+La clave runtime histórica `mission_start` se conserva para no romper el manifiesto, aunque el recurso confirma ahora cualquier interacción válida con un objeto o lugar.
 
 Los archivos, sus autores, fuentes y licencias se registran en `public/assets/audio/ATTRIBUTION.md` y en los JSON homónimos.
 

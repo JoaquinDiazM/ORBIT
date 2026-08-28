@@ -51,6 +51,12 @@ Define conceptos y recompensas:
 
 Define lugares, secciones, actividades, requisitos y concesiones del Árbol II.
 
+Los lugares pueden declarar `steps`; la UI normaliza el formato anterior como una sola etapa. La navegación de etapas es estado efímero de interfaz y solo la finalización del lugar pasa por `ProgressionModel`.
+
+### `src/data/reference/`
+
+Define simbología, constantes, fórmulas y glosario. Cada entrada tiene requisitos del Árbol II y fuentes trazables. La disponibilidad se calcula desde el snapshot; no se persisten IDs de referencia desbloqueados.
+
 ## Núcleo
 
 ### Geometría
@@ -122,11 +128,11 @@ Orquesta el loop:
 
 ## Interfaz
 
-`src/ui/ui-controller.js` controla HUD, modal de lecciones, ejercicios, inventario, árboles, ayuda, avisos y debugger. Construye contenido mediante APIs DOM y `textContent`. `src/ui/math-renderer.js` entrega a KaTeX únicamente expresiones editoriales TeX y conserva un fallback textual; el build sirve KaTeX localmente y nunca desde CDN.
+`src/ui/ui-controller.js` controla la barra de estado, la ventana principal del lugar, un único panel secundario, etapas, ejercicios, biblioteca de referencia, árboles, ayuda, avisos y debugger. La ventana principal y la secundaria pueden coexistir en escritorio. Construye contenido mediante APIs DOM y `textContent`. `src/ui/math-renderer.js` entrega a KaTeX únicamente expresiones editoriales TeX y conserva un fallback textual; el build sirve KaTeX localmente y nunca desde CDN.
 
 ## Audio
 
-`src/audio/audio-manager.js` carga `public/assets/audio/audio-manifest.json` después del primer gesto del usuario. El ambiente global, la transición de hexágono y el inicio de misión poseen señal visual equivalente y pruebas directas en el debugger. El mute y volumen se persisten mediante `ProgressionModel`; el servicio de audio solo ejecuta la preferencia.
+`src/audio/audio-manager.js` carga `public/assets/audio/audio-manifest.json` después del primer gesto del usuario. El ambiente global, la transición de hexágono y la confirmación de interacción poseen señal visual equivalente y pruebas directas en el debugger. El mute y volumen se persisten mediante `ProgressionModel`; el servicio de audio solo ejecuta la preferencia.
 
 ## Arranque
 

@@ -37,6 +37,7 @@ test("el manifiesto indexa cada Ogg con metadatos y rutas relativas", async () =
   );
 
   const indexedSources = new Set();
+  const indexedMetadata = new Set();
   const attribution = await readFile(resolve(audioRoot, "ATTRIBUTION.md"), "utf8");
 
   for (const [key, definition] of definitions) {
@@ -61,13 +62,36 @@ test("el manifiesto indexa cada Ogg con metadatos y rutas relativas", async () =
     assert.equal(metadata.playback.suggested_volume, definition.volume);
     assert.ok(metadata.source.sound_url.startsWith("https://freesound.org/"));
     assert.match(metadata.source.license_name, /Creative Commons 0/i);
+    if (key === "mission_start") {
+      assert.match(
+        metadata.intended_use,
+        /interacci[oó]n válida/i,
+        "El beep histórico debe documentar su uso actual como confirmación de interacción.",
+      );
+    }
     assert.ok(attribution.includes(definition.src), `${definition.src} falta en ATTRIBUTION.md.`);
+    assert.equal(indexedSources.has(definition.src), false, `${definition.src} está indexado más de una vez.`);
+    assert.equal(
+      indexedMetadata.has(definition.metadata),
+      false,
+      `${definition.metadata} está indexado más de una vez.`,
+    );
     indexedSources.add(definition.src);
+    indexedMetadata.add(definition.metadata);
   }
 
   const files = await collectFiles(audioRoot);
   const oggSources = files.filter((path) => path.endsWith(".ogg")).map(portableRelative).sort();
+  const metadataSources = files
+    .filter((path) => path.endsWith(".json") && path !== manifestPath)
+    .map(portableRelative)
+    .sort();
   assert.deepEqual([...indexedSources].sort(), oggSources, "Todo Ogg debe estar indexado una vez.");
+  assert.deepEqual(
+    [...indexedMetadata].sort(),
+    metadataSources,
+    "Todo JSON de metadatos debe estar indexado una vez.",
+  );
 });
 
 test("los tres eventos de audio disponibles conservan sus claves estables", async () => {

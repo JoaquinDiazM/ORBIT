@@ -24,7 +24,7 @@ El contenido actual es una demostración de mecánicas y estructura. No constitu
 - `WASD` o flechas: mover al personaje libremente.
 - Rueda del ratón: acercar o alejar la cámara.
 - `E` o espacio: interactuar con el lugar más cercano.
-- `Esc`: cerrar el panel visible.
+- `Esc`: cerrar la ventana superior de la pila.
 
 Las líneas luminosas indican fronteras transitables. Las barreras marcadas con candados separan una zona abierta de una zona todavía bloqueada.
 
@@ -47,6 +47,21 @@ Pulsa `K` para revisar:
 
 El mundo no obliga a caminar por las líneas de esos árboles. Los grafos controlan acceso conceptual, no la trayectoria física dentro de una zona.
 
+## Ventana principal y menú secundario
+
+Al interactuar con un lugar, su ventana principal aparece a la derecha. El menú izquierdo puede mantener abierta a la vez una única ventana secundaria:
+
+- árboles de conocimiento;
+- simbología;
+- constantes;
+- formulario desbloqueado;
+- glosario;
+- ayuda.
+
+En escritorio puedes consultar una referencia sin cerrar la misión o lección actual. En pantallas estrechas los paneles ocupan el espacio disponible y `Esc` los cierra en orden inverso a su apertura.
+
+Las lecciones extensas se dividen en etapas. Una lectura habilita **Continuar**; una actividad habilita la etapa siguiente solo después de una respuesta correcta. Una vez completado el lugar, todas sus etapas quedan disponibles para revisión.
+
 ## Gadgets y transportes
 
 - `G`: activa o desactiva la Lente de campo después de adquirirla.
@@ -57,7 +72,7 @@ Los transportes cambian la velocidad de exploración, no los prerrequisitos acad
 
 ## Audio y ecuaciones
 
-El ambiente comienza solo después de tu primer clic o tecla. El cruce de una zona y la apertura de una misión tienen efectos breves; las mismas acciones siempre conservan indicación visual. Las ecuaciones se escriben en TeX, se muestran con tipografía matemática y exponen MathML para tecnologías de asistencia.
+El ambiente comienza solo después de tu primer clic o tecla. El cruce de una zona y cada interacción válida tienen efectos breves; las mismas acciones siempre conservan indicación visual. Las ecuaciones se escriben en TeX, se muestran con tipografía matemática y exponen MathML para tecnologías de asistencia.
 
 ## Guardado
 

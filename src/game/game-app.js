@@ -11,6 +11,13 @@ import { Camera2D } from "./camera.js";
 import { InputController } from "./input-controller.js";
 import { CanvasRenderer } from "./renderer.js";
 
+export const LOCATION_INTERACTION_AUDIO_KEY = "mission_start";
+
+export function openLocationWithInteractionCue(location, audio, ui) {
+  void audio?.play?.(LOCATION_INTERACTION_AUDIO_KEY);
+  ui.openLocation(location);
+}
+
 export class GameApp {
   constructor({ canvas, progression, ui, audio, debugInitiallyEnabled = false }) {
     this.canvas = canvas;
@@ -120,8 +127,11 @@ export class GameApp {
     this.nearestLocation = this.#findNearestAccessibleLocation(snapshot);
 
     if (this.input.consume("interact") && !this.ui.isBlockingModalOpen()) {
-      if (this.nearestLocation) this.ui.openLocation(this.nearestLocation);
-      else this.ui.toast("Acércate a un lugar disponible para interactuar.", "warning");
+      if (this.nearestLocation) {
+        openLocationWithInteractionCue(this.nearestLocation, this.audio, this.ui);
+      } else {
+        this.ui.toast("Acércate a un lugar disponible para interactuar.", "warning");
+      }
     }
 
     this.camera.follow(this.player.x, this.player.y, deltaSeconds);

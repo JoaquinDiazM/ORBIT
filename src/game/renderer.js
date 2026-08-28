@@ -88,6 +88,52 @@ function drawRoundedRect(context, x, y, width, height, radius) {
   context.closePath();
 }
 
+// World coordinates grow right/down; upper-left light therefore casts toward +x/+y.
+const SHADOW_DIRECTION_COMPONENT = Math.SQRT1_2;
+const PLAYER_SHADOW_PROFILES = Object.freeze({
+  walk: Object.freeze({
+    radiusX: 19,
+    radiusY: 8,
+    minOffset: 5,
+    maxOffset: 18,
+  }),
+  "electric-cart": Object.freeze({
+    radiusX: 22,
+    radiusY: 10,
+    minOffset: 5,
+    maxOffset: 19,
+  }),
+  "radio-skiff": Object.freeze({
+    radiusX: 28,
+    radiusY: 10,
+    minOffset: 5,
+    maxOffset: 20,
+  }),
+});
+
+export function getPlayerShadowGeometry(heading, transportId = "walk") {
+  const safeHeading = Number.isFinite(heading) ? heading : 0;
+  const profile = PLAYER_SHADOW_PROFILES[transportId] ?? PLAYER_SHADOW_PROFILES.walk;
+  const headingX = Math.cos(safeHeading);
+  const headingY = Math.sin(safeHeading);
+  const awayAlignment = Math.max(
+    0,
+    Math.min(1, (headingX + headingY) * SHADOW_DIRECTION_COMPONENT),
+  );
+  const squaredAwayAlignment = awayAlignment * awayAlignment;
+  const awayShortening = squaredAwayAlignment * squaredAwayAlignment;
+  const offsetDistance =
+    profile.maxOffset - (profile.maxOffset - profile.minOffset) * awayShortening;
+
+  return {
+    offsetX: offsetDistance * SHADOW_DIRECTION_COMPONENT,
+    offsetY: offsetDistance * SHADOW_DIRECTION_COMPONENT,
+    radiusX: profile.radiusX,
+    radiusY: profile.radiusY,
+    rotation: safeHeading,
+  };
+}
+
 export class CanvasRenderer {
   constructor(canvas) {
     this.canvas = canvas;
@@ -660,15 +706,26 @@ export class CanvasRenderer {
     const context = this.context;
     const lineScale = 1 / zoom;
     const bob = Math.sin(timeSeconds * 5.5) * 1.4 * lineScale;
+    const shadow = getPlayerShadowGeometry(player.heading, transport.id);
 
     context.save();
-    context.translate(player.x, player.y + bob);
-    context.rotate(player.heading);
+    context.translate(player.x, player.y);
 
     context.fillStyle = "rgba(3, 13, 22, 0.64)";
     context.beginPath();
-    context.ellipse(0, 15 * lineScale, 19 * lineScale, 8 * lineScale, 0, 0, Math.PI * 2);
+    context.ellipse(
+      shadow.offsetX * lineScale,
+      shadow.offsetY * lineScale,
+      shadow.radiusX * lineScale,
+      shadow.radiusY * lineScale,
+      shadow.rotation,
+      0,
+      Math.PI * 2,
+    );
     context.fill();
+
+    context.translate(0, bob);
+    context.rotate(player.heading);
 
     if (transport.id === "electric-cart") {
       drawRoundedRect(context, -19 * lineScale, -12 * lineScale, 38 * lineScale, 24 * lineScale, 7 * lineScale);
