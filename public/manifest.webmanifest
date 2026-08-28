@@ -1,6 +1,6 @@
 {
-  "name": "Atlas de Electromagnetismo Aplicado",
-  "short_name": "Atlas EM",
+  "name": "ORBIT — Electromagnetismo Aplicado",
+  "short_name": "ORBIT",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#08111f",

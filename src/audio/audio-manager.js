@@ -4,6 +4,8 @@ const DEFAULT_MANIFEST_URL = new URL(
 );
 
 const USER_GESTURE_EVENTS = Object.freeze(["pointerdown", "keydown", "touchstart"]);
+const AUDIO_CATEGORIES = Object.freeze(["ambience", "effects"]);
+const DEFAULT_INTERACTION_KEY = "ui_select";
 
 function clampVolume(value, fallback = 1) {
   const numeric = Number(value);
@@ -43,6 +45,9 @@ function validateManifest(manifest) {
   if (!manifest.assets || typeof manifest.assets !== "object") {
     throw new Error("El manifiesto de audio no contiene assets.");
   }
+  if (manifest.schema_version !== 2) {
+    throw new Error("El manifiesto de audio debe usar el esquema 2.");
+  }
   if (!isRelativeAssetPath(manifest.base_path ?? ".")) {
     throw new Error("base_path debe ser relativo al manifiesto de audio.");
   }
@@ -56,6 +61,9 @@ function validateManifest(manifest) {
     }
     if (!isRelativeAssetPath(definition.src)) {
       throw new Error(`La ruta del audio ${key} debe ser relativa.`);
+    }
+    if (!AUDIO_CATEGORIES.includes(definition.category)) {
+      throw new Error(`La categoría del audio ${key} debe ser ambience o effects.`);
     }
     if (!Number.isFinite(definition.volume) || definition.volume < 0 || definition.volume > 1) {
       throw new Error(`El volumen del audio ${key} debe estar entre 0 y 1.`);
@@ -72,9 +80,10 @@ export class AudioManager {
     audioFactory = createBrowserAudio,
     gestureTarget = globalThis.window ?? null,
     visibilityTarget = globalThis.document ?? null,
-    muted = false,
-    masterVolume = 1,
+    ambienceVolume = 1,
+    effectsVolume = 1,
     ambienceKey = "global_ambience",
+    defaultInteractionKey = DEFAULT_INTERACTION_KEY,
     logger = globalThis.console,
     setTimeoutImpl = globalThis.setTimeout?.bind(globalThis),
     clearTimeoutImpl = globalThis.clearTimeout?.bind(globalThis),
@@ -84,9 +93,12 @@ export class AudioManager {
     this.audioFactory = audioFactory;
     this.gestureTarget = gestureTarget;
     this.visibilityTarget = visibilityTarget;
-    this.muted = Boolean(muted);
-    this.masterVolume = clampVolume(masterVolume);
+    this.categoryVolumes = {
+      ambience: clampVolume(ambienceVolume),
+      effects: clampVolume(effectsVolume),
+    };
     this.ambienceKey = ambienceKey;
+    this.defaultInteractionKey = defaultInteractionKey;
     this.logger = logger;
     this.setTimeoutImpl = setTimeoutImpl;
     this.clearTimeoutImpl = clearTimeoutImpl;
@@ -155,8 +167,9 @@ export class AudioManager {
       activated: this.activated,
       loadState: this.loadState,
       ready: this.loadState === "ready",
-      muted: this.muted,
-      masterVolume: this.masterVolume,
+      ambienceVolume: this.categoryVolumes.ambience,
+      effectsVolume: this.categoryVolumes.effects,
+      categoryVolumes: Object.freeze({ ...this.categoryVolumes }),
       ambiencePlaying: Boolean(ambience && !ambience.paused),
       activePreviews: this.previews.size,
       assetKeys: Object.freeze([...this.assets.keys()]),
@@ -178,48 +191,52 @@ export class AudioManager {
 
     this.#applyPlaybackSettings();
     this.#emit("audio-activated");
-    if (!this.muted && !this.#isDocumentHidden()) {
+    if (this.categoryVolumes.ambience > 0 && !this.#isDocumentHidden()) {
       await this.resumeAmbience();
     }
     return { ok: true };
   }
 
-  async setMuted(muted) {
-    const nextMuted = Boolean(muted);
-    if (nextMuted === this.muted) return { ok: true, muted: this.muted };
-    this.muted = nextMuted;
+  setCategoryVolume(category, volume) {
+    if (!AUDIO_CATEGORIES.includes(category)) return null;
+    const previousVolume = this.categoryVolumes[category];
+    const nextVolume = clampVolume(volume, previousVolume);
+    this.categoryVolumes[category] = nextVolume;
     this.#applyPlaybackSettings();
 
-    if (this.muted) {
-      this.#pauseAllPrimaryAudio();
-      this.stopPreviews();
-    } else if (this.activated && !this.#isDocumentHidden()) {
-      await this.resumeAmbience();
+    if (nextVolume === 0) {
+      this.#pauseCategory(category);
+    } else if (
+      category === "ambience" &&
+      previousVolume === 0 &&
+      this.activated &&
+      !this.#isDocumentHidden()
+    ) {
+      void this.resumeAmbience();
     }
 
-    this.#emit("mute-changed", { muted: this.muted });
-    return { ok: true, muted: this.muted };
+    this.#emit("category-volume-changed", { category, volume: nextVolume });
+    return nextVolume;
   }
 
-  async toggleMuted() {
-    return this.setMuted(!this.muted);
+  setAmbienceVolume(volume) {
+    return this.setCategoryVolume("ambience", volume);
   }
 
-  setMasterVolume(volume) {
-    this.masterVolume = clampVolume(volume, this.masterVolume);
-    this.#applyPlaybackSettings();
-    this.#emit("volume-changed", { masterVolume: this.masterVolume });
-    return this.masterVolume;
+  setEffectsVolume(volume) {
+    return this.setCategoryVolume("effects", volume);
   }
 
   async play(assetKey, { restart = true } = {}) {
     if (!this.activated) return { ok: false, reason: "awaiting-user-gesture" };
-    if (this.muted) return { ok: false, reason: "muted" };
     if (this.#isDocumentHidden()) return { ok: false, reason: "document-hidden" };
     if (!(await this.#ensureLoaded())) return { ok: false, reason: "audio-unavailable" };
 
     const asset = this.assets.get(assetKey);
     if (!asset) return { ok: false, reason: "unknown-asset" };
+    if (this.categoryVolumes[asset.definition.category] === 0) {
+      return { ok: false, reason: "category-silent", category: asset.definition.category };
+    }
     const element = asset.element;
     if (restart) this.#rewind(element);
 
@@ -234,15 +251,25 @@ export class AudioManager {
     }
   }
 
+  playInteractionCue({ specificAssetKey } = {}) {
+    const assetKey =
+      typeof specificAssetKey === "string" && specificAssetKey.length > 0
+        ? specificAssetKey
+        : this.defaultInteractionKey;
+    return this.play(assetKey);
+  }
+
   async resumeAmbience() {
     if (!this.activated) return { ok: false, reason: "awaiting-user-gesture" };
-    if (this.muted) return { ok: false, reason: "muted" };
     if (this.#isDocumentHidden()) return { ok: false, reason: "document-hidden" };
     if (!(await this.#ensureLoaded())) return { ok: false, reason: "audio-unavailable" };
 
-    const ambience = this.assets.get(this.ambienceKey)?.element;
-    if (!ambience) return { ok: false, reason: "unknown-ambience" };
-    if (!ambience.paused) return { ok: true, reason: "already-playing" };
+    const ambienceAsset = this.assets.get(this.ambienceKey);
+    if (!ambienceAsset) return { ok: false, reason: "unknown-ambience" };
+    if (this.categoryVolumes[ambienceAsset.definition.category] === 0) {
+      return { ok: false, reason: "category-silent", category: ambienceAsset.definition.category };
+    }
+    if (!ambienceAsset.element.paused) return { ok: true, reason: "already-playing" };
     return this.play(this.ambienceKey, { restart: false });
   }
 
@@ -254,12 +281,14 @@ export class AudioManager {
 
   async preview(assetKey, { durationMs } = {}) {
     if (!this.activated) return { ok: false, reason: "awaiting-user-gesture" };
-    if (this.muted) return { ok: false, reason: "muted" };
     if (this.#isDocumentHidden()) return { ok: false, reason: "document-hidden" };
     if (!(await this.#ensureLoaded())) return { ok: false, reason: "audio-unavailable" };
 
     const asset = this.assets.get(assetKey);
     if (!asset) return { ok: false, reason: "unknown-asset" };
+    if (this.categoryVolumes[asset.definition.category] === 0) {
+      return { ok: false, reason: "category-silent", category: asset.definition.category };
+    }
     if (assetKey === this.ambienceKey && !asset.element.paused) {
       return { ok: true, assetKey, reason: "already-playing" };
     }
@@ -318,7 +347,7 @@ export class AudioManager {
       })
       .catch((error) => {
         this.loadState = "failed";
-        this.#warnOnce("load", "El sistema de audio no pudo inicializarse; ATLAS continuará en silencio.", error);
+        this.#warnOnce("load", "El sistema de audio no pudo inicializarse; ORBIT continuará en silencio.", error);
         this.#emit("audio-unavailable", { error });
         return false;
       });
@@ -350,19 +379,20 @@ export class AudioManager {
 
   #configureElement(element, definition, { loop = Boolean(definition.loop) } = {}) {
     element.loop = loop;
-    element.volume = clampVolume(definition.volume) * this.masterVolume;
-    element.muted = this.muted;
+    element.volume =
+      clampVolume(definition.volume) * this.categoryVolumes[definition.category];
     if ("playsInline" in element) element.playsInline = true;
   }
 
   #applyPlaybackSettings() {
     for (const asset of this.assets.values()) {
-      asset.element.muted = this.muted;
-      asset.element.volume = clampVolume(asset.definition.volume) * this.masterVolume;
+      asset.element.volume =
+        clampVolume(asset.definition.volume) * this.categoryVolumes[asset.definition.category];
     }
     for (const preview of this.previews) {
-      preview.element.muted = this.muted;
-      preview.element.volume = clampVolume(preview.definition.volume) * this.masterVolume;
+      preview.element.volume =
+        clampVolume(preview.definition.volume) *
+        this.categoryVolumes[preview.definition.category];
     }
   }
 
@@ -376,6 +406,15 @@ export class AudioManager {
 
   #pauseAllPrimaryAudio() {
     for (const asset of this.assets.values()) asset.element.pause?.();
+  }
+
+  #pauseCategory(category) {
+    for (const asset of this.assets.values()) {
+      if (asset.definition.category === category) asset.element.pause?.();
+    }
+    for (const preview of [...this.previews]) {
+      if (preview.definition.category === category) this.#disposePreview(preview);
+    }
   }
 
   #disposePreview(preview) {
@@ -399,7 +438,7 @@ export class AudioManager {
       return;
     }
     this.#emit("audio-resumed");
-    if (this.activated && !this.muted) await this.resumeAmbience();
+    if (this.activated && this.categoryVolumes.ambience > 0) await this.resumeAmbience();
   }
 
   #warnOnce(key, message, error) {

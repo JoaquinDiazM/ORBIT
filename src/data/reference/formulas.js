@@ -2,6 +2,10 @@ const VECTOR_WORKSHOP_REQUIREMENT = Object.freeze({
   completedLocations: ["vector-workshop"],
 });
 
+const ONNES_ENCOUNTER_REQUIREMENT = Object.freeze({
+  completedLocations: ["shielding-chamber"],
+});
+
 const ELLINGSON_VECTOR_SOURCE = Object.freeze({
   citationKey: "ellingson-electromagnetics-i-2018",
   label: "Ellingson, Electromagnetics I",
@@ -132,5 +136,27 @@ export const FORMULAS = Object.freeze([
     conditions: "F de clase C¹ y volumen regular con normal exterior orientada.",
     requirements: { rewards: ["npcs:gauss-guide"] },
     source: ELLINGSON_VECTOR_SOURCE,
+  },
+  {
+    id: "superconducting-resistive-transition",
+    title: "Transición resistiva superconductora",
+    category: "Superconductividad",
+    equation: {
+      tex: String.raw`R(T)>0\quad (T>T_c),\qquad R(T)\approx 0\quad (T<T_c)`,
+      caption: "Modelo cualitativo de una transición resistiva alrededor de la temperatura crítica.",
+    },
+    conditions: "Aproximación introductoria para corriente continua y dentro de la resolución experimental; no representa una curva universal.",
+    requirements: ONNES_ENCOUNTER_REQUIREMENT,
+  },
+  {
+    id: "superconducting-critical-domain",
+    title: "Dominio crítico introductorio",
+    category: "Superconductividad",
+    equation: {
+      tex: String.raw`T<T_c,\qquad |I|<I_c,\qquad |B|<B_c`,
+      caption: "Condiciones críticas esquemáticas para sostener el estado superconductor en el modelo inicial.",
+    },
+    conditions: "Los valores críticos dependen del material, la geometría y el régimen de operación; esta expresión no sustituye un modelo de dispositivo.",
+    requirements: ONNES_ENCOUNTER_REQUIREMENT,
   },
 ]);

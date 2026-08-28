@@ -85,17 +85,17 @@ function listen(candidatePort, attemptsRemaining) {
     }
 
     if (error.code === "EADDRINUSE") {
-      console.error(`No se pudo iniciar ATLAS: el puerto ${candidatePort} ya está ocupado.`);
+      console.error(`No se pudo iniciar ORBIT: el puerto ${candidatePort} ya está ocupado.`);
       console.error("Detén el servidor anterior con Ctrl+C o elige otro puerto con $env:PORT.");
     } else {
-      console.error("No se pudo iniciar el servidor local de ATLAS.", error);
+      console.error("No se pudo iniciar el servidor local de ORBIT.", error);
     }
     process.exitCode = 1;
   });
 
   candidateServer.listen(candidatePort, "127.0.0.1", () => {
     activeServer = candidateServer;
-    console.log(`Atlas disponible en http://127.0.0.1:${candidatePort}/`);
+    console.log(`ORBIT disponible en http://127.0.0.1:${candidatePort}/`);
     console.log(`Debugger aislado: http://127.0.0.1:${candidatePort}/?debug=1&profile=debug`);
     console.log("Presiona Ctrl+C para detener el servidor.");
   });

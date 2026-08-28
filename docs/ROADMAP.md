@@ -2,6 +2,10 @@
 
 Esta hoja de ruta prioriza valor pedagógico y control de alcance. No representa fechas comprometidas.
 
+ORBIT significa **Open Roadmap for Building Intuition and Theory**. Los hitos hasta `1.0`
+describen la ruta actual de Electromagnetismo Aplicado. Migrar y conectar cursos diferentes es
+una dirección posterior: el prototipo todavía no ofrece una arquitectura multicurso.
+
 ## 0.1 — Base técnica y mecánica
 
 Estado: completado en este prototipo.
@@ -25,7 +29,7 @@ Estado: cartografía y mecánicas de soporte implementadas; profundidad académi
 - Separar tronco común y rutas laterales.
 - Determinar alcance respecto de un curso universitario real.
 - Diseñar taxonomía de dificultad y tipos de solución.
-- Implementar modo Atlas básico.
+- Implementar consulta temática básica.
 - Poblar y revisar los 19 hexágonos actuales más allá de sus nodos demostrativos.
 
 Criterio de salida: el mapa completo puede representarse como grafo curricular aunque la mayoría de los nodos todavía sean placeholders.
@@ -60,7 +64,7 @@ Criterio de salida: sirve como plantilla de calidad para todos los nodos posteri
 
 - Cinco regiones principales completas.
 - Al menos treinta problemas originales revisados.
-- Modo Atlas funcional.
+- Consulta temática funcional.
 - Navegación por objetivos de aprendizaje.
 - Prueba piloto reducida con estudiantes.
 - Registro de errores y mejoras.
@@ -87,6 +91,7 @@ Criterio de salida: sirve como plantilla de calidad para todos los nodos posteri
 
 ## Ideas posteriores, no comprometidas
 
+- Rutas de cursos adicionales con contratos explícitos de prerrequisitos, equivalencias y conexiones transversales.
 - Sincronización opcional entre dispositivos.
 - Paquetes de contenido de terceros.
 - Editor visual de mapas.

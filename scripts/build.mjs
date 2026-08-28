@@ -12,7 +12,7 @@ const productionKatexBase = "./vendor/katex/";
 try {
   await access(katexDist);
 } catch {
-  throw new Error("No se encontró KaTeX. Ejecuta `npm install` antes de construir ATLAS.");
+  throw new Error("No se encontró KaTeX. Ejecuta `npm install` antes de construir ORBIT.");
 }
 
 await rm(dist, { recursive: true, force: true });
@@ -61,7 +61,7 @@ await writeFile(
   resolve(dist, "build-info.json"),
   `${JSON.stringify(
     {
-      project: "atlas-electromagnetismo-aplicado",
+      project: "orbit-open-roadmap",
       generatedAt: new Date().toISOString(),
       buildType: "static-no-bundle",
     },

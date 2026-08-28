@@ -12,6 +12,12 @@ const V2_AREA_TARGETS = Object.freeze({
   applications: Object.freeze({ q: 0, r: -2 }),
 });
 
+function clampVolume(value, fallback = 1) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.min(1, Math.max(0, numeric));
+}
+
 function translatePlayerBetweenAreas(player, source, target) {
   if (!Number.isFinite(player?.x) || !Number.isFinite(player?.y)) return player;
   const sourceCenter = axialToPixel(source.q, source.r, WORLD_CONFIG.hexSize);
@@ -64,6 +70,30 @@ export function migrateProgressState(candidate) {
       player,
     };
     version = 2;
+  }
+
+  if (version < 3) {
+    const legacySettings =
+      state.settings && typeof state.settings === "object" ? state.settings : {};
+    const legacyVolume = clampVolume(legacySettings.audioVolume);
+    const categoryVolume = Boolean(legacySettings.audioMuted) ? 0 : legacyVolume;
+    const {
+      audioMuted: _obsoleteAudioMuted,
+      audioVolume: _obsoleteAudioVolume,
+      ...preservedSettings
+    } = legacySettings;
+
+    state = {
+      ...state,
+      schemaVersion: 3,
+      settings: {
+        ...preservedSettings,
+        ambienceVolume: categoryVolume,
+        effectsVolume: categoryVolume,
+        treeTwoVisualizationMode: "hidden",
+      },
+    };
+    version = 3;
   }
 
   if (version !== APP_CONFIG.progressSchemaVersion) {

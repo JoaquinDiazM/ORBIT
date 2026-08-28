@@ -1,0 +1,25 @@
+{
+  "asset_id": "zone_unlocked_airlock_01",
+  "runtime_file": "zone_unlocked_airlock_01.ogg",
+  "category": "transitions",
+  "intended_use": "Efecto único de compuerta cuando una acción del usuario desbloquea por primera vez una o más zonas del Árbol I.",
+  "playback": {
+    "loop": false,
+    "suggested_volume": 0.65
+  },
+  "source": {
+    "sound_url": "https://chatgpt.com/c/6a90bb10-8000-83e9-82af-e55fc58da22c",
+    "sound_name": "zone-unlocked-airlock.ogg",
+    "author_url": "https://github.com/JoaquinDiazM",
+    "author_name": "JoaquinDiazM, contribución al proyecto entregada mediante ChatGPT",
+    "license_url": "https://github.com/JoaquinDiazM/ORBIT/blob/main/LICENSE",
+    "license_name": "MIT License (contribución de ORBIT)",
+    "provenance_note": "Archivo aportado por el responsable del repositorio para su integración en ORBIT; no se atribuye a un catálogo de audio externo."
+  },
+  "conversion": {
+    "source_format": "Ogg Vorbis, estéreo, 48 kHz",
+    "runtime_format": "Ogg Vorbis, estéreo, 48 kHz",
+    "audio_content_modified": false
+  },
+  "sha256": "0bf53156294b15c4ccf28cc75cd03634e874b432c28d5ed714cd26fdd78b2e1e"
+}

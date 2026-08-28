@@ -2,6 +2,7 @@ import { APP_CONFIG } from "../config.js";
 import { CONCEPTS, REWARDS, getReward, parseRewardKey, rewardKey } from "../data/knowledge.js";
 import { LOCATIONS } from "../data/locations.js";
 import { AREAS, WORLD_CONFIG } from "../data/world.js";
+import { TREE_TWO_VISUALIZATION_MODES } from "./knowledge-graph.js";
 import { meetsRequirements } from "./requirements.js";
 import { migrateProgressState } from "./progress-migrations.js";
 import { ProgressStorage } from "./storage.js";
@@ -35,8 +36,9 @@ function createInitialState(profile, worldIndex) {
     activeTransport: initialTransport,
     settings: {
       fieldLensEnabled: false,
-      audioMuted: false,
-      audioVolume: 1,
+      ambienceVolume: 1,
+      effectsVolume: 1,
+      treeTwoVisualizationMode: "hidden",
     },
     player: {
       x: center.x + WORLD_CONFIG.spawnOffset.x,
@@ -101,12 +103,7 @@ export class ProgressionModel {
       concepts: uniqueKnown(migrated.concepts, knownConcepts),
       rewards: uniqueKnown(migrated.rewards, knownRewards),
       debugUnlockedAreas: uniqueKnown(migrated.debugUnlockedAreas, knownAreas),
-      settings: {
-        ...initial.settings,
-        ...(migrated.settings && typeof migrated.settings === "object"
-          ? migrated.settings
-          : {}),
-      },
+      settings: { ...initial.settings },
       player: {
         x: Number.isFinite(migrated.player?.x) ? migrated.player.x : initial.player.x,
         y: Number.isFinite(migrated.player?.y) ? migrated.player.y : initial.player.y,
@@ -119,12 +116,30 @@ export class ProgressionModel {
 
     const ownedTransportIds = this.#ownedTransportIdsFromRewards(state.rewards);
     if (!ownedTransportIds.includes(state.activeTransport)) state.activeTransport = "walk";
-    state.settings.fieldLensEnabled = Boolean(state.settings.fieldLensEnabled);
-    state.settings.audioMuted = Boolean(state.settings.audioMuted);
-    state.settings.audioVolume = Math.min(
+    const migratedSettings =
+      migrated.settings && typeof migrated.settings === "object" ? migrated.settings : {};
+    state.settings.fieldLensEnabled = Boolean(migratedSettings.fieldLensEnabled);
+    state.settings.ambienceVolume = Math.min(
       1,
-      Math.max(0, Number.isFinite(state.settings.audioVolume) ? state.settings.audioVolume : 1),
+      Math.max(
+        0,
+        Number.isFinite(migratedSettings.ambienceVolume)
+          ? migratedSettings.ambienceVolume
+          : 1,
+      ),
     );
+    state.settings.effectsVolume = Math.min(
+      1,
+      Math.max(
+        0,
+        Number.isFinite(migratedSettings.effectsVolume) ? migratedSettings.effectsVolume : 1,
+      ),
+    );
+    state.settings.treeTwoVisualizationMode = TREE_TWO_VISUALIZATION_MODES.includes(
+      migratedSettings.treeTwoVisualizationMode,
+    )
+      ? migratedSettings.treeTwoVisualizationMode
+      : "hidden";
 
     return state;
   }
@@ -149,6 +164,19 @@ export class ProgressionModel {
       rewards: new Set(this.state.rewards),
       unlockedAreas,
     };
+  }
+
+  #accessibleLocationIds(unlockedAreas = this.getUnlockedAreaIds()) {
+    const context = this.#context(unlockedAreas);
+    return new Set(
+      this.locations
+        .filter(
+          (location) =>
+            unlockedAreas.has(location.areaId) &&
+            meetsRequirements(location.requirements, context),
+        )
+        .map((location) => location.id),
+    );
   }
 
   getUnlockedAreaIds() {
@@ -212,8 +240,19 @@ export class ProgressionModel {
       return { ok: false, reason: "locked-location" };
     }
     if (location.repeatable && !location.grants?.concepts?.length && !location.grants?.rewards?.length) {
-      return { ok: true, repeated: true, newlyGranted: [] };
+      return {
+        ok: true,
+        repeated: true,
+        newlyGranted: [],
+        newlyUnlockedAreaIds: [],
+        newlyAccessibleLocationIds: [],
+      };
     }
+
+    const previouslyUnlockedAreaIds = this.getUnlockedAreaIds();
+    const previouslyAccessibleLocationIds = this.#accessibleLocationIds(
+      previouslyUnlockedAreaIds,
+    );
 
     const wasCompleted = this.isLocationCompleted(locationId);
     if (!wasCompleted) this.state.completedLocations.push(locationId);
@@ -233,8 +272,32 @@ export class ProgressionModel {
     }
 
     this.#save();
-    this.#emit("location-completed", { locationId, newlyGranted, wasCompleted });
-    return { ok: true, wasCompleted, newlyGranted };
+
+    const unlockedAreaIds = this.getUnlockedAreaIds();
+    const accessibleLocationIds = this.#accessibleLocationIds(unlockedAreaIds);
+    const newlyUnlockedAreaIds = this.areas
+      .map((area) => area.id)
+      .filter(
+        (areaId) =>
+          unlockedAreaIds.has(areaId) && !previouslyUnlockedAreaIds.has(areaId),
+      );
+    const newlyAccessibleLocationIds = this.locations
+      .map((candidate) => candidate.id)
+      .filter(
+        (candidateId) =>
+          accessibleLocationIds.has(candidateId) &&
+          !previouslyAccessibleLocationIds.has(candidateId),
+      );
+
+    const detail = {
+      locationId,
+      newlyGranted,
+      wasCompleted,
+      newlyUnlockedAreaIds,
+      newlyAccessibleLocationIds,
+    };
+    this.#emit("location-completed", detail);
+    return { ok: true, ...detail };
   }
 
   grantConcept(conceptId) {
@@ -318,24 +381,36 @@ export class ProgressionModel {
     return { ok: true, enabled: this.state.settings.fieldLensEnabled };
   }
 
-  setAudioMuted(muted) {
-    this.state.settings.audioMuted = Boolean(muted);
-    this.#save();
-    this.#emit("audio-muted-changed", { muted: this.state.settings.audioMuted });
-    return this.state.settings.audioMuted;
-  }
-
-  toggleAudioMuted() {
-    return this.setAudioMuted(!this.state.settings.audioMuted);
-  }
-
-  setAudioVolume(volume) {
+  #setAudioCategoryVolume(category, volume) {
     const numeric = Number(volume);
-    if (!Number.isFinite(numeric)) return this.state.settings.audioVolume;
-    this.state.settings.audioVolume = Math.min(1, Math.max(0, numeric));
+    const setting = category === "ambience" ? "ambienceVolume" : "effectsVolume";
+    if (!Number.isFinite(numeric)) return this.state.settings[setting];
+    this.state.settings[setting] = Math.min(1, Math.max(0, numeric));
     this.#save();
-    this.#emit("audio-volume-changed", { volume: this.state.settings.audioVolume });
-    return this.state.settings.audioVolume;
+    this.#emit(`${category}-volume-changed`, {
+      category,
+      volume: this.state.settings[setting],
+    });
+    return this.state.settings[setting];
+  }
+
+  setAmbienceVolume(volume) {
+    return this.#setAudioCategoryVolume("ambience", volume);
+  }
+
+  setEffectsVolume(volume) {
+    return this.#setAudioCategoryVolume("effects", volume);
+  }
+
+  setTreeTwoVisualizationMode(mode) {
+    if (!TREE_TWO_VISUALIZATION_MODES.includes(mode)) {
+      return this.state.settings.treeTwoVisualizationMode;
+    }
+    if (mode === this.state.settings.treeTwoVisualizationMode) return mode;
+    this.state.settings.treeTwoVisualizationMode = mode;
+    this.#save();
+    this.#emit("tree-two-visualization-mode-changed", { mode });
+    return mode;
   }
 
   setPlayerPosition(x, y, { save = true } = {}) {
@@ -397,11 +472,7 @@ export class ProgressionModel {
     const visibleLocationIds = new Set(
       this.locations.filter((location) => this.isLocationVisible(location)).map((location) => location.id),
     );
-    const accessibleLocationIds = new Set(
-      this.locations
-        .filter((location) => this.isLocationAccessible(location))
-        .map((location) => location.id),
-    );
+    const accessibleLocationIds = this.#accessibleLocationIds(unlockedAreaIds);
 
     return {
       profile: this.profile,

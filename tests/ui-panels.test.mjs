@@ -6,16 +6,34 @@ import { UIController } from "../src/ui/ui-controller.js";
 function makeNode(id, documentHarness) {
   const attributes = new Map();
   const children = [];
+  const listeners = new Map();
   const node = {
     id,
     hidden: false,
     isConnected: true,
     checked: false,
+    disabled: false,
     value: "",
+    textContent: "",
     dataset: {},
-    firstChild: { textContent: "" },
-    classList: { add() {} },
-    addEventListener() {},
+    classList: { add() {}, remove() {} },
+    addEventListener(type, listener) {
+      const entries = listeners.get(type) ?? [];
+      entries.push(listener);
+      listeners.set(type, entries);
+    },
+    dispatch(type, properties = {}) {
+      const event = {
+        type,
+        target: node,
+        key: "",
+        shiftKey: false,
+        preventDefault() {},
+        ...properties,
+      };
+      for (const listener of listeners.get(type) ?? []) listener(event);
+      return event;
+    },
     append(...entries) {
       children.push(...entries);
     },
@@ -53,7 +71,9 @@ function makeHarness() {
   const panelIds = [
     "lesson-panel",
     "knowledge-panel",
+    "visual-panel",
     "reference-panel",
+    "sound-panel",
     "help-panel",
     "debug-panel",
   ];
@@ -72,14 +92,25 @@ function makeHarness() {
 
   const controls = [
     ["open-knowledge", "knowledge-panel"],
+    ["open-visual", "visual-panel"],
     ["open-symbols", "reference-panel", "symbols"],
+    ["open-constants", "reference-panel", "constants"],
     ["open-formulas", "reference-panel", "formulas"],
+    ["open-glossary", "reference-panel", "glossary"],
+    ["open-sound", "sound-panel"],
     ["open-help", "help-panel"],
   ].map(([id, panelId, referenceView]) => {
     const button = getNode(id);
     button.setAttribute("aria-controls", panelId);
     if (referenceView) button.dataset.referenceView = referenceView;
     return button;
+  });
+
+  const visualInputs = ["hidden", "direct", "total"].map((mode) => {
+    const input = getNode(`tree-two-${mode}`);
+    input.value = mode;
+    input.checked = mode === "hidden";
+    return input;
   });
 
   const closeButtons = panelIds.map((id) => getNode(id).closeButton);
@@ -101,6 +132,7 @@ function makeHarness() {
       if (selector === "[data-reference-view]") {
         return controls.filter((button) => button.dataset.referenceView);
       }
+      if (selector === 'input[name="tree-two-visualization"]') return visualInputs;
       if (selector === "[data-close-panel]") return closeButtons;
       if (selector === "[aria-controls]") return controls;
       return [];
@@ -115,15 +147,74 @@ function makeHarness() {
     },
   });
 
+  const settings = {
+    ambienceVolume: 0.35,
+    effectsVolume: 0.8,
+    treeTwoVisualizationMode: "hidden",
+  };
+  const subscribers = new Set();
+  const volumeChanges = [];
+  const visualModeChanges = [];
+  const snapshot = () => ({
+    state: { settings: { ...settings } },
+    concepts: new Set(),
+    completedLocationIds: new Set(),
+    rewards: new Set(),
+    unlockedAreaIds: new Set(["origin"]),
+    visibleLocationIds: new Set(),
+    accessibleLocationIds: new Set(),
+  });
+  const emit = (type, detail = {}) => {
+    const event = {
+      type,
+      detail,
+      snapshot: snapshot(),
+    };
+    for (const subscriber of subscribers) subscriber(event);
+  };
   const progression = {
     profile: "test",
     getSnapshot() {
-      return { state: { settings: { audioMuted: false } } };
+      return snapshot();
     },
-    subscribe() {},
+    subscribe(listener) {
+      subscribers.add(listener);
+      return () => subscribers.delete(listener);
+    },
+    setAmbienceVolume(value) {
+      settings.ambienceVolume = Math.min(1, Math.max(0, Number(value)));
+      volumeChanges.push(["ambience", settings.ambienceVolume]);
+      emit("ambience-volume-changed");
+      return settings.ambienceVolume;
+    },
+    setEffectsVolume(value) {
+      settings.effectsVolume = Math.min(1, Math.max(0, Number(value)));
+      volumeChanges.push(["effects", settings.effectsVolume]);
+      emit("effects-volume-changed");
+      return settings.effectsVolume;
+    },
+    setTreeTwoVisualizationMode(mode) {
+      if (!["hidden", "direct", "total"].includes(mode)) {
+        return settings.treeTwoVisualizationMode;
+      }
+      settings.treeTwoVisualizationMode = mode;
+      visualModeChanges.push(mode);
+      emit("tree-two-visualization-mode-changed", { mode });
+      return mode;
+    },
   };
 
-  return { controls, document, documentListeners, getNode, progression };
+  return {
+    controls,
+    document,
+    documentListeners,
+    getNode,
+    progression,
+    settings,
+    visualInputs,
+    visualModeChanges,
+    volumeChanges,
+  };
 }
 
 function withController(run) {
@@ -137,7 +228,7 @@ function withController(run) {
   }
 }
 
-test("la lección y una referencia coexisten, pero las referencias son exclusivas", () => {
+test("la lección coexiste con menús secundarios, que siguen siendo exclusivos", () => {
   withController((controller, { controls, document, getNode }) => {
     const canvas = getNode("world-canvas");
     document.activeElement = canvas;
@@ -148,29 +239,47 @@ test("la lección y una referencia coexisten, pero las referencias son exclusiva
     assert.equal(getNode("lesson-panel").hidden, false);
     assert.equal(getNode("knowledge-panel").hidden, false);
 
-    document.activeElement = controls[1];
+    document.activeElement = controls[2];
     controller.openPanel("reference-panel");
     assert.equal(getNode("lesson-panel").hidden, false);
     assert.equal(getNode("knowledge-panel").hidden, true);
     assert.equal(getNode("reference-panel").hidden, false);
-    assert.equal(controls[1].getAttribute("aria-expanded"), "true");
-    assert.equal(controls[1].getAttribute("aria-current"), "true");
+    assert.equal(controls[2].getAttribute("aria-expanded"), "true");
+    assert.equal(controls[2].getAttribute("aria-current"), "true");
+
+    controller.activeReferenceView = "constants";
+    controller.openPanel("reference-panel");
+    assert.equal(getNode("reference-panel").hidden, false);
+    assert.equal(controls[2].getAttribute("aria-expanded"), "false");
+    assert.equal(controls[2].getAttribute("aria-current"), "false");
+    assert.equal(controls[3].getAttribute("aria-expanded"), "true");
+    assert.equal(controls[3].getAttribute("aria-current"), "true");
+
+    document.activeElement = controls[1];
+    controller.openPanel("visual-panel");
+    assert.equal(getNode("reference-panel").hidden, true);
+    assert.equal(getNode("visual-panel").hidden, false);
+
+    document.activeElement = controls[7];
+    controller.openPanel("help-panel");
+    assert.equal(getNode("visual-panel").hidden, true);
+    assert.equal(getNode("help-panel").hidden, false);
   });
 });
 
-test("la pila restaura el foco incluso al sustituir un panel desde su interior", () => {
+test("la pila restaura el foco incluso al sustituir Sonido desde su interior", () => {
   withController((controller, { controls, document, getNode }) => {
     const canvas = getNode("world-canvas");
     document.activeElement = canvas;
     controller.openPanel("lesson-panel");
-    document.activeElement = controls[1];
-    controller.openPanel("reference-panel");
+    document.activeElement = controls[6];
+    controller.openPanel("sound-panel");
 
-    document.activeElement = getNode("reference-panel").closeButton;
+    document.activeElement = getNode("sound-panel").closeButton;
     controller.openPanel("help-panel");
-    assert.equal(getNode("reference-panel").hidden, true);
+    assert.equal(getNode("sound-panel").hidden, true);
     controller.closeTopPanel();
-    assert.equal(document.activeElement, controls[1]);
+    assert.equal(document.activeElement, controls[6]);
     assert.equal(getNode("lesson-panel").hidden, false);
 
     controller.closeTopPanel();
@@ -178,15 +287,15 @@ test("la pila restaura el foco incluso al sustituir un panel desde su interior",
   });
 });
 
-test("la vista compacta mantiene el foco en el panel superior", () => {
+test("la vista compacta mantiene el foco en el panel Sonido superior", () => {
   const previousWindow = global.window;
   global.window = { matchMedia: () => ({ matches: true }) };
   try {
     withController((controller, { controls, document, documentListeners, getNode }) => {
       document.activeElement = getNode("world-canvas");
       controller.openPanel("lesson-panel");
-      document.activeElement = controls[1];
-      controller.openPanel("reference-panel");
+      document.activeElement = controls[6];
+      controller.openPanel("sound-panel");
 
       document.activeElement = getNode("world-canvas");
       let prevented = false;
@@ -198,7 +307,7 @@ test("la vista compacta mantiene el foco en el panel superior", () => {
         },
       });
       assert.equal(prevented, true);
-      assert.equal(document.activeElement, getNode("reference-panel").closeButton);
+      assert.equal(document.activeElement, getNode("sound-panel").closeButton);
 
       controller.closeTopPanel();
       assert.equal(document.activeElement, getNode("lesson-panel").closeButton);
@@ -215,7 +324,7 @@ test("la pila compacta coloca sobre el debugger el panel abierto después", () =
     withController((controller, { controls, document, getNode }) => {
       document.activeElement = getNode("world-canvas");
       controller.openPanel("debug-panel");
-      document.activeElement = controls[3];
+      document.activeElement = controls[7];
       controller.openPanel("help-panel");
 
       assert.equal(getNode("debug-panel").getAttribute("data-compact-top"), "false");
@@ -228,4 +337,67 @@ test("la pila compacta coloca sobre el debugger el panel abierto después", () =
   } finally {
     global.window = previousWindow;
   }
+});
+
+test("las barras persisten ambiente y efectos de forma independiente", () => {
+  withController((_controller, { getNode, progression, settings, volumeChanges }) => {
+    const ambience = getNode("sound-ambience");
+    const effects = getNode("sound-effects");
+    assert.equal(ambience.value, "35");
+    assert.equal(getNode("sound-ambience-output").textContent, "35%");
+    assert.equal(effects.value, "80");
+    assert.equal(getNode("sound-effects-output").textContent, "80%");
+
+    ambience.value = "12";
+    ambience.dispatch("input");
+    assert.deepEqual(settings, {
+      ambienceVolume: 0.12,
+      effectsVolume: 0.8,
+      treeTwoVisualizationMode: "hidden",
+    });
+    assert.equal(getNode("sound-ambience-output").textContent, "12%");
+    assert.equal(getNode("sound-effects-output").textContent, "80%");
+
+    effects.value = "0";
+    effects.dispatch("input");
+    assert.deepEqual(settings, {
+      ambienceVolume: 0.12,
+      effectsVolume: 0,
+      treeTwoVisualizationMode: "hidden",
+    });
+    assert.equal(getNode("sound-ambience-output").textContent, "12%");
+    assert.equal(getNode("sound-effects-output").textContent, "0%");
+    assert.deepEqual(volumeChanges, [
+      ["ambience", 0.12],
+      ["effects", 0],
+    ]);
+    assert.deepEqual(progression.getSnapshot().state.settings, {
+      ambienceVolume: 0.12,
+      effectsVolume: 0,
+      treeTwoVisualizationMode: "hidden",
+    });
+  });
+});
+
+test("Visual refleja y persiste los tres niveles de la red del Árbol II", () => {
+  withController((_controller, {
+    settings,
+    visualInputs,
+    visualModeChanges,
+  }) => {
+    assert.equal(visualInputs.find((input) => input.value === "hidden").checked, true);
+
+    const direct = visualInputs.find((input) => input.value === "direct");
+    direct.checked = true;
+    direct.dispatch("change");
+    assert.equal(settings.treeTwoVisualizationMode, "direct");
+    assert.equal(direct.checked, true);
+
+    const total = visualInputs.find((input) => input.value === "total");
+    total.checked = true;
+    total.dispatch("change");
+    assert.equal(settings.treeTwoVisualizationMode, "total");
+    assert.equal(total.checked, true);
+    assert.deepEqual(visualModeChanges, ["direct", "total"]);
+  });
 });

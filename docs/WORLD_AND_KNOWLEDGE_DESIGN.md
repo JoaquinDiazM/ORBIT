@@ -1,8 +1,12 @@
-# Diseño del mundo y los dos grafos
+# Diseño del mundo de Electromagnetismo Aplicado y sus dos grafos
 
 ## Principio central
 
 El espacio físico y el espacio curricular se relacionan, pero no son el mismo grafo.
+
+Este documento describe la ruta actualmente implementada en ORBIT. La visión futura de conectar
+cursos diferentes no implica que todos deban reutilizar esta cartografía ni que exista ya un
+grafo transversal entre rutas.
 
 - El personaje se mueve continuamente en el plano.
 - Los hexágonos definen regiones físicas y conceptuales.
@@ -15,9 +19,11 @@ Se utilizan hexágonos pointy-top con coordenadas axiales `(q, r)`. El prototipo
 
 - radio 0: Campamento Base;
 - radio 1: Electroestática, Magnetismo, Maxwell —que incorpora Inducción—, Ondas, Circuitos y Ecuaciones Diferenciales;
-- radio 2: Sensores e Instrumentación, Máquinas Eléctricas, Sistemas de Potencia, Electromagnetismo Computacional, Fourier, Óptica y Fotónica, Compatibilidad Electromagnética, Guías de Onda, Radioastronomía, Antenas, Comunicaciones Inalámbricas y Líneas de Transmisión.
+- radio 2: Sensores e Instrumentación, Máquinas Eléctricas, Sistemas de Potencia, Electromagnetismo Computacional, Fourier, Óptica y Fotónica, Superconductividad, Guías de Onda, Radioastronomía, Antenas, Comunicaciones Inalámbricas y Líneas de Transmisión.
 
 El ID publicado `applications` se conserva para la zona especializada de Radioastronomía. Esta continuidad evita invalidar perfiles antiguos aunque cambie su posición y alcance pedagógico.
+
+La zona visible **Estación de Superconductividad** conserva por la misma razón el ID interno `electromagnetic-compatibility`; el concepto introductorio mantiene ese ID y el NPC Heike Kamerlingh Onnes conserva `shielding-chamber`. La zona contiene además el punto de aprendizaje `superconductivity-transition-lab`. Onnes desbloquea fórmulas mediante un encuentro no evaluativo; el laboratorio separado concede el concepto. Los nombres heredados son identificadores de compatibilidad del guardado, no títulos visibles ni una afirmación de que la zona siga enseñando compatibilidad electromagnética.
 
 Una zona puede contener cualquier número razonable de lugares. Los lugares se ubican con un `offset` local respecto del centro del hexágono, no mediante coordenadas geográficas reales.
 
@@ -81,6 +87,30 @@ La propiedad `visibility` define cómo se representa antes de cumplir los requis
 
 - `visibleWhenAreaUnlocked`: se ve al abrir la zona, aunque todavía no sea interactivo;
 - `hiddenUntilUnlocked`: no se revela hasta cumplir sus requisitos.
+
+### Guías direccionales derivadas
+
+`src/core/knowledge-graph.js` resuelve los requisitos `completedLocations`, `concepts` y `rewards` hacia el lugar que actúa como prerrequisito. La dirección es siempre:
+
+```text
+prerrequisito ─────────▶ destino
+```
+
+Si el mismo lugar satisface más de una declaración —por ejemplo, estar completado y conceder el concepto exigido—, ambas se agregan en una sola pareja. Los requisitos de `areas` siguen participando en el acceso, pero no generan guías del Árbol II. Con los datos de 0.3.2 existen exactamente 13 parejas únicas.
+
+Las aristas elegibles se clasifican por el estado de sus extremos visibles:
+
+- `completed → completed/completable`: flecha amarilla brillante y sólida;
+- `completable → blocked`: flecha amarilla tenue y discontinua;
+- cualquier otra combinación o un extremo oculto: no se dibuja.
+
+El panel **Visual**, separado del listado de **Árboles**, aplica uno de tres filtros:
+
+- **Oculta** (`hidden`): conserva solo la arista causal del último desbloqueo de la sesión;
+- **Directo** (`direct`): muestra las aristas elegibles dentro del mismo hexágono o entre hexágonos con frontera compartida;
+- **Total** (`total`): muestra todas las aristas elegibles entre lugares visibles.
+
+Si un destino acaba de volverse accesible, únicamente la arista desde el lugar cuya finalización produjo la transición lleva la etiqueta textual **NUEVO**. Esa fuente y la lista de destinos recién accesibles son efímeras; la preferencia del filtro sí se guarda, pero no altera requisitos, accesibilidad ni movimiento libre.
 
 ## Clases de lugar actuales
 

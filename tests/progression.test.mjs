@@ -82,6 +82,7 @@ test("la cadena académica completa alcanza la misión lunar", () => {
     "spectrum-workshop",
     "optics-bench",
     "shielding-chamber",
+    "superconductivity-transition-lab",
     "waveguide-mode-gallery",
     "transmission-line-bench",
     "antenna-range",

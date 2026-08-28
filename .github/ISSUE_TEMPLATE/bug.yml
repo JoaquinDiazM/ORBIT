@@ -31,4 +31,4 @@ body:
     id: diagnostics
     attributes:
       label: Diagnóstico
-      description: Adjunta errores de consola o `AtlasDebug.snapshot()` sin datos personales.
+      description: Adjunta errores de consola o `OrbitDebug.snapshot()` sin datos personales.

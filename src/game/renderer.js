@@ -2,6 +2,7 @@ import { APP_CONFIG } from "../config.js";
 import { LOCATIONS } from "../data/locations.js";
 import { AREAS, WORLD_CONFIG } from "../data/world.js";
 import { axialToPixel, hexCorners, hexEdge } from "../core/hex.js";
+import { deriveKnowledgeGraphEdges } from "../core/knowledge-graph.js";
 import {
   createWorldIndex,
   getLocationWorldPosition,
@@ -176,7 +177,16 @@ export class CanvasRenderer {
     return true;
   }
 
-  render({ camera, player, snapshot, nearestLocation, debugState, timeSeconds }) {
+  render({
+    camera,
+    player,
+    snapshot,
+    nearestLocation,
+    debugState,
+    timeSeconds,
+    newlyAccessibleLocationIds = [],
+    unlockSourceLocationId = null,
+  }) {
     this.resize();
     const context = this.context;
     context.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
@@ -191,6 +201,12 @@ export class CanvasRenderer {
 
     this.#drawAreas(snapshot, camera.zoom, timeSeconds, debugState);
     if (debugState.showGraph) this.#drawKnowledgeGraphs(snapshot, camera.zoom);
+    this.#drawTreeTwoGuides(
+      snapshot,
+      camera.zoom,
+      newlyAccessibleLocationIds,
+      unlockSourceLocationId,
+    );
     if (snapshot.state.settings.fieldLensEnabled) {
       this.#drawFieldLens(snapshot, camera.zoom, timeSeconds);
     }
@@ -529,20 +545,103 @@ export class CanvasRenderer {
       }
     }
 
-    for (const location of LOCATIONS) {
-      const target = getLocationWorldPosition(location, this.worldIndex, WORLD_CONFIG.hexSize);
-      for (const prerequisiteId of location.requirements?.completedLocations ?? []) {
-        const sourceLocation = this.locationById.get(prerequisiteId);
-        if (!sourceLocation) continue;
-        const source = getLocationWorldPosition(sourceLocation, this.worldIndex, WORLD_CONFIG.hexSize);
-        context.strokeStyle = "rgba(255, 182, 237, 0.52)";
-        context.beginPath();
-        context.moveTo(source.x, source.y);
-        context.lineTo(target.x, target.y);
-        context.stroke();
-      }
-    }
     context.restore();
+  }
+
+  #drawTreeTwoGuides(
+    snapshot,
+    zoom,
+    newlyAccessibleLocationIds,
+    unlockSourceLocationId,
+  ) {
+    const edges = deriveKnowledgeGraphEdges({
+      locations: LOCATIONS,
+      areas: AREAS,
+      snapshot,
+      visualizationMode: snapshot.state?.settings?.treeTwoVisualizationMode,
+      newlyAccessibleLocationIds,
+      unlockSourceLocationId,
+    });
+    if (edges.length === 0) return;
+
+    const context = this.context;
+    const lineScale = 1 / zoom;
+    for (const edge of edges) {
+      const sourceLocation = this.locationById.get(edge.sourceId);
+      const targetLocation = this.locationById.get(edge.targetId);
+      if (!sourceLocation || !targetLocation) continue;
+      if (!snapshot.visibleLocationIds.has(sourceLocation.id)) continue;
+
+      const source = getLocationWorldPosition(
+        sourceLocation,
+        this.worldIndex,
+        WORLD_CONFIG.hexSize,
+      );
+      const target = getLocationWorldPosition(
+        targetLocation,
+        this.worldIndex,
+        WORLD_CONFIG.hexSize,
+      );
+      const distance = Math.hypot(target.x - source.x, target.y - source.y);
+      if (distance < 1) continue;
+      const unitX = (target.x - source.x) / distance;
+      const unitY = (target.y - source.y) / distance;
+      const start = { x: source.x + unitX * 25, y: source.y + unitY * 25 };
+      const end = { x: target.x - unitX * 29, y: target.y - unitY * 29 };
+
+      context.save();
+      context.lineCap = "round";
+      context.lineJoin = "round";
+      if (edge.appearance === "bright") {
+        context.setLineDash([]);
+        context.shadowColor = edge.isNew
+          ? "rgba(255, 221, 116, 0.9)"
+          : "rgba(255, 221, 116, 0.58)";
+        context.shadowBlur = (edge.isNew ? 8 : 4) * lineScale;
+        drawArrow(
+          context,
+          start.x,
+          start.y,
+          end.x - start.x,
+          end.y - start.y,
+          "rgba(255, 226, 132, 0.96)",
+          3.4 * lineScale,
+        );
+        context.shadowBlur = 0;
+        if (edge.isNew) {
+          const midpointX = (start.x + end.x) / 2;
+          const midpointY = (start.y + end.y) / 2;
+          context.font = `800 ${9 * lineScale}px system-ui, sans-serif`;
+          context.textAlign = "center";
+          context.textBaseline = "middle";
+          const labelWidth = context.measureText("NUEVO").width + 10 * lineScale;
+          context.fillStyle = "rgba(5, 12, 22, 0.9)";
+          drawRoundedRect(
+            context,
+            midpointX - labelWidth / 2,
+            midpointY - 9 * lineScale,
+            labelWidth,
+            18 * lineScale,
+            5 * lineScale,
+          );
+          context.fill();
+          context.fillStyle = "rgba(255, 237, 178, 1)";
+          context.fillText("NUEVO", midpointX, midpointY);
+        }
+      } else {
+        context.setLineDash([10 * lineScale, 7 * lineScale]);
+        drawArrow(
+          context,
+          start.x,
+          start.y,
+          end.x - start.x,
+          end.y - start.y,
+          "rgba(219, 199, 141, 0.4)",
+          1.5 * lineScale,
+        );
+      }
+      context.restore();
+    }
   }
 
   #drawFieldLens(snapshot, zoom, timeSeconds) {

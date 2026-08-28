@@ -1,6 +1,11 @@
-# Esqueleto curricular preliminar
+# Esqueleto curricular preliminar — Electromagnetismo Aplicado
 
 > Documento de diseño, no programa definitivo. Debe contrastarse con programas universitarios, experiencia docente y pruebas con estudiantes antes de fijar el mapa completo.
+
+Este documento describe únicamente la primera ruta de **ORBIT — Open Roadmap for Building
+Intuition and Theory**. Una ruta futura de otro curso necesitará su propio esqueleto curricular;
+las conexiones entre rutas deberán declarar resultados y prerrequisitos equivalentes de forma
+explícita y todavía no están implementadas.
 
 ## Perfil de entrada
 
@@ -44,7 +49,7 @@ Campamento Base
        └─ convergencia de prerrequisitos
             ├─ Sensores, máquinas y potencia
             ├─ Fourier, óptica y electromagnetismo computacional
-            ├─ Compatibilidad, líneas y guías de onda
+            ├─ Superconductividad, líneas y guías de onda
             └─ Antenas, radioastronomía y comunicaciones espaciales
 ```
 

@@ -9,7 +9,7 @@ Ejecuta `npm install` una vez por clon. KaTeX 0.18.1 es la única dependencia np
 
 ## Windows y Visual Studio Code
 
-El proyecto funciona de forma nativa en Windows con PowerShell; no requiere WSL. Abre la carpeta raíz `ATLAS` en Visual Studio Code para que Git, las rutas relativas y los comandos npm compartan el mismo directorio de trabajo.
+El proyecto funciona de forma nativa en Windows con PowerShell; no requiere WSL. Abre la carpeta raíz `ORBIT` en Visual Studio Code para que Git, las rutas relativas y los comandos npm compartan el mismo directorio de trabajo.
 
 Si instalas Node.js con Visual Studio Code ya abierto, reinicia la aplicación para que la terminal integrada reciba el `PATH` actualizado. Cuando la carpeta esté sincronizada por OneDrive, mantenla disponible sin conexión y evita editar el mismo checkout simultáneamente desde otro equipo durante operaciones Git.
 
@@ -76,7 +76,7 @@ Usa un perfil distinto por tarea para no contaminar el progreso:
 ```text
 ?debug=1&profile=debug-border-rules
 ?debug=1&profile=debug-gauss-node
-?debug=1&profile=debug-save-v2
+?debug=1&profile=debug-save-v3
 ```
 
 ## Convenciones

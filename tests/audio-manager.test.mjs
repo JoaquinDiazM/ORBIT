@@ -3,15 +3,16 @@ import test from "node:test";
 
 import { AudioManager } from "../src/audio/audio-manager.js";
 
-const MANIFEST_URL = "https://example.test/ATLAS/public/assets/audio/audio-manifest.json";
+const MANIFEST_URL = "https://example.test/ORBIT/public/assets/audio/audio-manifest.json";
 const MANIFEST = Object.freeze({
-  schema_version: 1,
+  schema_version: 2,
   base_path: ".",
   assets: {
     mission_start: {
       id: "mission_start_roger_beep_01",
       src: "interactions/mission_start_roger_beep_01.ogg",
       metadata: "interactions/mission_start_roger_beep_01.json",
+      category: "effects",
       loop: false,
       volume: 0.75,
     },
@@ -19,6 +20,7 @@ const MANIFEST = Object.freeze({
       id: "hexagon_transition_scifi_inspect_01",
       src: "transitions/hexagon_transition_scifi_inspect_01.ogg",
       metadata: "transitions/hexagon_transition_scifi_inspect_01.json",
+      category: "effects",
       loop: false,
       volume: 0.65,
     },
@@ -26,8 +28,25 @@ const MANIFEST = Object.freeze({
       id: "global_space_ambient_loop_01",
       src: "ambience/global_space_ambient_loop_01.ogg",
       metadata: "ambience/global_space_ambient_loop_01.json",
+      category: "ambience",
       loop: true,
       volume: 0.28,
+    },
+    ui_select: {
+      id: "ui_select_default_01",
+      src: "interactions/ui_select_default_01.ogg",
+      metadata: "interactions/ui_select_default_01.json",
+      category: "effects",
+      loop: false,
+      volume: 0.55,
+    },
+    zone_unlocked: {
+      id: "zone_unlocked_airlock_01",
+      src: "transitions/zone_unlocked_airlock_01.ogg",
+      metadata: "transitions/zone_unlocked_airlock_01.json",
+      category: "effects",
+      loop: false,
+      volume: 0.65,
     },
   },
 });
@@ -60,7 +79,6 @@ class FakeAudio {
     this.rejectPlay = rejectPlay;
     this.loop = false;
     this.volume = 1;
-    this.muted = false;
     this.paused = true;
     this.currentTime = 0;
     this.preload = "none";
@@ -97,7 +115,13 @@ class FakeAudio {
   }
 }
 
-function createHarness({ muted = false, rejectPlay = false, fetchError = null } = {}) {
+function createHarness({
+  ambienceVolume = 1,
+  effectsVolume = 1,
+  rejectPlay = false,
+  fetchError = null,
+  manifest = MANIFEST,
+} = {}) {
   const gestureTarget = new FakeEventTarget();
   const visibilityTarget = new FakeEventTarget();
   const audioElements = [];
@@ -108,11 +132,12 @@ function createHarness({ muted = false, rejectPlay = false, fetchError = null } 
     manifestUrl: MANIFEST_URL,
     gestureTarget,
     visibilityTarget,
-    muted,
+    ambienceVolume,
+    effectsVolume,
     fetchImpl: async () => {
       fetchCalls += 1;
       if (fetchError) throw fetchError;
-      return { ok: true, json: async () => structuredClone(MANIFEST) };
+      return { ok: true, json: async () => structuredClone(manifest) };
     },
     audioFactory: (source) => {
       const audio = new FakeAudio(source, { rejectPlay });
@@ -136,6 +161,10 @@ function createHarness({ muted = false, rejectPlay = false, fetchError = null } 
   };
 }
 
+function findAudio(harness, fragment) {
+  return harness.audioElements.find((audio) => audio.src.includes(fragment));
+}
+
 test("difiere manifiesto, elementos y ambiente hasta el primer gesto", async () => {
   const harness = createHarness();
   harness.manager.start();
@@ -147,17 +176,19 @@ test("difiere manifiesto, elementos y ambiente hasta el primer gesto", async () 
   assert.equal(await harness.manager.whenReady(), true);
 
   assert.equal(harness.fetchCalls, 1);
-  assert.equal(harness.audioElements.length, 3);
+  assert.equal(harness.audioElements.length, 5);
   assert.deepEqual([...harness.manager.getState().assetKeys].sort(), [
     "global_ambience",
     "hexagon_transition",
     "mission_start",
+    "ui_select",
+    "zone_unlocked",
   ]);
 
-  const ambience = harness.audioElements.find((audio) => audio.src.includes("/ambience/"));
+  const ambience = findAudio(harness, "/ambience/");
   assert.equal(
     ambience.src,
-    "https://example.test/ATLAS/public/assets/audio/ambience/global_space_ambient_loop_01.ogg",
+    "https://example.test/ORBIT/public/assets/audio/ambience/global_space_ambient_loop_01.ogg",
   );
   assert.equal(ambience.loop, true);
   assert.equal(ambience.volume, 0.28);
@@ -165,27 +196,54 @@ test("difiere manifiesto, elementos y ambiente hasta el primer gesto", async () 
   assert.equal(harness.manager.getState().ambiencePlaying, true);
 });
 
-test("mute, volumen y visibilidad controlan la reproducción sin persistencia propia", async () => {
+test("las categorías aplican base por volumen y cero pausa solo la categoría elegida", async () => {
+  const harness = createHarness({ ambienceVolume: 0.5, effectsVolume: 0.25 });
+  await harness.manager.activateFromGesture();
+
+  const ambience = findAudio(harness, "/ambience/");
+  const transition = findAudio(harness, "/transitions/hexagon_transition");
+  assert.equal(ambience.volume, 0.14);
+  assert.equal(transition.volume, 0.1625);
+
+  assert.equal((await harness.manager.play("hexagon_transition")).ok, true);
+  harness.manager.setAmbienceVolume(0);
+  assert.equal(ambience.paused, true);
+  assert.equal(transition.paused, false);
+  assert.equal((await harness.manager.play("hexagon_transition")).ok, true);
+
+  harness.manager.setEffectsVolume(0);
+  assert.equal(transition.paused, true);
+  assert.deepEqual(await harness.manager.play("hexagon_transition"), {
+    ok: false,
+    reason: "category-silent",
+    category: "effects",
+  });
+  assert.equal(ambience.paused, true);
+
+  harness.manager.setAmbienceVolume(0.4);
+  await new Promise((resolvePromise) => setImmediate(resolvePromise));
+  assert.equal(ambience.paused, false);
+  assert.ok(Math.abs(ambience.volume - 0.112) < 1e-12);
+  assert.deepEqual(harness.manager.getState().categoryVolumes, {
+    ambience: 0.4,
+    effects: 0,
+  });
+  assert.equal(harness.manager.setCategoryVolume("unknown", 0.5), null);
+});
+
+test("la visibilidad suspende todo y al volver reanuda únicamente el ambiente", async () => {
   const harness = createHarness();
   harness.manager.start();
   await harness.manager.activateFromGesture();
-
-  const ambience = harness.audioElements.find((audio) => audio.src.includes("/ambience/"));
-  const transition = harness.audioElements.find((audio) => audio.src.includes("/transitions/"));
-
-  await harness.manager.setMuted(true);
-  assert.equal(ambience.paused, true);
-  assert.equal((await harness.manager.play("hexagon_transition")).reason, "muted");
-
-  harness.manager.setMasterVolume(0.5);
-  assert.equal(transition.volume, 0.325);
-  await harness.manager.setMuted(false);
-  assert.equal(ambience.paused, false);
+  const ambience = findAudio(harness, "/ambience/");
+  const transition = findAudio(harness, "/transitions/hexagon_transition");
+  await harness.manager.play("hexagon_transition");
 
   harness.visibilityTarget.hidden = true;
   harness.visibilityTarget.visibilityState = "hidden";
   harness.visibilityTarget.dispatch("visibilitychange");
   assert.equal(ambience.paused, true);
+  assert.equal(transition.paused, true);
   assert.equal((await harness.manager.play("hexagon_transition")).reason, "document-hidden");
 
   harness.visibilityTarget.hidden = false;
@@ -193,29 +251,74 @@ test("mute, volumen y visibilidad controlan la reproducción sin persistencia pr
   harness.visibilityTarget.dispatch("visibilitychange");
   await new Promise((resolvePromise) => setImmediate(resolvePromise));
   assert.equal(ambience.paused, false);
+  assert.equal(transition.paused, true);
 });
 
-test("las vistas previas usan un elemento aislado y se pueden detener", async () => {
-  const harness = createHarness();
+test("las vistas previas respetan la categoría y usan un elemento aislado", async () => {
+  const harness = createHarness({ ambienceVolume: 0, effectsVolume: 0 });
   await harness.manager.activateFromGesture();
 
+  assert.deepEqual(await harness.manager.preview("mission_start"), {
+    ok: false,
+    reason: "category-silent",
+    category: "effects",
+  });
+  assert.equal(harness.audioElements.length, 5);
+
+  harness.manager.setEffectsVolume(0.5);
   const result = await harness.manager.preview("mission_start");
   assert.equal(result.ok, true);
-  assert.equal(harness.audioElements.length, 4);
-
+  assert.equal(harness.audioElements.length, 6);
   const preview = harness.audioElements.at(-1);
-  assert.match(preview.src, /interactions\/mission_start_roger_beep_01\.ogg$/);
   assert.equal(preview.loop, false);
-  assert.equal(preview.volume, 0.75);
-  assert.equal(preview.playCalls, 1);
+  assert.equal(preview.volume, 0.375);
   assert.equal(harness.manager.getState().activePreviews, 1);
 
+  assert.equal((await harness.manager.preview("global_ambience")).reason, "category-silent");
   harness.manager.stopPreviews();
   assert.equal(preview.paused, true);
   assert.equal(harness.manager.getState().activePreviews, 0);
 });
 
-test("fallos de carga o reproducción degradan a silencio sin lanzar", async () => {
+test("el cue de interacción elige exactamente el predeterminado o el específico", async () => {
+  const harness = createHarness();
+  await harness.manager.activateFromGesture();
+  const uiSelect = findAudio(harness, "/interactions/ui_select");
+  const zoneUnlocked = findAudio(harness, "/transitions/zone_unlocked");
+
+  assert.equal((await harness.manager.playInteractionCue()).assetKey, "ui_select");
+  assert.equal(uiSelect.playCalls, 1);
+  assert.equal(zoneUnlocked.playCalls, 0);
+
+  assert.equal(
+    (
+      await harness.manager.playInteractionCue({
+        specificAssetKey: "zone_unlocked",
+      })
+    ).assetKey,
+    "zone_unlocked",
+  );
+  assert.equal(uiSelect.playCalls, 1);
+  assert.equal(zoneUnlocked.playCalls, 1);
+
+  assert.equal(
+    (
+      await harness.manager.playInteractionCue({
+        specificAssetKey: "missing-specific",
+      })
+    ).reason,
+    "unknown-asset",
+  );
+  assert.equal(uiSelect.playCalls, 1, "Un cue específico inválido no debe caer al predeterminado.");
+});
+
+test("fallos de esquema, carga o reproducción degradan a silencio sin lanzar", async () => {
+  const invalidManifest = structuredClone(MANIFEST);
+  invalidManifest.assets.mission_start.category = "unknown";
+  const invalidCategory = createHarness({ manifest: invalidManifest });
+  assert.equal((await invalidCategory.manager.activateFromGesture()).ok, false);
+  assert.equal(invalidCategory.manager.getState().loadState, "failed");
+
   const loadFailure = createHarness({ fetchError: new Error("sin manifiesto") });
   const activation = await loadFailure.manager.activateFromGesture();
   assert.deepEqual(activation, { ok: false, reason: "audio-unavailable" });
@@ -225,7 +328,7 @@ test("fallos de carga o reproducción degradan a silencio sin lanzar", async () 
   const playFailure = createHarness({ rejectPlay: true });
   const safeActivation = await playFailure.manager.activateFromGesture();
   assert.equal(safeActivation.ok, true);
-  const playback = await playFailure.manager.play("mission_start");
+  const playback = await playFailure.manager.playInteractionCue();
   assert.equal(playback.ok, false);
   assert.equal(playback.reason, "playback-rejected");
   assert.ok(playFailure.warnings.length >= 2);

@@ -4,6 +4,10 @@
 
 El contenido se define en objetos JavaScript dentro de `src/data/`. Esta decisión mantiene el prototipo sin parser ni dependencia adicional. Una migración futura a Markdown/MDX requiere ADR.
 
+La fuente declarativa actual corresponde a la ruta de Electromagnetismo Aplicado de **ORBIT —
+Open Roadmap for Building Intuition and Theory**. Una ruta futura de otro curso deberá declarar
+su alcance, perfil de entrada e IDs sin asumir que ya existe un cargador o esquema multicurso.
+
 La [plantilla de cambios](content-changes/CONTENT_CHANGE_TEMPLATE.md) es una especificación breve para agentes, no una fuente runtime. El [ejemplo del Taller Vectorial](content-changes/examples/update-vector-workshop.example.md) tiene `apply: false` y no se importa durante el build.
 
 Antes de editar `src/data/`, lee `src/data/AGENTS.md`.
@@ -23,6 +27,8 @@ En `src/data/knowledge.js`:
 ```
 
 El ID es parte del formato de progreso. No lo renombres después de publicar una versión sin migración.
+
+Un cambio de título visible no autoriza a cambiar el ID. En 0.3.2, por ejemplo, la Estación de Superconductividad conserva `electromagnetic-compatibility` para zona y concepto, y el NPC Onnes conserva `shielding-chamber`, porque esos valores ya formaban parte de perfiles publicados. El punto de aprendizaje separado usa el ID nuevo `superconductivity-transition-lab`.
 
 ## Agregar una zona
 
@@ -119,6 +125,8 @@ requirements: {
 
 Todos los elementos de una categoría y todas las categorías declaradas son obligatorios.
 
+Las guías visuales del Árbol II se derivan automáticamente de `completedLocations`, `concepts` y `rewards`; no declares una segunda lista manual de aristas. Conceptos y recompensas se resuelven al lugar que los concede y los requisitos repetidos por pareja se agrupan. `areas` controla acceso, pero no crea estas guías. Si un cambio altera las 13 parejas únicas actuales, actualiza la prueba del derivador y verifica que la nueva topología sea intencional.
+
 ## Concesiones
 
 ```js
@@ -174,9 +182,22 @@ La comprobación acepta punto o coma decimal. Usa tolerancia absoluta para valor
 
 Debe reservarse para orientación, recompensas narrativas o acciones sin una respuesta académica razonable. No la uses para conceder un concepto central.
 
+Un personaje secundario puede usar esta confirmación como cierre no evaluativo: el botón registra el encuentro, pero no formula una pregunta ni contiene alternativas, respuesta esperada o política de corrección. Si ese contexto desbloquea fórmulas, vincula sus requisitos a la finalización del NPC; sitúa la evaluación y la concesión del concepto en un lugar académico independiente. Onnes y el Laboratorio de Transición Superconductora son el ejemplo vigente.
+
 ### Acción del sistema
 
 Existe un tipo interno `action` para abrir herramientas como el debugger. No lo uses como ejercicio académico.
+
+### Figura de tres cargas
+
+La presentación `point-charge-field` está especializada en una actividad de alternativa y usa `PointChargeField2D`. Su descriptor debe incluir:
+
+- un dominio cuadrado y un punto de observación dentro de él;
+- exactamente tres cargas con IDs únicos, posición inicial válida y valor normalizado en `[-1,1]`;
+- rango de carga que incluya cero, paso de teclado positivo y radio de singularidad explícito;
+- título, descripción y caption que aclaren que el modelo es normalizado.
+
+La figura admite puntero y teclado, muestra las contribuciones y la suma, y declara la singularidad si una carga coincide con el punto de observación. Posiciones, valores y carga enfocada son estado de sesión: no los añadas al perfil ni suavices la singularidad para ocultarla.
 
 ## Dividir un lugar en etapas
 
@@ -213,11 +234,11 @@ steps: [
 
 ## Biblioteca de referencia
 
-La simbología, las constantes, el formulario y el glosario viven en `src/data/reference/`. Cada entrada declara un ID y requisitos. `source` es opcional: se reserva para datos numéricos, adaptaciones, afirmaciones históricas y teoremas específicos que realmente necesitan trazabilidad.
+La simbología, las constantes, las fórmulas y el glosario viven en `src/data/reference/`. Cada entrada declara un ID y requisitos. `source` es opcional: se reserva para datos numéricos, adaptaciones, afirmaciones históricas y teoremas específicos que realmente necesitan trazabilidad.
 
-Su disponibilidad se deriva mediante las mismas categorías de requisitos del Árbol II. No guardes listas de fórmulas o definiciones desbloqueadas. Consulta [Nomenclatura e IDs](CONTENT_NAMING.md).
+Su disponibilidad se deriva mediante las mismas categorías de requisitos del Árbol II. No guardes listas de fórmulas o definiciones desbloqueadas. Las colecciones se consultan en los paneles permanentes **Símbolos**, **Constantes**, **Formulario** y **Glosario**; esos paneles muestran solo las entradas habilitadas o su condición de desbloqueo. Consulta [Nomenclatura e IDs](CONTENT_NAMING.md).
 
-No añadas una cita repetida a definiciones, operaciones algebraicas o identidades rutinarias. Cuando una fórmula, propiedad o colección con fuente se desbloquee, la interfaz debe comunicar esa referencia una sola vez y de forma agrupada; no debe mantener un cuadro bibliográfico dentro de cada tarjeta del menú. La procedencia del material docente que inspira globalmente el proyecto permanece centralizada en el `README` y no se repite en los datos runtime.
+No añadas una cita repetida a definiciones, operaciones algebraicas o identidades rutinarias. Cuando una fórmula, propiedad o colección con fuente se desbloquee, la interfaz debe comunicar esa referencia una sola vez y de forma agrupada. La consulta posterior permanece disponible en su menú, pero no debe crear un cuadro bibliográfico repetido por tarjeta o entrada. La procedencia del material docente que inspira globalmente el proyecto permanece centralizada en el `README` y no se repite en los datos runtime.
 
 ## Estándar pedagógico futuro
 
@@ -245,7 +266,7 @@ Un nodo listo para publicación debería incorporar:
 - Registra autor, título, institución/editorial, año y enlace estable cuando el formato final lo permita.
 - Cuando una entrada necesite fuente, registra su clave canónica en `docs/references/references.bib` y un localizador exacto dentro de `source`.
 - El conocimiento matemático común puede declararse sin `source`; no cites una fuente para suma, derivación elemental o notación estándar solo para completar un campo.
-- Una fuente mostrada al desbloquear contenido se cita una vez y de manera agrupada, no como texto repetido en cada tarjeta de consulta.
+- Una fuente mostrada al desbloquear contenido se cita una vez y de manera agrupada; el panel de consulta puede seguir visible, pero no repite la bibliografía por entrada.
 - Un adjunto con licencia no indicada puede orientar una reformulación independiente, pero no autoriza copiar prosa, tablas, ejercicios ni soluciones.
 
 ## Control de calidad

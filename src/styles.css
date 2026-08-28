@@ -192,13 +192,13 @@ code {
   white-space: nowrap;
 }
 
-.atlas-wordmark {
+.orbit-wordmark {
   color: var(--accent);
   font-weight: 900;
   letter-spacing: 0.15em;
 }
 
-.atlas-name {
+.orbit-route {
   color: #e6f2f9;
   font-weight: 650;
 }
@@ -818,6 +818,157 @@ code {
   font-size: 0.8rem;
 }
 
+.point-charge-field {
+  margin: 0;
+  padding: 0.72rem;
+  border: 1px solid rgba(120, 227, 255, 0.2);
+  border-radius: 0.82rem;
+  background: rgba(2, 13, 23, 0.64);
+}
+
+.point-charge-caption h4 {
+  margin: 0;
+  color: #f4faff;
+  text-align: center;
+}
+
+.point-charge-caption p {
+  margin: 0.36rem auto 0.62rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.point-charge-plot {
+  display: block;
+  width: min(100%, 34rem);
+  height: auto;
+  margin: 0 auto;
+  border: 1px solid rgba(120, 227, 255, 0.18);
+  border-radius: 0.62rem;
+  background: rgba(1, 9, 17, 0.78);
+  touch-action: none;
+}
+
+.point-charge-background {
+  fill: rgba(8, 25, 39, 0.72);
+}
+
+.point-charge-grid {
+  stroke: rgba(155, 216, 255, 0.12);
+  stroke-width: 0.35;
+}
+
+.point-charge-axis {
+  stroke: rgba(236, 244, 248, 0.42);
+  stroke-width: 0.55;
+}
+
+.point-charge-contribution,
+.point-charge-resultant {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.point-charge-contribution {
+  stroke: rgba(130, 218, 250, 0.7);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 2;
+}
+
+.point-charge-resultant {
+  stroke: #ffd166;
+  stroke-width: 2.6;
+}
+
+.point-charge-arrow-component {
+  fill: #82dafa;
+}
+
+.point-charge-arrow-result {
+  fill: #ffd166;
+}
+
+.point-charge-probe {
+  fill: #f7fbff;
+  stroke: #07111d;
+  stroke-width: 0.8;
+}
+
+.point-charge-probe-label,
+.point-charge-node text {
+  fill: #f7fbff;
+  font-size: 4px;
+  font-weight: 850;
+  pointer-events: none;
+}
+
+.point-charge-probe-label {
+  font-size: 4.2px;
+}
+
+.point-charge-node {
+  cursor: grab;
+}
+
+.point-charge-node:active {
+  cursor: grabbing;
+}
+
+.point-charge-node circle {
+  stroke-width: 1.3;
+}
+
+.point-charge-node.positive circle {
+  fill: #8c3e62;
+  stroke: #ffb9d2;
+}
+
+.point-charge-node.negative circle {
+  fill: #205f79;
+  stroke: #a8e9ff;
+}
+
+.point-charge-node.neutral circle {
+  fill: #4d5660;
+  stroke: #e3edf3;
+}
+
+.point-charge-node:focus-visible circle {
+  stroke: #ffd166;
+  stroke-width: 2.8;
+}
+
+.point-charge-node-label {
+  font-size: 3.4px !important;
+}
+
+.point-charge-controls {
+  display: grid;
+  margin-top: 0.72rem;
+  gap: 0.52rem;
+}
+
+.point-charge-control {
+  display: grid;
+  grid-template-columns: minmax(8rem, 1fr) minmax(7rem, 1.4fr) 3rem;
+  gap: 0.55rem;
+  align-items: center;
+  font-size: 0.74rem;
+}
+
+.point-charge-control output,
+.point-charge-status {
+  font-variant-numeric: tabular-nums;
+}
+
+.point-charge-status {
+  margin: 0.68rem 0 0;
+  color: #d8edf7;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
 .exercise-sequence-list {
   display: grid;
   margin: 0.8rem 0 0;
@@ -993,6 +1144,144 @@ code {
   position: absolute;
   top: 0.58rem;
   right: 0.58rem;
+}
+
+.knowledge-edge-guide {
+  margin: 0.9rem 0;
+  padding: 0.82rem;
+  border: 1px solid rgba(120, 227, 255, 0.2);
+  border-radius: 0.78rem;
+  background: rgba(4, 18, 30, 0.58);
+}
+
+.knowledge-edge-guide h3 {
+  margin: 0 0 0.35rem;
+}
+
+.knowledge-edge-guide p {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.knowledge-edge-list {
+  display: grid;
+  margin: 0.68rem 0 0;
+  padding: 0;
+  gap: 0.42rem;
+  list-style: none;
+}
+
+.knowledge-edge-list li {
+  padding: 0.5rem 0.58rem;
+  border: 1px dashed rgba(205, 222, 234, 0.48);
+  border-radius: 0.55rem;
+  color: #d4e5ee;
+  font-size: 0.72rem;
+}
+
+.knowledge-edge-list li.new {
+  border-width: 2px;
+  border-style: solid;
+  color: #fff0bd;
+  font-weight: 850;
+}
+
+.visual-layer-control {
+  display: grid;
+  margin: 1rem 0;
+  padding: 0;
+  gap: 0.5rem;
+  border: 0;
+}
+
+.visual-layer-control legend {
+  margin-bottom: 0.5rem;
+  color: #f4faff;
+  font-weight: 900;
+}
+
+.visual-layer-control label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.65rem;
+  padding: 0.72rem;
+  align-items: flex-start;
+  border: 1px solid rgba(120, 227, 255, 0.18);
+  border-radius: 0.72rem;
+  background: rgba(4, 18, 30, 0.58);
+  cursor: pointer;
+}
+
+.visual-layer-control label:has(input:checked) {
+  border-color: rgba(255, 209, 102, 0.68);
+  box-shadow: inset 0 0 0 1px rgba(255, 209, 102, 0.14);
+}
+
+.visual-layer-control input {
+  margin-top: 0.2rem;
+  accent-color: var(--gold);
+}
+
+.visual-layer-control span,
+.visual-layer-control small {
+  display: block;
+}
+
+.visual-layer-control small {
+  margin-top: 0.2rem;
+  color: var(--muted);
+  line-height: 1.42;
+}
+
+.visual-legend {
+  padding-top: 0.35rem;
+  border-top: 1px solid rgba(236, 244, 248, 0.12);
+}
+
+.visual-legend p {
+  display: grid;
+  grid-template-columns: 2.5rem auto;
+  column-gap: 0.5rem;
+  align-items: center;
+}
+
+.visual-legend p strong {
+  grid-column: 2;
+}
+
+.visual-line-swatch {
+  grid-row: 1 / span 2;
+  height: 0;
+  border-top: 3px solid #ffd34d;
+  box-shadow: 0 0 8px rgba(255, 211, 77, 0.7);
+}
+
+.visual-line-swatch.muted {
+  border-top-style: dashed;
+  opacity: 0.42;
+  box-shadow: none;
+}
+
+.sound-control {
+  display: flex;
+  margin-top: 1rem;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  color: #e8f8ff;
+  font-weight: 800;
+}
+
+#sound-panel input[type="range"] {
+  width: 100%;
+  margin: 0.45rem 0 0;
+}
+
+.sound-control output {
+  min-width: 3.2rem;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 .reference-intro {
@@ -1367,7 +1656,7 @@ code {
     grid-template-columns: minmax(9.5rem, auto) minmax(0, 1fr);
   }
 
-  .atlas-name {
+  .orbit-route {
     display: none;
   }
 
@@ -1596,6 +1885,15 @@ code {
   .vector-field-card-grid,
   .math-input-row {
     grid-template-columns: 1fr;
+  }
+
+  .point-charge-control {
+    grid-template-columns: 1fr auto;
+  }
+
+  .point-charge-control input {
+    grid-column: 1 / -1;
+    grid-row: 2;
   }
 }
 

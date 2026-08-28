@@ -1,4 +1,4 @@
-name: Validate ATLAS and optionally deploy Pages
+name: Validate ORBIT and optionally deploy Pages
 
 on:
   push:

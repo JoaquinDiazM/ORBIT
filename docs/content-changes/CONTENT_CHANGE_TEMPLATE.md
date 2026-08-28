@@ -1,5 +1,5 @@
 ---
-atlasChangeVersion: 1
+orbitChangeVersion: 1
 operation: add | update | delete
 objectType: area | location | concept | reward | reference-entry
 id: stable-kebab-case-id
@@ -49,4 +49,4 @@ Una frase observable que describa el cambio mínimo.
 - Ruta normal que debe seguir alcanzable.
 - Pruebas específicas además de `npm run check`.
 
-> Este archivo es una especificación para un agente con contexto de ATLAS. El navegador no lo parsea y no reemplaza las fuentes declarativas de `src/data/`.
+> Este archivo es una especificación para un agente con contexto de ORBIT. El navegador no lo parsea y no reemplaza las fuentes declarativas de `src/data/`.

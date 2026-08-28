@@ -61,6 +61,33 @@ function cylindricalPolicy(overrides = {}) {
   };
 }
 
+function pointChargeField(overrides = {}) {
+  return {
+    type: "choice",
+    presentation: "point-charge-field",
+    figure: {
+      title: "Tres cargas",
+      description: "Laboratorio normalizado",
+      domain: { x: [-2, 2], y: [-2, 2] },
+      probe: { x: 0, y: 0 },
+      chargeRange: { min: -1, max: 1, step: 0.1 },
+      keyboardStep: 0.1,
+      singularityRadius: 0.12,
+      charges: [
+        { id: "q1", label: "q1", x: -1, y: 0, value: 0.8 },
+        { id: "q2", label: "q2", x: 1, y: 0, value: -0.6 },
+        { id: "q3", label: "q3", x: 0, y: 1, value: 0 },
+      ],
+      ...overrides,
+    },
+    choices: [
+      { id: "vector-sum", label: "Suma vectorial" },
+      { id: "scalar-sum", label: "Suma escalar" },
+    ],
+    answerId: "vector-sum",
+  };
+}
+
 test("acepta alternativas heredadas y objetos con IDs internos", () => {
   assert.deepEqual(
     validateExerciseDefinition({ type: "choice", choices: ["A", "B"], answerIndex: 0 }),
@@ -127,6 +154,13 @@ test("valida una secuencia de items atómicos con IDs únicos", () => {
         answerId: "direct",
       },
       {
+        id: "numeric-check",
+        type: "numeric",
+        expected: 2,
+        absoluteTolerance: 0.01,
+        unit: "N",
+      },
+      {
         id: "final-expression",
         type: "expression",
         answerPolicy: {
@@ -142,6 +176,33 @@ test("valida una secuencia de items atómicos con IDs únicos", () => {
     ],
   });
   assert.deepEqual(errors, []);
+});
+
+test("acepta una figura de exactamente tres cargas normalizadas", () => {
+  assert.deepEqual(validateExerciseDefinition(pointChargeField()), []);
+});
+
+test("rechaza configuraciones de cargas fuera del contrato declarativo", () => {
+  const errors = validateExerciseDefinition(
+    pointChargeField({
+      domain: { x: [-2, 2], y: [-1, 1] },
+      probe: { x: 4, y: 0 },
+      chargeRange: { min: 0, max: 1, step: 0.3 },
+      keyboardStep: 0,
+      singularityRadius: -1,
+      charges: [
+        { id: "same", label: "q1", x: -3, y: 0, value: 2 },
+        { id: "same", label: "", x: 1, y: 0, value: 0 },
+      ],
+    }),
+  );
+
+  assert.ok(errors.some((error) => error.includes("exactamente tres cargas")));
+  assert.ok(errors.some((error) => error.includes("relación 1:1")));
+  assert.ok(errors.some((error) => error.includes("chargeRange [-1, 1]")));
+  assert.ok(errors.some((error) => error.includes("probe dentro del dominio")));
+  assert.ok(errors.some((error) => error.includes("keyboardStep")));
+  assert.ok(errors.some((error) => error.includes("singularityRadius")));
 });
 
 test("rechaza secuencias anidadas, feedback desconocido e IDs repetidos", () => {

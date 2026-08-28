@@ -45,20 +45,34 @@ Pulsa `K` para revisar:
 - **Árbol I:** conceptos que abren regiones completas.
 - **Árbol II:** lugares, transportes, gadgets, personajes y hitos locales.
 
-El mundo no obliga a caminar por las líneas de esos árboles. Los grafos controlan acceso conceptual, no la trayectoria física dentro de una zona.
+El panel **Árboles** es un listado del estado de zonas, lugares y recompensas. El mundo no obliga a caminar por sus relaciones: los grafos controlan acceso conceptual, no la trayectoria física dentro de una zona.
+
+## Visualización de la red
+
+El botón **Visual** abre un panel independiente para configurar las guías del Árbol II que se superponen sobre el mapamundi:
+
+- **Oculta:** muestra únicamente la conexión que produjo el último desbloqueo de esta sesión. Si todavía no ocurrió uno, no dibuja conexiones.
+- **Directo:** muestra todas las conexiones elegibles dentro de un mismo hexágono o entre dos hexágonos que comparten frontera.
+- **Total:** muestra todas las conexiones elegibles entre lugares visibles, aunque sus hexágonos no sean vecinos.
+
+Las flechas siempre apuntan desde el lugar que aporta el prerrequisito hacia el destino. Una flecha amarilla brillante y sólida conecta un nodo completado con otro completado o completable; una flecha amarilla tenue y discontinua muestra que un nodo completable conduce a otro visible pero todavía bloqueado. La etiqueta **NUEVO** identifica la relación causal del último desbloqueo. El color se acompaña de brillo, patrón de línea y texto, y cambiar el nivel visual nunca modifica el progreso. El nivel elegido se guarda en el perfil; la relación marcada como «nueva» pertenece solo a la sesión.
 
 ## Ventana principal y menú secundario
 
 Al interactuar con un lugar, su ventana principal aparece a la derecha. El menú izquierdo puede mantener abierta a la vez una única ventana secundaria:
 
-- árboles de conocimiento;
-- simbología;
-- constantes;
-- formulario desbloqueado;
-- glosario;
-- ayuda.
+- **Árboles**;
+- **Visual**;
+- **Símbolos**;
+- **Constantes**;
+- **Formulario**;
+- **Glosario**;
+- **Ayuda**;
+- **Sonido**.
 
-En escritorio puedes consultar una referencia sin cerrar la misión o lección actual. En pantallas estrechas los paneles ocupan el espacio disponible y `Esc` los cierra en orden inverso a su apertura.
+En escritorio puedes consultar uno de esos paneles sin cerrar la misión o lección actual. En pantallas estrechas los paneles ocupan el espacio disponible y `Esc` los cierra en orden inverso a su apertura.
+
+Los paneles **Símbolos**, **Constantes**, **Formulario** y **Glosario** permiten consultar las entradas disponibles y las condiciones de las todavía bloqueadas. Cuando se desbloquea una entrada cuya procedencia merece mostrarse, la interfaz comunica esa fuente una sola vez en ese momento. La consulta posterior conserva el contenido, pero no repite cuadros bibliográficos en cada tarjeta.
 
 Las lecciones extensas se dividen en etapas. Una lectura habilita **Continuar**; una actividad habilita la etapa siguiente solo después de una respuesta correcta. Una vez completado el lugar, todas sus etapas quedan disponibles para revisión.
 
@@ -66,13 +80,25 @@ Las lecciones extensas se dividen en etapas. Una lectura habilita **Continuar**;
 
 - `G`: activa o desactiva la Lente de campo después de adquirirla.
 - `T`: alterna entre los transportes disponibles.
-- `M`: activa o silencia ambiente y efectos.
+- `M`: abre o cierra el panel **Sonido**.
 
 Los transportes cambian la velocidad de exploración, no los prerrequisitos académicos.
 
 ## Audio y ecuaciones
 
-El ambiente comienza solo después de tu primer clic o tecla. El cruce de una zona y cada interacción válida tienen efectos breves; las mismas acciones siempre conservan indicación visual. Las ecuaciones se escriben en TeX, se muestran con tipografía matemática y exponen MathML para tecnologías de asistencia.
+El ambiente comienza solo después de tu primer clic o tecla. El panel **Sonido** tiene dos controles independientes: **Ambiente** e **Interfaz y efectos**. Llevar uno a `0 %` silencia únicamente esa categoría; ambos valores se guardan en el perfil.
+
+Las interacciones ordinarias solicitan el cue de confirmación predeterminado. Si una acción tiene un cue específico —por ejemplo, una finalización que abre una zona—, ese cue sustituye al predeterminado: nunca deben superponerse los dos. Las mismas acciones conservan siempre una indicación visual aunque el volumen esté en cero o el recurso no esté disponible.
+
+La versión 0.3.2 incluye cinco recursos verificables y cinco botones de prueba en el debugger: ambiente global, cambio de hexágono, confirmación de interacción, clic de interfaz y zona desbloqueada. Los tres sonidos procedentes de Freesound son CC0 1.0; los dos efectos nuevos son contribuciones de ORBIT aportadas por JoaquinDiazM mediante ChatGPT y publicadas bajo MIT.
+
+Las ecuaciones se escriben en TeX, se muestran con tipografía matemática y exponen MathML para tecnologías de asistencia.
+
+## Contenido destacado de 0.3.2
+
+El **Observatorio de Coulomb** se recorre en cinco etapas. Su laboratorio permite mover exactamente tres cargas mediante puntero o teclado; la cuarta etapa desarrolla la relación conservativa mediante siete intervenciones guiadas.
+
+La **Estación de Superconductividad** contiene dos lugares complementarios. Heike Kamerlingh Onnes aporta contexto histórico y un botón para registrar el encuentro, sin preguntas ni calificación; al completarlo aparecen fórmulas introductorias en el **Formulario**. El **Laboratorio de Transición Superconductora** es el punto de aprendizaje separado: allí se realiza la actividad evaluable y se adquiere el concepto de la zona. Los IDs internos heredados de zona, concepto y Onnes se conservan para no invalidar perfiles anteriores.
 
 ## Guardado
 
@@ -93,6 +119,8 @@ http://127.0.0.1:<puerto>/?profile=prueba-1
 Usa en ambos casos el puerto indicado por la ejecución actual de `npm run dev`.
 
 Los nombres de perfil se normalizan para evitar claves inválidas. El progreso de un navegador no se sincroniza automáticamente con otro equipo.
+
+El formato vigente es `v3`. Al abrir un perfil anterior, ORBIT migra los esquemas `v1`/`v2` y también consulta las claves históricas con prefijo `aea-progress`; después guarda el estado saneado bajo `orbit-progress`. La migración conserva los logros compatibles, transforma los antiguos ajustes de audio en los dos volúmenes independientes e inicia la visualización del Árbol II en **Oculta**.
 
 ## Exportar e importar
 

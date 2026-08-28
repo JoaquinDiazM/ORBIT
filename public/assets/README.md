@@ -1,9 +1,9 @@
-# Assets de ATLAS
+# Assets de ORBIT
 
 Esta carpeta contiene recursos estáticos listos para copiar dentro de:
 
 ```text
-ATLAS/public/assets/
+ORBIT/public/assets/
 ```
 
 En esta versión solo existe la categoría `audio/`. Las demás clases de recursos —imágenes, tipografías, mapas o video— deberán añadirse como carpetas hermanas cuando sean necesarias.
@@ -85,7 +85,7 @@ Los archivos de ejecución se distribuyen como **Ogg Vorbis**, apropiado para na
 Cuando se conserven fuentes WAV para edición, deben almacenarse fuera de `public/assets/`, por ejemplo:
 
 ```text
-ATLAS/asset_sources/audio/
+ORBIT/asset_sources/audio/
 ```
 
 Esa carpeta fuente no debe copiarse al build ni cargarse durante la ejecución.
@@ -118,7 +118,7 @@ audio.volume = definition.volume;
 
 Los navegadores suelen bloquear audio automático antes de la primera interacción del usuario. El sistema de audio debe inicializarse después de un clic, una tecla o una acción equivalente.
 
-La implementación activa está en `src/audio/audio-manager.js`. El ambiente comienza tras el primer gesto, `M` alterna el mute, el cruce de hexágono y cada interacción válida disparan sus efectos, y el debugger permite probar los tres recursos sin completar el recorrido.
+La implementación activa está en `src/audio/audio-manager.js`. El ambiente comienza tras el primer gesto; `M` abre el mezclador independiente de Ambiente e Interfaz y efectos. El cruce de hexágono, cada interacción válida y el primer desbloqueo de una zona disparan sus efectos correspondientes; el debugger permite probar los cinco recursos versionados sin completar el recorrido. Un valor de cero silencia únicamente su categoría.
 
 ## Reglas para colaboradores y agentes
 
@@ -135,7 +135,9 @@ La implementación activa está en `src/audio/audio-manager.js`. El ambiente com
 ## Recursos incluidos
 
 - Confirmación de interacción: `audio/interactions/mission_start_roger_beep_01.ogg` (nombre histórico conservado).
+- Clic predeterminado de interfaz: `audio/interactions/ui_select_default_01.ogg`.
 - Cambio de hexágono: `audio/transitions/hexagon_transition_scifi_inspect_01.ogg`.
+- Primer desbloqueo de zona: `audio/transitions/zone_unlocked_airlock_01.ogg`.
 - Ambiente global: `audio/ambience/global_space_ambient_loop_01.ogg`.
 
 La pista ambiental conserva el audio original completo. Está configurada como loop, pero no fue reeditada para garantizar un empalme perfectamente continuo; debe escucharse el punto de repetición durante la implementación.

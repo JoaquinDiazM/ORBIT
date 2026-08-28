@@ -5,24 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Prototipo del Atlas de Electromagnetismo Aplicado: mundo 2D hexagonal, progresión conceptual y ejercicios universitarios."
+      content="ORBIT, Open Roadmap for Building Intuition and Theory: mundo 2D, progresión conceptual y una primera ruta de Electromagnetismo Aplicado."
     />
     <meta name="theme-color" content="#08111f" />
     <link rel="icon" href="./public/favicon.svg" type="image/svg+xml" />
     <link rel="manifest" href="./public/manifest.webmanifest" />
     <link rel="stylesheet" href="./node_modules/katex/dist/katex.min.css" />
     <link rel="stylesheet" href="./src/styles.css" />
-    <title>Atlas de Electromagnetismo Aplicado</title>
+    <title>ORBIT · Electromagnetismo Aplicado</title>
   </head>
   <body>
-    <main id="app" aria-label="Atlas interactivo de electromagnetismo aplicado">
+    <main id="app" aria-label="ORBIT, ruta interactiva de electromagnetismo aplicado">
       <canvas id="world-canvas" tabindex="0" aria-label="Mundo interactivo en dos dimensiones">
         Tu navegador necesita soporte para Canvas 2D.
       </canvas>
 
       <section id="hud" class="glass-card hud-bar" aria-label="Estado de la expedición">
         <div class="hud-brand">
-          <h1><span class="atlas-wordmark">ATLAS</span><span class="atlas-name"> · Electromagnetismo Aplicado</span></h1>
+          <h1><span class="orbit-wordmark">ORBIT</span><span class="orbit-route"> · Electromagnetismo Aplicado</span></h1>
           <span id="profile-badge" class="status-badge">perfil: normal</span>
         </div>
         <dl class="hud-stats">
@@ -33,7 +33,7 @@
         </dl>
       </section>
 
-      <nav id="atlas-menu" class="glass-card tool-dock" aria-label="Herramientas del Atlas">
+      <nav id="orbit-menu" class="glass-card tool-dock" aria-label="Herramientas de ORBIT">
         <button
           id="open-knowledge"
           class="dock-button"
@@ -42,6 +42,14 @@
           aria-controls="knowledge-panel"
           aria-expanded="false"
         >Árboles <kbd>K</kbd></button>
+        <button
+          id="open-visual"
+          class="dock-button"
+          data-mark="◎"
+          type="button"
+          aria-controls="visual-panel"
+          aria-expanded="false"
+        >Visual</button>
         <button
           id="open-symbols"
           class="dock-button"
@@ -86,7 +94,14 @@
           aria-controls="help-panel"
           aria-expanded="false"
         >Ayuda <kbd>H</kbd></button>
-        <button id="toggle-audio" class="dock-button" data-mark="◉" type="button" aria-pressed="true">Audio activo <kbd>M</kbd></button>
+        <button
+          id="open-sound"
+          class="dock-button"
+          data-mark="◉"
+          type="button"
+          aria-controls="sound-panel"
+          aria-expanded="false"
+        >Sonido <kbd>M</kbd></button>
       </nav>
 
       <section id="controls-hint" class="glass-card compact-card" aria-label="Controles principales">
@@ -94,7 +109,7 @@
         <span><kbd>E</kbd>: interactuar</span>
         <span><kbd>G</kbd>: gadget</span>
         <span><kbd>T</kbd>: transporte</span>
-        <span><kbd>M</kbd>: audio</span>
+        <span><kbd>M</kbd>: sonido</span>
         <span><kbd>F2</kbd>: debugger</span>
       </section>
 
@@ -131,6 +146,38 @@
         <div id="knowledge-body" class="panel-body"></div>
       </aside>
 
+      <aside id="visual-panel" class="side-panel secondary-panel" role="dialog" aria-labelledby="visual-title" hidden>
+        <header class="panel-header">
+          <div>
+            <p class="eyebrow">Capas del mapamundi</p>
+            <h2 id="visual-title">Visual</h2>
+          </div>
+          <button class="icon-button" data-close-panel="visual-panel" type="button" aria-label="Cerrar">×</button>
+        </header>
+        <div class="panel-body prose">
+          <p>Configura la información que ORBIT superpone sobre el mapa sin alterar tu progreso.</p>
+          <fieldset class="visual-layer-control">
+            <legend>Red del Árbol II</legend>
+            <label>
+              <input type="radio" name="tree-two-visualization" value="hidden" checked />
+              <span><strong>Oculta</strong><small>Solo conserva a la vista las conexiones del último desbloqueo de esta sesión.</small></span>
+            </label>
+            <label>
+              <input type="radio" name="tree-two-visualization" value="direct" />
+              <span><strong>Directo</strong><small>Muestra conexiones dentro de una zona o entre zonas que comparten frontera.</small></span>
+            </label>
+            <label>
+              <input type="radio" name="tree-two-visualization" value="total" />
+              <span><strong>Total</strong><small>Muestra todas las conexiones elegibles entre lugares visibles.</small></span>
+            </label>
+          </fieldset>
+          <div class="visual-legend" aria-label="Leyenda de conexiones">
+            <p><span class="visual-line-swatch bright" aria-hidden="true"></span><strong>Amarillo brillante:</strong> conexión entre nodos completados o hacia un nodo completable.</p>
+            <p><span class="visual-line-swatch muted" aria-hidden="true"></span><strong>Amarillo tenue:</strong> un nodo completable conduce a otro todavía bloqueado.</p>
+          </div>
+        </div>
+      </aside>
+
       <aside id="reference-panel" class="side-panel secondary-panel wide-panel" role="dialog" aria-labelledby="reference-title" hidden>
         <header class="panel-header">
           <div>
@@ -140,6 +187,29 @@
           <button class="icon-button" data-close-panel="reference-panel" type="button" aria-label="Cerrar">×</button>
         </header>
         <div id="reference-body" class="panel-body"></div>
+      </aside>
+
+      <aside id="sound-panel" class="side-panel secondary-panel" role="dialog" aria-labelledby="sound-title" hidden>
+        <header class="panel-header">
+          <div>
+            <p class="eyebrow">Mezclador por categorías</p>
+            <h2 id="sound-title">Sonido</h2>
+          </div>
+          <button class="icon-button" data-close-panel="sound-panel" type="button" aria-label="Cerrar">×</button>
+        </header>
+        <div class="panel-body prose">
+          <p>Cada barra admite cero como silencio de esa categoría. Las preferencias se guardan en este perfil.</p>
+          <label class="sound-control" for="sound-ambience">
+            <span>Ambiente</span>
+            <span><output id="sound-ambience-output" for="sound-ambience">100%</output></span>
+          </label>
+          <input id="sound-ambience" type="range" min="0" max="100" step="1" value="100" />
+          <label class="sound-control" for="sound-effects">
+            <span>Interfaz y efectos</span>
+            <span><output id="sound-effects-output" for="sound-effects">100%</output></span>
+          </label>
+          <input id="sound-effects" type="range" min="0" max="100" step="1" value="100" />
+        </div>
       </aside>
 
       <aside id="help-panel" class="side-panel secondary-panel" role="dialog" aria-labelledby="help-title" hidden>
@@ -152,7 +222,7 @@
         </header>
         <div class="panel-body prose">
           <p>El movimiento del personaje es continuo: no estás restringido a caminos ni a los lugares de aprendizaje.</p>
-          <p>El menú lateral abre una referencia secundaria a la vez. Esa referencia puede permanecer visible junto con la lección principal; las lecciones extensas se recorren por etapas.</p>
+          <p>El menú lateral abre una herramienta secundaria a la vez. Puede permanecer visible junto con la lección principal; las lecciones extensas se recorren por etapas.</p>
           <dl class="controls-list">
             <div><dt><kbd>WASD</kbd> o flechas</dt><dd>Movimiento libre.</dd></div>
             <div><dt><kbd>E</kbd></dt><dd>Interactuar con el lugar más cercano.</dd></div>
@@ -160,7 +230,7 @@
             <div><dt><kbd>T</kbd></dt><dd>Cambiar entre transportes adquiridos.</dd></div>
             <div><dt>Rueda del ratón</dt><dd>Ajustar el zoom.</dd></div>
             <div><dt><kbd>K</kbd></dt><dd>Abrir los dos árboles de progresión.</dd></div>
-            <div><dt><kbd>M</kbd></dt><dd>Activar o silenciar ambiente y efectos.</dd></div>
+            <div><dt><kbd>M</kbd></dt><dd>Abrir el mezclador de ambiente y efectos.</dd></div>
             <div><dt><kbd>F2</kbd></dt><dd>Abrir el debugger para pruebas.</dd></div>
             <div><dt><kbd>Esc</kbd></dt><dd>Cerrar paneles.</dd></div>
           </dl>
@@ -203,9 +273,11 @@
           <h3>Probar audio</h3>
           <p class="debug-note">Estas pruebas reproducen los mismos recursos usados por los eventos del mundo.</p>
           <div class="button-grid">
-            <button id="debug-audio-ambience" type="button">Ambiente global</button>
-            <button id="debug-audio-transition" type="button">Cambio de hexágono</button>
-            <button id="debug-audio-mission" type="button">Confirmar interacción</button>
+            <button id="debug-audio-ambience" data-audio-cue="none" type="button">Ambiente global</button>
+            <button id="debug-audio-transition" data-audio-cue="none" type="button">Cambio de hexágono</button>
+            <button id="debug-audio-mission" data-audio-cue="none" type="button">Confirmar interacción</button>
+            <button id="debug-audio-ui-select" data-audio-cue="none" type="button">Clic de interfaz</button>
+            <button id="debug-audio-zone-unlocked" data-audio-cue="none" type="button">Zona desbloqueada</button>
           </div>
 
           <div class="button-grid">

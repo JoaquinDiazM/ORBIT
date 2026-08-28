@@ -1,37 +1,56 @@
-# Atlas de Electromagnetismo Aplicado
+# ORBIT
+
+**Open Roadmap for Building Intuition and Theory**
 
 ![Captura del prototipo](docs/screenshots/prototype.png)
 
-Prototipo abierto de un curso complementario de electromagnetismo aplicado con una interfaz narrativa en dos dimensiones. El estudiante explora libremente un mundo abstracto dividido en hexágonos, resuelve actividades universitarias y abre nuevas regiones mediante conocimiento adquirido. El autor del proyecto sitúa su origen pedagógico en su experiencia docente del curso EL3103 Electromagnetismo Aplicado de la Universidad de Chile, pero ATLAS es un recurso abierto e independiente.
+ORBIT es un proyecto educativo abierto y transversal para construir intuición, teoría y conexiones entre rutas de aprendizaje mediante una interfaz narrativa en dos dimensiones. La ruta implementada actualmente es **Electromagnetismo Aplicado**: el estudiante explora libremente un mundo abstracto dividido en hexágonos, resuelve actividades universitarias y abre nuevas regiones mediante conocimiento adquirido.
 
-El proyecto está dirigido a estudiantes que ya manejan cálculo, álgebra lineal y física clásica, especialmente quienes consideran estudiar Ingeniería Eléctrica o comienzan los primeros semestres de la especialidad.
+El autor sitúa el origen pedagógico de esta primera ruta en su experiencia docente del curso EL3103 Electromagnetismo Aplicado de la Universidad de Chile, pero ORBIT es un recurso abierto e independiente. La arquitectura multicurso y las conexiones entre disciplinas son una dirección futura; la versión actual no afirma haberlas implementado.
 
-> **Estado:** prototipo técnico y pedagógico `0.3.1`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
+La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra lineal y física clásica, especialmente quienes consideran estudiar Ingeniería Eléctrica o comienzan los primeros semestres de la especialidad.
+
+> **Estado:** prototipo técnico y pedagógico `0.3.2`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
 
 ## Qué demuestra esta versión
 
 - Movimiento continuo en 2D con teclado; el personaje no está restringido a nodos ni caminos.
 - Mundo de 19 hexágonos: Campamento Base, seis fundamentos y doce áreas de aplicación.
 - **Árbol del conocimiento I:** abre zonas completas.
-- **Árbol del conocimiento II:** revela lugares, gadgets, transportes, personajes y misiones dentro de zonas ya accesibles.
+- **Árbol del conocimiento II:** revela lugares, gadgets, transportes, personajes y misiones dentro de zonas ya accesibles; sus requisitos declarativos producen 13 parejas únicas de guía visual.
 - Regla de fronteras: cuando se abre un hexágono, quedan transitables todas sus aristas compartidas con hexágonos previamente abiertos.
-- Veinte conceptos y 27 lugares alcanzables, incluida una misión integradora Tierra–Luna.
+- Veinte conceptos y 28 lugares alcanzables, incluida una misión integradora Tierra–Luna.
 - Ejercicios de alternativa, respuesta numérica con tolerancia, expresiones equivalentes, secuencias guiadas y actividades de confirmación.
 - Lugares extensos divididos en etapas desbloqueables dentro de la ventana principal; el Taller Vectorial desarrolla ahora seis etapas con andamiaje decreciente.
 - Visor de campos vectoriales 2D en SVG nativo, con muestreo y escala comparables, parámetros efímeros y descripción accesible sin animación automática.
 - Política matemática segura para equivalencia numérica, funcional y por gradiente, con parser restringido y evaluación determinista sin ejecutar JavaScript ingresado por el usuario.
-- Menú secundario compatible con la ventana del lugar: árboles, simbología, constantes, formulario, glosario y ayuda.
-- Referencias académicas selectivas y derivadas desde el progreso: el menú no repite cuadros de fuentes y cada procedencia pertinente se anuncia al producirse su desbloqueo.
+- Menú secundario con **Árboles**, **Visual**, **Símbolos**, **Constantes**, **Formulario**, **Glosario**, **Ayuda** y **Sonido**, compatible con la ventana del lugar.
+- Las colecciones de referencia conservan sus paneles de consulta; lo que se omite son los cuadros bibliográficos repetidos. Cada procedencia pertinente se anuncia una sola vez al producirse su desbloqueo.
 - Persistencia local por perfiles, exportación e importación JSON.
 - Debugger visual y API de consola.
-- Ambiente global y efectos para cambio de zona e interacción, con mute y pruebas directas.
+- Mezclador con volúmenes independientes para **Ambiente** e **Interfaz y efectos**; cero silencia solo la categoría correspondiente.
+- Cinco audios versionados y verificables: ambiente global, transición de hexágono, confirmación de interacción, clic de interfaz y desbloqueo de zona.
 - Ecuaciones TeX renderizadas localmente con KaTeX y salida visual + MathML.
-- Migración automática de perfiles `v1` al esquema `v2`.
+- Progreso `v3`, con migración automática desde `v1`/`v2`; si coexisten claves históricas `aea-progress`, se prioriza el esquema más reciente antes de guardar bajo `orbit-progress`.
+- Observatorio de Coulomb en cinco etapas, incluida una figura reutilizable `PointChargeField2D` con tres cargas operable mediante puntero y teclado.
+- Estación de Superconductividad con el encuentro histórico no evaluativo de Heike Kamerlingh Onnes y un Laboratorio de Transición Superconductora independiente.
 - Validación automática contra bloqueos lógicos de progresión.
 - Build estático y despliegue preparado para GitHub Pages.
-- Una dependencia npm fijada y documentada: KaTeX 0.18.1; `0.3.1` no añade paquetes, backend, render 3D ni CDN.
+- Una dependencia npm fijada y documentada: KaTeX 0.18.1; `0.3.2` no añade paquetes, backend, render 3D ni CDN.
 
-### Taller Vectorial en 0.3.1
+### Cambios centrales de 0.3.2
+
+Las aristas visibles del Árbol II se derivan de `completedLocations`, `concepts` y `rewards`, siempre en dirección **prerrequisito → destino**. El panel **Árboles** queda dedicado a listar zonas, lugares y recompensas; el panel independiente **Visual** configura la red superpuesta en el mapa. **Oculta** conserva solo la conexión causal del último desbloqueo de la sesión, **Directo** muestra las conexiones elegibles dentro de un mismo hexágono o entre hexágonos que comparten frontera y **Total** muestra todas las conexiones elegibles entre lugares visibles.
+
+Una flecha amarilla brillante representa una relación desde un nodo completado hacia otro completado o completable. Una flecha amarilla tenue y discontinua representa un nodo completable que conduce a uno visible pero todavía bloqueado. La etiqueta **NUEVO** identifica la conexión causal del último desbloqueo; ese evento permanece efímero, mientras la elección del modo visual se guarda como preferencia y nunca altera la progresión. Los requisitos repetidos que resuelven la misma pareja se agrupan, y los requisitos de área no generan estas guías.
+
+La zona visible **Estación de Superconductividad** y el personaje **Heike Kamerlingh Onnes** conservan por compatibilidad los IDs internos `electromagnetic-compatibility` y `shielding-chamber`. Onnes ofrece contexto histórico, no formula preguntas y, al registrar el encuentro, desbloquea fórmulas introductorias en el **Formulario**. El lugar independiente `superconductivity-transition-lab` contiene la actividad evaluable y concede el concepto heredado `electromagnetic-compatibility`. Esto evita invalidar perfiles publicados y no implica que el contenido visible siga tratando compatibilidad electromagnética.
+
+El Observatorio de Coulomb conserva su ID y ahora recorre cinco etapas: relación fuerza–campo–potencial, laboratorio interactivo de tres cargas, escala de Coulomb, demostración conservativa guiada de siete intervenciones y transferencia con un dipolo. `PointChargeField2D` trabaja en un dominio normalizado, conserva exactamente tres cargas y anuncia la singularidad en vez de suavizarla.
+
+El inventario de audio de esta entrega contiene cinco recursos con manifiesto, metadatos, atribución y prueba directa. Los tres sonidos procedentes de Freesound mantienen su licencia CC0 1.0. `ui-select-default.ogg` y `zone-unlocked-airlock.ogg` fueron aportados expresamente por JoaquinDiazM mediante una conversación de ChatGPT y se versionan como contribuciones de ORBIT bajo MIT; no se atribuyen a un catálogo externo.
+
+### Taller Vectorial, incorporado en 0.3.1
 
 Las tres primeras etapas conservan la introducción a campos, operadores e identidades y añaden los elementos diferenciales de línea, superficie y volumen en coordenadas cartesianas, cilíndricas y esféricas. Las etapas evaluadas son:
 
@@ -39,7 +58,7 @@ Las tres primeras etapas conservan la introducción a campos, operadores e ident
 2. `guided-cartesian-potential`: reconstrucción cartesiana de una función escalar mediante exactamente cinco intervenciones guiadas.
 3. `independent-cylindrical-potential`: evaluación cilíndrica de dos intervenciones, con retroalimentación binaria mientras se resuelve.
 
-Las respuestas algebraicas se comparan por su significado matemático. El evaluador usa una gramática de lista blanca, límites de complejidad, puntos de prueba fijos y derivación automática; no usa `eval`, `Function` ni ejecución dinámica. Esta comparación determinista no es una demostración simbólica global y una expresión construida específicamente para coincidir solo en los puntos publicados podría producir un falso positivo. El avance interno, la selección visual y los parámetros de las figuras son estado de sesión: el perfil solo registra la finalización del lugar, por lo que el esquema de progreso permanece en `v2` y no requiere migración.
+Las respuestas algebraicas se comparan por su significado matemático. El evaluador usa una gramática de lista blanca, límites de complejidad, puntos de prueba fijos y derivación automática; no usa `eval`, `Function` ni ejecución dinámica. Esta comparación determinista no es una demostración simbólica global y una expresión construida específicamente para coincidir solo en los puntos publicados podría producir un falso positivo. El avance interno, la selección visual y los parámetros de las figuras son estado de sesión: el perfil solo registra la finalización del lugar. El paso global a `v3` responde al nuevo mezclador de audio, no a estas actividades efímeras.
 
 Las fuentes se reservan para afirmaciones que realmente necesitan trazabilidad. No se atribuyen operaciones elementales, y el material docente que motivó el proyecto mantiene únicamente su reconocimiento global en este README, sin citas repetidas dentro del nodo.
 
@@ -48,8 +67,8 @@ Las fuentes se reservan para afirmaciones que realmente necesitan trazabilidad. 
 Requisito: [Node.js](https://nodejs.org/) 24 LTS o posterior.
 
 ```bash
-git clone https://github.com/JoaquinDiazM/ATLAS.git
-cd ATLAS
+git clone https://github.com/JoaquinDiazM/ORBIT.git
+cd ORBIT
 npm install
 npm run dev
 ```
@@ -95,7 +114,7 @@ http://127.0.0.1:<puerto>/?debug=1&profile=debug
 | Rueda del ratón | Zoom |
 | `G` | Activar o desactivar el Lente de campo, una vez adquirido |
 | `T` | Alternar transportes adquiridos |
-| `M` | Activar o silenciar ambiente y efectos |
+| `M` | Abrir el mezclador de Ambiente e Interfaz y efectos |
 | `K` | Ver los dos árboles de progresión |
 | `H` | Ver ayuda |
 | `F2` o `` ` `` | Abrir/cerrar el debugger |
@@ -159,7 +178,7 @@ Más detalles:
 │   ├── core/                 # geometría, progreso, secuencias, expresiones y validación
 │   ├── data/                 # definición declarativa de mundo y contenido
 │   ├── game/                 # loop, cámara, entrada y renderer Canvas
-│   ├── audio/                # carga local, ambiente, efectos y mute
+│   ├── audio/                # carga local y volúmenes por categoría
 │   └── ui/                   # paneles, SVG 2D, ejercicios, HUD y debugger
 ├── tests/                    # pruebas unitarias y de progresión
 ├── scripts/                  # servidor, build y validador
@@ -179,17 +198,17 @@ La interfaz de depuración permite:
 - conceder el siguiente concepto;
 - abrir todas las zonas;
 - completar todo el prototipo;
-- probar directamente los tres recursos de audio;
+- probar directamente los cinco recursos de audio versionados;
 - reiniciar, exportar e importar un perfil.
 
 También existe una API en consola:
 
 ```js
-AtlasDebug.help();
-AtlasDebug.snapshot();
-AtlasDebug.grantNextConcept();
-AtlasDebug.teleportArea("waves");
-AtlasDebug.setNoclip(true);
+OrbitDebug.help();
+OrbitDebug.snapshot();
+OrbitDebug.grantNextConcept();
+OrbitDebug.teleportArea("waves");
+OrbitDebug.setNoclip(true);
 ```
 
 Consulta [docs/DEBUGGING.md](docs/DEBUGGING.md) para la referencia completa.
@@ -223,7 +242,7 @@ Las modificaciones grandes deben preservar los invariantes de progresión y acom
 - Código fuente: [MIT](LICENSE).
 - Contenido pedagógico original y documentación: [CC BY-SA 4.0](LICENSE-CONTENT.md), salvo indicación distinta.
 - KaTeX: MIT, copiado al build desde la dependencia fijada.
-- Audio incluido: CC0 1.0; procedencia en [public/assets/audio/ATTRIBUTION.md](public/assets/audio/ATTRIBUTION.md).
+- Audio incluido: tres recursos de Freesound bajo CC0 1.0 y dos contribuciones de ORBIT bajo MIT, con procedencia individual en [public/assets/audio/ATTRIBUTION.md](public/assets/audio/ATTRIBUTION.md).
 - Texto abierto adaptado cuando se indica: CC BY-SA 4.0; referencias completas en [docs/references/references.bib](docs/references/references.bib).
 - Material docente EL3103 reconocido globalmente como contexto del proyecto: licencia no indicada; no se redistribuyen los PDF, sus tablas, ejercicios ni soluciones ni se repiten citas locales dentro de los nodos.
 - Los enlaces externos conservan sus propias condiciones de uso; no se redistribuyen sus recursos dentro del repositorio.

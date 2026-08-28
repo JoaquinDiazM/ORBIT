@@ -38,7 +38,7 @@ export function renderMath(target, equation, { displayMode = true } = {}) {
   } catch (error) {
     target.textContent = tex;
     target.classList?.add("math-render-error");
-    console.error("No se pudo renderizar una ecuación de ATLAS con KaTeX.", error);
+    console.error("No se pudo renderizar una ecuación de ORBIT con KaTeX.", error);
     return false;
   }
 }

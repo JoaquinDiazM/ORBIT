@@ -6,13 +6,19 @@ Estas reglas se aplican a todo el repositorio. Los archivos `AGENTS.md` anidados
 
 ## Misión del proyecto
 
-Construir un recurso educativo abierto de electromagnetismo aplicado que combine:
+Construir **ORBIT — Open Roadmap for Building Intuition and Theory**, un recurso educativo
+abierto y transversal que combine:
 
 1. contenido universitario científicamente riguroso;
 2. historia de la ciencia usada como estructura causal y pedagógica;
 3. ejercicios originales con retroalimentación progresiva;
 4. exploración libre en un mundo 2D;
 5. progresión transparente mediante dos grafos de conocimiento.
+
+La ruta implementada actualmente es **Electromagnetismo Aplicado**. En el futuro ORBIT
+pretende migrar y conectar rutas de cursos diferentes, pero el prototipo todavía no debe
+presentarse como una plataforma multicurso terminada. Cada ampliación conservará objetivos,
+prerrequisitos y validación propios de la disciplina correspondiente.
 
 La interfaz narrativa apoya el aprendizaje. No es el objetivo principal ni debe desplazar el tiempo destinado al contenido, las soluciones y la validación con estudiantes.
 
@@ -32,6 +38,9 @@ La interfaz narrativa apoya el aprendizaje. No es el objetivo principal ni debe 
 10. **Pruebas obligatorias:** `npm run check` debe pasar antes de considerar una tarea terminada.
 
 ## Reglas científicas y pedagógicas
+
+Las reglas disciplinares siguientes se aplican a la ruta actual de Electromagnetismo Aplicado;
+una ruta futura deberá declarar con igual precisión su público, convenciones y criterios de rigor.
 
 - El público mínimo ya conoce cálculo, álgebra lineal y física clásica.
 - Usa unidades SI salvo que una comparación disciplinaria justifique otra convención.

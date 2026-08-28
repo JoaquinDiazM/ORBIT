@@ -2,6 +2,41 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [0.3.2] - 2026-08-28
+
+### Añadido
+
+- Mezclador de audio con volúmenes independientes para **Ambiente** e **Interfaz y efectos**, ambos persistentes y con cero como silencio de su propia categoría.
+- Efectos `ui_select` para la activación ordinaria de interfaz y `zone_unlocked` para una finalización que abre zonas, ambos con prueba directa en el debugger.
+- Migración explícita de progreso `v2 → v3` y lectura compatible de claves históricas `aea-progress` antes de guardar bajo `orbit-progress`.
+- Guías direccionales del Árbol II derivadas de los requisitos existentes: 13 parejas únicas con semántica brillante para relaciones completadas/completables y tenue para rutas desde un nodo completable hacia otro todavía bloqueado.
+- Menú independiente **Visual** con los niveles **Oculta**, **Directo** y **Total** para controlar la red superpuesta sin alterar el progreso.
+- Estación de Superconductividad con dos lugares: el encuentro histórico no evaluativo de Heike Kamerlingh Onnes, que desbloquea fórmulas, y el Laboratorio de Transición Superconductora, que contiene la actividad evaluable y concede el concepto.
+- Observatorio de Coulomb en cinco etapas, incluido `PointChargeField2D` con exactamente tres cargas móviles por puntero o teclado y una demostración conservativa de siete intervenciones.
+- ADR 0006 para la mezcla nativa por categorías y pruebas de migración, política de cues, Árbol II, Coulomb, Superconductividad y cargas puntuales.
+
+### Cambiado
+
+- El producto pasa a llamarse **ORBIT — Open Roadmap for Building Intuition and Theory**. Electromagnetismo Aplicado se presenta como la primera ruta implementada y la conexión entre cursos como una dirección futura, no como capacidad ya terminada.
+- El menú secundario conserva **Árboles**, **Símbolos**, **Constantes**, **Formulario**, **Glosario** y **Ayuda**, e incorpora **Visual** y **Sonido**. **Árboles** queda como listado y **Visual** concentra la configuración de conexiones del mapamundi.
+- Los paneles de referencia vuelven a ofrecer consulta permanente. Se eliminan únicamente los cuadros bibliográficos repetidos: una fuente pertinente se comunica una sola vez al desbloquearse.
+- La configuración, PWA, paquete, scripts, documentación, debugger y archivos exportados usan la marca y el prefijo activos de ORBIT; los nombres históricos permanecen únicamente para migración y registro de versiones anteriores.
+- El repositorio remoto pasa a `JoaquinDiazM/ORBIT` y el `origin` local queda alineado con la URL nueva.
+
+### Corregido
+
+- Una interacción semántica solicita el cue predeterminado o uno específico, nunca ambos; la finalización que abre una o varias zonas genera una única transición derivada.
+- Una carga de valor cero situada sobre el punto de observación aporta exactamente el vector nulo, mientras que una carga no nula solo es singular en la coincidencia exacta; no se suaviza una región finita alrededor de la fuente.
+- Los anuncios del estado del laboratorio de cargas se agrupan durante movimientos continuos para evitar ráfagas innecesarias en tecnologías de asistencia.
+- En destinos con varios prerrequisitos, **NUEVO** identifica solo la relación causal más reciente y no todas las aristas entrantes.
+- **Oculta** conserva únicamente esa conexión causal reciente; **Directo** limita la red a lugares del mismo hexágono o de hexágonos con frontera compartida, y **Total** muestra todas las conexiones elegibles entre lugares visibles.
+- La zona de Superconductividad ya no mezcla el personaje histórico con la evaluación: Onnes usa una confirmación no académica y el Laboratorio de Transición es un punto de aprendizaje separado.
+- Si coexisten guardados históricos `v1` y `v2`, la migración carga primero el esquema más reciente para no restaurar progreso obsoleto.
+
+### Audio y atribución
+
+- `ui-select-default.ogg` y `zone-unlocked-airlock.ogg` se integran con sidecars, claves de manifiesto y puntos de reproducción verificables. JoaquinDiazM los aportó mediante la conversación de ChatGPT registrada en sus metadatos y los publica como contribuciones de ORBIT bajo MIT; los otros tres recursos mantienen su procedencia Freesound y licencia CC0 1.0.
+
 ## [0.3.1] - 2026-08-27
 
 ### Añadido

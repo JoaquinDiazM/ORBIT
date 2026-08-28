@@ -2,6 +2,10 @@
 
 Este archivo es la entrada obligatoria para una sesión nueva de trabajo asistido por agentes.
 
+El producto se llama **ORBIT — Open Roadmap for Building Intuition and Theory**. La ruta
+implementada actualmente es Electromagnetismo Aplicado; la conexión futura con otros cursos
+todavía no está implementada.
+
 ## 1. Lee antes de modificar
 
 En este orden:
@@ -16,32 +20,36 @@ En este orden:
 
 ## 2. Estado actual
 
-La versión `0.3.1` es un prototipo estático con una dependencia local respaldada por ADR. Ya incluye:
+La versión `0.3.2` es un prototipo estático con una dependencia local respaldada por ADR. Ya incluye:
 
 - movimiento continuo en Canvas 2D;
 - 19 hexágonos en tres niveles: base, seis fundamentos y doce aplicaciones;
 - fronteras físicas derivadas del Árbol I;
-- lugares y recompensas derivados del Árbol II;
+- lugares y recompensas derivados del Árbol II, con 13 parejas únicas de guías direccionales declarativas y un menú **Visual** independiente con modos **Oculta**, **Directo** y **Total**;
 - ejercicios de alternativa, número, expresión segura, secuencia y confirmación;
 - guardado por perfil en `localStorage`;
-- migración de progreso `v1 → v2`;
-- audio local con tres eventos verificables y mute;
-- ventana principal compatible con un panel secundario de consulta;
-- lugares por etapas y biblioteca derivada de símbolos, constantes, fórmulas y glosario;
+- progreso `v3`, migración desde `v1`/`v2` y lectura compatible del prefijo histórico `aea-progress`;
+- audio local con cinco recursos verificables y volúmenes independientes `ambience`/`effects`;
+- ventana principal compatible con un panel secundario de Árboles, Visual, Símbolos, Constantes, Formulario, Glosario, Ayuda o Sonido;
+- biblioteca derivada y validada de símbolos, constantes, fórmulas y glosario con paneles de consulta y atribución única al desbloquear, sin cuadros bibliográficos repetidos;
 - Taller Vectorial de seis etapas: elementos diferenciales, comparación SVG de campos, reconstrucción cartesiana guiada y evaluación cilíndrica independiente;
+- Observatorio de Coulomb de cinco etapas y `PointChargeField2D` para tres cargas normalizadas operables con puntero y teclado;
+- Estación de Superconductividad con el NPC no evaluativo Onnes —ID heredado `shielding-chamber` y fórmulas desbloqueables— y el punto de aprendizaje independiente `superconductivity-transition-lab`, que concede el concepto heredado `electromagnetic-compatibility`;
 - visor `VectorField2D` en SVG nativo con escala fija, muestreo determinista, controles accesibles y ausencia de animación automática;
 - `MathExpressionPolicy v1`, parser restringido y comparación por valor, función o gradiente sin `eval`, `Function` ni ejecución dinámica;
 - ecuaciones TeX renderizadas con KaTeX y MathML;
-- debugger visual y `window.AtlasDebug`;
+- debugger visual y `window.OrbitDebug`;
 - validador que simula la progresión completa;
 - pruebas unitarias;
 - build y workflow para GitHub Pages.
 
 El contenido científico es demostrativo. No lo trates como una guía terminada.
 
-La versión sigue usando el esquema de progreso `v2`. Los pasos internos de una secuencia, la opción visual elegida y los parámetros de las figuras son estado efímero de interfaz; solo la finalización del lugar pasa por `ProgressionModel`. No existe migración `0.3.0 → 0.3.1` porque el formato persistido no cambió.
+Los pasos internos de una secuencia, la opción elegida dentro de una actividad, los parámetros de las figuras, las posiciones de cargas y el contexto `newlyAccessibleLocationIds`/`unlockSourceLocationId` son estado efímero. La preferencia `treeTwoVisualizationMode` sí pasa por `ProgressionModel`: `hidden` conserva el último desbloqueo causal, `direct` limita la red al mismo hexágono o a hexágonos con frontera compartida y `total` muestra todas las conexiones elegibles. El esquema vigente es `v3`: `src/main.js` consulta primero `orbit-progress` y admite claves antiguas `aea-progress`; `src/core/progress-migrations.js` transforma los ajustes históricos en `ambienceVolume`, `effectsVolume` y el modo visual inicial.
 
-Las fuentes se añaden de forma selectiva cuando una afirmación específica las necesita. La biblioteca no muestra cuadros repetidos de procedencia: la UI comunica cada fuente pertinente en la transición que desbloquea su entrada. No cites operaciones elementales ni repitas dentro de un nodo la procedencia docente ya reconocida globalmente en el README.
+Las fuentes se añaden de forma selectiva cuando una afirmación específica las necesita. La biblioteca permanece en los datos, el validador y sus paneles de **Símbolos**, **Constantes**, **Formulario** y **Glosario**. Esos paneles muestran el contenido desbloqueado, pero no repiten cuadros bibliográficos: la UI comunica cada fuente pertinente una vez, en la transición que desbloquea su entrada. No cites operaciones elementales ni repitas dentro de un nodo la procedencia docente ya reconocida globalmente en el README.
+
+El manifiesto versiona ambiente global, transición de hexágono, confirmación de interacción, clic de interfaz y desbloqueo de zona. Los tres recursos de Freesound son CC0 1.0; `ui-select-default.ogg` y `zone-unlocked-airlock.ogg` son contribuciones de ORBIT aportadas por JoaquinDiazM mediante la conversación de ChatGPT registrada en sus sidecars y publicadas bajo MIT. Conserva esa distinción y no los atribuyas a un catálogo externo.
 
 ## 3. Invariantes que debes declarar
 
@@ -70,6 +78,7 @@ Incluye esa evaluación en tu resumen de cambios o en el mensaje de commit.
 | Agregar lugares o ejercicios | `src/data/locations.js` |
 | Agregar referencias académicas | `src/data/reference/`, `docs/references/references.bib` |
 | Reglas de requisitos | `src/core/requirements.js` |
+| Guías declarativas y modos visuales del Árbol II | `src/core/knowledge-graph.js`, `src/ui/ui-controller.js` |
 | Evaluar expresiones matemáticas | `src/core/math-expression.js`, `src/core/exercises.js` |
 | Avance dentro de una secuencia | `src/core/exercise-sequence.js` |
 | Derivación de zonas/fronteras | `src/core/world-graph.js` |
@@ -81,6 +90,7 @@ Incluye esa evaluación en tu resumen de cambios o en el mensaje de commit.
 | Audio | `src/audio/audio-manager.js`, `public/assets/audio/` |
 | Paneles y ejercicios | `src/ui/ui-controller.js` |
 | Figuras de campos vectoriales 2D | `src/ui/vector-field-2d.js` |
+| Figura de tres cargas | `src/ui/point-charge-field-2d.js` |
 | Validación estática | `src/core/validator.js`, `scripts/validate-content.mjs` |
 | Pruebas | `tests/` |
 
@@ -117,7 +127,7 @@ No:
 - agregues React, Phaser, Vite, un CDN o cualquier paquete “por comodidad” sin ADR;
 - conviertas el visor SVG 2D en un motor 3D o un lenguaje general de gráficos sin una necesidad pedagógica y una decisión de arquitectura explícitas;
 - evalúes respuestas con `eval`, `Function` o comparación literal cuando la actividad exige equivalencia matemática;
-- ignores un audio nuevo o inventes su ubicación: audita el manifiesto y pregunta al usuario si no indicó el evento;
+- ignores un audio nuevo, inventes su ubicación o lo integres sin procedencia y licencia: audita el manifiesto y detente hasta contar con metadatos verificables;
 - copies problemas de pruebas universitarias internas;
 - inventes datos históricos o fuentes;
 - declares terminada una tarea sin `npm run check`.
@@ -151,7 +161,7 @@ Prefiere funciones puras y pruebas unitarias. Si una nueva mecánica requiere es
 4. añade migración o documenta la incompatibilidad;
 5. agrega pruebas de importación y saneamiento.
 
-Las figuras SVG y las políticas de expresión de `0.3.1` no autorizan por sí solas un sistema de gráficos 3D, álgebra simbólica general, backend o dependencia nueva. Amplía primero los contratos nativos existentes y conserva límites explícitos de entrada y costo.
+Las figuras SVG y las políticas de expresión introducidas en `0.3.1` no autorizan por sí solas un sistema de gráficos 3D, álgebra simbólica general, backend o dependencia nueva. La visión transversal de ORBIT tampoco autoriza a declarar soporte multicurso sin un contrato curricular verificable. Amplía primero los contratos nativos existentes y conserva límites explícitos de entrada y costo.
 
 ## 9. Formato recomendado para una tarea de agente
 

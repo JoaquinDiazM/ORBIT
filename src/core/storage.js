@@ -39,6 +39,20 @@ export class ProgressStorage {
   }
 }
 
+export function createLegacyProgressKeys({ prefixes = [], currentVersion, profile }) {
+  const highestLegacyVersion = Math.max(0, Math.trunc(Number(currentVersion)) - 1);
+  const uniquePrefixes = [...new Set(
+    prefixes.filter((prefix) => typeof prefix === "string" && prefix.length > 0),
+  )];
+
+  return Array.from(
+    { length: highestLegacyVersion },
+    (_, index) => highestLegacyVersion - index,
+  ).flatMap((version) =>
+    uniquePrefixes.map((prefix) => `${prefix}:v${version}:${profile}`),
+  );
+}
+
 export function sanitizeProfileName(value, fallback = "normal") {
   const normalized = String(value ?? "")
     .trim()

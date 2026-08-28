@@ -14,7 +14,7 @@ La fuente canónica de metadatos es [`docs/references/references.bib`](reference
   - https://openstax.org/details/books/university-physics-volume-2
 - Gilbert Strang y Edwin Herman, *Calculus Volume 3*, OpenStax.
   - https://openstax.org/details/books/calculus-volume-3
-  - Se usa solo como consulta para condiciones topológicas; su licencia es CC BY-NC-SA 4.0 y ATLAS conserva redacción original.
+  - Se usa solo como consulta para condiciones topológicas; su licencia es CC BY-NC-SA 4.0 y ORBIT conserva redacción original.
 
 ## Simulaciones y divulgación institucional
 

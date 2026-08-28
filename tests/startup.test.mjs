@@ -61,23 +61,41 @@ test("la entrada de desarrollo usa recursos instalados que cualquier servidor es
   assert.ok(index.indexOf("./src/startup-guard.js") < index.indexOf("./src/bootstrap.js"));
 });
 
-test("el shell expone el menú Atlas y no conserva la tarjeta fija de la versión anterior", async () => {
+test("el shell expone todos los menús secundarios de ORBIT", async () => {
   const index = await readFile(INDEX_PATH, "utf8");
   const requiredIds = [
-    "atlas-menu",
+    "orbit-menu",
     "lesson-panel",
+    "knowledge-panel",
+    "visual-panel",
     "reference-panel",
+    "sound-panel",
+    "help-panel",
     "open-knowledge",
+    "open-visual",
     "open-symbols",
     "open-constants",
     "open-formulas",
     "open-glossary",
+    "open-sound",
     "open-help",
+    "sound-ambience",
+    "sound-effects",
   ];
 
   for (const id of requiredIds) assert.match(index, new RegExp(`id=["']${id}["']`));
+  for (const obsoleteId of ["atlas-menu", "toggle-audio"]) {
+    assert.doesNotMatch(index, new RegExp(`id=["']${obsoleteId}["']`));
+  }
   assert.doesNotMatch(index, /Prototipo 0\.2/);
+  assert.match(index, /Open Roadmap for Building Intuition and Theory/);
+  assert.match(index, /name="tree-two-visualization" value="hidden"/);
+  assert.match(index, /name="tree-two-visualization" value="direct"/);
+  assert.match(index, /name="tree-two-visualization" value="total"/);
+  assert.match(index, />Interfaz y efectos</);
   assert.match(index, /Confirmar interacción/);
+  assert.match(index, /Clic de interfaz/);
+  assert.match(index, /Zona desbloqueada/);
 });
 
 test("la guardia convierte un fallo de módulo en un diagnóstico visible", async () => {
@@ -99,6 +117,7 @@ test("la guardia convierte un fallo de módulo en un diagnóstico visible", asyn
 
   assert.equal(harness.elements.get("#loading-detail").hidden, false);
   assert.match(harness.elements.get("#loading-detail").textContent, /katex\.mjs/);
+  assert.equal(harness.elements.get("#loading-eyebrow").textContent, "No se pudo iniciar ORBIT");
   assert.equal(harness.elements.get("#loading-screen").classList.contains("has-error"), true);
   assert.equal(harness.timers.size, 0);
 });
@@ -116,7 +135,7 @@ test("marcar el inicio como listo cancela el timeout y los listeners", async () 
     window: harness.window,
   });
 
-  harness.window.AtlasStartup.ready();
+  harness.window.OrbitStartup.ready();
 
   assert.equal(harness.timers.size, 0);
   assert.equal(harness.listeners.size, 0);

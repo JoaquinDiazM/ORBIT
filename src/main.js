@@ -1,7 +1,7 @@
 import { APP_CONFIG } from "./config.js";
 import { AudioManager } from "./audio/audio-manager.js";
 import { ProgressionModel } from "./core/progression.js";
-import { sanitizeProfileName } from "./core/storage.js";
+import { createLegacyProgressKeys, sanitizeProfileName } from "./core/storage.js";
 import { validateProjectData } from "./core/validator.js";
 import { GameApp } from "./game/game-app.js";
 import { UIController } from "./ui/ui-controller.js";
@@ -16,10 +16,11 @@ const profile = sanitizeProfileName(
   APP_CONFIG.defaultProfile,
 );
 const storageKey = `${APP_CONFIG.storagePrefix}:v${APP_CONFIG.progressSchemaVersion}:${profile}`;
-const legacyStorageKeys = Array.from(
-  { length: Math.max(0, APP_CONFIG.progressSchemaVersion - 1) },
-  (_, index) => `${APP_CONFIG.storagePrefix}:v${index + 1}:${profile}`,
-);
+const legacyStorageKeys = createLegacyProgressKeys({
+  prefixes: [APP_CONFIG.storagePrefix, ...APP_CONFIG.legacyStoragePrefixes],
+  currentVersion: APP_CONFIG.progressSchemaVersion,
+  profile,
+});
 
 const validation = validateProjectData();
 if (validation.errors.length > 0) {
@@ -38,18 +39,18 @@ if (!(canvas instanceof HTMLCanvasElement)) {
 const progression = ProgressionModel.create({ profile, storageKey, legacyStorageKeys });
 const initialSettings = progression.getSnapshot().state.settings;
 const audio = new AudioManager({
-  muted: initialSettings.audioMuted,
-  masterVolume: initialSettings.audioVolume,
+  ambienceVolume: initialSettings.ambienceVolume,
+  effectsVolume: initialSettings.effectsVolume,
 }).start();
 const ui = new UIController({ progression, audio });
 const game = new GameApp({ canvas, progression, ui, audio, debugInitiallyEnabled });
 
 progression.subscribe((event) => {
-  if (["reset", "state-imported", "audio-muted-changed"].includes(event.type)) {
-    void audio.setMuted(event.snapshot.state.settings.audioMuted);
+  if (["reset", "state-imported", "ambience-volume-changed"].includes(event.type)) {
+    audio.setAmbienceVolume(event.snapshot.state.settings.ambienceVolume);
   }
-  if (["reset", "state-imported", "audio-volume-changed"].includes(event.type)) {
-    audio.setMasterVolume(event.snapshot.state.settings.audioVolume);
+  if (["reset", "state-imported", "effects-volume-changed"].includes(event.type)) {
+    audio.setEffectsVolume(event.snapshot.state.settings.effectsVolume);
   }
 });
 
@@ -68,10 +69,10 @@ if (debugInitiallyEnabled) ui.openDebugPanel();
 game.start();
 requestAnimationFrame(() => {
   ui.hideLoadingScreen();
-  window.AtlasStartup?.ready();
+  window.OrbitStartup?.ready();
 });
 
-window.AtlasDebug = Object.freeze({
+window.OrbitDebug = Object.freeze({
   help() {
     return {
       profile,
@@ -86,7 +87,8 @@ window.AtlasDebug = Object.freeze({
         "teleport(x, y)",
         "setNoclip(boolean)",
         "toggleFieldLens()",
-        "toggleAudio()",
+        "setAmbienceVolume(value)",
+        "setEffectsVolume(value)",
         "reset()",
         "exportProgress()",
         "importProgress(object)",
@@ -103,11 +105,8 @@ window.AtlasDebug = Object.freeze({
   teleport: (x, y) => game.teleportToWorld(Number(x), Number(y)),
   setNoclip: (enabled) => game.setDebugOption("noclip", Boolean(enabled)),
   toggleFieldLens: () => progression.toggleFieldLens(),
-  toggleAudio: () => {
-    const muted = progression.toggleAudioMuted();
-    void audio.setMuted(muted);
-    return { muted };
-  },
+  setAmbienceVolume: (value) => progression.setAmbienceVolume(Number(value)),
+  setEffectsVolume: (value) => progression.setEffectsVolume(Number(value)),
   reset: () => {
     progression.reset();
     game.syncPlayerFromProgress();
@@ -121,7 +120,7 @@ window.AtlasDebug = Object.freeze({
 });
 
 console.info(
-  `%c${APP_CONFIG.appName} ${APP_CONFIG.version}%c\nDebugger disponible en window.AtlasDebug. Ejecuta AtlasDebug.help().`,
+  `%c${APP_CONFIG.appName} ${APP_CONFIG.version}%c\nDebugger disponible en window.OrbitDebug. Ejecuta OrbitDebug.help().`,
   "color:#78e3ff;font-weight:700;font-size:14px",
   "color:#a9bfd0",
 );

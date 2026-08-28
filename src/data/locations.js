@@ -63,7 +63,7 @@ export const LOCATIONS = Object.freeze([
             title: "Por qué empezar aquí",
             paragraphs: [
               "El electromagnetismo no describe solamente números asignados a objetos: describe magnitudes escalares y vectoriales definidas en cada punto del espacio. Antes de introducir cargas o corrientes, necesitamos leer esas representaciones con soltura.",
-              "ATLAS escribe los escalares en cursiva, los vectores en negrita y las unidades SI en letra recta. La Simbología del menú secundario conserva esta convención durante toda la expedición.",
+              "ORBIT escribe los escalares en cursiva, los vectores en negrita y las unidades SI en letra recta. La Simbología del menú secundario conserva esta convención para consultarla durante el recorrido.",
             ],
           },
           {
@@ -181,7 +181,7 @@ export const LOCATIONS = Object.freeze([
           {
             title: "Reglas del producto",
             paragraphs: [
-              "Las identidades siguientes requieren campos diferenciables. El Formulario conservará el conjunto completo después de terminar este taller.",
+              "Las identidades siguientes requieren campos diferenciables. Cada una se presenta con sus hipótesis cuando se desbloquea en este taller.",
             ],
             equation: {
               tex: String.raw`\begin{aligned}
@@ -295,7 +295,7 @@ export const LOCATIONS = Object.freeze([
             title: "Campo y objetivo",
             paragraphs: [
               "Sea el siguiente campo definido en Ω = ℝ³. Determina una función escalar f tal que F = ∇f y concluye si el campo es conservativo.",
-              "El desarrollo está dividido en exactamente cinco intervenciones. Entre ellas, ATLAS mostrará únicamente el paso necesario para continuar el procedimiento.",
+              "El desarrollo está dividido en exactamente cinco intervenciones. Entre ellas, ORBIT mostrará únicamente el paso necesario para continuar el procedimiento.",
             ],
             equation: {
               tex: String.raw`\mathbf{F}(x,y,z)
@@ -598,54 +598,376 @@ export const LOCATIONS = Object.freeze([
     visibility: "visibleWhenAreaUnlocked",
     requirements: {},
     grants: { concepts: ["charge-and-superposition"] },
-    objective: "Aplicar superposición y estimar la escala de una fuerza electrostática.",
-    sections: [
+    objective: "Construir el campo eléctrico por superposición, relacionarlo con el potencial y justificar su carácter conservativo fuera de las cargas fuente.",
+    prerequisites: [
+      "Taller Vectorial completado",
+      "Álgebra vectorial y derivadas parciales elementales",
+      "Física general: fuerza, trabajo y energía potencial",
+    ],
+    model: "Cargas puntuales estacionarias en el vacío, superposición lineal, campo eléctrico E y potencial escalar V con E = −∇V fuera de las fuentes.",
+    application: "Estimación de fuerzas, campos y diferencias de potencial producidas por configuraciones discretas de carga.",
+    steps: [
       {
-        title: "Del fenómeno a una ley cuantitativa",
-        paragraphs: [
-          "La transición pedagógica importante no es memorizar un nombre, sino comprender que una interacción puede medirse, modelarse y después utilizarse para predecir configuraciones nuevas.",
-          "En una formulación moderna, cada carga fuente contribuye al campo y las contribuciones se suman vectorialmente.",
+        id: "force-field-potential",
+        title: "De fuerza a campo y potencial",
+        sections: [
+          {
+            title: "La carga de prueba deja de ser protagonista",
+            paragraphs: [
+              "La fuerza sobre una carga de prueba q₀ depende tanto de la configuración fuente como del valor de q₀. El campo eléctrico separa ambas funciones: describe lo que las fuentes producen en cada punto y permite calcular después la fuerza sobre cualquier carga de prueba suficientemente pequeña.",
+              "Este nodo introduce por primera vez la notación electromagnética E y V. En el Taller Vectorial se usaron F y f para mantener separada la herramienta matemática de su interpretación física.",
+            ],
+            equation: {
+              tex: String.raw`\mathbf{F}=q_0\mathbf{E},\qquad
+                \mathbf{E}(\mathbf{r})=
+                \frac{1}{4\pi\varepsilon_0}\sum_i q_i
+                \frac{\mathbf{r}-\mathbf{r}_i}{\lVert\mathbf{r}-\mathbf{r}_i\rVert^3}`,
+              caption: "Fuerza sobre una carga de prueba y superposición del campo de cargas puntuales.",
+            },
+          },
+          {
+            title: "Convención de potencial electrostático",
+            paragraphs: [
+              "En electrostática se define el potencial para que el campo apunte hacia donde V disminuye con mayor rapidez. El signo menos es una convención física esencial y no contradice la relación F = ∇f estudiada para un campo matemático general.",
+            ],
+            equation: {
+              tex: String.raw`V(\mathbf r)=\frac{1}{4\pi\varepsilon_0}
+                \sum_i\frac{q_i}{\lVert\mathbf r-\mathbf r_i\rVert},
+                \qquad \mathbf E=-\nabla V`,
+              caption: "Potencial de cargas puntuales y relación electrostática entre campo y gradiente.",
+            },
+          },
         ],
+        exercise: { type: "none" },
       },
       {
-        title: "Modelo mínimo",
-        equation: {
-          tex: String.raw`F=k\frac{\lvert q_1q_2\rvert}{r^2},\qquad
-            k\approx 8.99\times10^9\;\mathrm{N\,m^2/C^2}`,
-          caption: "Magnitud de la fuerza de Coulomb entre dos cargas puntuales.",
+        id: "three-charge-laboratory",
+        title: "Laboratorio de tres cargas",
+        sections: [
+          {
+            title: "Superposición visible",
+            paragraphs: [
+              "Mueve las tres cargas por el plano con el puntero o enfoca una carga y usa las flechas del teclado. Ajusta cada valor normalizado entre −1 y +1; el cero conserva la fuente en la escena, pero elimina su contribución.",
+              "P es un punto de observación fijo. Las flechas finas muestran contribuciones individuales y la gruesa, su suma vectorial. Si una carga coincide con P, el campo puntual no está definido y la figura lo anuncia en vez de suavizar la singularidad.",
+            ],
+          },
+        ],
+        exercise: {
+          type: "choice",
+          presentation: "point-charge-field",
+          figure: {
+            title: "Campo normalizado de tres cargas puntuales",
+            description: "Tres cargas móviles rodean el punto de observación P. Cada símbolo incluye signo y valor; las flechas indican contribuciones y suma.",
+            caption: "Modelo adimensional para explorar geometría y superposición; no representa una escala física concreta.",
+            domain: { x: [-2, 2], y: [-2, 2] },
+            probe: { x: 0, y: 0 },
+            chargeRange: { min: -1, max: 1, step: 0.1 },
+            keyboardStep: 0.1,
+            singularityRadius: 0,
+            charges: [
+              { id: "q1", label: "q₁", x: -1.2, y: 0.7, value: 0.8 },
+              { id: "q2", label: "q₂", x: 1.1, y: 0.6, value: -0.6 },
+              { id: "q3", label: "q₃", x: 0.2, y: -1.25, value: 0.4 },
+            ],
+          },
+          prompt: "Después de explorar, ¿qué operación produce el campo total en P?",
+          choices: [
+            { id: "vector-sum", label: "Sumar vectorialmente las tres contribuciones evaluadas en P" },
+            { id: "magnitudes", label: "Sumar solo las tres magnitudes, sin considerar dirección" },
+            { id: "nearest", label: "Conservar únicamente la contribución de la carga más cercana" },
+            { id: "average", label: "Promediar las posiciones y tratar las cargas como una sola" },
+          ],
+          answerId: "vector-sum",
+          retryExplanation: "La ley es lineal en las fuentes, pero cada contribución conserva la dirección determinada por su geometría.",
+          explanation: "El principio de superposición suma vectores; signos, distancias y direcciones se evalúan para cada fuente antes de sumar.",
         },
-        paragraphs: [
-          "La dirección se obtiene desde la geometría. El signo de las cargas determina si la interacción es atractiva o repulsiva.",
-        ],
       },
       {
-        title: "Comprobaciones antes del número",
-        bullets: [
-          "La unidad final debe ser newton.",
-          "Duplicar la distancia reduce la magnitud por un factor cuatro.",
-          "Cambiar simultáneamente el signo de ambas cargas no cambia la magnitud.",
+        id: "coulomb-scale",
+        title: "Escala, signo y distancia",
+        sections: [
+          {
+            title: "Dos cargas puntuales",
+            equation: {
+              tex: String.raw`F=k_e\frac{\lvert q_1q_2\rvert}{r^2},\qquad
+                k_e\approx 8.99\times10^9\;\mathrm{N\,m^2/C^2}`,
+              caption: "Magnitud de la fuerza de Coulomb entre dos cargas puntuales.",
+            },
+            bullets: [
+              "El producto de cargas fija atracción o repulsión; la expresión mostrada calcula la magnitud.",
+              "Duplicar la distancia reduce la magnitud por un factor cuatro.",
+              "La respuesta debe expresarse en newton y comprobarse con su orden de magnitud.",
+            ],
+          },
         ],
+        exercise: {
+          type: "numeric",
+          prompt: "Dos cargas de +1 nC están separadas 0,10 m. Calcula la magnitud de la fuerza en newton.",
+          expected: 8.9875517923e-7,
+          absoluteTolerance: 1.5e-8,
+          unit: "N",
+          placeholder: "Ej.: 8,99e-7",
+          explanation: "F = 8,99×10⁹·(10⁻⁹)²/(0,10)² ≈ 8,99×10⁻⁷ N. Es repulsiva porque ambas cargas tienen el mismo signo.",
+        },
+      },
+      {
+        id: "electrostatic-conservative-proof",
+        title: "Por qué el campo electrostático es conservativo",
+        sections: [
+          {
+            title: "Una carga puntual y su dominio",
+            paragraphs: [
+              "Considera una carga q en el origen y el dominio Ω = ℝ³∖{0}. El origen se excluye porque allí el modelo de carga puntual es singular. Reconstruiremos el campo desde V y terminaremos conectando el cálculo local con la independencia de trayectoria.",
+              "La demostración tiene exactamente siete intervenciones. Cada paso validado revela la pieza algebraica o conceptual necesaria para el siguiente.",
+            ],
+            equation: {
+              tex: String.raw`R=\sqrt{x^2+y^2+z^2},\qquad
+                \Omega=\mathbb{R}^3\setminus\{\mathbf 0\}`,
+              caption: "Distancia a la carga fuente y dominio donde campo y potencial están definidos.",
+            },
+          },
+        ],
+        exercise: {
+          type: "sequence",
+          feedback: "guided",
+          items: [
+            {
+              id: "choose-point-potential",
+              type: "choice",
+              prompt: "¿Qué potencial corresponde a una carga puntual q si se toma V → 0 cuando R → ∞?",
+              choices: [
+                { id: "inverse-radius", label: "V = kₑq/R" },
+                { id: "inverse-square", label: "V = kₑq/R²" },
+                { id: "linear-radius", label: "V = kₑqR" },
+                { id: "constant", label: "V = kₑq" },
+              ],
+              answerId: "inverse-radius",
+              explanation: "El potencial de una carga puntual decrece como 1/R y la referencia elegida elimina una constante aditiva.",
+              reveal: {
+                sections: [
+                  {
+                    title: "Potencial candidato",
+                    equation: {
+                      tex: String.raw`V(x,y,z)=\frac{k_eq}{\sqrt{x^2+y^2+z^2}}`,
+                      caption: "Potencial de la carga puntual en Ω.",
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              id: "differentiate-x",
+              type: "expression",
+              prompt: "Escribe ∂V/∂x para V = kq/√(x²+y²+z²).",
+              promptPrefix: String.raw`\frac{\partial V}{\partial x}=`,
+              placeholder: "Escribe solo el miembro derecho",
+              answerPolicy: {
+                kind: "expression-equivalent",
+                version: 1,
+                variables: ["x", "y", "z"],
+                constants: ["k", "q"],
+                testPoints: [
+                  { x: 1, y: 0, z: 0 },
+                  { x: 0.5, y: -1, z: 2 },
+                  { x: -1.5, y: 0.75, z: 0.5 },
+                ],
+                expectedExpression: "-k*q*x/(x^2+y^2+z^2)^(3/2)",
+                feedback: "guided",
+              },
+              reveal: {
+                sections: [
+                  {
+                    title: "Componente x del gradiente",
+                    equation: {
+                      tex: String.raw`\frac{\partial V}{\partial x}
+                        =-\frac{k_eqx}{(x^2+y^2+z^2)^{3/2}}`,
+                      caption: "La regla de la cadena aporta x y el exponente −3/2.",
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              id: "differentiate-y",
+              type: "expression",
+              prompt: "Aplica la misma regla de la cadena y escribe ∂V/∂y.",
+              promptPrefix: String.raw`\frac{\partial V}{\partial y}=`,
+              placeholder: "Escribe solo el miembro derecho",
+              answerPolicy: {
+                kind: "expression-equivalent",
+                version: 1,
+                variables: ["x", "y", "z"],
+                constants: ["k", "q"],
+                testPoints: [
+                  { x: 1, y: 0.5, z: 0 },
+                  { x: 0.5, y: -1, z: 2 },
+                  { x: -1.5, y: 0.75, z: 0.5 },
+                ],
+                expectedExpression: "-k*q*y/(x^2+y^2+z^2)^(3/2)",
+                feedback: "guided",
+              },
+              reveal: {
+                sections: [
+                  {
+                    title: "Componente y del gradiente",
+                    equation: {
+                      tex: String.raw`\frac{\partial V}{\partial y}
+                        =-\frac{k_eqy}{(x^2+y^2+z^2)^{3/2}}`,
+                      caption: "La segunda componente conserva la misma dependencia radial.",
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              id: "differentiate-z",
+              type: "expression",
+              prompt: "Completa el gradiente escribiendo ∂V/∂z.",
+              promptPrefix: String.raw`\frac{\partial V}{\partial z}=`,
+              placeholder: "Escribe solo el miembro derecho",
+              answerPolicy: {
+                kind: "expression-equivalent",
+                version: 1,
+                variables: ["x", "y", "z"],
+                constants: ["k", "q"],
+                testPoints: [
+                  { x: 1, y: 0, z: 0.5 },
+                  { x: 0.5, y: -1, z: 2 },
+                  { x: -1.5, y: 0.75, z: -0.5 },
+                ],
+                expectedExpression: "-k*q*z/(x^2+y^2+z^2)^(3/2)",
+                feedback: "guided",
+              },
+              reveal: {
+                sections: [
+                  {
+                    title: "Gradiente completo",
+                    equation: {
+                      tex: String.raw`\nabla V=-\frac{k_eq}{R^3}
+                        \left(x\hat{\mathbf x}+y\hat{\mathbf y}+z\hat{\mathbf z}\right)`,
+                      caption: "Las tres derivadas forman un vector radial dirigido hacia menor R cuando q es positivo.",
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              id: "assemble-electric-field",
+              type: "choice",
+              prompt: "¿Qué campo resulta al aplicar la convención electrostática E = −∇V?",
+              choices: [
+                { id: "outward-field", label: "E = kₑq(x x̂ + y ŷ + z ẑ)/R³" },
+                { id: "inward-field", label: "E = −kₑq(x x̂ + y ŷ + z ẑ)/R³" },
+                { id: "constant-field", label: "E = kₑq(x̂ + ŷ + ẑ)" },
+                { id: "scalar-field", label: "E = kₑq/R" },
+              ],
+              answerId: "outward-field",
+              explanation: "El signo menos cancela el signo del gradiente. Para q positiva, el campo apunta radialmente hacia afuera.",
+              reveal: {
+                sections: [
+                  {
+                    title: "Campo reconstruido",
+                    equation: {
+                      tex: String.raw`\mathbf E=-\nabla V
+                        =\frac{k_eq}{R^3}
+                        \left(x\hat{\mathbf x}+y\hat{\mathbf y}+z\hat{\mathbf z}\right)
+                        =\frac{k_eq}{R^2}\hat{\mathbf R}`,
+                      caption: "Campo de Coulomb obtenido como gradiente negativo del potencial.",
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              id: "curl-conclusion",
+              type: "choice",
+              prompt: "¿Por qué se anula ∇×E en Ω?",
+              choices: [
+                { id: "curl-gradient", label: "Porque E = −∇V y el rotor de un gradiente C² se anula" },
+                { id: "zero-divergence", label: "Porque toda divergencia nula obliga a que el rotor sea nulo" },
+                { id: "radial-only", label: "Porque cualquier campo radial tiene rotor nulo, incluso si depende del ángulo" },
+                { id: "inverse-square-only", label: "Porque cualquier magnitud proporcional a 1/R² es conservativa" },
+              ],
+              answerId: "curl-gradient",
+              explanation: "En Ω el potencial es suficientemente regular; por la identidad ∇×(∇V)=0, también ∇×E=0.",
+            },
+            {
+              id: "path-independence",
+              type: "choice",
+              prompt: "¿Qué afirmación completa la demostración del carácter conservativo?",
+              choices: [
+                { id: "endpoint-only", label: "∫Aᴮ E·dℓ = V(A) − V(B) y, para una curva cerrada, ∮E·dℓ = 0" },
+                { id: "length-only", label: "La integral depende solo de la longitud total del camino" },
+                { id: "always-positive", label: "La integral es positiva para cualquier orientación del recorrido" },
+                { id: "source-included", label: "La misma demostración sigue siendo regular en el punto R = 0" },
+              ],
+              answerId: "endpoint-only",
+              explanation: "La integral depende únicamente de los extremos. En un lazo, ambos extremos coinciden y la circulación electrostática es cero; el punto fuente permanece fuera del dominio.",
+              reveal: {
+                sections: [
+                  {
+                    title: "Conclusión local y global",
+                    equation: {
+                      tex: String.raw`\int_A^B\mathbf E\cdot\mathrm d\boldsymbol\ell
+                        =V(A)-V(B),\qquad
+                        \oint_C\mathbf E\cdot\mathrm d\boldsymbol\ell=0`,
+                      caption: "Independencia de trayectoria y circulación nula para curvas cerradas contenidas en Ω.",
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+      {
+        id: "dipole-transfer",
+        title: "Transferencia: potencial nulo no significa campo nulo",
+        sections: [
+          {
+            title: "Un dipolo sobre el eje x",
+            paragraphs: [
+              "Ubica +1 nC en x = −0,10 m y −1 nC en x = +0,10 m. El origen está a igual distancia de ambas cargas. Evalúa por separado potencial y campo: uno suma escalares y el otro, vectores.",
+            ],
+            equation: {
+              tex: String.raw`V(\mathbf 0)=k_e\left(\frac{+q}{a}+\frac{-q}{a}\right)=0`,
+              caption: "Cancelación del potencial en el punto medio de dos cargas opuestas.",
+            },
+          },
+        ],
+        exercise: {
+          type: "sequence",
+          feedback: "binary",
+          items: [
+            {
+              id: "dipole-field-value",
+              type: "numeric",
+              prompt: "Calcula la componente Ex en el origen. Usa kₑ = 8,99×10⁹ N m²/C² y responde en N/C.",
+              expected: 1798,
+              absoluteTolerance: 20,
+              unit: "N/C",
+              placeholder: "Ej.: 1,80e3",
+              explanation: "Ambas contribuciones apuntan hacia +x y cada una vale kₑq/a² ≈ 899 N/C; por tanto Ex ≈ 1,80×10³ N/C.",
+            },
+            {
+              id: "zero-potential-interpretation",
+              type: "choice",
+              prompt: "¿Cómo puede V ser cero mientras E no lo es en el origen?",
+              choices: [
+                { id: "value-versus-gradient", label: "V es un valor escalar local; E depende de su gradiente, que puede ser no nulo donde V cruza por cero" },
+                { id: "field-must-vanish", label: "No puede ocurrir: si V = 0 en un punto, E también debe anularse allí" },
+                { id: "units-cancel", label: "Ocurre porque volt y newton por coulomb son la misma unidad" },
+                { id: "only-positive", label: "Ocurre únicamente si ambas cargas son positivas" },
+              ],
+              answerId: "value-versus-gradient",
+              explanation: "El cero de una función no obliga a que su pendiente sea cero. El dipolo cancela V en el punto medio, pero sus campos se refuerzan en la dirección +x.",
+            },
+          ],
+          explanation: "Has distinguido suma escalar y vectorial, aplicado superposición y conectado el campo electrostático con un potencial conservativo.",
+        },
       },
     ],
-    exercise: {
-      type: "numeric",
-      prompt: "Dos cargas de +1 nC están separadas 0.10 m. Calcula la magnitud de la fuerza en newton.",
-      expected: 8.9875517923e-7,
-      absoluteTolerance: 1.5e-8,
-      unit: "N",
-      placeholder: "Ej.: 8.99e-7",
-      explanation: "F = 8.99×10⁹·(10⁻⁹)²/(0.10)² ≈ 8.99×10⁻⁷ N.",
-    },
-    sources: [
-      {
-        label: "Magnet Academy — Electricity and Magnetism",
-        url: "https://nationalmaglab.org/magnet-academy/",
-      },
-      {
-        label: "MIT OpenCourseWare 8.02",
-        url: "https://ocw.mit.edu/courses/8-02-physics-ii-electricity-and-magnetism-spring-2007/",
-      },
-    ],
+    sources: [],
   },
   {
     id: "gauss-guide-post",
@@ -667,7 +989,7 @@ export const LOCATIONS = Object.freeze([
       {
         title: "Una ruta lateral",
         paragraphs: [
-          "El futuro curso utilizará personajes secundarios para ofrecer preguntas conceptuales, contexto histórico y problemas opcionales sin bloquear el itinerario principal.",
+          "Los personajes secundarios ofrecen contexto narrativo o histórico y desbloquean herramientas de consulta sin convertir el encuentro en una evaluación.",
           "Este encuentro solamente demuestra la mecánica. No pretende representar una conversación histórica real.",
         ],
       },
@@ -1306,45 +1628,103 @@ export const LOCATIONS = Object.freeze([
   {
     id: "shielding-chamber",
     areaId: "electromagnetic-compatibility",
-    kind: "lesson",
-    title: "Cámara de Apantallamiento",
-    shortTitle: "Apantallamiento",
-    marker: "C",
+    kind: "npc",
+    title: "Heike Kamerlingh Onnes",
+    shortTitle: "Onnes",
+    marker: "O",
     offset: { x: 20, y: -12 },
     interactionRadius: 78,
     visibility: "visibleWhenAreaUnlocked",
     requirements: {},
-    grants: { concepts: ["electromagnetic-compatibility"] },
-    objective: "Identificar fuente, camino de acoplamiento y receptor antes de elegir una mitigación.",
+    grants: {},
+    objective: "Conocer el hito experimental de 1911 y abrir en el Formulario el modelo introductorio de la transición superconductora.",
+    prerequisites: [
+      "Temperatura absoluta",
+      "Noción cualitativa de resistencia eléctrica",
+    ],
+    model: "Encuentro histórico no evaluativo: al registrarlo se habilitan fórmulas introductorias, mientras el aprendizaje y su comprobación permanecen en un lugar independiente.",
+    application: "Contexto para la futura ruta de materiales, instrumentación criogénica, imanes y sensores.",
     sections: [
       {
-        title: "Compatibilidad es una propiedad del sistema",
+        title: "Una observación que cambió el modelo",
         paragraphs: [
-          "Una interferencia exige una fuente, un camino y un receptor susceptible. Filtrado, retorno de corriente, separación y blindaje actúan sobre partes distintas de esa cadena.",
+          "En 1911, el trabajo de baja temperatura dirigido por Heike Kamerlingh Onnes mostró que la resistencia eléctrica del mercurio descendía abruptamente hasta un valor no medible al enfriarlo cerca del cero absoluto.",
+          "El encuentro conserva ese contexto histórico. El modelo, sus límites y la comprobación conceptual se estudian por separado en el Laboratorio de Transición Superconductora.",
         ],
       },
+    ],
+    exercise: {
+      type: "acknowledge",
+      prompt: "Registra el encuentro para incorporar sus fórmulas introductorias al Formulario.",
+      buttonLabel: "Registrar encuentro",
+      explanation: "El contexto de Onnes quedó registrado y sus fórmulas introductorias están disponibles en el Formulario.",
+    },
+    sources: [
       {
-        title: "Modelo mínimo",
+        label: "Nobel Prize — Heike Kamerlingh Onnes",
+        url: "https://www.nobelprize.org/prizes/physics/1913/onnes/facts/",
+      },
+    ],
+  },
+  {
+    id: "superconductivity-transition-lab",
+    areaId: "electromagnetic-compatibility",
+    kind: "lesson",
+    title: "Laboratorio de Transición Superconductora",
+    shortTitle: "Transición superconductora",
+    marker: "S",
+    offset: { x: -78, y: 52 },
+    interactionRadius: 78,
+    visibility: "visibleWhenAreaUnlocked",
+    requirements: {},
+    grants: { concepts: ["electromagnetic-compatibility"] },
+    objective: "Distinguir una transición superconductora de una disminución resistiva gradual mediante el comportamiento cualitativo de R frente a T.",
+    prerequisites: [
+      "Resistencia eléctrica en corriente continua",
+      "Lectura cualitativa de gráficos",
+      "Temperatura absoluta",
+    ],
+    model: "Modelo introductorio y provisional: bajo una temperatura crítica y sin exceder los límites críticos de corriente y campo, ciertos materiales pueden presentar resistencia eléctrica continua indistinguible de cero dentro de la resolución experimental.",
+    application: "Puente futuro hacia materiales, instrumentación criogénica, imanes y sensores; el diseño de dispositivos y la teoría microscópica quedan fuera de este primer aprendizaje.",
+    sections: [
+      {
+        title: "Modelo inicial y sus límites",
+        paragraphs: [
+          "Representamos la transición mediante una temperatura crítica T_c. Por encima de ella el material posee resistencia; por debajo puede entrar en estado superconductor si tampoco se exceden sus límites críticos de corriente y campo.",
+          "Este modelo es provisional: no explica el mecanismo microscópico, la respuesta magnética ni cómo dependen los límites críticos del material y la geometría.",
+        ],
         equation: {
-          tex: String.raw`SE_{\mathrm{dB}}=20\log_{10}\!\left(\frac{E_{\mathrm{sin\ blindaje}}}{E_{\mathrm{con\ blindaje}}}\right)`,
-          caption: "Definición simplificada de efectividad de apantallamiento para campo eléctrico.",
+          tex: String.raw`R(T)>0\quad (T>T_c),\qquad R(T)\approx 0\quad (T<T_c)`,
+          caption: "Esquema cualitativo de una transición resistiva; no representa una curva universal ni reemplaza los límites críticos del material.",
         },
-        paragraphs: ["La aplicación correcta depende de frecuencia, geometría, aperturas y puesta a tierra."],
+        callout: "La aproximación R ≈ 0 describe una medición de corriente continua dentro de su resolución; no autoriza a tratar cualquier material frío como superconductor.",
       },
     ],
     exercise: {
       type: "choice",
-      prompt: "Antes de añadir blindaje, ¿qué diagnóstico es más útil?",
-      choices: ["Cambiar colores del gabinete", "Identificar fuente, camino y receptor", "Aumentar cualquier resistencia", "Ignorar la frecuencia"],
-      answerIndex: 1,
-      explanation: "La mitigación se selecciona después de localizar la ruta física de acoplamiento y su banda de frecuencia.",
+      prompt: "¿Qué observación distinguiría mejor una transición superconductora de una mejora resistiva gradual?",
+      choices: [
+        {
+          id: "abrupt-zero-resistance",
+          label: "La resistencia cae abruptamente hasta un valor indistinguible de cero al cruzar una temperatura crítica, bajo condiciones apropiadas.",
+        },
+        {
+          id: "smooth-resistance-change",
+          label: "La resistencia disminuye suavemente pero permanece finita en todo el intervalo medido.",
+        },
+        {
+          id: "mass-change",
+          label: "La masa de la muestra aumenta cada vez que baja su temperatura.",
+        },
+        {
+          id: "unconditional-transition",
+          label: "Todo material pierde su resistencia a la misma temperatura, sin importar corriente ni campo aplicado.",
+        },
+      ],
+      answerId: "abrupt-zero-resistance",
+      explanation: "La evidencia inicial es una transición abrupta alrededor de T_c. Este criterio introductorio todavía no explica el mecanismo ni sustituye el estudio de respuesta magnética y límites críticos.",
     },
-    sources: [
-      {
-        label: "NIST — Electromagnetic Fields",
-        url: "https://www.nist.gov/topics/electromagnetic-fields",
-      },
-    ],
+    sources: [],
   },
   {
     id: "waveguide-mode-gallery",

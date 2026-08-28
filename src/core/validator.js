@@ -35,7 +35,8 @@ function knownRewardKeys() {
 
 const INTERNAL_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const VECTOR_FIELD_IDS = new Set(["radial-linear", "rotational-linear"]);
-const ATOMIC_SEQUENCE_TYPES = new Set(["choice", "expression"]);
+const ATOMIC_SEQUENCE_TYPES = new Set(["choice", "numeric", "expression"]);
+const CHOICE_PRESENTATIONS = new Set(["vector-field-cards", "point-charge-field"]);
 const FEEDBACK_LEVELS = new Set(["guided", "binary"]);
 const COMPLETABLE_EXERCISE_TYPES = new Set([
   "choice",
@@ -84,6 +85,22 @@ function validateDomain(domain, context, errors) {
     }
   }
   return valid;
+}
+
+function domainContains(domain, point) {
+  return (
+    ["x", "y"].every(
+      (axis) =>
+        Array.isArray(domain?.[axis])
+        && domain[axis].length === 2
+        && domain[axis].every(Number.isFinite)
+        && Number.isFinite(point?.[axis]),
+    )
+    && point.x >= domain.x[0]
+    && point.x <= domain.x[1]
+    && point.y >= domain.y[0]
+    && point.y <= domain.y[1]
+  );
 }
 
 function validateParameter(parameter, context, errors) {
@@ -229,6 +246,96 @@ function validateVectorFieldCards(exercise, context, errors) {
     )
   ) {
     errors.push(`${context} debe compartir rango, paso y valor nominal entre deslizadores.`);
+  }
+}
+
+function validatePointChargeField(exercise, context, errors) {
+  if (exercise.presentation !== "point-charge-field") return;
+  const figure = exercise.figure;
+  if (!figure || typeof figure !== "object" || Array.isArray(figure)) {
+    errors.push(`${context} con point-charge-field debe declarar figure.`);
+    return;
+  }
+
+  for (const property of ["title", "description"]) {
+    if (typeof figure[property] !== "string" || !figure[property].trim()) {
+      errors.push(`${context} con point-charge-field debe declarar figure.${property}.`);
+    }
+  }
+
+  validateDomain(figure.domain, `${context}, figura de cargas`, errors);
+  const charges = figure.charges;
+  if (!Array.isArray(charges) || charges.length !== 3) {
+    errors.push(`${context} con point-charge-field debe declarar exactamente tres cargas.`);
+  } else {
+    const chargeIds = [];
+    for (const [index, charge] of charges.entries()) {
+      const chargeContext = `${context}, carga ${index + 1}`;
+      if (!charge || typeof charge !== "object" || Array.isArray(charge)) {
+        errors.push(`${chargeContext} debe ser un objeto.`);
+        continue;
+      }
+      if (typeof charge.id !== "string" || !INTERNAL_ID_PATTERN.test(charge.id)) {
+        errors.push(`${chargeContext} tiene un ID interno inválido.`);
+      } else {
+        chargeIds.push(charge.id);
+      }
+      if (typeof charge.label !== "string" || !charge.label.trim()) {
+        errors.push(`${chargeContext} debe declarar label.`);
+      }
+      for (const coordinate of ["x", "y", "value"]) {
+        if (!Number.isFinite(charge[coordinate])) {
+          errors.push(`${chargeContext} debe declarar ${coordinate} como número finito.`);
+        }
+      }
+      if (
+        Number.isFinite(charge.x)
+        && Number.isFinite(charge.y)
+        && !domainContains(figure.domain, charge)
+      ) {
+        errors.push(`${chargeContext} debe situarse dentro del dominio.`);
+      }
+    }
+    for (const duplicate of duplicateValues(chargeIds)) {
+      errors.push(`${context} repite el ID interno de carga ${duplicate}.`);
+    }
+  }
+
+  const range = figure.chargeRange;
+  const validRange =
+    range
+    && typeof range === "object"
+    && range.min === -1
+    && range.max === 1
+    && Number.isFinite(range.step)
+    && range.step > 0
+    && Math.abs(2 / range.step - Math.round(2 / range.step)) <= 1e-9
+    && Math.abs(1 / range.step - Math.round(1 / range.step)) <= 1e-9;
+  if (!validRange) {
+    errors.push(
+      `${context} con point-charge-field debe usar chargeRange [-1, 1], incluir cero y alinear sus extremos con un paso positivo.`,
+    );
+  } else if (Array.isArray(charges)) {
+    for (const [index, charge] of charges.entries()) {
+      if (!Number.isFinite(charge?.value)) continue;
+      const aligned = Math.abs((charge.value + 1) / range.step - Math.round((charge.value + 1) / range.step)) <= 1e-9;
+      if (charge.value < -1 || charge.value > 1 || !aligned) {
+        errors.push(`${context}, carga ${index + 1} debe tener value alineado dentro de [-1, 1].`);
+      }
+    }
+  }
+
+  const probe = figure.probe;
+  if (!probe || !Number.isFinite(probe.x) || !Number.isFinite(probe.y)) {
+    errors.push(`${context} con point-charge-field debe declarar un probe bidimensional finito.`);
+  } else if (!domainContains(figure.domain, probe)) {
+    errors.push(`${context} con point-charge-field debe situar probe dentro del dominio.`);
+  }
+  if (!Number.isFinite(figure.keyboardStep) || figure.keyboardStep <= 0) {
+    errors.push(`${context} con point-charge-field requiere keyboardStep finito y positivo.`);
+  }
+  if (!Number.isFinite(figure.singularityRadius) || figure.singularityRadius < 0) {
+    errors.push(`${context} con point-charge-field requiere singularityRadius finito y no negativo.`);
   }
 }
 
@@ -380,10 +487,11 @@ function validateChoiceDefinition(exercise, context, errors) {
     errors.push(`${context} declara answerId y answerIndex contradictorios.`);
   }
 
-  if (exercise.presentation !== undefined && exercise.presentation !== "vector-field-cards") {
+  if (exercise.presentation !== undefined && !CHOICE_PRESENTATIONS.has(exercise.presentation)) {
     errors.push(`${context} usa una presentación desconocida: ${exercise.presentation}.`);
   }
   validateVectorFieldCards(exercise, context, errors);
+  validatePointChargeField(exercise, context, errors);
 }
 
 function collectExerciseDefinitionErrors(exercise, context, errors, { inSequence = false } = {}) {

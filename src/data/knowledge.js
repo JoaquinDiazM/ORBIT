@@ -99,9 +99,9 @@ export const CONCEPTS = Object.freeze([
   },
   {
     id: "electromagnetic-compatibility",
-    title: "Compatibilidad electromagnética",
-    shortTitle: "Compatibilidad EM",
-    summary: "Identificar rutas de acoplamiento y estrategias de mitigación.",
+    title: "Introducción a la superconductividad",
+    shortTitle: "Superconductividad",
+    summary: "Reconocer una transición superconductora y distinguirla de una reducción resistiva gradual.",
     order: 15,
   },
   {

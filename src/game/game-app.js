@@ -13,8 +13,31 @@ import { CanvasRenderer } from "./renderer.js";
 
 export const LOCATION_INTERACTION_AUDIO_KEY = "mission_start";
 
+export function reduceLatestTreeTwoUnlock(current, event) {
+  if (["reset", "state-imported"].includes(event?.type)) {
+    return {
+      newlyAccessibleLocationIds: new Set(),
+      unlockSourceLocationId: null,
+    };
+  }
+  if (event?.type !== "location-completed") return current;
+
+  const newlyAccessibleLocationIds = new Set(
+    event.detail?.newlyAccessibleLocationIds ?? [],
+  );
+  if (newlyAccessibleLocationIds.size === 0) return current;
+  return {
+    newlyAccessibleLocationIds,
+    unlockSourceLocationId: event.detail.locationId ?? null,
+  };
+}
+
 export function openLocationWithInteractionCue(location, audio, ui) {
-  void audio?.play?.(LOCATION_INTERACTION_AUDIO_KEY);
+  if (typeof audio?.playInteractionCue === "function") {
+    void audio.playInteractionCue({ specificAssetKey: LOCATION_INTERACTION_AUDIO_KEY });
+  } else {
+    void audio?.play?.(LOCATION_INTERACTION_AUDIO_KEY);
+  }
   ui.openLocation(location);
 }
 
@@ -51,6 +74,8 @@ export class GameApp {
     this.lastTimestamp = null;
     this.lastPositionSave = 0;
     this.lastDebugUpdate = 0;
+    this.newlyAccessibleLocationIds = new Set();
+    this.unlockSourceLocationId = null;
     this.running = false;
     this.frameRequest = null;
 
@@ -71,6 +96,15 @@ export class GameApp {
       if (["reset", "state-imported", "player-teleported"].includes(event.type)) {
         this.syncPlayerFromProgress();
       }
+      const latestUnlock = reduceLatestTreeTwoUnlock(
+        {
+          newlyAccessibleLocationIds: this.newlyAccessibleLocationIds,
+          unlockSourceLocationId: this.unlockSourceLocationId,
+        },
+        event,
+      );
+      this.newlyAccessibleLocationIds = latestUnlock.newlyAccessibleLocationIds;
+      this.unlockSourceLocationId = latestUnlock.unlockSourceLocationId;
     });
 
     this.camera.resize(this.renderer.width, this.renderer.height);
@@ -145,6 +179,8 @@ export class GameApp {
       nearestLocation: this.nearestLocation,
       debugState: this.debugState,
       timeSeconds: timestamp / 1000,
+      newlyAccessibleLocationIds: this.newlyAccessibleLocationIds,
+      unlockSourceLocationId: this.unlockSourceLocationId,
     });
 
     if (timestamp - this.lastPositionSave >= APP_CONFIG.positionSaveIntervalMs) {
@@ -165,10 +201,20 @@ export class GameApp {
       this.debugState.enabled = !this.debugState.enabled;
       if (this.debugState.enabled) this.ui.openDebugPanel();
       else this.ui.closePanel("debug-panel");
+      void this.audio?.playInteractionCue?.();
     }
-    if (this.input.consume("knowledge")) this.ui.toggleKnowledgePanel();
-    if (this.input.consume("help")) this.ui.toggleHelpPanel();
-    if (this.input.consume("audio")) void this.ui.toggleAudio();
+    if (this.input.consume("knowledge")) {
+      this.ui.toggleKnowledgePanel();
+      void this.audio?.playInteractionCue?.();
+    }
+    if (this.input.consume("help")) {
+      this.ui.toggleHelpPanel();
+      void this.audio?.playInteractionCue?.();
+    }
+    if (this.input.consume("audio")) {
+      this.ui.toggleSoundPanel();
+      void this.audio?.playInteractionCue?.();
+    }
 
     if (this.input.consume("gadget") && !this.ui.isBlockingModalOpen()) {
       const result = this.progression.toggleFieldLens();
@@ -178,6 +224,7 @@ export class GameApp {
           : "Todavía no has adquirido el Lente de campo.",
         result.ok ? "success" : "warning",
       );
+      if (result.ok) void this.audio?.playInteractionCue?.();
     }
 
     if (this.input.consume("transport") && !this.ui.isBlockingModalOpen()) {
@@ -189,6 +236,7 @@ export class GameApp {
           : `Transporte seleccionado: ${after.title}.`,
         before.id === after.id ? "warning" : "success",
       );
+      if (before.id !== after.id) void this.audio?.playInteractionCue?.();
     }
   }
 
@@ -385,7 +433,9 @@ export class GameApp {
         rewards: [...snapshot.rewards],
         activeTransport: snapshot.activeTransport.id,
         fieldLensEnabled: snapshot.state.settings.fieldLensEnabled,
-        audioMuted: snapshot.state.settings.audioMuted,
+        ambienceVolume: snapshot.state.settings.ambienceVolume,
+        effectsVolume: snapshot.state.settings.effectsVolume,
+        treeTwoVisualizationMode: snapshot.state.settings.treeTwoVisualizationMode,
       },
     };
   }

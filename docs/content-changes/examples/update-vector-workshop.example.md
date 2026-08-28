@@ -1,5 +1,5 @@
 ---
-atlasChangeVersion: 1
+orbitChangeVersion: 1
 operation: update
 objectType: location
 id: vector-workshop

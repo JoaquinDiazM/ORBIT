@@ -2,7 +2,7 @@
 
 ## Público
 
-Estudiantes con una base mínima de cálculo, álgebra lineal y física clásica, especialmente quienes exploran Ingeniería Eléctrica o comienzan la especialidad.
+En la ruta actual de Electromagnetismo Aplicado, estudiantes con una base mínima de cálculo, álgebra lineal y física clásica, especialmente quienes exploran Ingeniería Eléctrica o comienzan la especialidad. Cada ruta futura de ORBIT deberá declarar su propio perfil de entrada en vez de heredar automáticamente estos prerrequisitos.
 
 ## Función de la historia
 
@@ -95,12 +95,16 @@ Evitar:
 
 ## Dos modos de uso
 
-La versión futura debe permitir:
+La ruta actual debe permitir:
 
 - **Expedición:** progresión narrativa.
-- **Atlas:** acceso directo por tema y resultado de aprendizaje.
+- **Consulta temática:** acceso directo por tema y resultado de aprendizaje.
 
 Un estudiante que repasa para una evaluación no debe quedar atrapado en la narrativa.
+
+La visión futura de **ORBIT — Open Roadmap for Building Intuition and Theory** contempla rutas
+de cursos diferentes y conexiones explícitas entre ellas. Esas conexiones deberán representar
+competencias verificables, no similitudes nominales, y todavía no forman parte del prototipo.
 
 ## Evaluación del proyecto
 

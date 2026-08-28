@@ -1,18 +1,24 @@
 # Descripción maestra del proyecto
 
-## Nombre de trabajo
+## Nombre del proyecto
 
-**Atlas de Electromagnetismo Aplicado**
+**ORBIT — Open Roadmap for Building Intuition and Theory**
+
+## Ruta implementada actualmente
+
+**Electromagnetismo Aplicado**
 
 ## Propósito
 
-Crear un recurso educativo abierto, complementario a un curso universitario formal de electromagnetismo o electromagnetismo aplicado. Su público principal son estudiantes que consideran estudiar Ingeniería Eléctrica o que cursan sus primeros semestres de especialidad y que ya dominan, como mínimo, cálculo, álgebra lineal y física clásica.
+Crear un recurso educativo abierto y transversal que ayude a construir intuición, teoría y conexiones entre rutas de aprendizaje universitarias. La implementación actual complementa un curso formal de electromagnetismo o electromagnetismo aplicado. Su público principal son estudiantes que consideran estudiar Ingeniería Eléctrica o que cursan sus primeros semestres de especialidad y que ya dominan, como mínimo, cálculo, álgebra lineal y física clásica.
 
-El proyecto nace de tres años de experiencia del autor como integrante del cuerpo docente de Electromagnetismo Aplicado del Departamento de Ingeniería Eléctrica de la Universidad de Chile. Debe transformar esa experiencia en un recurso público útil, revisable y presentable en un currículo profesional, sin copiar material docente restringido.
+ORBIT pretende migrar y conectar cursos de disciplinas diferentes en el futuro. Esa dirección no significa que la versión actual ya incluya un catálogo multicurso, equivalencias automáticas de prerrequisitos ni navegación entre programas; cada capacidad deberá diseñarse y validarse antes de declararse disponible.
 
-## Tesis pedagógica
+La primera ruta nace de tres años de experiencia del autor como integrante del cuerpo docente de Electromagnetismo Aplicado del Departamento de Ingeniería Eléctrica de la Universidad de Chile. Debe transformar esa experiencia en un recurso público útil, revisable y presentable en un currículo profesional, sin copiar material docente restringido.
 
-La adquisición histórica de las ideas electromagnéticas ofrece una secuencia narrativa particularmente fértil: cada época enfrenta fenómenos que las herramientas disponibles todavía no explican; nuevos experimentos obligan a formular representaciones matemáticas; esas representaciones abren aplicaciones tecnológicas.
+## Tesis pedagógica de la ruta actual
+
+En Electromagnetismo Aplicado, la adquisición histórica de las ideas ofrece una secuencia narrativa particularmente fértil: cada época enfrenta fenómenos que las herramientas disponibles todavía no explican; nuevos experimentos obligan a formular representaciones matemáticas; esas representaciones abren aplicaciones tecnológicas. Otras rutas de ORBIT podrán necesitar estructuras causales distintas, siempre subordinadas a sus prerrequisitos y resultados de aprendizaje.
 
 La historia se usa para responder tres preguntas:
 
@@ -31,9 +37,9 @@ El mundo está dividido en hexágonos. Cada hexágono es una región conceptual 
 La experiencia combina dos modos que deberán coexistir en una versión futura:
 
 - **Modo Expedición:** progresión narrativa y desbloqueos espaciales.
-- **Modo Atlas:** acceso académico directo por tema, útil para repasar antes de una evaluación.
+- **Modo consulta temática:** acceso académico directo por tema, útil para repasar antes de una evaluación.
 
-La versión `0.3.1` conserva la Expedición de dos anillos y la primera capa del modo Atlas. El Taller Vectorial sirve como primer nodo desarrollado con mayor profundidad: reúne elementos diferenciales, una comparación visual de campos en SVG, un ejemplo cartesiano guiado y una evaluación cilíndrica independiente. El acceso académico directo por tema y la profundidad curricular completa siguen siendo hitos posteriores.
+La versión `0.3.2` conserva la Expedición de dos anillos y profundiza su contenido académico dentro de la ruta de Electromagnetismo Aplicado. El Taller Vectorial sirve como primer nodo desarrollado con mayor profundidad: reúne elementos diferenciales, una comparación visual de campos en SVG, un ejemplo cartesiano guiado y una evaluación cilíndrica independiente. El modo de consulta temática con acceso directo, la profundidad curricular completa y la conexión entre cursos siguen siendo hitos posteriores.
 
 ## Dos grafos de conocimiento
 
@@ -99,7 +105,7 @@ Las respuestas algebraicas que admiten varias formas válidas se evalúan por eq
 
 Las figuras interactivas de esta etapa son SVG 2D generados desde funciones de campo. Su objetivo es apoyar una distinción conceptual concreta mediante dominio, escala y muestreo comparables. No constituyen un motor de gráficos general, una escena 3D ni una autorización para añadir dependencias.
 
-Las fuentes se reservan para afirmaciones históricas, científicas o datos que necesitan trazabilidad. Operaciones elementales no requieren atribución. Cuando una fórmula, propiedad o constante con fuente se desbloquea, su procedencia se comunica una vez en esa transición y no se repite como cuadro dentro del menú; el contexto docente de origen permanece centralizado en el README.
+Las fuentes se reservan para afirmaciones históricas, científicas o datos que necesitan trazabilidad. Operaciones elementales no requieren atribución. Cuando una fórmula, propiedad o constante con fuente se desbloquea, su procedencia se comunica una vez en esa transición. Los menús de **Símbolos**, **Constantes**, **Formulario** y **Glosario** conservan la consulta, pero no repiten un cuadro bibliográfico por entrada; el contexto docente de origen permanece centralizado en el README.
 
 ## Dirección narrativa
 
@@ -111,7 +117,7 @@ Los lugares pueden inspirarse en sitios históricos reales, pero el mapa no repr
 
 La progresión de transportes debe ser ligera y significativa. Caminar, carro eléctrico, tren, radio, aeronave o nave espacial son recompensas visuales; no deben convertirse en minijuegos que distraigan del contenido.
 
-## Culminación prevista
+## Culminación prevista de la ruta actual
 
 Una posible misión final es restablecer un enlace electromagnético Tierra–Luna, combinando propagación, antenas, potencia, densidad de flujo, retardo, ruido, polarización y presupuesto de enlace. Apollo 11 puede funcionar como recompensa narrativa, pero el desafío académico debe ser electromagnético.
 
@@ -131,7 +137,7 @@ El proyecto debe privilegiar contenido y ejercicios sobre producción audiovisua
 - assets costosos;
 - animaciones largas.
 
-La versión `0.3.1` no añade backend, gráficos 3D, telemetría ni dependencias. El avance dentro de etapas, los parámetros de figuras y las respuestas parciales son estado local de sesión; el esquema persistido permanece en `v2` y no requiere migración.
+La versión `0.3.2` no añade backend, gráficos 3D, telemetría ni dependencias. El avance dentro de etapas, los parámetros de figuras y las respuestas parciales siguen siendo estado local de sesión. Los cambios de preferencias o cartografía deben conservar la compatibilidad mediante el mecanismo de migración versionada del proyecto.
 
 La interfaz debe verse suficientemente clara para probar la experiencia, pero la excelencia del proyecto se medirá por rigor, progresión, calidad de ejercicios, trazabilidad y utilidad para estudiantes.
 
@@ -139,7 +145,7 @@ La interfaz debe verse suficientemente clara para probar la experiencia, pero la
 
 **Recurso educativo abierto e interactivo, con elementos ligeros de juego y navegación basada en dos grafos de conocimiento.**
 
-No se presenta todavía como MOOC ni como videojuego completo. Técnicamente es una aplicación web estática y, pedagógicamente, un atlas narrativo de aprendizaje.
+No se presenta todavía como MOOC, videojuego completo ni plataforma multicurso operativa. Técnicamente es una aplicación web estática y, pedagógicamente, una hoja de ruta narrativa de aprendizaje cuya primera implementación corresponde a Electromagnetismo Aplicado.
 
 ## Criterios de éxito a mediano plazo
 
@@ -147,7 +153,7 @@ No se presenta todavía como MOOC ni como videojuego completo. Técnicamente es 
 - Diez a doce regiones o unidades principales.
 - Sesenta a ochenta problemas originales de alta calidad.
 - Correspondencia explícita entre resultados, actividades y evaluaciones.
-- Modo Atlas y modo Expedición.
+- Consulta temática y modo Expedición.
 - Pruebas piloto con estudiantes.
 - Registro de errores conceptuales frecuentes.
 - Accesibilidad razonable y navegación por teclado.

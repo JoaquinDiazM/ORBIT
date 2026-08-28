@@ -12,7 +12,7 @@
     if (finished) return;
     finished = true;
     window.clearTimeout(timeoutId);
-    eyebrow.textContent = "No se pudo iniciar ATLAS";
+    eyebrow.textContent = "No se pudo iniciar ORBIT";
     title.textContent = "El mundo no terminó de cargar.";
     detail.textContent = `${reason} Ejecuta npm install, reinicia npm run dev y abre la URL exacta indicada por la terminal.`;
     detail.hidden = false;
@@ -41,7 +41,7 @@
     showFailure("El inicio superó el tiempo esperado.");
   }, 8_000);
 
-  window.AtlasStartup = Object.freeze({
+  window.OrbitStartup = Object.freeze({
     ready() {
       if (finished) return;
       finished = true;

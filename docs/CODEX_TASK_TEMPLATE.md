@@ -3,7 +3,8 @@
 Copia esta plantilla al iniciar una tarea nueva. El agente debe leer los archivos indicados y trabajar directamente sobre el repositorio.
 
 ```text
-Repositorio: Atlas de Electromagnetismo Aplicado
+Repositorio: ORBIT — Open Roadmap for Building Intuition and Theory
+Ruta actual: Electromagnetismo Aplicado
 
 Lee antes de modificar:
 - README.md

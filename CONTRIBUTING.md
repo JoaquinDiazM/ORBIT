@@ -1,4 +1,8 @@
-# Contribuir al Atlas de Electromagnetismo Aplicado
+# Contribuir a ORBIT
+
+ORBIT significa **Open Roadmap for Building Intuition and Theory**. La ruta implementada en
+este prototipo es Electromagnetismo Aplicado; las futuras rutas deberán declarar su propio
+alcance académico sin asumir que el soporte multicurso ya está disponible.
 
 ## Antes de empezar
 
@@ -25,7 +29,7 @@ Solo se requiere Node.js 24 LTS o posterior.
 npm run dev
 ```
 
-No hay dependencias que instalar en la versión `0.1.0`.
+KaTeX es la única dependencia npm de ejecución y se instala de forma local.
 
 ## Validación
 

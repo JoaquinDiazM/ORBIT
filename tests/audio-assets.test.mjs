@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { basename, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -25,7 +26,7 @@ function portableRelative(path) {
 
 test("el manifiesto indexa cada Ogg con metadatos y rutas relativas", async () => {
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
-  assert.equal(manifest.schema_version, 1);
+  assert.equal(manifest.schema_version, 2);
   assert.equal(manifest.base_path, ".");
 
   const definitions = Object.entries(manifest.assets);
@@ -45,6 +46,10 @@ test("el manifiesto indexa cada Ogg con metadatos y rutas relativas", async () =
     assert.ok(!definition.metadata.startsWith("/"), `${key} debe usar metadatos relativos.`);
     assert.ok(!definition.src.split("/").includes(".."), `${key} no puede escapar de audio/.`);
     assert.ok(!definition.metadata.split("/").includes(".."), `${key} no puede escapar de audio/.`);
+    assert.ok(
+      ["ambience", "effects"].includes(definition.category),
+      `${key} debe pertenecer a ambience o effects.`,
+    );
     assert.ok(definition.volume >= 0 && definition.volume <= 1, `${key} tiene volumen inválido.`);
 
     const audioPath = resolve(audioRoot, definition.src);
@@ -60,14 +65,36 @@ test("el manifiesto indexa cada Ogg con metadatos y rutas relativas", async () =
     assert.equal(metadata.runtime_file, basename(definition.src));
     assert.equal(metadata.playback.loop, definition.loop);
     assert.equal(metadata.playback.suggested_volume, definition.volume);
-    assert.ok(metadata.source.sound_url.startsWith("https://freesound.org/"));
-    assert.match(metadata.source.license_name, /Creative Commons 0/i);
+    if (metadata.source.sound_url.startsWith("https://freesound.org/")) {
+      assert.match(metadata.source.license_name, /Creative Commons 0/i);
+    } else {
+      assert.equal(
+        metadata.source.sound_url,
+        "https://chatgpt.com/c/6a90bb10-8000-83e9-82af-e55fc58da22c",
+      );
+      assert.match(metadata.source.author_name, /JoaquinDiazM/);
+      assert.match(metadata.source.license_name, /MIT License/i);
+      assert.match(metadata.source.provenance_note, /responsable del repositorio/i);
+    }
+    if (metadata.sha256) {
+      assert.equal(
+        createHash("sha256").update(header).digest("hex"),
+        metadata.sha256,
+        `${definition.src} no coincide con su SHA-256 documentado.`,
+      );
+    }
     if (key === "mission_start") {
       assert.match(
         metadata.intended_use,
         /interacci[oó]n válida/i,
         "El beep histórico debe documentar su uso actual como confirmación de interacción.",
       );
+    }
+    if (key === "ui_select") {
+      assert.match(metadata.intended_use, /predeterminado/i);
+    }
+    if (key === "zone_unlocked") {
+      assert.match(metadata.intended_use, /desbloquea por primera vez/i);
     }
     assert.ok(attribution.includes(definition.src), `${definition.src} falta en ATTRIBUTION.md.`);
     assert.equal(indexedSources.has(definition.src), false, `${definition.src} está indexado más de una vez.`);
@@ -94,11 +121,19 @@ test("el manifiesto indexa cada Ogg con metadatos y rutas relativas", async () =
   );
 });
 
-test("los tres eventos de audio disponibles conservan sus claves estables", async () => {
+test("los cinco eventos de audio disponibles conservan sus claves estables", async () => {
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  assert.equal(Object.keys(manifest.assets).length, 5);
   assert.deepEqual(Object.keys(manifest.assets).sort(), [
     "global_ambience",
     "hexagon_transition",
     "mission_start",
+    "ui_select",
+    "zone_unlocked",
   ]);
+  assert.equal(manifest.assets.global_ambience.category, "ambience");
+  assert.equal(manifest.assets.hexagon_transition.category, "effects");
+  assert.equal(manifest.assets.mission_start.category, "effects");
+  assert.equal(manifest.assets.ui_select.category, "effects");
+  assert.equal(manifest.assets.zone_unlocked.category, "effects");
 });

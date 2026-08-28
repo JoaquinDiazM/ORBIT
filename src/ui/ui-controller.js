@@ -25,6 +25,8 @@ import {
 } from "../core/location-steps.js";
 import { describeMissingRequirements, meetsRequirements } from "../core/requirements.js";
 import { createEquationFigure, renderMath } from "./math-renderer.js";
+import { playLocationCompletionCue } from "./audio-policy.js";
+import { PointChargeField2D } from "./point-charge-field-2d.js";
 import {
   VectorField2D,
   createFieldAConfig,
@@ -71,7 +73,13 @@ export class UIController {
     this.exerciseStates = new Map();
     this.activeInteractiveFigures = [];
     this.activeReferenceView = "symbols";
-    this.secondaryPanelIds = ["knowledge-panel", "reference-panel", "help-panel"];
+    this.secondaryPanelIds = [
+      "knowledge-panel",
+      "visual-panel",
+      "reference-panel",
+      "sound-panel",
+      "help-panel",
+    ];
 
     this.elements = {
       area: document.querySelector("#hud-area"),
@@ -87,16 +95,24 @@ export class UIController {
       lessonBody: document.querySelector("#lesson-body"),
       knowledgePanel: document.querySelector("#knowledge-panel"),
       knowledgeBody: document.querySelector("#knowledge-body"),
+      visualPanel: document.querySelector("#visual-panel"),
+      visualModeInputs: [...document.querySelectorAll(
+        'input[name="tree-two-visualization"]',
+      )],
       referencePanel: document.querySelector("#reference-panel"),
       referenceEyebrow: document.querySelector("#reference-eyebrow"),
       referenceTitle: document.querySelector("#reference-title"),
       referenceBody: document.querySelector("#reference-body"),
+      soundPanel: document.querySelector("#sound-panel"),
+      soundAmbience: document.querySelector("#sound-ambience"),
+      soundAmbienceOutput: document.querySelector("#sound-ambience-output"),
+      soundEffects: document.querySelector("#sound-effects"),
+      soundEffectsOutput: document.querySelector("#sound-effects-output"),
       helpPanel: document.querySelector("#help-panel"),
       debugPanel: document.querySelector("#debug-panel"),
       debugState: document.querySelector("#debug-state"),
       toastRegion: document.querySelector("#toast-region"),
       loadingScreen: document.querySelector("#loading-screen"),
-      audioToggle: document.querySelector("#toggle-audio"),
       debugNoclip: document.querySelector("#debug-noclip"),
       debugShowIds: document.querySelector("#debug-show-ids"),
       debugShowGraph: document.querySelector("#debug-show-graph"),
@@ -108,11 +124,13 @@ export class UIController {
     this.elements.profileBadge.textContent = `perfil: ${progression.profile}`;
     this.#populateDebugAreaSelect();
     this.#bindStaticControls();
-    this.#updateAudioControl();
+    this.#updateVisualControls();
+    this.#updateSoundControls();
     this.progression.subscribe(() => {
       this.updateKnowledgePanel();
       this.updateReferencePanel();
-      this.#updateAudioControl();
+      this.#updateVisualControls();
+      this.#updateSoundControls();
     });
   }
 
@@ -129,28 +147,71 @@ export class UIController {
     document.querySelector("#open-knowledge").addEventListener("click", () => {
       this.toggleKnowledgePanel();
     });
-    document.querySelector("#open-help").addEventListener("click", () => {
-      this.toggleHelpPanel();
+    document.querySelector("#open-visual").addEventListener("click", () => {
+      this.toggleVisualPanel();
     });
     for (const button of document.querySelectorAll("[data-reference-view]")) {
       button.addEventListener("click", () => {
         this.toggleReferencePanel(button.dataset.referenceView);
       });
     }
-    this.elements.audioToggle.addEventListener("click", () => {
-      void this.toggleAudio();
+    document.querySelector("#open-help").addEventListener("click", () => {
+      this.toggleHelpPanel();
+    });
+    document.querySelector("#open-sound").addEventListener("click", () => {
+      this.toggleSoundPanel();
+    });
+    for (const input of this.elements.visualModeInputs) {
+      input.addEventListener("change", () => {
+        if (input.checked) this.progression.setTreeTwoVisualizationMode(input.value);
+      });
+    }
+    this.elements.soundAmbience.addEventListener("input", () => {
+      this.progression.setAmbienceVolume(Number(this.elements.soundAmbience.value) / 100);
+    });
+    this.elements.soundEffects.addEventListener("input", () => {
+      this.progression.setEffectsVolume(Number(this.elements.soundEffects.value) / 100);
     });
 
     const audioPreviews = [
       ["#debug-audio-ambience", "global_ambience", 5000],
       ["#debug-audio-transition", "hexagon_transition", undefined],
       ["#debug-audio-mission", "mission_start", undefined],
+      ["#debug-audio-ui-select", "ui_select", undefined],
+      ["#debug-audio-zone-unlocked", "zone_unlocked", undefined],
     ];
     for (const [selector, assetKey, durationMs] of audioPreviews) {
       document.querySelector(selector).addEventListener("click", () => {
         void this.#previewAudio(assetKey, durationMs);
       });
     }
+
+    document.addEventListener("click", (event) => {
+      const control = event.target?.closest?.(
+        "button, [role='button'], [role='radio'], input[type='radio'], input[type='checkbox']",
+      );
+      if (
+        !control
+        || control.disabled
+        || control.getAttribute?.("aria-disabled") === "true"
+        || ["none", "deferred"].includes(control.dataset?.audioCue)
+      ) {
+        return;
+      }
+      this.#playInteractionCue();
+    });
+    document.addEventListener("change", (event) => {
+      const control = event.target?.closest?.("select, input[type='range']");
+      if (
+        !control
+        || control.disabled
+        || control.getAttribute?.("aria-disabled") === "true"
+        || control.dataset?.audioCue === "none"
+      ) {
+        return;
+      }
+      this.#playInteractionCue();
+    });
 
     document.querySelectorAll("[data-close-panel]").forEach((button) => {
       button.addEventListener("click", () => this.closePanel(button.dataset.closePanel));
@@ -238,7 +299,7 @@ export class UIController {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `aea-progress-${this.progression.profile}.json`;
+    anchor.download = `orbit-progress-${this.progression.profile}.json`;
     document.body.append(anchor);
     anchor.click();
     anchor.remove();
@@ -355,7 +416,8 @@ export class UIController {
     const passed = state.passedStepIds.has(activeStep.id);
     const reviewableExercise =
       activeStep.exercise?.type === "sequence"
-      || activeStep.exercise?.presentation === "vector-field-cards";
+      || activeStep.exercise?.presentation === "vector-field-cards"
+      || activeStep.exercise?.presentation === "point-charge-field";
     if ((completed || passed) && reviewableExercise) {
       body.append(
         this.#renderExercise(location, activeStep, state.activeIndex, steps.length, {
@@ -492,6 +554,9 @@ export class UIController {
     if (step.exercise.presentation === "vector-field-cards") {
       return this.#renderVectorFieldExercise(location, step, stepIndex, stepCount, { resolved });
     }
+    if (step.exercise.presentation === "point-charge-field") {
+      return this.#renderPointChargeExercise(location, step, stepIndex, stepCount, { resolved });
+    }
     if (step.exercise.type === "sequence") {
       return this.#renderSequenceExercise(location, step, stepIndex, stepCount, { resolved });
     }
@@ -586,12 +651,19 @@ export class UIController {
                 ?? "La respuesta todavía no es correcta. Revisa el planteamiento y vuelve a intentarlo.";
   }
 
+  #playInteractionCue(specificAssetKey) {
+    void this.audio?.playInteractionCue?.(
+      specificAssetKey ? { specificAssetKey } : undefined,
+    );
+  }
+
   #passStepOrComplete(location, step, stepIndex, stepCount, exercise, feedback) {
     if (stepIndex < stepCount - 1) {
       let state = this.#getLocationStepState(location);
       state = markLocationStepPassed(state, step.id);
       state = unlockLocationStep(state, stepIndex, stepCount);
       this.#setLocationStepState(location, state);
+      this.#playInteractionCue();
       this.toast("Actividad superada. La etapa siguiente ya está disponible.", "success");
       this.#renderLocationBody(location);
       this.#focusActiveStep();
@@ -618,7 +690,7 @@ export class UIController {
       element("button", {
         text:
           exercise.buttonLabel ?? (isFinalStep ? "Comprobar y completar" : "Comprobar etapa"),
-        attributes: { type: "submit" },
+        attributes: { type: "submit", "data-audio-cue": "deferred" },
       }),
     );
     form.append(actions);
@@ -630,6 +702,7 @@ export class UIController {
       const evaluation = evaluateExercise(exercise, responseReader());
       if (!evaluation.correct) {
         this.#showEvaluationError(feedback, evaluation);
+        this.#playInteractionCue();
         return;
       }
       this.#passStepOrComplete(location, step, stepIndex, stepCount, exercise, feedback);
@@ -733,6 +806,7 @@ export class UIController {
           if (event.key !== "Enter" && event.key !== " ") return;
           event.preventDefault();
           selectChoice(choice.id);
+          this.#playInteractionCue();
         });
       }
       const figureMount = element("div", { className: "vector-field-mount" });
@@ -766,7 +840,7 @@ export class UIController {
       actions.append(
         element("button", {
           text: "Comprobar comparación",
-          attributes: { type: "submit" },
+          attributes: { type: "submit", "data-audio-cue": "deferred" },
         }),
       );
       form.append(actions);
@@ -779,6 +853,7 @@ export class UIController {
           this.#showEvaluationError(feedback, evaluation, {
             retryExplanation: exercise.retryExplanation,
           });
+          this.#playInteractionCue();
           return;
         }
         state.selectedId = exercise.answerId;
@@ -787,6 +862,89 @@ export class UIController {
       });
     }
 
+    card.append(form);
+    section.append(card);
+    return section;
+  }
+
+  #renderPointChargeExercise(location, step, stepIndex, stepCount, { resolved }) {
+    const exercise = step.exercise;
+    const figureDefinition = exercise.figure;
+    const key = this.#exerciseStateKey(location, step);
+    const state = this.exerciseStates.get(key) ?? {
+      charges: figureDefinition.charges.map((charge) => ({ ...charge })),
+    };
+    this.exerciseStates.set(key, state);
+
+    const section = element("section", { className: "lesson-section point-charge-exercise" });
+    section.append(
+      element("h3", { text: resolved ? "Laboratorio revisable" : "Laboratorio de superposición" }),
+    );
+    const figureMount = element("div", { className: "point-charge-mount" });
+    section.append(figureMount);
+    const pointChargeField = new PointChargeField2D({
+      container: figureMount,
+      id: `${location.id}-${step.id}`,
+      title: figureDefinition.title,
+      description: figureDefinition.description,
+      caption: figureDefinition.caption,
+      domain: figureDefinition.domain,
+      probe: figureDefinition.probe,
+      chargeRange: figureDefinition.chargeRange,
+      keyboardStep: figureDefinition.keyboardStep,
+      singularityRadius: figureDefinition.singularityRadius,
+      charges: state.charges,
+      onStateChange: ({ charges }) => {
+        state.charges = charges.map((charge) => ({ ...charge }));
+        this.exerciseStates.set(key, state);
+      },
+      onInteraction: () => this.#playInteractionCue(),
+    });
+    this.activeInteractiveFigures.push(pointChargeField);
+
+    const card = element("div", { className: "exercise-card" });
+    appendTextParagraph(card, exercise.prompt);
+    if (resolved) {
+      card.append(
+        element("p", {
+          className: "callout",
+          text:
+            exercise.explanation
+            ?? "Actividad validada; la figura permanece disponible para explorar.",
+        }),
+      );
+      section.append(card);
+      return section;
+    }
+
+    const form = element("form");
+    const responseReader = this.#appendAtomicExerciseControl(
+      form,
+      exercise,
+      `exercise-${location.id}-${step.id}`,
+    );
+    const actions = element("div", { className: "exercise-actions" });
+    actions.append(
+      element("button", {
+        text: "Comprobar exploración",
+        attributes: { type: "submit", "data-audio-cue": "deferred" },
+      }),
+    );
+    form.append(actions);
+    const feedback = this.#renderFeedback();
+    form.append(feedback);
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const evaluation = evaluateExercise(exercise, responseReader());
+      if (!evaluation.correct) {
+        this.#showEvaluationError(feedback, evaluation, {
+          retryExplanation: exercise.retryExplanation,
+        });
+        this.#playInteractionCue();
+        return;
+      }
+      this.#passStepOrComplete(location, step, stepIndex, stepCount, exercise, feedback);
+    });
     card.append(form);
     section.append(card);
     return section;
@@ -859,7 +1017,7 @@ export class UIController {
         actions.append(
           element("button", {
             text: item.buttonLabel ?? "Comprobar intervención",
-            attributes: { type: "submit" },
+            attributes: { type: "submit", "data-audio-cue": "deferred" },
           }),
         );
         form.append(actions);
@@ -872,6 +1030,7 @@ export class UIController {
             this.#showEvaluationError(feedback, evaluation, {
               feedbackMode: exercise.feedback,
             });
+            this.#playInteractionCue();
             return;
           }
 
@@ -880,6 +1039,7 @@ export class UIController {
           if (isExerciseSequenceComplete(exercise, nextState)) {
             this.#passStepOrComplete(location, step, stepIndex, stepCount, exercise, feedback);
           } else {
+            this.#playInteractionCue();
             this.#renderLocationBody(location);
             this.#focusSequenceItem();
           }
@@ -908,16 +1068,16 @@ export class UIController {
     if (!result.ok) {
       feedback.className = "exercise-feedback error";
       feedback.textContent = "El lugar ya no cumple sus condiciones de acceso.";
+      this.#playInteractionCue();
       return;
     }
     const after = this.progression.getSnapshot();
-    const newlyOpenedAreas = [...after.unlockedAreaIds].filter(
-      (areaId) => !before.unlockedAreaIds.has(areaId),
-    );
+    const newlyOpenedAreas = result.newlyUnlockedAreaIds ?? [];
     const newlyVisibleLocations = [...after.visibleLocationIds].filter(
       (locationId) => !before.visibleLocationIds.has(locationId),
     );
     const citationLabels = this.#newlyUnlockedCitationLabels(before, after);
+    void playLocationCompletionCue(this.audio, result);
 
     const messageParts = [exercise.explanation ?? "Misión completada."];
     if (newlyOpenedAreas.length) {
@@ -1065,6 +1225,19 @@ export class UIController {
     for (const reward of snapshot.rewards) chips.append(this.#rewardChip(reward));
     inventory.append(chips);
     body.append(inventory);
+  }
+
+  toggleVisualPanel() {
+    if (!this.elements.visualPanel.hidden) this.closePanel("visual-panel");
+    else this.openPanel("visual-panel");
+  }
+
+  #updateVisualControls() {
+    const mode = this.progression.getSnapshot().state.settings.treeTwoVisualizationMode
+      ?? "hidden";
+    for (const input of this.elements.visualModeInputs) {
+      input.checked = input.value === mode;
+    }
   }
 
   toggleReferencePanel(viewId) {
@@ -1293,31 +1466,31 @@ export class UIController {
     else this.openPanel("help-panel");
   }
 
-  async toggleAudio() {
-    const muted = this.progression.toggleAudioMuted();
-    const result = await this.audio?.setMuted(muted);
-    this.#updateAudioControl();
-    this.toast(
-      muted ? "Audio silenciado." : "Audio activado.",
-      result?.ok === false ? "warning" : "success",
-    );
-    return !muted;
+  toggleSoundPanel() {
+    if (!this.elements.soundPanel.hidden) this.closePanel("sound-panel");
+    else this.openPanel("sound-panel");
   }
 
-  #updateAudioControl() {
-    const muted = Boolean(this.progression.getSnapshot().state.settings.audioMuted);
-    this.elements.audioToggle.setAttribute("aria-pressed", String(!muted));
-    this.elements.audioToggle.firstChild.textContent = muted ? "Audio silenciado " : "Audio activo ";
+  #updateSoundControls() {
+    const settings = this.progression.getSnapshot().state.settings;
+    const ambience = Math.round((settings.ambienceVolume ?? 1) * 100);
+    const effects = Math.round((settings.effectsVolume ?? 1) * 100);
+    this.elements.soundAmbience.value = String(ambience);
+    this.elements.soundAmbienceOutput.textContent = `${ambience}%`;
+    this.elements.soundEffects.value = String(effects);
+    this.elements.soundEffectsOutput.textContent = `${effects}%`;
   }
 
   async #previewAudio(assetKey, durationMs) {
-    if (this.progression.getSnapshot().state.settings.audioMuted) {
-      this.progression.setAudioMuted(false);
-      await this.audio?.setMuted(false);
-    }
     const result = await this.audio?.preview(assetKey, { durationMs });
+    const message =
+      result?.reason === "category-silent"
+        ? "La categoría está en cero; sube su barra en Sonido para escucharla."
+        : result?.ok
+          ? "Prueba de audio iniciada."
+          : "No fue posible reproducir este recurso.";
     this.toast(
-      result?.ok ? "Prueba de audio iniciada." : "No fue posible reproducir este recurso.",
+      message,
       result?.ok ? "success" : "warning",
     );
   }
