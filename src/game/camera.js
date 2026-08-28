@@ -37,6 +37,29 @@ export class Camera2D {
     this.setZoom(this.zoom * scale);
   }
 
+  zoomAt(delta, screenX, screenY) {
+    const before = this.screenToWorld(screenX, screenY);
+    this.adjustZoom(delta);
+    const after = this.screenToWorld(screenX, screenY);
+    this.x += before.x - after.x;
+    this.y += before.y - after.y;
+    this.#clampToBounds();
+  }
+
+  panByScreen(deltaX, deltaY) {
+    if (!Number.isFinite(deltaX) || !Number.isFinite(deltaY)) return;
+    this.x -= deltaX / this.zoom;
+    this.y -= deltaY / this.zoom;
+    this.#clampToBounds();
+  }
+
+  setCenter(x, y) {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+    this.x = x;
+    this.y = y;
+    this.#clampToBounds();
+  }
+
   worldToScreen(x, y) {
     return {
       x: (x - this.x) * this.zoom + this.viewportWidth / 2,

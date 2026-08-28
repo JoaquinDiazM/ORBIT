@@ -6,17 +6,47 @@ export class ProgressStorage {
     this.memoryFallback = null;
   }
 
-  load() {
+  loadResult() {
     try {
       for (const key of [this.key, ...this.legacyKeys]) {
         const serialized = this.storage?.getItem(key);
-        if (serialized) return JSON.parse(serialized);
+        if (serialized === null || serialized === undefined) continue;
+        try {
+          return {
+            found: true,
+            key,
+            value: JSON.parse(serialized),
+            error: null,
+          };
+        } catch (error) {
+          console.warn("No fue posible interpretar el progreso persistente.", error);
+          return {
+            found: true,
+            key,
+            value: this.memoryFallback,
+            error,
+          };
+        }
       }
-      return this.memoryFallback;
+      return {
+        found: this.memoryFallback !== null,
+        key: null,
+        value: this.memoryFallback,
+        error: null,
+      };
     } catch (error) {
       console.warn("No fue posible leer el progreso persistente.", error);
-      return this.memoryFallback;
+      return {
+        found: true,
+        key: null,
+        value: this.memoryFallback,
+        error,
+      };
     }
+  }
+
+  load() {
+    return this.loadResult().value;
   }
 
   save(state) {

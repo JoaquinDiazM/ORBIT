@@ -1,83 +1,145 @@
-# Informe de validación de la versión candidata 0.3.2
+# Informe de validación de ORBIT 0.4.0
 
 Fecha: 2026-08-28
 
 ## Estado de la entrega
 
-La implementación local de ORBIT 0.3.2 incorpora las correcciones de menús, visualización y Superconductividad, además de los dos efectos nuevos con procedencia resuelta. Las etapas automatizadas ejecutables en este entorno pasan. La revisión manual final de navegador y audio todavía debe repetirse antes del cierre.
+**APROBADA PARA PUBLICACIÓN.** La candidata incorpora **ORBIT Editor** como aplicación estática separada en `editor.html`. **ORBIT Estudiante** continúa en `index.html`, con sus perfiles normal y debug y sin perder los ocho menús laterales publicados en 0.3.2.
 
-El repositorio de GitHub ya se llama `JoaquinDiazM/ORBIT`, el `origin` local apunta a su URL nueva y la carpeta de trabajo se llama `ORBIT`. El contenido versionado, el paquete y la interfaz usan la marca activa.
+El corte conserva el contenido canónico del curso: 19 zonas, 20 conceptos, 28 lugares alcanzables, 13 parejas derivadas del Árbol II y cuatro requisitos directos explícitos `completedLocations`.
 
-## Validación automatizada
+La persistencia permanece separada:
 
-El comando canónico del repositorio y del workflow remoto es:
+- progreso del estudiante: esquema `v3` y claves `orbit-progress:*`;
+- borrador editorial: esquema `v1` en `orbit-editor:v1:electromagnetism-applied`.
+
+El editor no incorpora backend, autenticación ni dependencias nuevas. Guardar o importar un borrador no lo publica ni modifica automáticamente el dataset de ORBIT Estudiante; la revisión, integración, build y despliegue siguen siendo manuales.
+
+## Validación automatizada final
+
+Ejecución realizada desde la raíz del repositorio con Node.js `v24.19.0`:
 
 ```bash
-npm run check
-```
-
-El runtime administrado de esta sesión no expuso el ejecutable `npm`. Se ejecutaron con Node.js 24.19.0 las cuatro etapas declaradas por ese script, en el mismo orden, y después `git diff --check`:
-
-```bash
-node scripts/validate-content.mjs
-node --test
-node scripts/check-repository.mjs
-node scripts/build.mjs
+npm run validate
+npm test
+npm run repo-check
+npm run build
 git diff --check
 ```
 
-Resultado local: correcto.
+| Comprobación | Resultado | Evidencia |
+|---|---|---|
+| Validador de contenido | **APROBADA** | 19 zonas, 20 conceptos y 28 lugares alcanzables. |
+| Pruebas unitarias e integración | **APROBADA** | 193 aprobadas, 0 fallidas, 0 omitidas. |
+| Revisión del repositorio | **APROBADA** | 75 archivos JavaScript, 37 Markdown, enlaces relativos y política de dependencias correctos. |
+| Build estático | **APROBADA** | `dist/index.html` y `dist/editor.html` generados y cargados en navegador. |
+| Higiene del diff | **APROBADA** | `git diff --check` sin incidencias. |
 
-- Cartografía y progresión: 19 zonas alcanzables con distribución axial `1 + 6 + 12`.
-- Conceptos: 20 alcanzables.
-- Lugares: 28 alcanzables.
-- Secuencia completa: llega al hito `milestones:lunar-link` sin zonas aisladas ni ciclos bloqueantes.
-- El simulador parte de un perfil vacío y completa la progresión mediante sus requisitos normales; no usa `completeAll()`.
-- Pruebas unitarias: 155 aprobadas, sin fallos, omisiones ni cancelaciones.
-- Sintaxis JavaScript: 63 archivos comprobados.
-- Enlaces Markdown relativos: 35 archivos comprobados.
-- Política de dependencias: KaTeX 0.18.1 continúa como única dependencia y 0.3.2 no añade paquetes.
-- Versión de `package.json`, lockfile y `APP_CONFIG`: consistente en `0.3.2`.
-- Esquema persistido: `v3`, con migración desde `v1`/`v2` y lectura del prefijo histórico `aea-progress`.
-- Build estático: generado correctamente en `dist/`.
-- Higiene del diff: sin errores de espacios o marcadores detectados por `git diff --check`.
+El commit y el push se realizan después de sellar este informe para evitar una referencia circular al propio hash. La evidencia remota se registra en el historial de `main` y en el workflow de GitHub correspondiente a la publicación 0.4.0.
 
-## Casos cubiertos por pruebas
+## Contratos cubiertos
 
-- Migración del volumen maestro y mute históricos a `ambienceVolume`/`effectsVolume`, persistencia independiente, silencio por categoría a cero y prioridad de `v2` sobre `v1` cuando ambas claves históricas coexisten.
-- Exclusión entre cue predeterminado y cue específico, transición única por finalización y degradación segura ante un asset inexistente.
-- Inventario de cinco OGG versionados, cada uno con manifiesto, sidecar, atribución y punto de reproducción; tres son Freesound CC0 y dos contribuciones de ORBIT bajo MIT.
-- Derivación de 13 parejas únicas del Árbol II desde `completedLocations`, `concepts` y `rewards`, sin lista paralela ni aristas de área.
-- Dirección prerrequisito → destino, matriz de apariencia `completed → completed/completable` brillante y `completable → blocked` tenue, y exclusión de extremos ocultos.
-- Modos **Oculta**, **Directo** y **Total**, incluida la vecindad axial de **Directo**, persistencia saneada de la preferencia y selección de una única arista causal **NUEVO**.
-- Presencia de todos los menús secundarios, exclusividad entre ellos y coexistencia con la lección principal; **Árboles** queda como listado y **Visual** como configuración del mapa.
-- Disponibilidad derivada de Símbolos, Constantes, Formulario y Glosario con sus paneles restaurados y sin cuadros bibliográficos repetidos.
-- Compatibilidad de IDs al sustituir la zona visible por Superconductividad, NPC Onnes no evaluativo, fórmulas desbloqueadas por el encuentro y Laboratorio de Transición separado como concesionario del concepto.
-- Cinco etapas de Coulomb, introducción inicial de `E` y `V`, tres cargas normalizadas, movimiento por teclado, singularidad exacta y carga cero sin singularidad espuria.
-- Siete intervenciones de la demostración conservativa y transferencia final con `E_x = 1798 N/C`, `V = 0` y `E ≠ 0`.
-- Taller Vectorial de seis etapas, parser matemático restringido, equivalencia por función/gradiente y ausencia de `eval`/`Function`.
-- Geometría, fronteras compartidas, sombras, foco, paneles, TeX/MathML, referencias derivadas y recorrido completo de progresión.
+### ORBIT Estudiante
+
+- `index.html` conserva los perfiles normal y debug y sigue usando el progreso `v3`.
+- La progresión alcanza las 19 zonas, 20 conceptos y 28 lugares sin ciclos bloqueantes ni zonas aisladas.
+- El Árbol II deriva exactamente 13 parejas únicas; solo cuatro proceden de `completedLocations` explícitos canónicos.
+- Los menús de 0.3.2, los tres niveles de **Visual**, el NPC Onnes no evaluativo y el punto de aprendizaje separado continúan disponibles.
+- La migración de progreso y las preferencias de audio/visualización no leen ni escriben el borrador editorial.
+
+### Documento y modelo del editor
+
+- El documento usa esquema editorial `v1`, identifica el curso y conserva `baseDataVersion`.
+- El guardado automático usa únicamente `orbit-editor:v1:electromagnetism-applied`.
+- La importación valida y sanea el documento completo antes de reemplazarlo; un error deja intactos modelo y almacenamiento.
+- Importar o restaurar establece un nuevo límite de historial y vacía deshacer/rehacer.
+- Exportar produce JSON revisable, pero no altera el progreso ni publica datos de producción.
+
+### Spider
+
+- El puntero, los controles accesibles y el teclado pueden cambiar `areaId` y `offset` dentro de las restricciones del mapa.
+- Solo se editan requisitos directos `completedLocations`; las relaciones derivadas de conceptos y recompensas son visibles y de solo lectura.
+- Se rechazan autorrelaciones, duplicados, ciclos, offsets inseguros y movimientos que bloqueen la progresión.
+- Deshacer y rehacer restauran posiciones y conexiones validadas.
+
+### Bee
+
+- Las 19 zonas ocupan el origen y los anillos uno y dos del disco axial.
+- Solo se intercambian dos zonas del mismo `tier`; el origen permanece fijo.
+- Un intercambio mueve la zona con sus lugares y nunca mezcla fundamentos teóricos del anillo uno con aplicaciones del anillo dos.
+- Deshacer y rehacer restauran ambos extremos del intercambio.
+
+### Shell, accesibilidad y build
+
+- Los docks **General** y **Editor** se contraen y recuperan de manera independiente.
+- Spider y Bee comunican selección, acción válida y error mediante texto y forma además de color.
+- Ratón, teclado, desplazamiento con flechas y atajos de deshacer/rehacer tienen rutas equivalentes.
+- El build incluye ambas entradas sin reemplazar `index.html` ni añadir un servicio externo.
 
 ## Revisión manual en navegador
 
-La revisión manual anterior se realizó antes de las correcciones descritas aquí y no debe usarse como evidencia de la interfaz final. Antes del cierre se debe repetir con un perfil aislado y comprobar:
+### ORBIT Estudiante — perfil normal
 
-- los ocho botones secundarios: Árboles, Visual, Símbolos, Constantes, Formulario, Glosario, Ayuda y Sonido;
-- coexistencia de la lección principal con un único panel secundario, foco, teclado y vista estrecha;
-- consulta de las cuatro bibliotecas de referencia sin cuadros bibliográficos repetidos y aviso único al desbloquear una fuente pertinente;
-- persistencia de **Oculta**, **Directo** y **Total**, sus filtros espaciales y la semántica brillante/tenue del mapa;
-- Onnes como encuentro no evaluativo, desbloqueo de fórmulas y Laboratorio de Transición como lugar evaluable independiente;
-- los dos sliders de audio, los cinco botones de prueba, el clic ordinario de interfaz, el efecto de zona nueva y una consola limpia;
-- Coulomb, reducción de movimiento y la captura principal actualizada con la interfaz corregida.
+Estado: **APROBADA como smoke test de compatibilidad**.
 
-Las pruebas automatizadas verifican los contratos estructurales de estos cambios, pero no sustituyen esa inspección visual y auditiva.
+- inició en Campamento Base con `perfil: normal`;
+- mostró Árboles, Visual, Símbolos, Constantes, Formulario, Glosario, Ayuda y Sonido;
+- conservó los controles de movimiento e interacción y el enlace separado a ORBIT Editor;
+- no expuso Spider, Bee ni gestos editoriales.
 
-## Limitaciones vigentes
+### ORBIT Estudiante — perfil debug
 
-- El prompt anuncia una especificación académica de Coulomb “incluida más abajo”, pero el adjunto termina sin esa sección. La división concreta en cinco etapas, el dominio normalizado y la transferencia numérica son decisiones editoriales revisables que satisfacen los criterios explícitos disponibles.
-- Falta repetir la revisión manual de navegador después de restaurar los menús e incorporar los tres niveles visuales y el segundo lugar de Superconductividad.
-- No hay una suite end-to-end versionada ni una matriz amplia de navegadores y lectores de pantalla.
-- La equivalencia matemática usa puntos deterministas y no sustituye una demostración simbólica global.
-- El contenido científico sigue siendo provisional y no ha pasado por una revisión académica externa completa ni una prueba piloto con estudiantes.
+Estado: **APROBADA como smoke test de compatibilidad**.
 
-0.3.2 sigue siendo un corte intermedio y no se declara como la versión final 1.0.0. La procedencia de audio ya no bloquea la entrega; queda completar la revisión manual final descrita arriba.
+- abrió con `?debug=1&profile=debug` y mantuvo el progreso separado;
+- presentó debugger, teletransporte, controles de progresión, importación/exportación y los cinco botones de audio;
+- conservó los ocho menús del estudiante y no incorporó Spider ni Bee.
+
+La navegación académica completa, el audio perceptual y la matriz extensa de navegadores permanecen fuera de este smoke test manual; sus contratos de datos y eventos sí están cubiertos por la suite automatizada.
+
+### ORBIT Editor
+
+Estado: **APROBADA** en navegador de escritorio de 1280 × 720 y breakpoint compacto de 760 × 720.
+
+- se contrajeron y expandieron ambos docks con clic físico;
+- Spider movió un nodo dentro de su hexágono y trasladó otro a una zona distinta mediante arrastre;
+- se rechazó un traslado que habría vuelto inalcanzable la progresión;
+- Spider creó con arrastre y luego eliminó un requisito directo válido;
+- Bee intercambió dos zonas del anillo uno y rechazó un destino del anillo dos sin mutar el borrador;
+- funcionaron ajuste por teclado, `Ctrl+Z`, botones de deshacer/rehacer y autoguardado tras recarga;
+- volver desde ORBIT Estudiante mediante el historial del navegador conservó eventos y edición activa;
+- el viewport compacto permitió cerrar el inspector y continuar operando el mapa;
+- ORBIT Estudiante normal/debug y Editor se abrieron de forma simultánea sin mezclar sus interfaces.
+
+La importación atómica, documentos inválidos, autorrelaciones, duplicados, ciclos, origen fijo y aislamiento de claves se verificaron mediante pruebas automatizadas deterministas.
+
+### Captura y documentación
+
+Estado: **APROBADA**.
+
+- `docs/screenshots/editor.png` corresponde a la candidata 0.4.0;
+- muestra mapamundi, docks General/Editor, Spider/Bee, red y selección legible;
+- no expone datos personales ni sugiere publicación automática;
+- README, guía del editor y ADR 0007 superaron la revisión de enlaces relativos.
+
+## Criterios de publicación
+
+- [x] Validación automatizada completa sin fallos.
+- [x] Smoke test manual de Estudiante normal y debug.
+- [x] QA manual de Editor con ratón y teclado.
+- [x] Aislamiento entre progreso `v3` y borrador editorial `v1`.
+- [x] Captura final `docs/screenshots/editor.png` revisada.
+- [x] Diff, documentación y build revisados.
+- [x] Candidata lista para commit y push a `main`.
+
+## Limitaciones vigentes de 0.4.0
+
+- El editor es local y estático: no tiene backend, cuentas, roles, autenticación ni colaboración multiusuario.
+- No crea ni elimina zonas, lugares, conceptos, recompensas o actividades; organiza la cartografía existente y edita únicamente conexiones directas soportadas.
+- No permite mezclar anillos en Bee ni mover el origen.
+- No edita relaciones derivadas de conceptos/recompensas ni el contenido pedagógico de un lugar.
+- No publica automáticamente. El JSON exportado requiere revisión humana, integración en el dataset fuente, validación, build y despliegue manual.
+- No existe todavía una suite end-to-end amplia ni una matriz completa de navegadores, lectores de pantalla y dispositivos táctiles.
+- La revisión académica del contenido sigue siendo independiente de la validación técnica del editor.
+
+ORBIT 0.4.0 es una base de autoría visual, no un editor final ni la versión 1.0.0 del proyecto.

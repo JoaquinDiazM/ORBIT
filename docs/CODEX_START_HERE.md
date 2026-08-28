@@ -20,12 +20,17 @@ En este orden:
 
 ## 2. Estado actual
 
-La versión `0.3.2` es un prototipo estático con una dependencia local respaldada por ADR. Ya incluye:
+La versión `0.4.0` es un prototipo estático con una dependencia local respaldada por ADR y dos entradas deliberadamente separadas:
+
+- **ORBIT Estudiante** en `index.html`, con perfiles normal y debug;
+- **ORBIT Editor** en `editor.html`, con borrador cartográfico local.
+
+El producto ya incluye:
 
 - movimiento continuo en Canvas 2D;
 - 19 hexágonos en tres niveles: base, seis fundamentos y doce aplicaciones;
 - fronteras físicas derivadas del Árbol I;
-- lugares y recompensas derivados del Árbol II, con 13 parejas únicas de guías direccionales declarativas y un menú **Visual** independiente con modos **Oculta**, **Directo** y **Total**;
+- lugares y recompensas derivados del Árbol II, con 13 parejas únicas —cuatro `completedLocations` explícitas canónicas— y un menú **Visual** independiente con modos **Oculta**, **Directo** y **Total**;
 - ejercicios de alternativa, número, expresión segura, secuencia y confirmación;
 - guardado por perfil en `localStorage`;
 - progreso `v3`, migración desde `v1`/`v2` y lectura compatible del prefijo histórico `aea-progress`;
@@ -42,10 +47,14 @@ La versión `0.3.2` es un prototipo estático con una dependencia local respalda
 - validador que simula la progresión completa;
 - pruebas unitarias;
 - build y workflow para GitHub Pages.
+- Editor con docks **General** y **Editor** retractables, Spider para nodos/conexiones directas y Bee para intercambios dentro de cada anillo;
+- documento editorial `orbit-editor-project` `v1`, autoguardado local, importación/exportación JSON y deshacer/rehacer, sin backend ni dependencia nueva.
 
 El contenido científico es demostrativo. No lo trates como una guía terminada.
 
 Los pasos internos de una secuencia, la opción elegida dentro de una actividad, los parámetros de las figuras, las posiciones de cargas y el contexto `newlyAccessibleLocationIds`/`unlockSourceLocationId` son estado efímero. La preferencia `treeTwoVisualizationMode` sí pasa por `ProgressionModel`: `hidden` conserva el último desbloqueo causal, `direct` limita la red al mismo hexágono o a hexágonos con frontera compartida y `total` muestra todas las conexiones elegibles. El esquema vigente es `v3`: `src/main.js` consulta primero `orbit-progress` y admite claves antiguas `aea-progress`; `src/core/progress-migrations.js` transforma los ajustes históricos en `ambienceVolume`, `effectsVolume` y el modo visual inicial.
+
+El borrador de Editor usa el esquema independiente `v1` y la clave `orbit-editor:v1:electromagnetism-applied`. Nunca lo trates como un perfil, una migración de progreso o una fuente aplicada automáticamente a Estudiante. Importar o exportar JSON editorial no modifica `src/data/`; la integración, validación, build y publicación son pasos manuales.
 
 Las fuentes se añaden de forma selectiva cuando una afirmación específica las necesita. La biblioteca permanece en los datos, el validador y sus paneles de **Símbolos**, **Constantes**, **Formulario** y **Glosario**. Esos paneles muestran el contenido desbloqueado, pero no repiten cuadros bibliográficos: la UI comunica cada fuente pertinente una vez, en la transición que desbloquea su entrada. No cites operaciones elementales ni repitas dentro de un nodo la procedencia docente ya reconocida globalmente en el README.
 
@@ -62,6 +71,9 @@ Antes de implementar una tarea, identifica cuáles puede afectar:
 - alcanzabilidad de la progresión;
 - IDs persistentes;
 - esquema de guardado;
+- separación entre progreso Estudiante `v3` y borrador Editor `v1`;
+- cuatro conexiones directas canónicas frente a trece parejas derivadas totales;
+- permanencia de zonas teóricas y aplicaciones en sus anillos;
 - funcionamiento sin backend;
 - funcionamiento sin nuevas dependencias;
 - accesibilidad y teclado;
@@ -91,6 +103,9 @@ Incluye esa evaluación en tu resumen de cambios o en el mensaje de commit.
 | Paneles y ejercicios | `src/ui/ui-controller.js` |
 | Figuras de campos vectoriales 2D | `src/ui/vector-field-2d.js` |
 | Figura de tres cargas | `src/ui/point-charge-field-2d.js` |
+| Entrada y shell de Editor | `editor.html`, `src/editor/` |
+| Documento, saneamiento y estado editorial | `src/editor/`, `docs/decisions/0007-static-local-editor.md` |
+| Uso docente de Spider y Bee | `docs/EDITOR_GUIDE.md` |
 | Validación estática | `src/core/validator.js`, `scripts/validate-content.mjs` |
 | Pruebas | `tests/` |
 
@@ -100,6 +115,7 @@ Incluye esa evaluación en tu resumen de cambios o en el mensaje de commit.
 npm install
 npm run dev
 # abre la URL impresa por el servidor y añade ?debug=1&profile=debug
+# abre editor.html por separado para la autoría cartográfica
 
 npm run check
 ```
@@ -114,6 +130,16 @@ Para probar cambios de progresión:
 6. exporta e importa un estado;
 7. revisa la consola.
 
+Para probar cambios editoriales:
+
+1. abre `editor.html` sin reutilizar una URL debug;
+2. confirma que Estudiante y Editor conservan claves de almacenamiento separadas;
+3. mueve un nodo con puntero y teclado;
+4. crea y elimina una conexión directa con Spider;
+5. intercambia zonas del mismo anillo con Bee y fuerza un rechazo entre anillos;
+6. prueba deshacer, rehacer, recarga, exportación e importación inválida;
+7. vuelve a abrir Estudiante normal/debug y confirma que el borrador no se aplicó.
+
 ## 6. Prohibiciones frecuentes
 
 No:
@@ -122,6 +148,10 @@ No:
 - teletransportes al jugador automáticamente al completar un nodo;
 - uses nodos del grafo como puntos obligatorios de movimiento;
 - guardes `unlockedAreas` o `visibleLocations` como verdad persistente;
+- guardes cartografía editorial dentro de `orbit-progress` o progreso dentro de `orbit-editor`;
+- añadas una lista paralela de aristas: Spider solo edita `completedLocations` y deja conceptos/recompensas como relaciones derivadas de solo lectura;
+- permitas que Bee mezcle `tier 1` y `tier 2` o mueva `origin`;
+- afirmes que exportar un borrador actualiza Estudiante, escribe Git o publica automáticamente;
 - hagas que una zona dependa de una llave situada únicamente dentro de ella;
 - renombres IDs publicados sin migración;
 - agregues React, Phaser, Vite, un CDN o cualquier paquete “por comodidad” sin ADR;
@@ -163,6 +193,8 @@ Prefiere funciones puras y pruebas unitarias. Si una nueva mecánica requiere es
 
 Las figuras SVG y las políticas de expresión introducidas en `0.3.1` no autorizan por sí solas un sistema de gráficos 3D, álgebra simbólica general, backend o dependencia nueva. La visión transversal de ORBIT tampoco autoriza a declarar soporte multicurso sin un contrato curricular verificable. Amplía primero los contratos nativos existentes y conserva límites explícitos de entrada y costo.
 
+El Editor 0.4.0 tampoco autoriza contenido editable, creación de entidades, autenticación, colaboración ni despliegue automático. Un cambio del esquema editorial se versiona dentro de su propio contrato; no incrementes `progressSchemaVersion` salvo que cambie realmente el perfil de Estudiante.
+
 ## 9. Formato recomendado para una tarea de agente
 
 ```text
@@ -194,3 +226,5 @@ La entrega de un agente debe indicar:
 - qué pruebas ejecutó y su resultado;
 - qué limitaciones quedan;
 - si cambió contenido visible, la entrada correspondiente de `CHANGELOG.md`.
+
+Si la tarea afecta Editor, añade además el resultado de su recorrido manual, la separación de almacenamiento, el round-trip JSON y la no regresión de Estudiante normal/debug.

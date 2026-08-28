@@ -10,6 +10,7 @@ Los ADR registran decisiones que afectan estructura, dependencias, persistencia 
 - [0004 — Audio local con APIs nativas](0004-native-audio-system.md)
 - [0005 — Render matemático local con KaTeX](0005-local-katex-rendering.md)
 - [0006 — Mezclador nativo por categorías](0006-native-audio-category-mixer.md)
+- [0007 — Editor local estático y estado editorial separado](0007-static-local-editor.md)
 
 ## Crear un ADR
 

@@ -1,0 +1,397 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+
+import { ProgressStorage } from "../src/core/storage.js";
+import { createEditorDocument } from "../src/editor/editor-document.js";
+import { EditorModel } from "../src/editor/editor-model.js";
+
+const EDITOR_KEY = "orbit-editor:v1:electromagnetism-applied";
+
+class MemoryStorage {
+  constructor(candidate = null) {
+    this.value = candidate === null ? null : structuredClone(candidate);
+    this.saveCount = 0;
+  }
+
+  load() {
+    return this.value === null ? null : structuredClone(this.value);
+  }
+
+  save(value) {
+    this.value = structuredClone(value);
+    this.saveCount += 1;
+  }
+
+  clear() {
+    this.value = null;
+  }
+}
+
+function tickingClock() {
+  let tick = 0;
+  return () => new Date(Date.UTC(2026, 7, 28, 12, 0, tick++));
+}
+
+function model(storage = new MemoryStorage()) {
+  return new EditorModel({ storage, clock: tickingClock() });
+}
+
+function area(snapshot, id) {
+  const document = snapshot.document ?? snapshot;
+  return document.areas.find((entry) => entry.id === id);
+}
+
+function location(snapshot, id) {
+  const document = snapshot.document ?? snapshot;
+  return document.locations.find((entry) => entry.id === id);
+}
+
+test("inicializa, persiste y entrega snapshots independientes", () => {
+  const storage = new MemoryStorage();
+  const editor = model(storage);
+  const first = editor.getSnapshot();
+
+  assert.equal(storage.saveCount, 1);
+  assert.equal(first.document.areas.length, 19);
+  assert.equal(first.document.locations.length, 28);
+  assert.equal(first.treeTwoTopology.length, 13);
+  assert.equal(first.canUndo, false);
+  assert.equal(first.canRedo, false);
+
+  first.document.areas[0].q = 99;
+  first.areas[0].q = 99;
+  first.locations[0].offset.x = 99;
+  const second = editor.getSnapshot();
+  assert.equal(second.document.areas[0].q, 0);
+  assert.equal(second.areas[0].q, 0);
+  assert.equal(second.locations[0].offset.x, 0);
+});
+
+test("Bee intercambia zonas del mismo anillo de forma atómica", () => {
+  const editor = model();
+  const before = editor.getSnapshot();
+  const electrostatics = area(before, "electrostatics");
+  const magnetism = area(before, "magnetism");
+  const events = [];
+  editor.subscribe((event) => events.push(event));
+
+  const result = editor.moveArea("electrostatics", {
+    q: magnetism.q,
+    r: magnetism.r,
+  });
+  const after = editor.getSnapshot();
+
+  assert.equal(result.ok, true);
+  assert.equal(result.changed, true);
+  assert.equal(result.detail.swappedAreaId, "magnetism");
+  assert.deepEqual(area(after, "electrostatics"), {
+    id: "electrostatics",
+    q: magnetism.q,
+    r: magnetism.r,
+  });
+  assert.deepEqual(area(after, "magnetism"), {
+    id: "magnetism",
+    q: electrostatics.q,
+    r: electrostatics.r,
+  });
+  assert.equal(new Set(after.document.areas.map((entry) => `${entry.q},${entry.r}`)).size, 19);
+  assert.equal(events.length, 1);
+  assert.equal(events[0].type, "area-moved");
+});
+
+test("Bee fija el origen y nunca mezcla anillos", () => {
+  const storage = new MemoryStorage();
+  const editor = model(storage);
+  const before = editor.exportDocument();
+  const saves = storage.saveCount;
+
+  const origin = editor.moveArea("origin", { q: 1, r: 0 });
+  const mixed = editor.swapArea("electrostatics", "sensors-instrumentation");
+  const outer = editor.moveArea("electrostatics", { q: 2, r: 0 });
+
+  assert.equal(origin.ok, false);
+  assert.equal(origin.reason, "origin-fixed");
+  assert.equal(mixed.ok, false);
+  assert.equal(mixed.reason, "ring-mismatch");
+  assert.equal(outer.ok, false);
+  assert.equal(outer.reason, "ring-mismatch");
+  assert.equal(editor.exportDocument(), before);
+  assert.equal(storage.saveCount, saves);
+});
+
+test("Spider mueve nodos dentro de otra zona y rechaza offsets inseguros", () => {
+  const editor = model();
+  const moved = editor.moveLocation("field-lens-cache", {
+    areaId: "electrostatics",
+    offset: { x: 12, y: -8 },
+  });
+
+  assert.equal(moved.ok, true);
+  assert.deepEqual(location(editor.getSnapshot(), "field-lens-cache"), {
+    id: "field-lens-cache",
+    areaId: "electrostatics",
+    offset: { x: 12, y: -8 },
+  });
+
+  const beforeInvalid = editor.exportDocument();
+  const outside = editor.moveLocation("field-lens-cache", {
+    areaId: "electrostatics",
+    offset: { x: 500, y: 0 },
+  });
+  const nonFinite = editor.moveLocation("field-lens-cache", {
+    areaId: "electrostatics",
+    offset: { x: Number.NaN, y: 0 },
+  });
+  assert.equal(outside.reason, "location-outside-safe-margin");
+  assert.equal(nonFinite.reason, "invalid-location-offset");
+  assert.equal(editor.exportDocument(), beforeInvalid);
+});
+
+test("mover una llave detrás de su propia zona se rechaza sin persistir", () => {
+  const storage = new MemoryStorage();
+  const editor = model(storage);
+  const before = editor.exportDocument();
+  const saves = storage.saveCount;
+
+  const result = editor.moveLocation("vector-workshop", {
+    areaId: "electrostatics",
+    offset: { x: 0, y: 0 },
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, "project-data-invalid");
+  assert.equal(editor.exportDocument(), before);
+  assert.equal(storage.saveCount, saves);
+});
+
+test("Spider añade y elimina solo dependencias completedLocation", () => {
+  const editor = model();
+  const connected = editor.connectLocations(
+    "vector-workshop",
+    "circuit-analysis-bench",
+  );
+
+  assert.equal(connected.ok, true);
+  assert.equal(editor.getSnapshot().document.treeTwoConnections.length, 5);
+  assert.equal(editor.getSnapshot().treeTwoTopology.length, 14);
+  assert.deepEqual(
+    editor
+      .getSnapshot()
+      .locations.find((entry) => entry.id === "circuit-analysis-bench")
+      .requirements.completedLocations,
+    ["vector-workshop"],
+  );
+
+  const duplicate = editor.connectLocations(
+    "vector-workshop",
+    "circuit-analysis-bench",
+  );
+  assert.equal(duplicate.reason, "duplicate-connection");
+
+  const derivedOnly = editor.disconnectLocations("faraday-station", "maxwell-archive");
+  assert.equal(derivedOnly.reason, "unknown-connection");
+
+  const disconnected = editor.disconnectLocations(
+    "vector-workshop",
+    "circuit-analysis-bench",
+  );
+  assert.equal(disconnected.ok, true);
+  assert.equal(editor.getSnapshot().document.treeTwoConnections.length, 4);
+  assert.equal(editor.getSnapshot().treeTwoTopology.length, 13);
+});
+
+test("Spider rechaza autorreferencia, desconocidos y ciclos sobre toda la topología", () => {
+  const editor = model();
+  const before = editor.exportDocument();
+
+  assert.equal(
+    editor.connectLocations("vector-workshop", "vector-workshop").reason,
+    "self-connection",
+  );
+  assert.equal(
+    editor.connectLocations("not-a-location", "vector-workshop").reason,
+    "unknown-location",
+  );
+  const cyclic = editor.connectLocations("gauss-guide-post", "coulomb-observatory");
+  assert.equal(cyclic.ok, false);
+  assert.equal(cyclic.reason, "tree-two-cycle");
+  assert.equal(editor.exportDocument(), before);
+});
+
+test("undo y redo restauran documentos validados y notifican", () => {
+  const editor = model();
+  const original = editor.exportDocument();
+  const events = [];
+  editor.subscribe((event) => events.push(event.type));
+
+  assert.equal(
+    editor.moveLocation("field-lens-cache", {
+      areaId: "electrostatics",
+      offset: { x: 0, y: 0 },
+    }).ok,
+    true,
+  );
+  const edited = editor.exportDocument();
+  assert.notEqual(edited, original);
+  assert.equal(editor.getSnapshot().canUndo, true);
+
+  assert.equal(editor.undo().ok, true);
+  assert.deepEqual(
+    location(editor.getSnapshot(), "field-lens-cache"),
+    location(JSON.parse(original), "field-lens-cache"),
+  );
+  assert.equal(editor.getSnapshot().canRedo, true);
+
+  assert.equal(editor.redo().ok, true);
+  assert.deepEqual(
+    location(editor.getSnapshot(), "field-lens-cache"),
+    location(JSON.parse(edited), "field-lens-cache"),
+  );
+  assert.deepEqual(events, ["location-moved", "editor-undo", "editor-redo"]);
+});
+
+test("import es atómico, rebasa desconocidos y crea un límite de historial", () => {
+  const storage = new MemoryStorage();
+  const editor = model(storage);
+  editor.moveLocation("field-lens-cache", {
+    areaId: "electrostatics",
+    offset: { x: 0, y: 0 },
+  });
+  assert.equal(editor.getSnapshot().canUndo, true);
+
+  const invalid = JSON.parse(editor.exportDocument());
+  invalid.kind = "orbit-progress";
+  const beforeInvalid = editor.exportDocument();
+  const saves = storage.saveCount;
+  const failed = editor.importDocument(invalid);
+  assert.equal(failed.ok, false);
+  assert.equal(failed.reason, "wrong-document-kind");
+  assert.equal(editor.exportDocument(), beforeInvalid);
+  assert.equal(storage.saveCount, saves);
+
+  const imported = createEditorDocument({ updatedAt: "2026-08-20T00:00:00.000Z" });
+  const electrostatics = imported.areas.find((entry) => entry.id === "electrostatics");
+  const magnetism = imported.areas.find((entry) => entry.id === "magnetism");
+  [electrostatics.q, magnetism.q] = [magnetism.q, electrostatics.q];
+  [electrostatics.r, magnetism.r] = [magnetism.r, electrostatics.r];
+  imported.areas.push({ id: "future-area", q: 9, r: 9 });
+
+  const success = editor.importDocument(imported);
+  assert.equal(success.ok, true);
+  assert.equal(
+    success.snapshot.warnings.some((entry) => entry.code === "unknown-area-ignored"),
+    true,
+  );
+  const warningKeys = success.snapshot.warnings.map(
+    (entry) => `${entry.code}\u0000${entry.path ?? ""}\u0000${entry.message}`,
+  );
+  assert.equal(new Set(warningKeys).size, warningKeys.length);
+  assert.equal(editor.getSnapshot().canUndo, false);
+  assert.equal(editor.getSnapshot().canRedo, false);
+});
+
+test("reset vuelve al canónico, persiste y vacía ambos historiales", () => {
+  const editor = model();
+  editor.moveLocation("field-lens-cache", {
+    areaId: "electrostatics",
+    offset: { x: 0, y: 0 },
+  });
+  editor.undo();
+  assert.equal(editor.getSnapshot().canRedo, true);
+
+  const result = editor.resetDraft();
+  const snapshot = editor.getSnapshot();
+
+  assert.equal(result.ok, true);
+  assert.equal(snapshot.canUndo, false);
+  assert.equal(snapshot.canRedo, false);
+  assert.deepEqual(
+    location(snapshot, "field-lens-cache"),
+    location(createEditorDocument(), "field-lens-cache"),
+  );
+});
+
+test("la clave del editor nunca altera ni elimina progreso estudiantil", () => {
+  const values = new Map([
+    ["orbit-progress:v3:normal", JSON.stringify({ schemaVersion: 3, marker: "student" })],
+  ]);
+  const browserStorage = {
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, value),
+    removeItem: (key) => values.delete(key),
+  };
+  const storage = new ProgressStorage(EDITOR_KEY, browserStorage);
+  const editor = new EditorModel({ storage, clock: tickingClock() });
+
+  editor.moveLocation("field-lens-cache", {
+    areaId: "electrostatics",
+    offset: { x: 0, y: 0 },
+  });
+  editor.resetDraft();
+
+  assert.deepEqual(JSON.parse(values.get("orbit-progress:v3:normal")), {
+    schemaVersion: 3,
+    marker: "student",
+  });
+  assert.equal(values.has(EDITOR_KEY), true);
+});
+
+test("un borrador persistido inválido no se sobrescribe al construir el modelo", () => {
+  const corrupt = { kind: "orbit-progress", schemaVersion: 3 };
+  const storage = new MemoryStorage(corrupt);
+  const editor = model(storage);
+
+  assert.deepEqual(storage.value, corrupt);
+  assert.equal(storage.saveCount, 0);
+  assert.equal(
+    editor.getSnapshot().warnings.some((entry) => entry.code === "stored-document-rejected"),
+    true,
+  );
+  assert.equal(editor.getSnapshot().document.kind, "orbit-editor-project");
+});
+
+test("un JSON editorial malformado abre una copia segura sin sobrescribir el valor crudo", () => {
+  const malformed = "{broken";
+  const values = new Map([[EDITOR_KEY, malformed]]);
+  const browserStorage = {
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, value),
+    removeItem: (key) => values.delete(key),
+  };
+  const originalWarn = console.warn;
+  console.warn = () => {};
+  let editor;
+  try {
+    editor = new EditorModel({
+      storage: new ProgressStorage(EDITOR_KEY, browserStorage),
+      clock: tickingClock(),
+    });
+  } finally {
+    console.warn = originalWarn;
+  }
+
+  assert.equal(values.get(EDITOR_KEY), malformed);
+  assert.equal(editor.getSnapshot().document.kind, "orbit-editor-project");
+  assert.equal(
+    editor.getSnapshot().warnings.some(
+      (entry) => entry.code === "stored-document-unreadable",
+    ),
+    true,
+  );
+});
+
+test("EditorModel rechaza una clave de progreso estudiantil", () => {
+  assert.throws(
+    () => new EditorModel({ storageKey: "orbit-progress:v3:normal" }),
+    /prefijo orbit-editor:/,
+  );
+});
+
+test("exportDocument es estable mientras no hay una mutación", () => {
+  const editor = model();
+  const first = editor.exportDocument();
+  const second = editor.exportDocument();
+  assert.equal(first, second);
+  assert.deepEqual(JSON.parse(first), editor.getSnapshot().document);
+  assert.deepEqual(editor.validate().errors, []);
+});

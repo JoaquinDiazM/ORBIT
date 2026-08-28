@@ -2,6 +2,31 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [0.4.0] - 2026-08-28
+
+### Añadido
+
+- Entrada estática separada `editor.html` para **ORBIT Editor**, mientras `index.html` conserva **ORBIT Estudiante** con perfiles normal y debug.
+- Dos docks retractables e independientes en Editor: **General** para operaciones del borrador y **Editor** para las herramientas **Spider** y **Bee**.
+- Spider para mover nodos entre posiciones o zonas y editar únicamente requisitos dirigidos `completedLocations`; las relaciones derivadas de conceptos o recompensas permanecen visibles y de solo lectura.
+- Bee para intercambiar zonas dentro de su mismo anillo: Base fija, seis fundamentos en `tier 1` y doce aplicaciones en `tier 2`.
+- Documento editorial `orbit-editor-project` con esquema `v1`, autoguardado en `orbit-editor:v1:electromagnetism-applied`, importación/exportación JSON validada e historial de deshacer/rehacer.
+- Guía dedicada del Editor, ADR 0007 y captura `docs/screenshots/editor.png`.
+
+### Cambiado
+
+- La interfaz de aprendizaje se identifica como **ORBIT Estudiante** para distinguirla de la herramienta de autoría.
+- El build estático incorpora ambas entradas sin añadir dependencias, backend ni autenticación.
+- La documentación separa el borrador editorial `v1` del progreso de Estudiante, que permanece en `v3` y conserva migración desde `v1`/`v2` históricos.
+- El inventario curricular permanece en 19 zonas, 20 conceptos y 28 lugares. El Árbol II mantiene 13 parejas derivadas totales y cuatro requisitos `completedLocations` explícitos canónicos.
+
+### Seguridad y alcance
+
+- Spider rechaza requisitos propios, duplicados y ciclos; eliminar una dependencia directa no elimina una relación que también derive de conceptos o recompensas.
+- Bee rechaza intercambios entre anillos y no deja estados parciales; `origin` permanece en `(0,0)`.
+- Editor nunca lee ni escribe `orbit-progress`, no concede logros y no aplica el borrador automáticamente a Estudiante.
+- El JSON exportado requiere revisión, aplicación al repositorio, validación, build y despliegue manual. `editor.html` no es por sí solo una barrera de acceso.
+
 ## [0.3.2] - 2026-08-28
 
 ### Añadido

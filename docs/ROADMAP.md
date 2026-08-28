@@ -51,14 +51,27 @@ Candidato: inducción de Faraday.
 
 Criterio de salida: sirve como plantilla de calidad para todos los nodos posteriores.
 
-## 0.4 — Sistema de contenido escalable
+## 0.4 — Base de autoría visual
 
-- Evaluar Markdown/MDX mediante ADR.
-- Separar enunciados y soluciones.
-- Extender el render TeX/MathML ya incorporado a ejemplos, soluciones y vista imprimible.
-- Incorporar banco de ejercicios parametrizados sin perder trazabilidad.
-- Añadir validación de metadatos pedagógicos.
-- Crear vista imprimible.
+Estado: base cartográfica implementada en `0.4.0`; no es todavía un editor completo de cursos.
+
+- Separar **ORBIT Estudiante** (`index.html`, perfiles normal/debug) de **ORBIT Editor** (`editor.html`).
+- Incorporar docks General y Editor retractables y operables con puntero o teclado.
+- Implementar Spider para mover nodos y editar requisitos directos `completedLocations`, conservando conceptos/recompensas como relaciones derivadas de solo lectura.
+- Implementar Bee para intercambiar zonas dentro de `tier 1` o `tier 2`, con Base fija y rechazo entre anillos.
+- Versionar el borrador como esquema editorial `v1`, separado del progreso Estudiante `v3`.
+- Añadir autoguardado, importación/exportación JSON validada y deshacer/rehacer.
+- Conservar el dataset canónico de 19 zonas, 20 conceptos, 28 lugares, 13 parejas derivadas y cuatro requisitos directos `completedLocations`.
+- Mantener operación estática, sin backend, autenticación, dependencia nueva ni publicación automática.
+
+El sistema de contenido escalable que antes ocupaba este hito permanece pendiente como línea posterior:
+
+- evaluar Markdown/MDX mediante ADR;
+- separar enunciados y soluciones;
+- extender TeX/MathML a ejemplos, soluciones y vista imprimible;
+- incorporar ejercicios parametrizados con trazabilidad;
+- validar metadatos pedagógicos;
+- crear vista imprimible.
 
 ## 0.5 — Curso mínimo utilizable
 
@@ -94,7 +107,7 @@ Criterio de salida: sirve como plantilla de calidad para todos los nodos posteri
 - Rutas de cursos adicionales con contratos explícitos de prerrequisitos, equivalencias y conexiones transversales.
 - Sincronización opcional entre dispositivos.
 - Paquetes de contenido de terceros.
-- Editor visual de mapas.
+- Edición visual de contenido, creación de entidades y publicación asistida sobre la base de Editor 0.4.0.
 - Idioma inglés.
 - Integración con LMS mediante un estándar abierto.
 - Simulaciones interactivas propias.

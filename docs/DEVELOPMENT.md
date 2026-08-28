@@ -38,6 +38,15 @@ npm run check
 
 Sirve el directorio del proyecto sin transformar los módulos; el navegador carga el código fuente directamente. Intenta usar `http://127.0.0.1:4173/` y, si ese puerto está ocupado, avanza hasta encontrar uno libre. Siempre abre la URL exacta que imprime la ejecución actual.
 
+Las dos entradas son:
+
+```text
+http://127.0.0.1:<puerto>/             # ORBIT Estudiante
+http://127.0.0.1:<puerto>/editor.html  # ORBIT Editor
+```
+
+`?profile=...` y `?debug=1` pertenecen solo a Estudiante. Editor usa un borrador local independiente y no debe probarse como si fuera otro perfil.
+
 No reutilices un servidor iniciado antes de actualizar el repositorio: su lógica puede no corresponder al código actual. Detén su terminal con `Ctrl+C` y vuelve a ejecutar `npm run dev`. Para exigir un puerto concreto, define por ejemplo `$env:PORT = 4200`; un puerto explícito ocupado produce un error breve en vez de seleccionar otro.
 
 En desarrollo, el navegador obtiene KaTeX desde `node_modules/katex/dist/`. El build reemplaza esas dos referencias por `vendor/katex/` y copia únicamente el runtime publicable; ninguna ruta a `node_modules` llega a `dist/`.
@@ -52,7 +61,9 @@ Ejecuta las pruebas de `tests/` mediante `node:test`.
 
 ### `npm run build`
 
-Copia los recursos publicables a `dist/`, reescribe las rutas de desarrollo, añade la distribución local de KaTeX y genera `build-info.json`. El build falla si queda una ruta a `node_modules` o si falta un recurso matemático. Es intencionalmente transparente: no minifica ni empaqueta el código del proyecto.
+Copia los recursos publicables a `dist/`, incluidas `index.html` y `editor.html`, reescribe las rutas de desarrollo que corresponden, añade la distribución local de KaTeX y genera `build-info.json`. El build falla si queda una ruta a `node_modules` o si falta un recurso matemático. Es intencionalmente transparente: no minifica ni empaqueta el código del proyecto.
+
+El build no consume ni aplica automáticamente un JSON exportado por Editor. Integrar el borrador a los datos publicados es un paso previo, manual y revisable.
 
 ### `npm run check`
 
@@ -66,18 +77,21 @@ Ejecuta validación, pruebas y build. Es el control mínimo antes de commit o pu
 4. Implementa el cambio mínimo.
 5. Añade pruebas.
 6. Ejecuta `npm run check`.
-7. Prueba manualmente con `?debug=1&profile=debug-<tarea>`.
-8. Actualiza documentación y `CHANGELOG.md`.
+7. Prueba manualmente Estudiante con `?debug=1&profile=debug-<tarea>`.
+8. Si el cambio afecta cartografía o Editor, prueba además `editor.html`, round-trip JSON y separación de almacenamiento.
+9. Actualiza documentación y `CHANGELOG.md`.
 
 ## Perfiles de prueba
 
-Usa un perfil distinto por tarea para no contaminar el progreso:
+Usa un perfil distinto por tarea para no contaminar el progreso de Estudiante:
 
 ```text
 ?debug=1&profile=debug-border-rules
 ?debug=1&profile=debug-gauss-node
 ?debug=1&profile=debug-save-v3
 ```
+
+Editor no usa perfiles. Su clave estable es `orbit-editor:v1:electromagnetism-applied`; exporta una copia antes de restaurar o importar durante pruebas destructivas.
 
 ## Convenciones
 
@@ -92,15 +106,27 @@ Usa un perfil distinto por tarea para no contaminar el progreso:
 
 ## Estado y efectos laterales
 
-- `ProgressionModel` es la única autoridad que modifica el progreso.
-- `ProgressStorage` es el único acceso directo a `localStorage`.
+- `ProgressionModel` es la única autoridad que modifica el progreso de Estudiante.
+- `ProgressStorage` es el único acceso directo a las claves de progreso en `localStorage`.
+- El modelo/almacenamiento editorial encapsula únicamente `orbit-editor:v1:electromagnetism-applied`; nunca accede a `orbit-progress`.
 - El renderer lee snapshots; no concede conceptos ni recompensas.
 - La UI solicita acciones al modelo; no modifica arrays persistidos directamente.
 - Zonas abiertas, fronteras y lugares visibles son datos derivados.
+- El documento editorial se materializa sobre copias; exportarlo no modifica `AREAS`, `LOCATIONS` ni Estudiante.
 
 ## Añadir una prueba
 
 Prefiere pruebas pequeñas sobre funciones puras. Para cambios de contenido, agrega una prueba de progresión o extiende el validador.
+
+Para Editor, prueba por separado:
+
+- saneamiento y round-trip del documento `v1`;
+- movimiento de nodos y margen seguro;
+- conexiones directas, duplicados, self-edge y ciclos;
+- intercambio Bee dentro del anillo y rechazo cruzado;
+- undo/redo, autoguardado e importación atómica;
+- Pointer Events, teclado y estado de ambos docks;
+- presencia de ambas entradas en el build y no regresión normal/debug.
 
 Ejemplo:
 
@@ -125,5 +151,12 @@ test("la nueva regla conserva la propiedad esperada", () => {
 - Noclip activado y desactivado fuera de una zona abierta.
 - Zoom y cámara.
 - Vista con `prefers-reduced-motion`.
+- Entrada Estudiante normal y debug sin controles Spider/Bee.
+- Entrada Editor con ambos docks retractables, Spider y Bee.
+- Movimiento de nodo por puntero y teclado, incluida transferencia de zona válida.
+- Conexión directa y relación derivada de solo lectura.
+- Intercambio Bee dentro del mismo anillo y rechazo entre anillos.
+- Deshacer/rehacer, recarga, exportación e importación inválida sin pérdida del borrador válido.
+- Confirmación de que el borrador no cambia la cartografía publicada en Estudiante.
 
 Consulta `docs/QA_CHECKLIST.md` para una revisión más completa.

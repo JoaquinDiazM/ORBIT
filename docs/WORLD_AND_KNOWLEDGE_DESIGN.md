@@ -96,7 +96,7 @@ La propiedad `visibility` define cómo se representa antes de cumplir los requis
 prerrequisito ─────────▶ destino
 ```
 
-Si el mismo lugar satisface más de una declaración —por ejemplo, estar completado y conceder el concepto exigido—, ambas se agregan en una sola pareja. Los requisitos de `areas` siguen participando en el acceso, pero no generan guías del Árbol II. Con los datos de 0.3.2 existen exactamente 13 parejas únicas.
+Si el mismo lugar satisface más de una declaración —por ejemplo, estar completado y conceder el concepto exigido—, ambas se agregan en una sola pareja. Los requisitos de `areas` siguen participando en el acceso, pero no generan guías del Árbol II. Con los datos canónicos de 0.4.0 existen exactamente 13 parejas únicas: cuatro proceden de requisitos directos explícitos `completedLocations` y las restantes se derivan de conceptos o recompensas.
 
 Las aristas elegibles se clasifican por el estado de sus extremos visibles:
 
@@ -111,6 +111,23 @@ El panel **Visual**, separado del listado de **Árboles**, aplica uno de tres fi
 - **Total** (`total`): muestra todas las aristas elegibles entre lugares visibles.
 
 Si un destino acaba de volverse accesible, únicamente la arista desde el lugar cuya finalización produjo la transición lleva la etiqueta textual **NUEVO**. Esa fuente y la lista de destinos recién accesibles son efímeras; la preferencia del filtro sí se guarda, pero no altera requisitos, accesibilidad ni movimiento libre.
+
+## Autoría cartográfica en ORBIT Editor
+
+ORBIT Editor abre en `editor.html` y trabaja sobre una copia editorial de la cartografía. No sustituye los perfiles normal o debug de ORBIT Estudiante en `index.html` ni comparte su estado. El progreso del estudiante conserva el esquema `v3`; el borrador editorial usa el esquema `v1` y la clave `orbit-editor:v1:electromagnetism-applied`.
+
+La herramienta **Spider** opera sobre los lugares y el Árbol II:
+
+- mueve un lugar cambiando su `areaId` y su `offset` local;
+- crea o elimina únicamente requisitos directos `completedLocations`;
+- muestra las relaciones derivadas de conceptos y recompensas como información de solo lectura;
+- rechaza autorrelaciones, duplicados y ciclos antes de aceptar una conexión.
+
+La herramienta **Bee** reorganiza las zonas del disco axial. Como las 19 celdas ya están ocupadas, la operación disponible es un intercambio: solo admite dos zonas con el mismo `tier` o anillo, mantiene fijo el origen y desplaza cada zona junto con los lugares que contiene. De esta manera, el anillo uno de fundamentos teóricos nunca se mezcla con el anillo dos de aplicaciones.
+
+Los docks **General** y **Editor** son retractables. El mapa admite selección y manipulación con ratón, alternativas de teclado, cancelación y un historial local de deshacer/rehacer. Estas operaciones solo actualizan el borrador editorial y su guardado automático.
+
+Importar valida el documento completo antes de reemplazarlo; exportar produce JSON para revisión. Ninguna de esas acciones modifica `orbit-progress:*` ni aplica automáticamente el borrador al estudiante. Publicar exige integrar manualmente el JSON revisado en los datos fuente, ejecutar la validación y el build, y desplegar una nueva versión. ORBIT Editor 0.4.0 no tiene backend, autenticación, colaboración multiusuario ni dependencias nuevas de ejecución.
 
 ## Clases de lugar actuales
 
@@ -148,6 +165,8 @@ abre Altiplano Electrostático (Árbol I)
 Un elemento lateral debe enriquecer, no bloquear, salvo que sea explícitamente parte de una ruta especializada. Transportes, personajes y gadgets demostrativos no deben ser llaves ocultas para avanzar por el tronco principal.
 
 ## Expansión del mapa
+
+ORBIT Editor 0.4.0 reorganiza elementos existentes, pero todavía no crea ni elimina zonas o lugares. Para ampliar el dataset fuente:
 
 Al agregar zonas:
 

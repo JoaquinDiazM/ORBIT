@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="es-CL">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="ORBIT Editor: editor visual local para organizar zonas, nodos y prerrequisitos de una ruta educativa."
+    />
+    <meta name="theme-color" content="#08111f" />
+    <link rel="icon" href="./public/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./src/editor/editor.css" />
+    <title>ORBIT Editor · Electromagnetismo Aplicado</title>
+  </head>
+  <body>
+    <main id="app" class="editor-shell" aria-label="ORBIT Editor para Electromagnetismo Aplicado">
+      <canvas
+        id="world-canvas"
+        tabindex="0"
+        aria-label="Mapa editable de zonas, nodos y conexiones. Usa los paneles para disponer de controles equivalentes por teclado."
+      >
+        Tu navegador necesita soporte para Canvas 2D.
+      </canvas>
+
+      <section id="hud" class="glass-card editor-hud" aria-label="Estado del borrador editorial">
+        <div class="hud-brand editor-brand">
+          <div>
+            <p class="eyebrow">Open Roadmap for Building Intuition and Theory</p>
+            <h1><span class="orbit-wordmark">ORBIT EDITOR</span><span class="orbit-route"> · Electromagnetismo Aplicado</span></h1>
+          </div>
+          <span id="editor-draft-badge" class="status-badge">borrador local</span>
+          <a class="mode-entry-link" href="./index.html">ORBIT estudiante</a>
+        </div>
+        <dl class="hud-stats editor-stats">
+          <div><dt>Herramienta</dt><dd id="editor-active-tool">Spider · mover</dd></div>
+          <div><dt>Zonas</dt><dd id="editor-area-count">19</dd></div>
+          <div><dt>Nodos</dt><dd id="editor-location-count">28</dd></div>
+          <div><dt>Estado</dt><dd id="editor-save-status" role="status">Cargando borrador…</dd></div>
+        </dl>
+        <div class="editor-history-controls" aria-label="Historial de edición">
+          <button id="editor-undo" type="button" disabled>Deshacer</button>
+          <button id="editor-redo" type="button" disabled>Rehacer</button>
+        </div>
+      </section>
+
+      <nav
+        id="editor-general-dock"
+        class="glass-card tool-dock editor-dock editor-general-dock"
+        aria-label="Menú general del editor"
+      >
+        <div class="editor-dock-heading">
+          <span class="editor-dock-title">General</span>
+          <button
+            id="editor-general-collapse"
+            class="editor-collapse-button"
+            type="button"
+            aria-controls="editor-general-dock"
+            aria-expanded="true"
+            aria-label="Minimizar menú general"
+            title="Minimizar menú general"
+          >‹</button>
+        </div>
+        <button id="editor-open-overview" class="dock-button" data-mark="OR" type="button" aria-controls="editor-inspector">Resumen</button>
+        <button id="editor-fit-world" class="dock-button" data-mark="⌖" type="button">Encuadrar</button>
+        <button id="editor-export" class="dock-button" data-mark="↓" type="button">Exportar</button>
+        <label class="dock-button editor-file-button" data-mark="↑">
+          <span>Importar</span>
+          <input id="editor-import" type="file" accept="application/json" />
+        </label>
+        <button id="editor-reset" class="dock-button" data-mark="↺" type="button">Restaurar</button>
+        <button id="editor-open-help" class="dock-button" data-mark="?" type="button" aria-controls="editor-inspector">Ayuda</button>
+      </nav>
+
+      <nav
+        id="editor-tools-dock"
+        class="glass-card tool-dock editor-dock editor-tools-dock"
+        aria-label="Herramientas editoriales"
+      >
+        <div class="editor-dock-heading">
+          <span class="editor-dock-title">Editor</span>
+          <button
+            id="editor-tools-collapse"
+            class="editor-collapse-button"
+            type="button"
+            aria-controls="editor-tools-dock"
+            aria-expanded="true"
+            aria-label="Minimizar menú editorial"
+            title="Minimizar menú editorial"
+          >‹</button>
+        </div>
+        <button
+          id="editor-open-spider"
+          class="dock-button editor-tool-button"
+          data-mark="SP"
+          type="button"
+          aria-controls="editor-inspector"
+          aria-pressed="true"
+        >Spider</button>
+        <button
+          id="editor-open-bee"
+          class="dock-button editor-tool-button"
+          data-mark="BE"
+          type="button"
+          aria-controls="editor-inspector"
+          aria-pressed="false"
+        >Bee</button>
+      </nav>
+
+      <aside
+        id="editor-inspector"
+        class="side-panel primary-panel editor-inspector"
+        role="region"
+        aria-labelledby="editor-inspector-title"
+      >
+        <header class="panel-header">
+          <div>
+            <p id="editor-inspector-eyebrow" class="eyebrow">Árbol II · nodos</p>
+            <h2 id="editor-inspector-title">Spider</h2>
+          </div>
+          <button id="editor-close-inspector" class="icon-button" type="button" aria-label="Ocultar inspector">×</button>
+        </header>
+        <div class="panel-body editor-panel-body">
+          <section id="editor-spider-panel" aria-labelledby="editor-spider-heading">
+            <h3 id="editor-spider-heading">Mover y conectar nodos</h3>
+            <p class="editor-intro">Arrastra un nodo para ubicarlo. En Conectar, arrastra desde la fuente hasta el destino para crear un prerrequisito dirigido.</p>
+
+            <fieldset class="editor-segmented-control">
+              <legend>Gesto del ratón</legend>
+              <label><input type="radio" name="editor-spider-mode" value="move" checked /> Mover</label>
+              <label><input type="radio" name="editor-spider-mode" value="connect" /> Conectar</label>
+            </fieldset>
+
+            <label class="field-label" for="editor-location-select">Nodo seleccionado</label>
+            <select id="editor-location-select"></select>
+
+            <div class="editor-coordinate-grid">
+              <label>Zona<select id="editor-location-area"></select></label>
+              <label>Offset x<input id="editor-location-x" type="number" step="1" /></label>
+              <label>Offset y<input id="editor-location-y" type="number" step="1" /></label>
+              <button id="editor-apply-location" type="button">Aplicar posición</button>
+            </div>
+
+            <div class="editor-nudge-grid" aria-label="Ajuste fino del nodo">
+              <span></span><button type="button" data-nudge-x="0" data-nudge-y="-1" aria-label="Mover nodo arriba">↑</button><span></span>
+              <button type="button" data-nudge-x="-1" data-nudge-y="0" aria-label="Mover nodo a la izquierda">←</button>
+              <button type="button" data-nudge-x="0" data-nudge-y="1" aria-label="Mover nodo abajo">↓</button>
+              <button type="button" data-nudge-x="1" data-nudge-y="0" aria-label="Mover nodo a la derecha">→</button>
+            </div>
+
+            <h3>Conexión explícita</h3>
+            <div class="editor-connection-form">
+              <label>Fuente<select id="editor-connection-source"></select></label>
+              <span aria-hidden="true">→</span>
+              <label>Destino<select id="editor-connection-target"></select></label>
+              <button id="editor-add-connection" type="button">Conectar</button>
+            </div>
+            <div class="editor-legend" aria-label="Leyenda de conexiones">
+              <p><span class="editor-line-swatch editable" aria-hidden="true"></span><strong>Spider:</strong> prerrequisito editable de lugar completado.</p>
+              <p><span class="editor-line-swatch derived" aria-hidden="true"></span><strong>Derivada:</strong> relación de concepto o recompensa; solo lectura en 0.4.0.</p>
+            </div>
+            <h3>Red seleccionada</h3>
+            <ul id="editor-connection-list" class="editor-connection-list"></ul>
+          </section>
+
+          <section id="editor-bee-panel" aria-labelledby="editor-bee-heading" hidden>
+            <h3 id="editor-bee-heading">Organizar el panal</h3>
+            <p class="editor-intro">Arrastra una zona sobre otra del mismo anillo para intercambiarlas. La Base está fija y los anillos nunca se mezclan.</p>
+
+            <section class="editor-ring-group" aria-labelledby="editor-ring-one-heading">
+              <h3 id="editor-ring-one-heading">Anillo 1 · fundamentos teóricos</h3>
+              <div id="editor-ring-one-list" class="editor-area-list"></div>
+            </section>
+            <section class="editor-ring-group" aria-labelledby="editor-ring-two-heading">
+              <h3 id="editor-ring-two-heading">Anillo 2 · aplicaciones</h3>
+              <div id="editor-ring-two-list" class="editor-area-list"></div>
+            </section>
+            <div class="editor-bee-actions">
+              <button id="editor-area-previous" type="button">Intercambiar anterior</button>
+              <button id="editor-area-next" type="button">Intercambiar siguiente</button>
+            </div>
+            <p id="editor-selected-area-summary" class="callout">Selecciona una zona del anillo 1 o 2.</p>
+          </section>
+
+          <section id="editor-overview-panel" hidden>
+            <h3>Base editorial de ORBIT 0.4.0</h3>
+            <p>El borrador se guarda únicamente en este navegador y permanece separado del progreso de ORBIT Estudiante.</p>
+            <dl class="editor-summary-list">
+              <div><dt>Spider</dt><dd>Ubica nodos y añade dependencias explícitas del Árbol II.</dd></div>
+              <div><dt>Bee</dt><dd>Reordena zonas mediante intercambios dentro de cada anillo.</dd></div>
+              <div><dt>Publicación</dt><dd>Exporta el JSON para revisarlo e integrarlo durante el mantenimiento del sitio.</dd></div>
+            </dl>
+            <section id="editor-warning-summary" class="editor-warning-summary" aria-labelledby="editor-warning-heading" hidden>
+              <h3 id="editor-warning-heading">Advertencias del borrador</h3>
+              <p>Revisa estos ajustes antes de exportar o integrar el documento.</p>
+              <ul id="editor-warning-list"></ul>
+            </section>
+            <p class="callout">0.4.0 no escribe el repositorio ni publica cambios automáticamente.</p>
+          </section>
+
+          <section id="editor-help-panel" hidden>
+            <h3>Controles</h3>
+            <dl class="controls-list">
+              <div><dt>Arrastrar nodo</dt><dd>Moverlo dentro de una zona o trasladarlo a otra.</dd></div>
+              <div><dt>Arrastrar zona</dt><dd>Intercambiarla con otra del mismo anillo.</dd></div>
+              <div><dt>Arrastrar fondo</dt><dd>Desplazar la cámara.</dd></div>
+              <div><dt>Rueda</dt><dd>Ajustar el zoom.</dd></div>
+              <div><dt><kbd>←↑↓→</kbd></dt><dd>Ajustar el nodo o recorrer posiciones desde los controles del inspector.</dd></div>
+              <div><dt><kbd>Shift</kbd> + flechas</dt><dd>Usar un paso mayor.</dd></div>
+              <div><dt><kbd>Ctrl</kbd> + <kbd>Z</kbd></dt><dd>Deshacer; agrega <kbd>Shift</kbd> o usa <kbd>Ctrl</kbd> + <kbd>Y</kbd> para rehacer.</dd></div>
+              <div><dt><kbd>Esc</kbd></dt><dd>Cancelar el gesto activo.</dd></div>
+            </dl>
+          </section>
+        </div>
+      </aside>
+
+      <section class="glass-card compact-card editor-controls-hint" aria-label="Controles principales del editor">
+        <span>Arrastra: mover o conectar</span>
+        <span>Fondo: desplazar mapa</span>
+        <span>Rueda: zoom</span>
+        <span><kbd>Ctrl</kbd> + <kbd>Z</kbd>: deshacer</span>
+      </section>
+
+      <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+      <div id="loading-screen" class="loading-screen">
+        <div class="loading-card">
+          <div class="loading-orbit" aria-hidden="true"></div>
+          <p id="loading-eyebrow" class="eyebrow">Inicializando editor</p>
+          <h2 id="loading-title">Preparando Spider y Bee…</h2>
+          <p id="loading-detail" class="startup-detail" role="alert" hidden></p>
+        </div>
+      </div>
+    </main>
+
+    <script src="./src/startup-guard.js"></script>
+    <script type="module" src="./src/editor/editor-bootstrap.js"></script>
+  </body>
+</html>

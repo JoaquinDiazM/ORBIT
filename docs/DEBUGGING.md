@@ -1,4 +1,6 @@
-# Debugger
+# Debugger de ORBIT Estudiante
+
+Esta herramienta pertenece a `index.html`. Sirve para inspeccionar o forzar una sesión de **ORBIT Estudiante** y no debe confundirse con **ORBIT Editor**, cuya entrada es `editor.html`.
 
 ## Perfil recomendado
 
@@ -113,6 +115,26 @@ OrbitDebug.importProgress(save);
 OrbitDebug.reset();
 ```
 
+## Editor no es debugger
+
+ORBIT Editor se abre de forma independiente:
+
+```text
+http://127.0.0.1:<puerto>/editor.html
+```
+
+No interpreta `?debug=1`, no carga `window.OrbitDebug` y no usa perfiles. Su autoguardado reside en `orbit-editor:v1:electromagnetism-applied`; el debugger conserva progreso `v3` bajo `orbit-progress`.
+
+Para comprobar la frontera entre ambos:
+
+1. abre Estudiante con un perfil `debug-editor-separation` y completa algún lugar;
+2. abre Editor, mueve un nodo y recarga;
+3. vuelve a Estudiante y confirma que la cartografía publicada y su progreso no cambiaron;
+4. exporta el borrador editorial y comprueba que no contiene conceptos adquiridos, respuestas ni posición del jugador;
+5. exporta el progreso debug y confirma que no contiene zonas, offsets ni conexiones editoriales.
+
+Spider y Bee tienen validación, historial e importación/exportación propios descritos en la [Guía de ORBIT Editor](EDITOR_GUIDE.md). El archivo editorial exportado no se aplica automáticamente a Estudiante y no sustituye `npm run check`, revisión, build ni despliegue manual.
+
 ## Casos de prueba recomendados
 
 ### Regla de fronteras
@@ -156,7 +178,7 @@ Para compatibilidad, prueba además un perfil antiguo bajo `aea-progress`: debe 
 9. Confirma que un extremo oculto no produzca aristas y que cambiar el nivel no modifique requisitos ni progreso.
 10. Revisa que **Árboles** se limite al listado de zonas, lugares y recompensas; la configuración y la leyenda permanecen en **Visual**.
 
-El dataset completo deriva 13 parejas únicas después de agrupar requisitos duplicados. `newlyAccessibleLocationIds` y el lugar fuente de la transición son estado efímero del evento y no deben aparecer en el JSON exportado. En un destino con varios prerrequisitos, solo la arista desde la última finalización causal lleva **NUEVO**. `treeTwoVisualizationMode`, en cambio, es una preferencia saneada y sí debe sobrevivir a recarga, exportación e importación.
+El dataset completo deriva 13 parejas únicas después de agrupar requisitos duplicados; cuatro relaciones `completedLocations` se declaran explícitamente. `newlyAccessibleLocationIds` y el lugar fuente de la transición son estado efímero del evento y no deben aparecer en el JSON exportado. En un destino con varios prerrequisitos, solo la arista desde la última finalización causal lleva **NUEVO**. `treeTwoVisualizationMode`, en cambio, es una preferencia saneada y sí debe sobrevivir a recarga, exportación e importación.
 
 ### Coulomb y tres cargas
 

@@ -1,4 +1,6 @@
-# Guía de usuario
+# Guía de ORBIT Estudiante
+
+ORBIT 0.4.0 ofrece dos entradas. Esta guía describe **ORBIT Estudiante** en `index.html`, tanto en perfil normal como debug. La autoría cartográfica se realiza por separado en `editor.html` y se documenta en la [Guía de ORBIT Editor](EDITOR_GUIDE.md).
 
 ## Abrir el prototipo
 
@@ -9,7 +11,7 @@ npm install
 npm run dev
 ```
 
-Abre la URL exacta que imprime la terminal. Normalmente es `http://127.0.0.1:4173/`; si ese puerto ya está ocupado, el servidor selecciona el siguiente disponible.
+Abre la URL exacta que imprime la terminal. Normalmente es `http://127.0.0.1:4173/`; si ese puerto ya está ocupado, el servidor selecciona el siguiente disponible. No añadas `editor.html` si deseas recorrer el curso.
 
 `npm install` se ejecuta una vez para disponer del render matemático local.
 
@@ -90,7 +92,7 @@ El ambiente comienza solo después de tu primer clic o tecla. El panel **Sonido*
 
 Las interacciones ordinarias solicitan el cue de confirmación predeterminado. Si una acción tiene un cue específico —por ejemplo, una finalización que abre una zona—, ese cue sustituye al predeterminado: nunca deben superponerse los dos. Las mismas acciones conservan siempre una indicación visual aunque el volumen esté en cero o el recurso no esté disponible.
 
-La versión 0.3.2 incluye cinco recursos verificables y cinco botones de prueba en el debugger: ambiente global, cambio de hexágono, confirmación de interacción, clic de interfaz y zona desbloqueada. Los tres sonidos procedentes de Freesound son CC0 1.0; los dos efectos nuevos son contribuciones de ORBIT aportadas por JoaquinDiazM mediante ChatGPT y publicadas bajo MIT.
+El inventario incorporado en 0.3.2 continúa vigente en 0.4.0: cinco recursos verificables y cinco botones de prueba en el debugger —ambiente global, cambio de hexágono, confirmación de interacción, clic de interfaz y zona desbloqueada—. Los tres sonidos procedentes de Freesound son CC0 1.0; los dos efectos nuevos son contribuciones de ORBIT aportadas por JoaquinDiazM mediante ChatGPT y publicadas bajo MIT.
 
 Las ecuaciones se escriben en TeX, se muestran con tipografía matemática y exponen MathML para tecnologías de asistencia.
 
@@ -122,7 +124,7 @@ Los nombres de perfil se normalizan para evitar claves inválidas. El progreso d
 
 El formato vigente es `v3`. Al abrir un perfil anterior, ORBIT migra los esquemas `v1`/`v2` y también consulta las claves históricas con prefijo `aea-progress`; después guarda el estado saneado bajo `orbit-progress`. La migración conserva los logros compatibles, transforma los antiguos ajustes de audio en los dos volúmenes independientes e inicia la visualización del Árbol II en **Oculta**.
 
-## Exportar e importar
+## Exportar e importar progreso
 
 Abre el debugger con `F2` y usa:
 
@@ -130,6 +132,20 @@ Abre el debugger con `F2` y usa:
 - **Importar progreso:** valida e incorpora un JSON compatible.
 
 Conserva copias antes de probar cambios incompatibles en el contenido.
+
+Este JSON pertenece al progreso `v3` de Estudiante. No es compatible ni intercambiable con un documento `orbit-editor-project` `v1`: el primero contiene logros y preferencias; el segundo contiene cartografía y conexiones directas.
+
+## Relación con ORBIT Editor
+
+ORBIT Editor se abre en:
+
+```text
+http://127.0.0.1:<puerto>/editor.html
+```
+
+Su propósito es que docentes preparen posiciones de nodos, dependencias directas y ordenamiento de zonas. Usa dos docks retractables y las herramientas **Spider** y **Bee**, pero no ejecuta ejercicios, no concede conceptos y no usa perfiles.
+
+El borrador editorial se autoguarda bajo `orbit-editor:v1:electromagnetism-applied`. Exportarlo no cambia este mapa ni el progreso de ningún estudiante. Para que una edición llegue a ORBIT Estudiante debe revisarse, aplicarse manualmente al repositorio, superar validación y pruebas, construirse y desplegarse. `editor.html` tampoco ofrece autenticación por sí solo.
 
 ## Accesibilidad básica
 

@@ -231,6 +231,32 @@ code {
   border-style: solid;
 }
 
+.product-mode-badge {
+  border-color: rgba(255, 209, 102, 0.34);
+  color: #fff2c0;
+  background: rgba(72, 58, 30, 0.68);
+}
+
+.mode-entry-link {
+  display: inline-flex;
+  min-height: 2rem;
+  padding: 0.42rem 0.62rem;
+  align-items: center;
+  border: 1px solid rgba(120, 227, 255, 0.28);
+  border-radius: 999px;
+  color: #dcf7ff;
+  background: rgba(17, 48, 72, 0.72);
+  font-size: 0.67rem;
+  font-weight: 760;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.mode-entry-link:hover {
+  border-color: rgba(120, 227, 255, 0.72);
+  background: rgba(40, 79, 106, 0.9);
+}
+
 .hud-stats {
   display: grid;
   grid-template-columns:

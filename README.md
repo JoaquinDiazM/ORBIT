@@ -2,7 +2,13 @@
 
 **Open Roadmap for Building Intuition and Theory**
 
-![Captura del prototipo](docs/screenshots/prototype.png)
+**ORBIT Estudiante**
+
+![Captura de ORBIT Estudiante](docs/screenshots/prototype.png)
+
+**ORBIT Editor**
+
+![Captura de ORBIT Editor](docs/screenshots/editor.png)
 
 ORBIT es un proyecto educativo abierto y transversal para construir intuición, teoría y conexiones entre rutas de aprendizaje mediante una interfaz narrativa en dos dimensiones. La ruta implementada actualmente es **Electromagnetismo Aplicado**: el estudiante explora libremente un mundo abstracto dividido en hexágonos, resuelve actividades universitarias y abre nuevas regiones mediante conocimiento adquirido.
 
@@ -10,14 +16,14 @@ El autor sitúa el origen pedagógico de esta primera ruta en su experiencia doc
 
 La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra lineal y física clásica, especialmente quienes consideran estudiar Ingeniería Eléctrica o comienzan los primeros semestres de la especialidad.
 
-> **Estado:** prototipo técnico y pedagógico `0.3.2`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
+> **Estado:** base técnica y pedagógica `0.4.0`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
 
 ## Qué demuestra esta versión
 
 - Movimiento continuo en 2D con teclado; el personaje no está restringido a nodos ni caminos.
 - Mundo de 19 hexágonos: Campamento Base, seis fundamentos y doce áreas de aplicación.
 - **Árbol del conocimiento I:** abre zonas completas.
-- **Árbol del conocimiento II:** revela lugares, gadgets, transportes, personajes y misiones dentro de zonas ya accesibles; sus requisitos declarativos producen 13 parejas únicas de guía visual.
+- **Árbol del conocimiento II:** revela lugares, gadgets, transportes, personajes y misiones dentro de zonas ya accesibles; sus requisitos declarativos producen 13 parejas únicas de guía visual, cuatro de ellas declaradas directamente mediante `completedLocations`.
 - Regla de fronteras: cuando se abre un hexágono, quedan transitables todas sus aristas compartidas con hexágonos previamente abiertos.
 - Veinte conceptos y 28 lugares alcanzables, incluida una misión integradora Tierra–Luna.
 - Ejercicios de alternativa, respuesta numérica con tolerancia, expresiones equivalentes, secuencias guiadas y actividades de confirmación.
@@ -36,7 +42,22 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
 - Estación de Superconductividad con el encuentro histórico no evaluativo de Heike Kamerlingh Onnes y un Laboratorio de Transición Superconductora independiente.
 - Validación automática contra bloqueos lógicos de progresión.
 - Build estático y despliegue preparado para GitHub Pages.
-- Una dependencia npm fijada y documentada: KaTeX 0.18.1; `0.3.2` no añade paquetes, backend, render 3D ni CDN.
+- Dos entradas estáticas: **ORBIT Estudiante** en `index.html`, con perfiles normal y debug, y **ORBIT Editor** en `editor.html`.
+- Editor cartográfico local con dos docks retractables: **Spider** mueve nodos y edita dependencias directas del Árbol II; **Bee** intercambia zonas únicamente dentro de su anillo.
+- Borrador editorial `v1` con autoguardado local, historial, importación y exportación JSON; nunca modifica el progreso `v3` ni publica automáticamente.
+- Una dependencia npm fijada y documentada: KaTeX 0.18.1; `0.4.0` no añade paquetes, backend, autenticación, render 3D ni CDN.
+
+### Cambios centrales de 0.4.0
+
+La aplicación de aprendizaje pasa a denominarse explícitamente **ORBIT Estudiante**. Su entrada continúa siendo `index.html`; un perfil normal y uno iniciado con `?debug=1` usan el mismo modelo de progreso `v3`, sus migraciones y las mecánicas publicadas en 0.3.2.
+
+La entrada separada `editor.html` inaugura **ORBIT Editor**, una herramienta local para docentes. Su menú **General** ofrece resumen, encuadre, importación, exportación, restauración y ayuda; el menú **Editor** contiene **Spider** y **Bee**. Ambos docks pueden minimizarse de manera independiente sin perder el control que los vuelve a expandir.
+
+Spider permite arrastrar nodos, cambiar su `areaId + offset` y añadir o retirar únicamente requisitos directos `completedLocations`. Las relaciones que proceden de conceptos o recompensas permanecen visibles y de solo lectura; se impiden relaciones propias, duplicadas o cíclicas. Bee intercambia coordenadas axiales entre dos zonas del mismo `tier`: Campamento Base queda fijo, las seis zonas teóricas permanecen en el anillo 1 y las doce aplicaciones en el anillo 2.
+
+El borrador se autoguarda bajo `orbit-editor:v1:electromagnetism-applied`, admite deshacer/rehacer e importación/exportación validada. Este esquema editorial `v1` es independiente del progreso estudiantil `v3`. El JSON exportado debe revisarse y aplicarse al repositorio antes de ejecutar validación, build y despliegue manual; abrir el Editor no cambia lo que ve Estudiante y la entrada separada no constituye autenticación.
+
+Consulta la [Guía de ORBIT Editor](docs/EDITOR_GUIDE.md) y el [ADR 0007](docs/decisions/0007-static-local-editor.md).
 
 ### Cambios centrales de 0.3.2
 
@@ -73,10 +94,11 @@ npm install
 npm run dev
 ```
 
-Abre la URL exacta que imprime la terminal; normalmente será:
+Abre la URL exacta que imprime la terminal. ORBIT Estudiante usa la raíz y ORBIT Editor su entrada propia; normalmente serán:
 
 ```text
 http://127.0.0.1:4173/
+http://127.0.0.1:4173/editor.html
 ```
 
 `npm install` prepara el render matemático local. Los estudiantes que reciben el contenido ya construido no necesitan instalar nada.
@@ -105,6 +127,8 @@ Para una sesión de pruebas separada del progreso normal, usa el puerto indicado
 http://127.0.0.1:<puerto>/?debug=1&profile=debug
 ```
 
+El parámetro `debug` pertenece a ORBIT Estudiante. ORBIT Editor no usa perfiles de progreso y conserva su borrador en una clave editorial separada.
+
 ## Controles
 
 | Control | Acción |
@@ -120,6 +144,8 @@ http://127.0.0.1:<puerto>/?debug=1&profile=debug
 | `F2` o `` ` `` | Abrir/cerrar el debugger |
 | `Esc` | Cerrar el último panel abierto |
 | `Shift` + clic | Teletransportarse con el debugger activo |
+
+Los controles de arrastre, teclado, conexión, intercambio de zonas y deshacer/rehacer de ORBIT Editor se documentan en la [guía específica](docs/EDITOR_GUIDE.md).
 
 ## Comandos del repositorio
 
@@ -154,6 +180,8 @@ lugares dentro de la zona ─ Árbol II ─ prerrequisitos y recompensas
 
 El estado persistido contiene logros y preferencias. Las zonas y lugares disponibles se **derivan** desde ese estado; no se guardan como una segunda verdad que pueda quedar inconsistente.
 
+ORBIT Editor opera sobre otra rama de estado: un borrador cartográfico local. Ese documento conserva ubicaciones, coordenadas y las cuatro dependencias `completedLocations` canónicas, pero no respuestas ni logros. Exportarlo no lo aplica a los datos de Estudiante.
+
 Más detalles:
 
 - [Arquitectura](docs/ARCHITECTURE.md)
@@ -166,6 +194,7 @@ Más detalles:
 - [Ejemplo no aplicable](docs/content-changes/examples/update-vector-workshop.example.md)
 - [Bibliografía BibTeX](docs/references/references.bib)
 - [Debugger](docs/DEBUGGING.md)
+- [Guía de ORBIT Editor](docs/EDITOR_GUIDE.md)
 - [Informe de validación](docs/VALIDATION_REPORT.md)
 
 ## Estructura del repositorio
@@ -173,10 +202,12 @@ Más detalles:
 ```text
 .
 ├── AGENTS.md                 # reglas globales para agentes y colaboradores
-├── index.html                # interfaz DOM y Canvas
+├── index.html                # entrada de ORBIT Estudiante
+├── editor.html               # entrada de ORBIT Editor
 ├── src/
 │   ├── core/                 # geometría, progreso, secuencias, expresiones y validación
 │   ├── data/                 # definición declarativa de mundo y contenido
+│   ├── editor/               # documento, modelo, controles y renderer editoriales
 │   ├── game/                 # loop, cámara, entrada y renderer Canvas
 │   ├── audio/                # carga local y volúmenes por categoría
 │   └── ui/                   # paneles, SVG 2D, ejercicios, HUD y debugger
@@ -187,7 +218,7 @@ Más detalles:
 └── .github/workflows/        # validación remota y publicación opcional en Pages
 ```
 
-## Debugger
+## Debugger de ORBIT Estudiante
 
 La interfaz de depuración permite:
 
@@ -213,6 +244,8 @@ OrbitDebug.setNoclip(true);
 
 Consulta [docs/DEBUGGING.md](docs/DEBUGGING.md) para la referencia completa.
 
+El debugger no es el Editor y no comparte su estado. Para autoría cartográfica abre `editor.html` y exporta el borrador siguiendo la [guía editorial](docs/EDITOR_GUIDE.md).
+
 ## Publicación en GitHub Pages
 
 Cada push a `main` ejecuta instalación reproducible, validación, pruebas y build sin publicar el repositorio privado. Para activar Pages explícitamente:
@@ -225,6 +258,8 @@ Cada push a `main` ejecuta instalación reproducible, validación, pruebas y bui
 No definas esa variable mientras quieras conservar el proyecto únicamente como repositorio privado sin sitio público.
 
 Todas las rutas del prototipo son relativas, por lo que funciona tanto en `usuario.github.io` como en `usuario.github.io/nombre-del-repositorio/`.
+
+El build incluye las entradas Estudiante y Editor, pero no aplica un borrador editorial exportado ni protege `editor.html`. La incorporación del JSON al curso, la revisión y el control de acceso durante mantenimiento son pasos manuales o responsabilidades de la infraestructura externa.
 
 ## Contribuciones y uso de agentes
 

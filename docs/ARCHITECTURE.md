@@ -2,7 +2,7 @@
 
 ## Objetivo técnico
 
-Mantener una aplicación web estática, comprensible y modificable sin un motor de juego. La arquitectura separa datos curriculares, reglas de progreso, geometría, ejecución del juego y presentación.
+Mantener dos aplicaciones web estáticas, comprensibles y modificables sin un motor de juego: **ORBIT Estudiante** para aprendizaje y **ORBIT Editor** para autoría cartográfica local. La arquitectura separa datos curriculares, reglas de progreso, geometría, borradores editoriales, ejecución del juego y presentación.
 
 ORBIT significa **Open Roadmap for Building Intuition and Theory**. La arquitectura descrita
 aquí implementa por ahora una sola ruta, Electromagnetismo Aplicado. La conexión futura entre
@@ -19,14 +19,14 @@ src/data/
 src/core/
     geometría, requisitos, progreso, guardado y validación
         │
-        ├──────────────┐
-        ▼              ▼
-src/game/          src/ui/
-loop + Canvas      DOM + paneles + ejercicios
-        │              │
-        └──────┬───────┘
-               ▼
-            src/main.js
+        ├──────────────┬────────────────┐
+        ▼              ▼                ▼
+src/game/          src/ui/          src/editor/
+loop + Canvas      DOM + paneles    borrador + autoría
+        │              │                │
+        └──────┬───────┘                │
+               ▼                        ▼
+            src/main.js          entrada editor.html
 ```
 
 `src/audio/` aporta un servicio lateral basado en `HTMLAudioElement`. Recibe eventos del juego y de la UI, pero no modifica progreso ni participa en la derivación de grafos.
@@ -78,7 +78,7 @@ Define simbología, constantes, fórmulas y glosario. Cada entrada tiene requisi
 
 `src/core/requirements.js` normaliza y evalúa requisitos contra un contexto de conceptos, ubicaciones completadas, recompensas y zonas abiertas.
 
-`src/core/knowledge-graph.js` deriva las guías del Árbol II desde `completedLocations`, `concepts` y `rewards`. Resuelve conceptos y recompensas al lugar que los concede, agrupa requisitos repetidos por pareja y conserva una única dirección semántica: prerrequisito → destino. Los requisitos de área no crean estas aristas. El dataset de 0.3.2 produce 13 parejas únicas.
+`src/core/knowledge-graph.js` deriva las guías del Árbol II desde `completedLocations`, `concepts` y `rewards`. Resuelve conceptos y recompensas al lugar que los concede, agrupa requisitos repetidos por pareja y conserva una única dirección semántica: prerrequisito → destino. Los requisitos de área no crean estas aristas. El dataset vigente produce 13 parejas únicas; cuatro relaciones `completedLocations` están declaradas explícitamente y pueden coincidir con causas conceptuales en una misma pareja.
 
 Primero se clasifica cada extremo visible como `completed`, `completable` o `blocked`. Una conexión `completed → completed/completable` usa apariencia `bright`; una conexión `completable → blocked` usa apariencia `muted`. Las demás combinaciones y cualquier extremo oculto quedan fuera. El renderer expresa además esa distinción mediante trazo sólido luminoso frente a trazo tenue discontinuo, de modo que no dependa solo del color.
 
@@ -107,7 +107,9 @@ La preferencia persistida `treeTwoVisualizationMode` filtra esas conexiones eleg
 
 ### Persistencia
 
-`src/core/storage.js` encapsula `localStorage`. El formato vigente es `v3` y está versionado por `APP_CONFIG.progressSchemaVersion`. La clave primaria usa `orbit-progress`; el arranque también consulta las claves publicadas con el prefijo histórico `aea-progress` y, después de sanear o migrar, guarda bajo la clave de ORBIT.
+`src/core/storage.js` encapsula el progreso de Estudiante en `localStorage`. El formato vigente es `v3` y está versionado por `APP_CONFIG.progressSchemaVersion`. La clave primaria usa `orbit-progress`; el arranque también consulta las claves publicadas con el prefijo histórico `aea-progress` y, después de sanear o migrar, guarda bajo la clave de ORBIT.
+
+El estado de Editor usa otro contrato y otra clave: `orbit-editor:v1:electromagnetism-applied`. El esquema editorial `v1` no es una versión del progreso, no participa en sus migraciones y nunca debe almacenarse bajo `orbit-progress`.
 
 ### Validación
 
@@ -121,7 +123,7 @@ Los modos iniciales son `numeric-equivalent`, `expression-equivalent` y `gradien
 
 `src/core/exercise-sequence.js` administra el avance efímero por intervenciones. Una secuencia solo se considera aprobada después de validar todos sus items en orden; este estado no se escribe en `localStorage`.
 
-## Juego
+## ORBIT Estudiante: juego
 
 ### `input-controller.js`
 
@@ -157,7 +159,7 @@ Orquesta el loop:
 - solicita interacciones a la UI;
 - expone operaciones de depuración.
 
-## Interfaz
+## ORBIT Estudiante: interfaz
 
 `src/ui/ui-controller.js` controla la barra de estado, la ventana principal del lugar, un único panel secundario, etapas, secuencias, ejercicios, árboles, visualización, referencias, sonido, ayuda, avisos y debugger. La ventana principal y la secundaria pueden coexistir en escritorio. El menú ofrece **Árboles**, **Visual**, **Símbolos**, **Constantes**, **Formulario**, **Glosario**, **Ayuda** y **Sonido**; abrir uno sustituye al panel secundario anterior. **Árboles** lista la progresión, mientras **Visual** controla la red del mapa y las vistas de referencia consultan el contenido desbloqueado sin volver a mostrar su bibliografía. La UI construye contenido mediante APIs DOM y `textContent`.
 
@@ -166,6 +168,27 @@ Orquesta el loop:
 `src/ui/point-charge-field-2d.js` implementa `PointChargeField2D` para la segunda etapa de Coulomb. Normaliza un dominio cuadrado, exactamente tres cargas y sus valores en `[-1,1]`; permite moverlas mediante puntero o teclado, calcula contribuciones y suma con funciones puras, y anuncia la singularidad en el punto de observación sin suavizarla. Sus posiciones y valores son efímeros.
 
 `src/ui/math-renderer.js` entrega a KaTeX únicamente expresiones editoriales TeX y conserva un fallback textual; el build sirve KaTeX localmente y nunca desde CDN.
+
+## ORBIT Editor
+
+`editor.html` es una entrada independiente. No interpreta `profile` ni `debug`, no crea `ProgressionModel`, no concede conceptos y no publica `window.OrbitDebug`. Inicializa los módulos de `src/editor/` sobre copias controladas de `AREAS` y `LOCATIONS`.
+
+El documento editorial `orbit-editor-project` usa esquema `v1` y contiene:
+
+- coordenadas axiales de las 19 zonas;
+- `areaId + offset` de los 28 lugares;
+- las cuatro conexiones explícitas canónicas de tipo `completedLocation`;
+- curso, versión de datos base y fecha de actualización.
+
+No incluye respuestas, conceptos adquiridos, recompensas ni posición de un estudiante. Se sanea antes de importarse, guardarse o materializarse y se valida nuevamente contra los contratos del mundo y la progresión. Una importación inválida no reemplaza el último borrador válido.
+
+**Spider** opera sobre nodos y requisitos directos. Convierte coordenadas de pantalla a mundo, permite cambiar `areaId + offset`, mantiene el marcador dentro del margen seguro del hexágono y materializa una flecha `A → B` como `A` dentro de `B.requirements.completedLocations`. Conceptos y recompensas siguen produciendo relaciones derivadas de solo lectura. Requisitos propios, duplicados o cíclicos se rechazan antes de modificar el borrador.
+
+**Bee** opera sobre zonas. Como las posiciones de los anillos están completas, un gesto válido intercambia `(q,r)` entre dos zonas del mismo `tier`; no crea huecos. `origin` permanece en `(0,0)`, las zonas teóricas mantienen distancia axial 1 y las aplicaciones distancia 2. El intercambio conserva IDs, contenido, `tier`, `order` y los offsets locales de sus lugares.
+
+El menú **General** y el menú **Editor** son docks retractables independientes. Pointer Events proporcionan arrastre y cancelación; listas, campos, botones y ajustes con flechas ofrecen una alternativa de teclado. El historial permite deshacer y rehacer operaciones completas y cada transición válida se autoguarda.
+
+Importar y exportar intercambia JSON editorial. Exportar no modifica `src/data/`, no construye el sitio y no despliega. La aplicación del borrador al repositorio, la revisión y la publicación pertenecen a un flujo manual descrito en la [Guía de ORBIT Editor](EDITOR_GUIDE.md) y decidido en [ADR 0007](decisions/0007-static-local-editor.md).
 
 ## Audio
 
@@ -182,6 +205,8 @@ Cada OGG tiene un sidecar homónimo, entrada de manifiesto, atribución y botón
 3. crea progreso, UI y juego;
 4. publica `window.OrbitDebug`;
 5. inicia el loop.
+
+Ese flujo corresponde a `index.html`, la entrada de Estudiante. `editor.html` usa su propio bootstrap y valida el borrador antes de iniciar el renderer editorial. La guardia de arranque evita una espera infinita en ambas entradas. El build estático copia las dos páginas y sus módulos sin añadir bundle ni dependencia.
 
 ## Modelo de estado
 
@@ -226,9 +251,26 @@ destinos recién accesibles y fuente usados por la guía NUEVO
 
 La separación evita inconsistencias como “zona guardada como abierta aunque ya no se cumplen sus requisitos”.
 
+Persistido por Editor, de forma completamente separada:
+
+```text
+kind: orbit-editor-project
+schemaVersion: 1
+courseId
+baseDataVersion
+areas[]: id + q + r
+locations[]: id + areaId + offset
+treeTwoConnections[]: sourceId + targetId + completedLocation
+updatedAt
+```
+
+El autoguardado editorial no cambia el estado persistido ni derivado de Estudiante. Solo una revisión y aplicación posterior al repositorio puede cambiar la cartografía publicada.
+
 ## Frontera de seguridad del debugger
 
 Los overrides de área se guardan solo dentro del perfil que los usa. Se recomienda reservar perfiles `debug-*`. La progresión forzada sigue pasando por `ProgressionModel`, para mantener el estado saneado y exportable.
+
+El debugger pertenece a ORBIT Estudiante y no es una vía de acceso al Editor. De forma recíproca, `editor.html` no obtiene privilegios de depuración ni acceso al progreso. Separar las entradas no reemplaza autenticación: cualquier restricción de acceso debe proporcionarla el entorno de despliegue.
 
 ## Evolución prevista
 
@@ -242,6 +284,8 @@ La arquitectura admite, sin exigirlos todavía:
 - renderizado matemático avanzado;
 - migraciones de progreso;
 - pruebas de integración en navegador.
+
+La base de Editor 0.4.0 no implica todavía edición de contenido académico, creación de entidades, colaboración, autenticación, varias rutas ni publicación automática.
 
 Cada incorporación que requiera dependencias debe documentarse mediante ADR.
 

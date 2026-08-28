@@ -7,6 +7,8 @@
 - [ ] Ejecutar `npm run check`.
 - [ ] Confirmar que no hay errores ni advertencias inesperadas en consola.
 - [ ] Abrir la URL impresa por la ejecución actual, no una pestaña servida por un proceso anterior.
+- [ ] Probar por separado ORBIT Estudiante en `index.html` y ORBIT Editor en `editor.html`.
+- [ ] Exportar una copia del borrador editorial antes de importaciones o restauraciones destructivas.
 
 ## Mundo y movimiento
 
@@ -42,7 +44,7 @@
 - [ ] En **Total** aparecen todas las conexiones elegibles entre lugares visibles, incluidas las que atraviesan más de una frontera.
 - [ ] Cambiar entre **Oculta**, **Directo** y **Total** actualiza el mapa, no concede progreso y no cambia accesibilidad.
 - [ ] Si un destino acaba de habilitarse, solo la arista desde la última finalización causal lleva la etiqueta textual **NUEVO**.
-- [ ] El dataset completo deriva 13 parejas únicas después de agrupar requisitos duplicados; los requisitos de área no crean guías.
+- [ ] El dataset completo deriva 13 parejas únicas después de agrupar requisitos duplicados; cuatro requisitos `completedLocations` son explícitos y los requisitos de área no crean guías.
 - [ ] El estado **NUEVO** es efímero y no aparece en el JSON exportado.
 - [ ] Las recompensas se conceden una sola vez.
 - [ ] Los transportes adquiridos se pueden alternar.
@@ -74,7 +76,7 @@
 
 - [ ] El progreso sobrevive a recarga.
 - [ ] Perfiles distintos no se mezclan.
-- [ ] Un perfil creado por 0.3.2 se guarda con esquema `v3` bajo el prefijo `orbit-progress`.
+- [ ] Un perfil de ORBIT Estudiante 0.4.0 se guarda con esquema `v3` bajo el prefijo `orbit-progress`.
 - [ ] Un perfil `v1` o `v2` bajo el prefijo histórico `aea-progress` migra sin perder logros compatibles y se vuelve a guardar bajo `orbit-progress`.
 - [ ] La migración convierte la preferencia y el volumen históricos en `ambienceVolume` y `effectsVolume`; un perfil antes silenciado migra ambos a cero.
 - [ ] La migración inicializa `treeTwoVisualizationMode` en `hidden`; una selección válida se persiste y un valor desconocido se sanea a **Oculta**.
@@ -82,8 +84,10 @@
 - [ ] Importación rechaza o sanea IDs desconocidos.
 - [ ] Reset devuelve a un estado inicial utilizable.
 - [ ] Los cambios de esquema incluyen migración o decisión documentada.
+- [ ] El borrador Editor usa `orbit-editor:v1:electromagnetism-applied` y nunca aparece bajo `orbit-progress`.
+- [ ] Progreso y borrador sobreviven recarga de forma independiente y sus JSON no mezclan campos.
 
-## Debugger
+## Debugger de ORBIT Estudiante
 
 - [ ] F2 y tecla grave abren/cierran el panel; cerrarlo con × mantiene el siguiente atajo sincronizado.
 - [ ] Noclip funciona.
@@ -92,6 +96,7 @@
 - [ ] `Shift` + clic funciona dentro de la cartografía.
 - [ ] `OrbitDebug.help()` y `snapshot()` funcionan.
 - [ ] Completar cercano no selecciona contenido inaccesible en modo normal.
+- [ ] Abrir `?debug=1` no activa Editor ni carga su borrador.
 
 ## Interfaz y accesibilidad
 
@@ -116,6 +121,36 @@
 - [ ] Cada ecuación se renderiza, conserva caption y puede desplazarse con teclado si desborda.
 - [ ] La salida matemática expone representación MathML y el fallback TeX es legible.
 - [ ] Un fallo de recurso durante el arranque reemplaza la espera infinita por una alerta con pasos de recuperación.
+
+## ORBIT Editor 0.4.0
+
+- [ ] `editor.html` identifica inequívocamente **ORBIT Editor** y enlaza de vuelta a Estudiante.
+- [ ] El dataset compartido conserva 19 zonas, 20 conceptos, 28 nodos, 13 parejas derivadas y cuatro conexiones directas canónicas.
+- [ ] Los docks **General** y **Editor** se minimizan y expanden por separado; el control de reapertura nunca desaparece.
+- [ ] `aria-expanded`, foco visible, `Tab`, `Enter` y `Espacio` reflejan el estado real de ambos docks.
+- [ ] Spider muestra todos los nodos sin depender del progreso de Estudiante.
+- [ ] Arrastrar un nodo actualiza `areaId + offset` respecto de la zona correcta aun con zoom o cámara desplazada.
+- [ ] Un nodo trasladado a otra zona queda dentro de su margen seguro y los campos del inspector coinciden con el Canvas.
+- [ ] Flechas y `Shift` + flechas ofrecen ajuste fino y mayor como alternativa al ratón.
+- [ ] Spider crea una relación `fuente → destino` únicamente como requisito `completedLocation`/`completedLocations` del destino.
+- [ ] Spider rechaza self-edge, duplicado, ID desconocido y ciclo sin modificar el último borrador válido.
+- [ ] Las relaciones de conceptos y recompensas se distinguen como derivadas y de solo lectura sin depender solo del color.
+- [ ] Quitar un requisito directo conserva la pareja cuando otra causa conceptual o de recompensa todavía la deriva.
+- [ ] Bee intercambia dos zonas de `tier 1` y, por separado, dos de `tier 2`.
+- [ ] Bee rechaza un intercambio `tier 1 ↔ tier 2`, comunica **ANILLO INCOMPATIBLE** por texto y no deja cambios parciales.
+- [ ] Campamento Base permanece fijo en `(0,0)`.
+- [ ] Tras cada intercambio se conservan coordenadas únicas, distancias axiales `0/1/2`, distribución `1 + 6 + 12`, IDs, `tier`, `order` y contenido.
+- [ ] Los lugares viajan con su zona y conservan offsets locales al intercambiar hexágonos.
+- [ ] Arrastrar el fondo desplaza la cámara, la rueda ajusta zoom y un gesto de edición no dispara acciones de Estudiante.
+- [ ] `Esc` o `pointercancel` cancela el gesto activo sin cambios parciales.
+- [ ] Deshacer y rehacer funcionan mediante botones, `Ctrl`/`Cmd` + `Z`, `Ctrl`/`Cmd` + `Shift` + `Z` y `Ctrl` + `Y`.
+- [ ] Importar o restaurar inicia un historial nuevo; undo/redo nunca cruza esa frontera.
+- [ ] Cada operación válida se autoguarda en `orbit-editor:v1:electromagnetism-applied` y una recarga la recupera.
+- [ ] Exportar produce `orbit-editor-project` esquema `v1` con curso, versión base, áreas, ubicaciones y conexiones, sin progreso estudiantil.
+- [ ] Una importación válida reemplaza el borrador solo después de sanearlo; una inválida conserva intacto el estado anterior.
+- [ ] El JSON exportado no se aplica a Estudiante hasta integrarlo manualmente al repositorio y reconstruir.
+- [ ] Editor sigue siendo usable a 200 % de zoom, en ventana estrecha y con `prefers-reduced-motion`.
+- [ ] La consola queda limpia durante movimiento, conexión, intercambio, undo/redo, recarga e importación.
 
 ## Audio
 
@@ -146,10 +181,12 @@
 
 ## Publicación
 
-- [ ] `dist/` contiene `index.html`, `404.html`, `src/`, `public/` y `vendor/katex/`.
+- [ ] `dist/` contiene `index.html`, `editor.html`, `404.html`, `src/`, `public/` y `vendor/katex/`.
 - [ ] `dist/index.html` y `dist/404.html` no contienen rutas a `node_modules/`.
+- [ ] `dist/editor.html` y sus módulos cargan bajo la misma subruta sin referencias a recursos ausentes.
 - [ ] Todas las rutas son relativas.
 - [ ] El job de validación remota termina correctamente; el job de Pages se omite mientras `ENABLE_PAGES` no sea `true`.
 - [ ] La página funciona bajo una subruta de repositorio.
-- [ ] README, captura y versión corresponden al comportamiento publicado.
+- [ ] README, capturas `prototype.png`/`editor.png` y versión corresponden al comportamiento publicado.
 - [ ] `CHANGELOG.md` registra los cambios visibles.
+- [ ] El proceso de publicación no afirma que un JSON editorial se aplique, autentique o despliegue automáticamente.

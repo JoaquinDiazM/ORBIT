@@ -28,7 +28,9 @@ La historia se usa para responder tres preguntas:
 
 La historia no sustituye el orden de prerrequisitos. El currículo es un grafo conceptual disfrazado de expedición histórica, no una cronología rígida.
 
-## Experiencia del estudiante
+## Dos experiencias del producto
+
+### ORBIT Estudiante
 
 El estudiante controla un personaje que se mueve libremente en un mundo abstracto bidimensional. El movimiento visual nunca queda restringido a nodos o caminos: puede recorrer cualquier punto físicamente accesible de una zona abierta.
 
@@ -39,7 +41,17 @@ La experiencia combina dos modos que deberán coexistir en una versión futura:
 - **Modo Expedición:** progresión narrativa y desbloqueos espaciales.
 - **Modo consulta temática:** acceso académico directo por tema, útil para repasar antes de una evaluación.
 
-La versión `0.3.2` conserva la Expedición de dos anillos y profundiza su contenido académico dentro de la ruta de Electromagnetismo Aplicado. El Taller Vectorial sirve como primer nodo desarrollado con mayor profundidad: reúne elementos diferenciales, una comparación visual de campos en SVG, un ejemplo cartesiano guiado y una evaluación cilíndrica independiente. El modo de consulta temática con acceso directo, la profundidad curricular completa y la conexión entre cursos siguen siendo hitos posteriores.
+La versión `0.4.0` conserva sin reducción la Expedición publicada en 0.3.2: 19 zonas, 20 conceptos, 28 lugares y 13 parejas derivadas del Árbol II, de las cuales cuatro tienen un requisito `completedLocations` explícito canónico. El Taller Vectorial sirve como primer nodo desarrollado con mayor profundidad: reúne elementos diferenciales, una comparación visual de campos en SVG, un ejemplo cartesiano guiado y una evaluación cilíndrica independiente. El modo de consulta temática con acceso directo, la profundidad curricular completa y la conexión entre cursos siguen siendo hitos posteriores.
+
+La entrada es `index.html`. Los perfiles normal y debug comparten el progreso `v3`, aunque debug habilita herramientas de inspección y avance forzado dentro de su propio perfil.
+
+### ORBIT Editor
+
+La entrada `editor.html` sienta una base de autoría cartográfica local para docentes. Mantiene una interfaz análoga, pero no ejecuta una sesión de aprendizaje ni concede progreso.
+
+Dos docks retractables separan operaciones generales y herramientas editoriales. **Spider** mueve lugares y edita únicamente dependencias directas `completedLocations`; conceptos y recompensas continúan como causas derivadas de solo lectura. **Bee** intercambia zonas dentro de su mismo anillo, sin mover la Base ni mezclar fundamentos de `tier 1` con aplicaciones de `tier 2`.
+
+El borrador usa esquema editorial `v1`, autoguardado local, importación/exportación JSON e historial. Es independiente del progreso `v3` y no se aplica automáticamente a Estudiante. Un docente o mantenedor debe revisar el archivo exportado, integrarlo al repositorio, validar, construir y desplegar durante el procedimiento operativo correspondiente.
 
 ## Dos grafos de conocimiento
 
@@ -137,15 +149,17 @@ El proyecto debe privilegiar contenido y ejercicios sobre producción audiovisua
 - assets costosos;
 - animaciones largas.
 
-La versión `0.3.2` no añade backend, gráficos 3D, telemetría ni dependencias. El avance dentro de etapas, los parámetros de figuras y las respuestas parciales siguen siendo estado local de sesión. Los cambios de preferencias o cartografía deben conservar la compatibilidad mediante el mecanismo de migración versionada del proyecto.
+La versión `0.4.0` no añade backend, autenticación, gráficos 3D, telemetría ni dependencias. El avance dentro de etapas, los parámetros de figuras y las respuestas parciales siguen siendo estado local de sesión. El progreso Estudiante permanece en `v3`; el documento Editor comienza en `v1` bajo otra clave y otro contrato. Cambiar cualquiera de ellos requiere versionar y sanear el esquema correspondiente, sin confundir ambos espacios.
+
+La entrada Editor no escribe archivos fuente, Git ni el servidor y no constituye control de acceso. La publicación sigue siendo manual; cualquier restricción para profesores debe proporcionarla la infraestructura externa.
 
 La interfaz debe verse suficientemente clara para probar la experiencia, pero la excelencia del proyecto se medirá por rigor, progresión, calidad de ejercicios, trazabilidad y utilidad para estudiantes.
 
 ## Definición del producto
 
-**Recurso educativo abierto e interactivo, con elementos ligeros de juego y navegación basada en dos grafos de conocimiento.**
+**Recurso educativo abierto e interactivo, con una experiencia de aprendizaje basada en dos grafos de conocimiento y una base local de autoría cartográfica.**
 
-No se presenta todavía como MOOC, videojuego completo ni plataforma multicurso operativa. Técnicamente es una aplicación web estática y, pedagógicamente, una hoja de ruta narrativa de aprendizaje cuya primera implementación corresponde a Electromagnetismo Aplicado.
+No se presenta todavía como MOOC, videojuego completo, LMS ni plataforma multicurso operativa. Técnicamente son dos entradas web estáticas sobre la misma primera ruta: ORBIT Estudiante y ORBIT Editor. El segundo no es aún un editor completo de contenido ni un sistema de publicación.
 
 ## Criterios de éxito a mediano plazo
 
