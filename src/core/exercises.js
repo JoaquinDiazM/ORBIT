@@ -1,3 +1,5 @@
+import { evaluateMathExpressionAnswer } from "./math-expression.js";
+
 export function parseLocaleNumber(value) {
   if (typeof value === "number") return Number.isFinite(value) ? value : Number.NaN;
   if (typeof value !== "string") return Number.NaN;
@@ -25,6 +27,41 @@ export function parseLocaleNumber(value) {
   return Number.isFinite(parsed) ? parsed : Number.NaN;
 }
 
+function choiceId(choice) {
+  return choice && typeof choice === "object" ? choice.id : null;
+}
+
+function selectedChoice(exercise, response) {
+  const choices = Array.isArray(exercise.choices) ? exercise.choices : [];
+  if (
+    response === null
+    || response === undefined
+    || (typeof response === "string" && response.trim() === "")
+  ) {
+    return null;
+  }
+  const responseId =
+    response && typeof response === "object" && typeof response.id === "string"
+      ? response.id
+      : typeof response === "string" && !/^\s*[+-]?\d+\s*$/.test(response)
+        ? response
+        : null;
+  if (responseId !== null) {
+    const index = choices.findIndex((choice) => choiceId(choice) === responseId);
+    return index < 0 ? null : { index, id: responseId };
+  }
+
+  const index = typeof response === "number" ? response : Number(response);
+  if (
+    !Number.isInteger(index) ||
+    index < 0 ||
+    (choices.length > 0 && index >= choices.length)
+  ) {
+    return null;
+  }
+  return { index, id: choiceId(choices[index]) };
+}
+
 export function evaluateExercise(exercise, response) {
   if (!exercise || exercise.type === "none" || exercise.type === "action") {
     return { correct: false, reason: "not-evaluable" };
@@ -35,10 +72,17 @@ export function evaluateExercise(exercise, response) {
   }
 
   if (exercise.type === "choice") {
-    const selectedIndex = Number(response);
+    const selected = selectedChoice(exercise, response);
+    if (!selected) return { correct: false, reason: "missing-response" };
+    const correct =
+      typeof exercise.answerId === "string"
+        ? selected.id === exercise.answerId
+        : selected.index === exercise.answerIndex;
     return {
-      correct: Number.isInteger(selectedIndex) && selectedIndex === exercise.answerIndex,
-      reason: Number.isInteger(selectedIndex) ? "evaluated" : "missing-response",
+      correct,
+      reason: "evaluated",
+      selectedIndex: selected.index,
+      ...(selected.id ? { selectedId: selected.id } : {}),
     };
   }
 
@@ -67,6 +111,24 @@ export function evaluateExercise(exercise, response) {
       error,
       allowedError,
     };
+  }
+
+  if (exercise.type === "expression") {
+    try {
+      const result = evaluateMathExpressionAnswer(response, exercise.answerPolicy);
+      return { ...result, reason: result.code };
+    } catch {
+      return {
+        correct: false,
+        reason: "invalid-answer-policy",
+        code: "invalid-policy",
+        message: "La configuración de esta respuesta matemática no es válida.",
+      };
+    }
+  }
+
+  if (exercise.type === "sequence") {
+    return { correct: false, reason: "sequence-requires-item" };
   }
 
   return { correct: false, reason: "unknown-exercise-type" };

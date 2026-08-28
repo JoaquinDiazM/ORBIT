@@ -32,20 +32,20 @@ Añadir en el futuro una práctica opcional y original sobre campos conservativo
 - `learningObjective`: decidir si un campo cartesiano sencillo puede derivarse de un potencial.
 - `prerequisites`: derivadas parciales e integración elemental.
 - `model`: criterio de rotacional nulo con dominio simplemente conexo.
-- `application`: relación electrostática `E = -∇V`.
+- `application`: reconstrucción de una función escalar a partir de un campo vectorial general.
 - `steps`:
   1. Diagnóstico de signos y derivadas cruzadas.
   2. Ejemplo original con potencial verificable.
   3. Problema opcional de transferencia con dominio perforado.
-- `exitExercise`: alternativa original que exija justificar la hipótesis topológica; no copiar el ejercicio 1 del material EL3103.
-- `commonErrors`: omitir el signo electrostático o afirmar el recíproco sin condición sobre el dominio.
+- `exitExercise`: alternativa original que exija justificar la hipótesis topológica.
+- `commonErrors`: afirmar el recíproco sin condición sobre el dominio o confundir rotacional nulo con divergencia nula.
 - `referencesUnlocked`: ninguna nueva; reutiliza `formula:curl-of-gradient` y `glossary:curl-free-conservative`.
 
 ## Fuentes y derechos
 
-- `el3103-team-vector-2025`, pp. 1–2: `reference-only`; licencia no indicada.
-- `ellingson-electromagnetics-i-2018`, capítulos 1 y 4 y apéndice 10.6: `adapted`; CC BY-SA 4.0.
-- `openstax-calculus-volume-3-2016`, secciones 6.3 y 6.5: `reference-only`; CC BY-NC-SA 4.0, sin adaptación de texto.
+- `openstax-calculus-volume-3-2016`, secciones 6.3 y 6.5: consulta puntual para la condición topológica; CC BY-NC-SA 4.0, sin adaptación de texto.
+- La derivación elemental y la notación general no requieren citas locales repetidas.
+- La referencia específica se comunica una vez al desbloquear el teorema y no permanece como cuadro dentro de cada tarjeta del menú.
 - El enunciado, las alternativas y la solución deberán ser originales.
 
 ## Aceptación

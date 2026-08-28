@@ -1,4 +1,4 @@
-const EL3103_CONSTANTS_SOURCE = Object.freeze({
+const NIST_CONSTANTS_SOURCE = Object.freeze({
   citationKey: "nist-codata-2022",
   label: "NIST, valores recomendados CODATA 2022",
   locator: "listado extenso de constantes fundamentales",
@@ -6,11 +6,6 @@ const EL3103_CONSTANTS_SOURCE = Object.freeze({
   usage: "datos numéricos",
   license: "datos públicos SRD 121; atribución a NIST/CODATA",
   rightsUrl: "https://www.nist.gov/open/copyright-fair-use-and-licensing-statements-srd-data-software-and-technical-series-publications",
-  selectionCitationKey: "el3103-team-symbols-2026",
-  selectionLabel: "Selección y nomenclatura basadas en el equipo docente EL3103, Simbología Electromagnetismo Aplicado",
-  selectionLocator: "p. 3",
-  selectionUsage: "consulta",
-  selectionLicense: "no indicada",
 });
 
 export const CONSTANTS = Object.freeze([
@@ -22,7 +17,7 @@ export const CONSTANTS = Object.freeze([
     value: "8,854 187 8188(14) × 10⁻¹²",
     unit: "F m⁻¹",
     requirements: {},
-    source: EL3103_CONSTANTS_SOURCE,
+    source: NIST_CONSTANTS_SOURCE,
   },
   {
     id: "vacuum-permeability",
@@ -33,7 +28,7 @@ export const CONSTANTS = Object.freeze([
     unit: "H m⁻¹",
     note: "CODATA 2022; desde la redefinición del SI no es una constante exacta.",
     requirements: {},
-    source: EL3103_CONSTANTS_SOURCE,
+    source: NIST_CONSTANTS_SOURCE,
   },
   {
     id: "vacuum-wave-impedance",
@@ -44,7 +39,7 @@ export const CONSTANTS = Object.freeze([
     unit: "Ω",
     note: "También se denota Z₀; valor CODATA 2022.",
     requirements: {},
-    source: EL3103_CONSTANTS_SOURCE,
+    source: NIST_CONSTANTS_SOURCE,
   },
   {
     id: "speed-of-light",
@@ -53,9 +48,9 @@ export const CONSTANTS = Object.freeze([
     name: "Rapidez de la luz en el vacío",
     value: "299 792 458",
     unit: "m s⁻¹",
-    note: "Valor exacto en el SI; algunas guías del curso lo denotan u₀.",
+    note: "Valor exacto en el SI.",
     requirements: {},
-    source: EL3103_CONSTANTS_SOURCE,
+    source: NIST_CONSTANTS_SOURCE,
   },
   {
     id: "coulomb-constant",
@@ -66,7 +61,7 @@ export const CONSTANTS = Object.freeze([
     unit: "N m² C⁻²",
     note: "Valor derivado mediante kₑ = (4π ε₀)⁻¹; no figura como entrada nominal en la tabla extensa de NIST.",
     requirements: {},
-    source: EL3103_CONSTANTS_SOURCE,
+    source: NIST_CONSTANTS_SOURCE,
   },
   {
     id: "elementary-charge",
@@ -77,7 +72,7 @@ export const CONSTANTS = Object.freeze([
     unit: "C",
     note: "Valor exacto. La carga del electrón es qₑ = −e.",
     requirements: {},
-    source: EL3103_CONSTANTS_SOURCE,
+    source: NIST_CONSTANTS_SOURCE,
   },
   {
     id: "planck-constant",
@@ -88,7 +83,7 @@ export const CONSTANTS = Object.freeze([
     unit: "J s",
     note: "Valor exacto en el SI.",
     requirements: {},
-    source: EL3103_CONSTANTS_SOURCE,
+    source: NIST_CONSTANTS_SOURCE,
   },
   {
     id: "reduced-planck-constant",
@@ -99,7 +94,7 @@ export const CONSTANTS = Object.freeze([
     unit: "J s",
     note: "Valor exacto en el SI; su expansión decimal no termina porque ℏ = h/(2π).",
     requirements: {},
-    source: EL3103_CONSTANTS_SOURCE,
+    source: NIST_CONSTANTS_SOURCE,
   },
   {
     id: "boltzmann-constant",
@@ -110,7 +105,7 @@ export const CONSTANTS = Object.freeze([
     unit: "J K⁻¹",
     note: "Valor exacto en el SI.",
     requirements: {},
-    source: EL3103_CONSTANTS_SOURCE,
+    source: NIST_CONSTANTS_SOURCE,
   },
   {
     id: "stefan-boltzmann-constant",
@@ -121,7 +116,7 @@ export const CONSTANTS = Object.freeze([
     unit: "W m⁻² K⁻⁴",
     note: "Valor exacto en el SI; su expansión decimal no termina.",
     requirements: {},
-    source: EL3103_CONSTANTS_SOURCE,
+    source: NIST_CONSTANTS_SOURCE,
   },
   {
     id: "avogadro-constant",
@@ -132,7 +127,7 @@ export const CONSTANTS = Object.freeze([
     unit: "mol⁻¹",
     note: "Valor exacto en el SI.",
     requirements: {},
-    source: EL3103_CONSTANTS_SOURCE,
+    source: NIST_CONSTANTS_SOURCE,
   },
   {
     id: "electron-mass",
@@ -142,7 +137,7 @@ export const CONSTANTS = Object.freeze([
     value: "9,109 383 7139(28) × 10⁻³¹",
     unit: "kg",
     requirements: {},
-    source: EL3103_CONSTANTS_SOURCE,
+    source: NIST_CONSTANTS_SOURCE,
   },
   {
     id: "proton-mass",
@@ -152,6 +147,6 @@ export const CONSTANTS = Object.freeze([
     value: "1,672 621 925 95(52) × 10⁻²⁷",
     unit: "kg",
     requirements: {},
-    source: EL3103_CONSTANTS_SOURCE,
+    source: NIST_CONSTANTS_SOURCE,
   },
 ]);

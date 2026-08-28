@@ -671,6 +671,200 @@ code {
   background: rgba(3, 12, 22, 0.8);
 }
 
+.math-input-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.vector-field-choice-set {
+  min-width: 0;
+}
+
+.vector-field-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.72rem;
+}
+
+.vector-field-choice {
+  min-width: 0;
+  padding: 0.62rem;
+  border: 1px solid rgba(155, 216, 255, 0.2);
+  border-radius: 0.78rem;
+  color: #d8edf7;
+  background: rgba(2, 13, 23, 0.58);
+}
+
+.vector-field-choice[role="radio"] {
+  cursor: pointer;
+}
+
+.vector-field-choice[role="radio"]:hover,
+.vector-field-choice[role="radio"]:focus-visible,
+.vector-field-choice.selected {
+  border-color: rgba(255, 209, 102, 0.72);
+  box-shadow: inset 0 0 0 2px rgba(255, 209, 102, 0.12);
+  outline: 0;
+}
+
+.vector-field-2d {
+  margin: 0;
+  color: #79dbfa;
+}
+
+.interactive-figure-title {
+  margin: 0 0 0.45rem;
+  color: #f4faff;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.vector-field-2d svg {
+  border: 1px solid rgba(120, 227, 255, 0.16);
+  border-radius: 0.55rem;
+  background: rgba(1, 9, 17, 0.72);
+}
+
+.vector-field-grid-line {
+  stroke: rgba(155, 216, 255, 0.09);
+  stroke-width: 0.3;
+}
+
+.vector-field-axis {
+  stroke: rgba(236, 244, 248, 0.42);
+  stroke-width: 0.55;
+}
+
+.vector-field-arrow {
+  color: #79dbfa;
+  stroke: currentColor;
+  stroke-width: 0.72;
+}
+
+.vector-field-zero {
+  fill: rgba(255, 209, 102, 0.85);
+}
+
+.interactive-figure-caption {
+  margin-top: 0.38rem;
+  color: var(--muted);
+  font-size: 0.62rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.interactive-figure-error {
+  color: #ffadb5;
+  font-weight: 750;
+}
+
+.vector-field-parameters {
+  margin-top: 0.58rem;
+  padding: 0.55rem !important;
+  border: 1px solid rgba(124, 230, 173, 0.22) !important;
+  border-radius: 0.6rem;
+  background: rgba(20, 72, 48, 0.16);
+}
+
+.vector-field-parameter {
+  display: grid;
+  grid-template-columns: auto minmax(4.5rem, 1fr) auto;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.vector-field-parameter output {
+  min-width: 2.2rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.vector-field-parameter button {
+  grid-column: 1 / -1;
+  justify-self: start;
+  min-height: 2rem;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.65rem;
+}
+
+.vector-field-reveal {
+  margin-top: 0.65rem;
+}
+
+.vector-field-result {
+  margin: 0.58rem 0 0 !important;
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.vector-field-choice.correct .vector-field-result {
+  color: var(--success) !important;
+}
+
+.vector-field-choice.incorrect .vector-field-result {
+  color: #ffb7bd !important;
+}
+
+.vector-field-reveal .lesson-section,
+.sequence-item .lesson-section {
+  padding: 0.6rem 0 0;
+  border: 0;
+}
+
+.vector-field-reveal .lesson-section h3,
+.sequence-item .lesson-section h3 {
+  font-size: 0.8rem;
+}
+
+.exercise-sequence-list {
+  display: grid;
+  margin: 0.8rem 0 0;
+  padding: 0;
+  gap: 0.62rem;
+  list-style: none;
+}
+
+.sequence-item {
+  padding: 0.72rem;
+  border: 1px solid rgba(155, 216, 255, 0.14);
+  border-radius: 0.68rem;
+  background: rgba(3, 14, 25, 0.48);
+}
+
+.sequence-item.current {
+  border-color: rgba(255, 209, 102, 0.48);
+}
+
+.sequence-item.completed {
+  border-color: rgba(124, 230, 173, 0.3);
+  background: rgba(24, 84, 55, 0.14);
+}
+
+.sequence-item.pending {
+  opacity: 0.68;
+}
+
+.sequence-item h4 {
+  margin: 0.2rem 0 0.42rem;
+  color: #f4faff;
+}
+
+.sequence-item-state {
+  margin: 0 !important;
+  color: #bdeeff !important;
+  font-size: 0.62rem;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.sequence-success {
+  color: var(--success) !important;
+  font-weight: 750;
+}
+
 .exercise-actions {
   display: flex;
   margin-top: 0.8rem;
@@ -901,8 +1095,7 @@ code {
   letter-spacing: 0.04em;
 }
 
-.reference-note,
-.reference-source {
+.reference-note {
   color: var(--muted);
   font-size: 0.68rem;
   line-height: 1.45;
@@ -911,12 +1104,6 @@ code {
 .reference-note {
   display: block;
   margin-top: 0.22rem;
-}
-
-.reference-source {
-  margin-top: 0.4rem;
-  padding-top: 0.4rem;
-  border-top: 1px solid rgba(155, 216, 255, 0.1);
 }
 
 .reference-card-list {
@@ -1218,6 +1405,10 @@ code {
   .reference-table tbody {
     min-width: 36rem;
   }
+
+  .vector-field-card-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 760px) {
@@ -1400,6 +1591,11 @@ code {
   .reference-intro {
     display: grid;
     justify-items: start;
+  }
+
+  .vector-field-card-grid,
+  .math-input-row {
+    grid-template-columns: 1fr;
   }
 }
 

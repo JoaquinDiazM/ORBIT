@@ -33,7 +33,7 @@ La experiencia combina dos modos que deberán coexistir en una versión futura:
 - **Modo Expedición:** progresión narrativa y desbloqueos espaciales.
 - **Modo Atlas:** acceso académico directo por tema, útil para repasar antes de una evaluación.
 
-La versión `0.3.0` conserva la Expedición de dos anillos e incorpora la primera capa del modo Atlas: un menú de consulta con simbología, constantes, formulario y glosario derivados del progreso. El acceso académico directo por tema y la profundidad curricular completa siguen siendo hitos posteriores.
+La versión `0.3.1` conserva la Expedición de dos anillos y la primera capa del modo Atlas. El Taller Vectorial sirve como primer nodo desarrollado con mayor profundidad: reúne elementos diferenciales, una comparación visual de campos en SVG, un ejemplo cartesiano guiado y una evaluación cilíndrica independiente. El acceso académico directo por tema y la profundidad curricular completa siguen siendo hitos posteriores.
 
 ## Dos grafos de conocimiento
 
@@ -95,6 +95,12 @@ Los ejercicios pueden ser:
 
 Una solución completa debe explicar la elección de la ley, la geometría, los signos, las unidades y los casos límite. Una respuesta numérica debe incluir unidad y tolerancia.
 
+Las respuestas algebraicas que admiten varias formas válidas se evalúan por equivalencia matemática, no por igualdad textual. La política inicial admite comparación numérica, funcional y por gradiente mediante una gramática restringida y evaluación determinista; no ejecuta código ingresado por el estudiante.
+
+Las figuras interactivas de esta etapa son SVG 2D generados desde funciones de campo. Su objetivo es apoyar una distinción conceptual concreta mediante dominio, escala y muestreo comparables. No constituyen un motor de gráficos general, una escena 3D ni una autorización para añadir dependencias.
+
+Las fuentes se reservan para afirmaciones históricas, científicas o datos que necesitan trazabilidad. Operaciones elementales no requieren atribución. Cuando una fórmula, propiedad o constante con fuente se desbloquea, su procedencia se comunica una vez en esa transición y no se repite como cuadro dentro del menú; el contexto docente de origen permanece centralizado en el README.
+
 ## Dirección narrativa
 
 El protagonista es el estudiante, no una colección de científicos presentados como héroes aislados. Cada etapa sigue la estructura:
@@ -124,6 +130,8 @@ El proyecto debe privilegiar contenido y ejercicios sobre producción audiovisua
 - telemetría;
 - assets costosos;
 - animaciones largas.
+
+La versión `0.3.1` no añade backend, gráficos 3D, telemetría ni dependencias. El avance dentro de etapas, los parámetros de figuras y las respuestas parciales son estado local de sesión; el esquema persistido permanece en `v2` y no requiere migración.
 
 La interfaz debe verse suficientemente clara para probar la experiencia, pero la excelencia del proyecto se medirá por rigor, progresión, calidad de ejercicios, trazabilidad y utilidad para estudiantes.
 

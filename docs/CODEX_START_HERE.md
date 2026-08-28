@@ -16,18 +16,21 @@ En este orden:
 
 ## 2. Estado actual
 
-La versión `0.3.0` es un prototipo estático con una dependencia local respaldada por ADR. Ya incluye:
+La versión `0.3.1` es un prototipo estático con una dependencia local respaldada por ADR. Ya incluye:
 
 - movimiento continuo en Canvas 2D;
 - 19 hexágonos en tres niveles: base, seis fundamentos y doce aplicaciones;
 - fronteras físicas derivadas del Árbol I;
 - lugares y recompensas derivados del Árbol II;
-- ejercicios de alternativa, número y confirmación;
+- ejercicios de alternativa, número, expresión segura, secuencia y confirmación;
 - guardado por perfil en `localStorage`;
 - migración de progreso `v1 → v2`;
 - audio local con tres eventos verificables y mute;
 - ventana principal compatible con un panel secundario de consulta;
 - lugares por etapas y biblioteca derivada de símbolos, constantes, fórmulas y glosario;
+- Taller Vectorial de seis etapas: elementos diferenciales, comparación SVG de campos, reconstrucción cartesiana guiada y evaluación cilíndrica independiente;
+- visor `VectorField2D` en SVG nativo con escala fija, muestreo determinista, controles accesibles y ausencia de animación automática;
+- `MathExpressionPolicy v1`, parser restringido y comparación por valor, función o gradiente sin `eval`, `Function` ni ejecución dinámica;
 - ecuaciones TeX renderizadas con KaTeX y MathML;
 - debugger visual y `window.AtlasDebug`;
 - validador que simula la progresión completa;
@@ -35,6 +38,10 @@ La versión `0.3.0` es un prototipo estático con una dependencia local respalda
 - build y workflow para GitHub Pages.
 
 El contenido científico es demostrativo. No lo trates como una guía terminada.
+
+La versión sigue usando el esquema de progreso `v2`. Los pasos internos de una secuencia, la opción visual elegida y los parámetros de las figuras son estado efímero de interfaz; solo la finalización del lugar pasa por `ProgressionModel`. No existe migración `0.3.0 → 0.3.1` porque el formato persistido no cambió.
+
+Las fuentes se añaden de forma selectiva cuando una afirmación específica las necesita. La biblioteca no muestra cuadros repetidos de procedencia: la UI comunica cada fuente pertinente en la transición que desbloquea su entrada. No cites operaciones elementales ni repitas dentro de un nodo la procedencia docente ya reconocida globalmente en el README.
 
 ## 3. Invariantes que debes declarar
 
@@ -63,6 +70,8 @@ Incluye esa evaluación en tu resumen de cambios o en el mensaje de commit.
 | Agregar lugares o ejercicios | `src/data/locations.js` |
 | Agregar referencias académicas | `src/data/reference/`, `docs/references/references.bib` |
 | Reglas de requisitos | `src/core/requirements.js` |
+| Evaluar expresiones matemáticas | `src/core/math-expression.js`, `src/core/exercises.js` |
+| Avance dentro de una secuencia | `src/core/exercise-sequence.js` |
 | Derivación de zonas/fronteras | `src/core/world-graph.js` |
 | Estado, progreso y guardado | `src/core/progression.js`, `src/core/storage.js` |
 | Migraciones de progreso | `src/core/progress-migrations.js` |
@@ -71,6 +80,7 @@ Incluye esa evaluación en tu resumen de cambios o en el mensaje de commit.
 | Dibujo del mundo | `src/game/renderer.js` |
 | Audio | `src/audio/audio-manager.js`, `public/assets/audio/` |
 | Paneles y ejercicios | `src/ui/ui-controller.js` |
+| Figuras de campos vectoriales 2D | `src/ui/vector-field-2d.js` |
 | Validación estática | `src/core/validator.js`, `scripts/validate-content.mjs` |
 | Pruebas | `tests/` |
 
@@ -105,6 +115,8 @@ No:
 - hagas que una zona dependa de una llave situada únicamente dentro de ella;
 - renombres IDs publicados sin migración;
 - agregues React, Phaser, Vite, un CDN o cualquier paquete “por comodidad” sin ADR;
+- conviertas el visor SVG 2D en un motor 3D o un lenguaje general de gráficos sin una necesidad pedagógica y una decisión de arquitectura explícitas;
+- evalúes respuestas con `eval`, `Function` o comparación literal cuando la actividad exige equivalencia matemática;
 - ignores un audio nuevo o inventes su ubicación: audita el manifiesto y pregunta al usuario si no indicó el evento;
 - copies problemas de pruebas universitarias internas;
 - inventes datos históricos o fuentes;
@@ -121,7 +133,8 @@ Un nuevo lugar debe:
 - declarar objetivo;
 - declarar requisitos y concesiones explícitas;
 - contener al menos una actividad de salida si concede progreso;
-- incluir fuentes cuando haga afirmaciones científicas o históricas;
+- incluir fuentes solo cuando haga afirmaciones científicas o históricas específicas que necesiten trazabilidad;
+- evitar referencias locales redundantes a operaciones elementales o al material docente reconocido globalmente;
 - superar el validador de alcanzabilidad.
 
 Consulta `docs/CONTENT_AUTHORING.md`.
@@ -137,6 +150,8 @@ Prefiere funciones puras y pruebas unitarias. Si una nueva mecánica requiere es
 3. incrementa `progressSchemaVersion` si cambia el formato;
 4. añade migración o documenta la incompatibilidad;
 5. agrega pruebas de importación y saneamiento.
+
+Las figuras SVG y las políticas de expresión de `0.3.1` no autorizan por sí solas un sistema de gráficos 3D, álgebra simbólica general, backend o dependencia nueva. Amplía primero los contratos nativos existentes y conserva límites explícitos de entrada y costo.
 
 ## 9. Formato recomendado para una tarea de agente
 

@@ -44,7 +44,16 @@ export const LOCATIONS = Object.freeze([
     visibility: "always",
     requirements: {},
     grants: { concepts: ["vectors-and-fields"] },
-    objective: "Distinguir campos escalares y vectoriales, interpretar componentes y reconocer qué tipo de campo produce cada operador vectorial.",
+    objective: "Leer campos por sus componentes, reconocer elementos diferenciales y reconstruir una función escalar cuyo gradiente produzca un campo vectorial dado.",
+    prerequisites: [
+      "Álgebra elemental",
+      "Trigonometría básica",
+      "Derivación e integración directa",
+      "Derivadas parciales elementales",
+      "Noción básica de vector y de sistema de coordenadas",
+    ],
+    model: "Campos escalares f y vectoriales F sobre un dominio, operadores diferenciales y elementos de línea, superficie y volumen en bases cartesianas, cilíndricas y esféricas.",
+    application: "Aplicación matemática: reconstrucción de una función escalar a partir de un campo vectorial general; las aplicaciones ingenieriles se reservan para nodos posteriores.",
     steps: [
       {
         id: "fields-and-notation",
@@ -79,7 +88,7 @@ export const LOCATIONS = Object.freeze([
           {
             title: "Gradiente, divergencia y rotacional",
             paragraphs: [
-              "El gradiente transforma un escalar en vector, señala la dirección de máximo crecimiento local y su norma da la tasa máxima. La divergencia transforma un vector en escalar y mide flujo neto saliente local. El rotacional transforma un vector en vector y caracteriza circulación local.",
+              "El gradiente transforma un escalar en vector; cuando no se anula, señala la dirección de máximo crecimiento local y su norma da la tasa máxima. La divergencia transforma un vector en escalar y mide flujo neto saliente local. El rotacional transforma un vector en vector y caracteriza circulación local.",
             ],
             equation: {
               tex: String.raw`f\xrightarrow{\;\nabla\;}\nabla f
@@ -100,6 +109,55 @@ export const LOCATIONS = Object.freeze([
               caption: "Laplaciano de un campo escalar en coordenadas cartesianas.",
             },
             callout: "El signo de la divergencia informa un balance local de flujo; por sí solo no determina cómo cambia la rapidez de un flujo al alejarse de un punto.",
+          },
+          {
+            title: "Elementos diferenciales cartesianos",
+            paragraphs: [
+              "En una base cartesiana ortonormal, los desplazamientos y medidas orientadas se construyen directamente con dx, dy y dz.",
+            ],
+            equation: {
+              tex: String.raw`\begin{aligned}
+                d\boldsymbol{\ell}&=dx\,\hat{\mathbf{x}}+dy\,\hat{\mathbf{y}}+dz\,\hat{\mathbf{z}},\\
+                d\mathbf{S}_x&=dy\,dz\,\hat{\mathbf{x}},\qquad
+                d\mathbf{S}_y=dx\,dz\,\hat{\mathbf{y}},\qquad
+                d\mathbf{S}_z=dx\,dy\,\hat{\mathbf{z}},\\
+                d\tau&=dx\,dy\,dz.
+              \end{aligned}`,
+              caption: "Elementos diferenciales de línea, superficies coordenadas y volumen en coordenadas cartesianas.",
+            },
+          },
+          {
+            title: "Elementos diferenciales cilíndricos",
+            paragraphs: [
+              "El arco azimutal mide r dφ; ese factor geométrico también aparece en las superficies y el volumen correspondientes.",
+            ],
+            equation: {
+              tex: String.raw`\begin{aligned}
+                d\boldsymbol{\ell}&=dr\,\hat{\mathbf{r}}+r\,d\varphi\,\hat{\boldsymbol{\varphi}}+dz\,\hat{\mathbf{z}},\\
+                d\mathbf{S}_r&=r\,d\varphi\,dz\,\hat{\mathbf{r}},\qquad
+                d\mathbf{S}_{\varphi}=dr\,dz\,\hat{\boldsymbol{\varphi}},\qquad
+                d\mathbf{S}_z=r\,dr\,d\varphi\,\hat{\mathbf{z}},\\
+                d\tau&=r\,dr\,d\varphi\,dz.
+              \end{aligned}`,
+              caption: "Elementos diferenciales de línea, superficies coordenadas y volumen en coordenadas cilíndricas.",
+            },
+          },
+          {
+            title: "Elementos diferenciales esféricos",
+            paragraphs: [
+              "Con θ como ángulo polar y φ como ángulo azimutal, los factores r y r sen θ reflejan las longitudes de arco de la base esférica.",
+              "En este nodo basta reconocer estas expresiones; la derivación completa de los factores de escala y las integrales asociadas se estudiará más adelante.",
+            ],
+            equation: {
+              tex: String.raw`\begin{aligned}
+                d\boldsymbol{\ell}&=dr\,\hat{\mathbf{r}}+r\,d\theta\,\hat{\boldsymbol{\theta}}+r\sin\theta\,d\varphi\,\hat{\boldsymbol{\varphi}},\\
+                d\mathbf{S}_r&=r^2\sin\theta\,d\theta\,d\varphi\,\hat{\mathbf{r}},\\
+                d\mathbf{S}_{\theta}&=r\sin\theta\,dr\,d\varphi\,\hat{\boldsymbol{\theta}},\qquad
+                d\mathbf{S}_{\varphi}=r\,dr\,d\theta\,\hat{\boldsymbol{\varphi}},\\
+                d\tau&=r^2\sin\theta\,dr\,d\theta\,d\varphi.
+              \end{aligned}`,
+              caption: "Elementos diferenciales de línea, superficies coordenadas y volumen en coordenadas esféricas.",
+            },
           },
         ],
         exercise: { type: "none" },
@@ -140,8 +198,8 @@ export const LOCATIONS = Object.freeze([
               "Un campo que deriva de un potencial es irrotacional si el potencial es suficientemente regular. El recíproco necesita además una condición sobre el dominio: en un abierto simplemente conexo —conectado y sin agujeros topológicos—, un campo C¹ con rotacional nulo admite un potencial.",
             ],
             equation: {
-              tex: String.raw`\mathbf{E}=-\nabla V\quad\Longrightarrow\quad\nabla\times\mathbf{E}=\mathbf{0}`,
-              caption: "Convención electrostática para el campo eléctrico y el potencial.",
+              tex: String.raw`\mathbf{F}=\nabla f\quad\Longrightarrow\quad\nabla\times\mathbf{F}=\mathbf{0}`,
+              caption: "Un campo generado como gradiente es irrotacional cuando f posee las derivadas necesarias.",
             },
           },
         ],
@@ -149,55 +207,335 @@ export const LOCATIONS = Object.freeze([
       },
       {
         id: "exit-check",
-        title: "Comprobación de salida",
+        title: "Reconocimiento visual",
         sections: [
           {
-            title: "Puente ingenieril",
+            title: "Dos campos bajo las mismas condiciones",
             paragraphs: [
-              "Las componentes permiten proyectar fuerzas, tensiones y flujos sobre direcciones relevantes para sensores, máquinas, líneas de transmisión y antenas.",
-              "Esta comprobación es deliberadamente breve: las identidades avanzadas quedan como material de consulta y no bloquean el tronco común.",
+              "Ambos campos están definidos en ℝ². Compara la dirección de sus flechas dentro de una misma ventana de visualización, con escala y densidad de muestreo comunes.",
+              "Antes de responder, las etiquetas son deliberadamente neutrales. Las expresiones algebraicas y el análisis se mostrarán solo después de acertar.",
             ],
-            equation: {
-              tex: String.raw`\mathbf{E}=3\,\hat{\mathbf{x}}+4\,\hat{\mathbf{y}}\;\mathrm{N/C}
-                \quad\Longrightarrow\quad \lVert\mathbf{E}\rVert=\sqrt{3^2+4^2}`,
-              caption: "Magnitud de un campo a partir de sus componentes cartesianas.",
-            },
           },
         ],
         exercise: {
           type: "choice",
-          prompt: "Para E = (3 x̂ + 4 ŷ) N/C, ¿cuál es la magnitud del campo?",
-          choices: ["3 N/C", "4 N/C", "5 N/C", "7 N/C"],
-          answerIndex: 2,
-          explanation: "La magnitud euclidiana es √(3² + 4²) = 5 N/C.",
+          presentation: "vector-field-cards",
+          prompt: "¿Cuál de los siguientes campos vectoriales es conservativo?",
+          choices: [
+            {
+              id: "field-a",
+              label: "Campo A",
+              figure: {
+                fieldId: "radial-linear",
+                domain: { x: [-2, 2], y: [-2, 2] },
+                samplesPerAxis: 9,
+                visualScale: 2.5,
+                parameter: { id: "a", min: 0.5, max: 1.5, step: 0.1, nominal: 1 },
+              },
+              reveal: {
+                sections: [
+                  {
+                    title: "Campo A después de responder",
+                    paragraphs: [
+                      "Este campo apunta desde el origen y admite una función escalar generadora. Su rotacional se anula para todo a del intervalo disponible.",
+                    ],
+                    equation: {
+                      tex: String.raw`\begin{aligned}
+                        \mathbf{F}_A(x,y;a)&=a\left(x\,\hat{\mathbf{x}}+y\,\hat{\mathbf{y}}\right),\\
+                        f_A(x,y;a)&=\frac{a}{2}\left(x^2+y^2\right),\\
+                        \nabla f_A&=\mathbf{F}_A,\qquad
+                        (\nabla\times\mathbf{F}_A)_z=0.
+                      \end{aligned}`,
+                      caption: "Campo A, función escalar generadora y comprobación de rotacional nulo.",
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              id: "field-b",
+              label: "Campo B",
+              figure: {
+                fieldId: "rotational-linear",
+                domain: { x: [-2, 2], y: [-2, 2] },
+                samplesPerAxis: 9,
+                visualScale: 2.5,
+                parameter: { id: "b", min: 0.5, max: 1.5, step: 0.1, nominal: 1 },
+              },
+              reveal: {
+                sections: [
+                  {
+                    title: "Campo B después de responder",
+                    paragraphs: [
+                      "Las flechas son tangentes a círculos alrededor del origen. El rotacional vale 2b y no se anula porque el intervalo del parámetro excluye b = 0.",
+                    ],
+                    equation: {
+                      tex: String.raw`\begin{aligned}
+                        \mathbf{F}_B(x,y;b)&=b\left(-y\,\hat{\mathbf{x}}+x\,\hat{\mathbf{y}}\right),\\
+                        (\nabla\times\mathbf{F}_B)_z
+                        &=\frac{\partial(bx)}{\partial x}-\frac{\partial(-by)}{\partial y}=2b\ne 0.
+                      \end{aligned}`,
+                      caption: "Campo B y comprobación de rotacional no nulo en el rango permitido de b.",
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+          answerId: "field-a",
+          retryExplanation: "Aún no. Compara si las direcciones pueden provenir del crecimiento de una sola función escalar; las fórmulas permanecerán ocultas durante el reintento.",
+          explanation: "Campo A es conservativo: existe f_A con F_A = ∇f_A. Campo B posee circulación y rotacional no nulo.",
+        },
+      },
+      {
+        id: "guided-cartesian-potential",
+        title: "Reconstrucción cartesiana guiada",
+        sections: [
+          {
+            title: "Campo y objetivo",
+            paragraphs: [
+              "Sea el siguiente campo definido en Ω = ℝ³. Determina una función escalar f tal que F = ∇f y concluye si el campo es conservativo.",
+              "El desarrollo está dividido en exactamente cinco intervenciones. Entre ellas, ATLAS mostrará únicamente el paso necesario para continuar el procedimiento.",
+            ],
+            equation: {
+              tex: String.raw`\mathbf{F}(x,y,z)
+                =\left(y^2\cos x+z^3\right)\hat{\mathbf{x}}
+                +\left(2y\sin x-4\right)\hat{\mathbf{y}}
+                +\left(3xz^2+2z\right)\hat{\mathbf{z}}`,
+              caption: "Campo vectorial cartesiano cuya función escalar generadora se reconstruirá por componentes.",
+            },
+          },
+        ],
+        exercise: {
+          type: "sequence",
+          feedback: "guided",
+          items: [
+            {
+              id: "choose-method",
+              type: "choice",
+              prompt: "Al tratar y y z como parámetros, ¿cómo se resuelve ∂f/∂x = y² cos(x) + z³?",
+              choices: [
+                { id: "direct-integration", label: "Integración directa respecto de x" },
+                { id: "separation", label: "Separación de variables" },
+                { id: "characteristics", label: "Ecuación característica" },
+                { id: "fourier", label: "Transformada de Fourier" },
+              ],
+              answerId: "direct-integration",
+              explanation: "Se integra directamente respecto de x, tratando y y z como constantes. Métodos más generales se estudiarán en nodos posteriores.",
+            },
+            {
+              id: "first-integration",
+              type: "choice",
+              prompt: "Selecciona el resultado correcto de la primera integración respecto de x.",
+              choices: [
+                { id: "function-of-yz", label: "y² sin(x) + xz³ + C(y,z)" },
+                { id: "numeric-constant", label: "y² sin(x) + xz³ + C₀" },
+                { id: "function-of-x", label: "y² sin(x) + xz³ + C(x)" },
+                { id: "missing-x", label: "y² sin(x) + z³ + C(y,z)" },
+              ],
+              answerId: "function-of-yz",
+              explanation: "La constante de integración puede depender de y y z porque esas variables se mantuvieron fijas al integrar respecto de x.",
+              reveal: {
+                sections: [
+                  {
+                    title: "Primera integración",
+                    equation: {
+                      tex: String.raw`f(x,y,z)=y^2\sin x+xz^3+C(y,z)`,
+                      caption: "Resultado de integrar la componente x, con una función de integración dependiente de y y z.",
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              id: "match-y-component",
+              type: "expression",
+              prompt: "De ∂f/∂y = 2y sin(x) + ∂C/∂y, ingresa la expresión para ∂C/∂y que reproduce la componente y de F.",
+              promptPrefix: String.raw`\frac{\partial C}{\partial y}=`,
+              placeholder: "Escribe solo el miembro derecho",
+              answerPolicy: {
+                kind: "expression-equivalent",
+                version: 1,
+                variables: ["y", "z"],
+                constants: [],
+                expectedExpression: "-4",
+                feedback: "guided",
+              },
+              reveal: {
+                sections: [
+                  {
+                    title: "Compatibilidad con la componente y",
+                    equation: {
+                      tex: String.raw`\frac{\partial C}{\partial y}=-4
+                        \quad\Longrightarrow\quad C(y,z)=-4y+D(z)`,
+                      caption: "La componente y determina la dependencia lineal de C respecto de y.",
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              id: "match-z-component",
+              type: "expression",
+              prompt: "Si f = y² sin(x) + xz³ − 4y + D(z), ingresa D′(z) para reproducir la componente z de F.",
+              promptPrefix: String.raw`D'(z)=`,
+              placeholder: "Escribe solo el miembro derecho",
+              answerPolicy: {
+                kind: "expression-equivalent",
+                version: 1,
+                variables: ["z"],
+                constants: [],
+                expectedExpression: "2*z",
+                feedback: "guided",
+              },
+              reveal: {
+                sections: [
+                  {
+                    title: "Compatibilidad con la componente z",
+                    equation: {
+                      tex: String.raw`D'(z)=2z
+                        \quad\Longrightarrow\quad D(z)=z^2+C_0`,
+                      caption: "La componente z completa la función de integración restante.",
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              id: "final-cartesian-expression",
+              type: "expression",
+              prompt: "Escribe una función escalar final f cuyo gradiente reproduzca F. Puedes omitir o añadir una constante aditiva.",
+              placeholder: "Escribe f(x,y,z)",
+              answerPolicy: {
+                kind: "gradient-equivalent",
+                version: 1,
+                variables: ["x", "y", "z"],
+                constants: ["C", "C_0"],
+                coordinateSystem: "cartesian",
+                expectedGradient: [
+                  "y^2*cos(x)+z^3",
+                  "2*y*sin(x)-4",
+                  "3*x*z^2+2*z",
+                ],
+                feedback: "guided",
+              },
+              reveal: {
+                sections: [
+                  {
+                    title: "Verificación cartesiana",
+                    paragraphs: [
+                      "Las tres componentes coinciden con F. Por tanto, F = ∇f; la integral de línea depende solo de los extremos y el campo es conservativo en ℝ³.",
+                    ],
+                    equation: {
+                      tex: String.raw`\begin{aligned}
+                        f&=y^2\sin x+xz^3-4y+z^2+C_0,\\
+                        \frac{\partial f}{\partial x}&=y^2\cos x+z^3,\\
+                        \frac{\partial f}{\partial y}&=2y\sin x-4,\\
+                        \frac{\partial f}{\partial z}&=3xz^2+2z,\\
+                        \nabla f&=\mathbf{F}.
+                      \end{aligned}`,
+                      caption: "Función escalar y comprobación de sus tres derivadas parciales cartesianas.",
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+      {
+        id: "independent-cylindrical-potential",
+        title: "Evaluación cilíndrica independiente",
+        sections: [
+          {
+            title: "Campo y dominio",
+            paragraphs: [
+              "En coordenadas cilíndricas (r, φ, z), considera el siguiente campo en una región de trabajo con r > 0 y componente azimutal nula.",
+              "Esta evaluación consta de dos intervenciones y no entrega pistas durante la resolución. La primera respuesta se valida como una expresión completa, no como una cadena literal.",
+            ],
+            equation: {
+              tex: String.raw`\mathbf{F}(r,\varphi,z)
+                =\frac{rz}{(r^2+z^2)^{3/2}}\,\hat{\mathbf{r}}
+                -\frac{r^2}{(r^2+z^2)^{3/2}}\,\hat{\mathbf{z}},
+                \qquad F_{\varphi}=0`,
+              caption: "Campo vectorial definido en la región cilíndrica r > 0; la evaluación usa puntos interiores de esa región.",
+            },
+          },
+        ],
+        exercise: {
+          type: "sequence",
+          feedback: "binary",
+          items: [
+            {
+              id: "cylindrical-expression",
+              type: "expression",
+              prompt: "Encuentra una expresión f(r, φ, z) cuyo gradiente reproduzca el campo F.",
+              placeholder: "Escribe f(r,phi,z)",
+              answerPolicy: {
+                kind: "gradient-equivalent",
+                version: 1,
+                variables: ["r", "phi", "z"],
+                constants: ["C", "C_0"],
+                coordinateSystem: "cylindrical",
+                testPoints: [
+                  { r: 0.5, phi: 0, z: 0.75 },
+                  { r: 1, phi: 0.4, z: 2 },
+                  { r: 1.5, phi: 1.2, z: -0.5 },
+                  { r: 2, phi: 2.1, z: -1.25 },
+                  { r: 0.8, phi: 3, z: 1.4 },
+                  { r: 2.3, phi: 5, z: 0 },
+                ],
+                expectedGradient: [
+                  "r*z/(r^2+z^2)^(3/2)",
+                  "0",
+                  "-r^2/(r^2+z^2)^(3/2)",
+                ],
+                feedback: "binary",
+              },
+              reveal: {
+                sections: [
+                  {
+                    title: "Verificación posterior",
+                    paragraphs: [
+                      "Una forma válida es f = −z/√(r² + z²) + C. La constante aditiva no modifica el gradiente.",
+                    ],
+                    equation: {
+                      tex: String.raw`\begin{aligned}
+                        f&=-\frac{z}{\sqrt{r^2+z^2}}+C,\\
+                        \nabla f&=\frac{\partial f}{\partial r}\hat{\mathbf{r}}
+                        +\frac{1}{r}\frac{\partial f}{\partial\varphi}\hat{\boldsymbol{\varphi}}
+                        +\frac{\partial f}{\partial z}\hat{\mathbf{z}},\\
+                        \frac{\partial f}{\partial r}&=\frac{rz}{(r^2+z^2)^{3/2}},\qquad
+                        \frac{1}{r}\frac{\partial f}{\partial\varphi}=0,\\
+                        \frac{\partial f}{\partial z}&=-\frac{r^2}{(r^2+z^2)^{3/2}}.
+                      \end{aligned}`,
+                      caption: "Función escalar válida y verificación de las tres componentes del gradiente cilíndrico.",
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              id: "conservative-reason",
+              type: "choice",
+              prompt: "¿Por qué encontrar esta función escalar permite afirmar que el campo es conservativo?",
+              choices: [
+                {
+                  id: "gradient-definition",
+                  label: "Porque existe f en el dominio con F = ∇f; por el teorema fundamental, la integral depende solo de los extremos.",
+                },
+                { id: "zero-divergence", label: "Porque la divergencia se anula en el dominio y esa condición basta para garantizar conservación." },
+                { id: "no-phi", label: "Porque las componentes no dependen de φ y toda independencia angular garantiza conservación." },
+                { id: "decay", label: "Porque la magnitud decrece con la distancia y todo campo decreciente es conservativo." },
+              ],
+              answerId: "gradient-definition",
+              explanation: "La existencia de f con F = ∇f en el dominio establece la independencia de trayectoria por el teorema fundamental de las integrales de línea.",
+            },
+          ],
         },
       },
     ],
-    sources: [
-      {
-        citationKey: "el3103-team-vector-2025",
-        locator: "sección 1, pp. 1–2",
-        usage: "consulta",
-        license: "no indicada",
-        label: "Equipo docente EL3103, Clase auxiliar extra (2025), sección 1, pp. 1–2 — consulta; licencia no indicada",
-      },
-      {
-        citationKey: "ellingson-electromagnetics-i-2018",
-        locator: "caps. 1 y 4; sec. 4.7; apéndice 10.6",
-        usage: "validación científica",
-        license: "CC BY-SA 4.0",
-        label: "Steven W. Ellingson, Electromagnetics I, caps. 1 y 4 y apéndice 10.6 — CC BY-SA 4.0",
-        url: "https://phys.libretexts.org/Bookshelves/Electricity_and_Magnetism/Electromagnetics_I_(Ellingson)/04%3A_Vector_Analysis",
-      },
-      {
-        citationKey: "openstax-calculus-volume-3-2016",
-        locator: "secs. 6.3 y 6.5",
-        usage: "consulta para condiciones topológicas; redacción original",
-        license: "CC BY-NC-SA 4.0",
-        label: "OpenStax, Calculus Volume 3, secs. 6.3 y 6.5 — consulta, sin adaptación de texto",
-        url: "https://openstax.org/books/calculus-volume-3/pages/6-3-conservative-vector-fields",
-      },
-    ],
+    sources: [],
   },
   {
     id: "debug-terminal",

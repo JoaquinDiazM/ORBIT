@@ -24,3 +24,71 @@ test("un ejercicio de alternativas compara el índice seleccionado", () => {
   assert.equal(evaluateExercise(exercise, "2").correct, true);
   assert.equal(evaluateExercise(exercise, "1").correct, false);
 });
+
+test("una alternativa estructurada se puede responder por ID o índice", () => {
+  const exercise = {
+    type: "choice",
+    choices: [
+      { id: "field-a", label: "Campo A" },
+      { id: "field-b", label: "Campo B" },
+    ],
+    answerId: "field-a",
+  };
+
+  assert.equal(evaluateExercise(exercise, "field-a").correct, true);
+  assert.equal(evaluateExercise(exercise, { id: "field-a" }).correct, true);
+  assert.equal(evaluateExercise(exercise, 0).correct, true);
+  assert.equal(evaluateExercise(exercise, "field-b").correct, false);
+  assert.equal(evaluateExercise(exercise, "missing").reason, "missing-response");
+});
+
+test("una alternativa sin selección no se confunde con el índice cero", () => {
+  const exercise = {
+    type: "choice",
+    choices: [
+      { id: "first", label: "Primera" },
+      { id: "second", label: "Segunda" },
+    ],
+    answerId: "first",
+  };
+  for (const response of [null, undefined, "", "   "]) {
+    assert.deepEqual(evaluateExercise(exercise, response), {
+      correct: false,
+      reason: "missing-response",
+    });
+  }
+});
+
+test("un ejercicio expression delega la equivalencia a MathExpressionPolicy v1", () => {
+  const exercise = {
+    type: "expression",
+    answerPolicy: {
+      kind: "gradient-equivalent",
+      version: 1,
+      variables: ["x"],
+      constants: ["C"],
+      expectedGradient: ["2*x"],
+      testPoints: [{ x: -1 }, { x: 0.5 }, { x: 2 }],
+      feedback: "guided",
+    },
+  };
+
+  const accepted = evaluateExercise(exercise, "x^2+C");
+  assert.equal(accepted.correct, true);
+  assert.equal(accepted.reason, "equivalent");
+  assert.equal(evaluateExercise(exercise, "-x^2").reason, "not-equivalent");
+});
+
+test("el núcleo no intenta resolver una secuencia como respuesta única", () => {
+  assert.deepEqual(
+    evaluateExercise(
+      {
+        type: "sequence",
+        feedback: "guided",
+        items: [{ id: "one", type: "choice", choices: ["A", "B"], answerIndex: 0 }],
+      },
+      "0",
+    ),
+    { correct: false, reason: "sequence-requires-item" },
+  );
+});

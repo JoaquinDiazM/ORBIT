@@ -1,6 +1,6 @@
 export const APP_CONFIG = Object.freeze({
   appName: "Atlas de Electromagnetismo Aplicado",
-  version: "0.3.0",
+  version: "0.3.1",
   locale: "es-CL",
   storagePrefix: "aea-progress",
   progressSchemaVersion: 2,

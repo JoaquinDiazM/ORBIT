@@ -2,6 +2,34 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [0.3.1] - 2026-08-27
+
+### Añadido
+
+- Visor reutilizable `VectorField2D` con SVG y DOM nativos, muestreo determinista, escala fija, curvas integrales opcionales, parámetros accesibles y actualización inmediata sin animación automática.
+- `MathExpressionPolicy v1`, parser de lista blanca, AST restringido y evaluación por valor, función o gradiente cartesiano/cilíndrico, con límites de complejidad y sin ejecución dinámica.
+- Secuencias declarativas de intervenciones que combinan alternativas y expresiones sin añadir estado al perfil.
+- Elementos diferenciales cartesianos, cilíndricos y esféricos en el Taller Vectorial.
+- Etapa 4 de comparación visual de dos campos, etapa 5 cartesiana con exactamente cinco intervenciones guiadas y etapa 6 cilíndrica con dos intervenciones y retroalimentación binaria.
+
+### Cambiado
+
+- El Taller Vectorial pasa de cuatro a seis etapas sin cambiar su ID, requisitos, concesión ni los cuatro IDs de etapa ya publicados; la notación permanece genérica hasta el nodo de Coulomb.
+- Los símbolos `E` y `V` permanecen bloqueados hasta completar el Observatorio de Coulomb; el inicio conserva únicamente la notación matemática necesaria para Vectores.
+- Las referencias se reservan para afirmaciones que necesitan trazabilidad. El menú deja de repetir cuadros de fuentes y la procedencia pertinente se comunica una vez al desbloquear una entrada; el contexto docente continúa centralizado en el README.
+- La versión visible y de paquete avanza a `0.3.1`; el esquema de progreso permanece en `v2` porque pasos, respuestas parciales y parámetros visuales son efímeros.
+
+### Corregido
+
+- Las intervenciones secuenciales insertan su formulario activo, impiden saltos tras un error y desplazan el foco al siguiente paso operable.
+- La comparación visual comunica por texto cuál campo admite potencial, además de su estado cromático; las fórmulas y deslizadores siguen ocultos durante los reintentos.
+- Los campos de entrada guiados ya no muestran sus respuestas esperadas como ejemplos y la etapa independiente conserva feedback binario también en su decisión conceptual.
+
+### Seguridad y alcance
+
+- Las expresiones del estudiante nunca pasan por `eval`, `Function` ni otra forma de ejecución de JavaScript.
+- No se añadieron dependencias, backend, CDN, telemetría, render 3D ni un sistema general de gráficos.
+
 ## [0.3.0] - 2026-08-27
 
 ### Añadido

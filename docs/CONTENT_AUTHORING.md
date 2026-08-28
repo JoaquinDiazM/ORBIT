@@ -213,9 +213,11 @@ steps: [
 
 ## Biblioteca de referencia
 
-La simbología, las constantes, el formulario y el glosario viven en `src/data/reference/`. Cada entrada declara un ID, requisitos y una clave de `docs/references/references.bib`.
+La simbología, las constantes, el formulario y el glosario viven en `src/data/reference/`. Cada entrada declara un ID y requisitos. `source` es opcional: se reserva para datos numéricos, adaptaciones, afirmaciones históricas y teoremas específicos que realmente necesitan trazabilidad.
 
 Su disponibilidad se deriva mediante las mismas categorías de requisitos del Árbol II. No guardes listas de fórmulas o definiciones desbloqueadas. Consulta [Nomenclatura e IDs](CONTENT_NAMING.md).
+
+No añadas una cita repetida a definiciones, operaciones algebraicas o identidades rutinarias. Cuando una fórmula, propiedad o colección con fuente se desbloquee, la interfaz debe comunicar esa referencia una sola vez y de forma agrupada; no debe mantener un cuadro bibliográfico dentro de cada tarjeta del menú. La procedencia del material docente que inspira globalmente el proyecto permanece centralizada en el `README` y no se repite en los datos runtime.
 
 ## Estándar pedagógico futuro
 
@@ -241,7 +243,9 @@ Un nodo listo para publicación debería incorporar:
 - No uses una fuente secundaria popular como único respaldo de una afirmación histórica discutida.
 - No incorpores imágenes o textos ajenos solo porque son accesibles en internet.
 - Registra autor, título, institución/editorial, año y enlace estable cuando el formato final lo permita.
-- Registra la clave canónica en `docs/references/references.bib` y el localizador exacto en cada entrada.
+- Cuando una entrada necesite fuente, registra su clave canónica en `docs/references/references.bib` y un localizador exacto dentro de `source`.
+- El conocimiento matemático común puede declararse sin `source`; no cites una fuente para suma, derivación elemental o notación estándar solo para completar un campo.
+- Una fuente mostrada al desbloquear contenido se cita una vez y de manera agrupada, no como texto repetido en cada tarjeta de consulta.
 - Un adjunto con licencia no indicada puede orientar una reformulación independiente, pero no autoriza copiar prosa, tablas, ejercicios ni soluciones.
 
 ## Control de calidad

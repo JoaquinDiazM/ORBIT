@@ -6,7 +6,7 @@ Prototipo abierto de un curso complementario de electromagnetismo aplicado con u
 
 El proyecto está dirigido a estudiantes que ya manejan cálculo, álgebra lineal y física clásica, especialmente quienes consideran estudiar Ingeniería Eléctrica o comienzan los primeros semestres de la especialidad.
 
-> **Estado:** prototipo técnico y pedagógico `0.3.0`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
+> **Estado:** prototipo técnico y pedagógico `0.3.1`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
 
 ## Qué demuestra esta versión
 
@@ -16,10 +16,12 @@ El proyecto está dirigido a estudiantes que ya manejan cálculo, álgebra linea
 - **Árbol del conocimiento II:** revela lugares, gadgets, transportes, personajes y misiones dentro de zonas ya accesibles.
 - Regla de fronteras: cuando se abre un hexágono, quedan transitables todas sus aristas compartidas con hexágonos previamente abiertos.
 - Veinte conceptos y 27 lugares alcanzables, incluida una misión integradora Tierra–Luna.
-- Ejercicios de alternativa, respuesta numérica con tolerancia y actividades de confirmación.
-- Lugares extensos divididos en etapas desbloqueables dentro de la ventana principal.
+- Ejercicios de alternativa, respuesta numérica con tolerancia, expresiones equivalentes, secuencias guiadas y actividades de confirmación.
+- Lugares extensos divididos en etapas desbloqueables dentro de la ventana principal; el Taller Vectorial desarrolla ahora seis etapas con andamiaje decreciente.
+- Visor de campos vectoriales 2D en SVG nativo, con muestreo y escala comparables, parámetros efímeros y descripción accesible sin animación automática.
+- Política matemática segura para equivalencia numérica, funcional y por gradiente, con parser restringido y evaluación determinista sin ejecutar JavaScript ingresado por el usuario.
 - Menú secundario compatible con la ventana del lugar: árboles, simbología, constantes, formulario, glosario y ayuda.
-- Referencias académicas derivadas desde el progreso: la disponibilidad no se duplica en el guardado.
+- Referencias académicas selectivas y derivadas desde el progreso: el menú no repite cuadros de fuentes y cada procedencia pertinente se anuncia al producirse su desbloqueo.
 - Persistencia local por perfiles, exportación e importación JSON.
 - Debugger visual y API de consola.
 - Ambiente global y efectos para cambio de zona e interacción, con mute y pruebas directas.
@@ -27,7 +29,19 @@ El proyecto está dirigido a estudiantes que ya manejan cálculo, álgebra linea
 - Migración automática de perfiles `v1` al esquema `v2`.
 - Validación automática contra bloqueos lógicos de progresión.
 - Build estático y despliegue preparado para GitHub Pages.
-- Una dependencia npm fijada y documentada: KaTeX 0.18.1; el sitio construido no usa CDN ni backend.
+- Una dependencia npm fijada y documentada: KaTeX 0.18.1; `0.3.1` no añade paquetes, backend, render 3D ni CDN.
+
+### Taller Vectorial en 0.3.1
+
+Las tres primeras etapas conservan la introducción a campos, operadores e identidades y añaden los elementos diferenciales de línea, superficie y volumen en coordenadas cartesianas, cilíndricas y esféricas. Las etapas evaluadas son:
+
+1. `exit-check`: comparación visual entre dos campos 2D bajo el mismo dominio, muestreo y escala; las fórmulas y los controles `a` y `b` se revelan solo después de acertar.
+2. `guided-cartesian-potential`: reconstrucción cartesiana de una función escalar mediante exactamente cinco intervenciones guiadas.
+3. `independent-cylindrical-potential`: evaluación cilíndrica de dos intervenciones, con retroalimentación binaria mientras se resuelve.
+
+Las respuestas algebraicas se comparan por su significado matemático. El evaluador usa una gramática de lista blanca, límites de complejidad, puntos de prueba fijos y derivación automática; no usa `eval`, `Function` ni ejecución dinámica. Esta comparación determinista no es una demostración simbólica global y una expresión construida específicamente para coincidir solo en los puntos publicados podría producir un falso positivo. El avance interno, la selección visual y los parámetros de las figuras son estado de sesión: el perfil solo registra la finalización del lugar, por lo que el esquema de progreso permanece en `v2` y no requiere migración.
+
+Las fuentes se reservan para afirmaciones que realmente necesitan trazabilidad. No se atribuyen operaciones elementales, y el material docente que motivó el proyecto mantiene únicamente su reconocimiento global en este README, sin citas repetidas dentro del nodo.
 
 ## Inicio rápido
 
@@ -142,11 +156,11 @@ Más detalles:
 ├── AGENTS.md                 # reglas globales para agentes y colaboradores
 ├── index.html                # interfaz DOM y Canvas
 ├── src/
-│   ├── core/                 # geometría, progreso, ejercicios y validación
+│   ├── core/                 # geometría, progreso, secuencias, expresiones y validación
 │   ├── data/                 # definición declarativa de mundo y contenido
 │   ├── game/                 # loop, cámara, entrada y renderer Canvas
 │   ├── audio/                # carga local, ambiente, efectos y mute
-│   └── ui/                   # paneles, ejercicios, HUD y debugger
+│   └── ui/                   # paneles, SVG 2D, ejercicios, HUD y debugger
 ├── tests/                    # pruebas unitarias y de progresión
 ├── scripts/                  # servidor, build y validador
 ├── docs/                     # diseño, decisiones y guías
@@ -211,5 +225,5 @@ Las modificaciones grandes deben preservar los invariantes de progresión y acom
 - KaTeX: MIT, copiado al build desde la dependencia fijada.
 - Audio incluido: CC0 1.0; procedencia en [public/assets/audio/ATTRIBUTION.md](public/assets/audio/ATTRIBUTION.md).
 - Texto abierto adaptado cuando se indica: CC BY-SA 4.0; referencias completas en [docs/references/references.bib](docs/references/references.bib).
-- Material docente EL3103 citado como consulta: licencia no indicada; no se redistribuyen los PDF, sus tablas, ejercicios ni soluciones.
+- Material docente EL3103 reconocido globalmente como contexto del proyecto: licencia no indicada; no se redistribuyen los PDF, sus tablas, ejercicios ni soluciones ni se repiten citas locales dentro de los nodos.
 - Los enlaces externos conservan sus propias condiciones de uso; no se redistribuyen sus recursos dentro del repositorio.

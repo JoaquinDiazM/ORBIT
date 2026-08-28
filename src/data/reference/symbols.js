@@ -1,19 +1,5 @@
-function el3103SymbolsSource(locator) {
-  return Object.freeze({
-    citationKey: "el3103-team-symbols-2026",
-    label: "Equipo docente EL3103, Simbología Electromagnetismo Aplicado",
-    locator,
-    usage: "consulta",
-    license: "no indicada",
-  });
-}
-
-const EL3103_VECTOR_SOURCE = Object.freeze({
-  citationKey: "el3103-team-vector-2025",
-  label: "Equipo docente EL3103, Clase auxiliar extra",
-  locator: "pp. 1-2",
-  usage: "consulta",
-  license: "no indicada",
+const COULOMB_OBSERVATORY_REQUIREMENT = Object.freeze({
+  completedLocations: ["coulomb-observatory"],
 });
 
 export const SYMBOLS = Object.freeze([
@@ -26,7 +12,6 @@ export const SYMBOLS = Object.freeze([
     category: "Operadores matemáticos",
     requirements: {},
     note: "Su acción depende del operador; equivale a m⁻¹ cuando las coordenadas espaciales se expresan en metros.",
-    source: EL3103_VECTOR_SOURCE,
   },
   {
     id: "scalar-field",
@@ -36,7 +21,6 @@ export const SYMBOLS = Object.freeze([
     unit: "según la magnitud",
     category: "Objetos matemáticos",
     requirements: {},
-    source: EL3103_VECTOR_SOURCE,
   },
   {
     id: "vector-field",
@@ -46,7 +30,6 @@ export const SYMBOLS = Object.freeze([
     unit: "según la magnitud",
     category: "Objetos matemáticos",
     requirements: {},
-    source: EL3103_VECTOR_SOURCE,
   },
   {
     id: "position-vector",
@@ -56,7 +39,6 @@ export const SYMBOLS = Object.freeze([
     unit: "m",
     category: "Geometría",
     requirements: {},
-    source: el3103SymbolsSource("p. 3"),
   },
   {
     id: "cartesian-unit-vectors",
@@ -66,7 +48,6 @@ export const SYMBOLS = Object.freeze([
     unit: "1",
     category: "Geometría",
     requirements: {},
-    source: EL3103_VECTOR_SOURCE,
   },
   {
     id: "electric-field",
@@ -75,8 +56,7 @@ export const SYMBOLS = Object.freeze([
     name: "Campo eléctrico",
     unit: "V m⁻¹ (N C⁻¹)",
     category: "Campos electromagnéticos",
-    requirements: {},
-    source: el3103SymbolsSource("p. 1"),
+    requirements: COULOMB_OBSERVATORY_REQUIREMENT,
   },
   {
     id: "electric-flux-density",
@@ -86,7 +66,6 @@ export const SYMBOLS = Object.freeze([
     unit: "C m⁻²",
     category: "Campos electromagnéticos",
     requirements: {},
-    source: el3103SymbolsSource("p. 1"),
   },
   {
     id: "magnetic-flux-density",
@@ -96,7 +75,6 @@ export const SYMBOLS = Object.freeze([
     unit: "T",
     category: "Campos electromagnéticos",
     requirements: {},
-    source: el3103SymbolsSource("p. 1"),
   },
   {
     id: "magnetic-field-intensity",
@@ -106,7 +84,6 @@ export const SYMBOLS = Object.freeze([
     unit: "A m⁻¹",
     category: "Campos electromagnéticos",
     requirements: {},
-    source: el3103SymbolsSource("p. 1"),
   },
   {
     id: "electric-potential",
@@ -115,8 +92,7 @@ export const SYMBOLS = Object.freeze([
     name: "Potencial eléctrico (su diferencia se denomina voltaje)",
     unit: "V",
     category: "Potenciales y circuitos",
-    requirements: {},
-    source: el3103SymbolsSource("p. 1"),
+    requirements: COULOMB_OBSERVATORY_REQUIREMENT,
   },
   {
     id: "magnetic-vector-potential",
@@ -126,7 +102,6 @@ export const SYMBOLS = Object.freeze([
     unit: "Wb m⁻¹",
     category: "Potenciales y circuitos",
     requirements: {},
-    source: el3103SymbolsSource("p. 1"),
   },
   {
     id: "electric-current",
@@ -136,7 +111,6 @@ export const SYMBOLS = Object.freeze([
     unit: "A",
     category: "Fuentes",
     requirements: {},
-    source: el3103SymbolsSource("p. 1"),
   },
   {
     id: "current-density",
@@ -146,7 +120,6 @@ export const SYMBOLS = Object.freeze([
     unit: "A m⁻²",
     category: "Fuentes",
     requirements: {},
-    source: el3103SymbolsSource("p. 1"),
   },
   {
     id: "charge",
@@ -156,7 +129,6 @@ export const SYMBOLS = Object.freeze([
     unit: "C",
     category: "Fuentes",
     requirements: {},
-    source: el3103SymbolsSource("p. 3"),
   },
   {
     id: "linear-charge-density",
@@ -166,7 +138,6 @@ export const SYMBOLS = Object.freeze([
     unit: "C m⁻¹",
     category: "Fuentes",
     requirements: {},
-    source: el3103SymbolsSource("p. 3"),
   },
   {
     id: "surface-charge-density",
@@ -176,7 +147,6 @@ export const SYMBOLS = Object.freeze([
     unit: "C m⁻²",
     category: "Fuentes",
     requirements: {},
-    source: el3103SymbolsSource("p. 3"),
   },
   {
     id: "volume-charge-density",
@@ -186,7 +156,6 @@ export const SYMBOLS = Object.freeze([
     unit: "C m⁻³",
     category: "Fuentes",
     requirements: {},
-    source: el3103SymbolsSource("p. 3"),
   },
   {
     id: "electric-permittivity",
@@ -196,7 +165,6 @@ export const SYMBOLS = Object.freeze([
     unit: "F m⁻¹",
     category: "Materiales",
     requirements: {},
-    source: el3103SymbolsSource("p. 1"),
   },
   {
     id: "magnetic-permeability",
@@ -206,7 +174,6 @@ export const SYMBOLS = Object.freeze([
     unit: "H m⁻¹",
     category: "Materiales",
     requirements: {},
-    source: el3103SymbolsSource("p. 2"),
   },
   {
     id: "poynting-vector",
@@ -216,7 +183,6 @@ export const SYMBOLS = Object.freeze([
     unit: "W m⁻²",
     category: "Energía y potencia",
     requirements: {},
-    source: el3103SymbolsSource("p. 1"),
   },
   {
     id: "electric-flux",
@@ -227,7 +193,6 @@ export const SYMBOLS = Object.freeze([
     category: "Flujos",
     note: "No confundir con el flujo de D; la convención debe declararse en cada unidad.",
     requirements: {},
-    source: el3103SymbolsSource("p. 1"),
   },
   {
     id: "magnetic-flux",
@@ -237,6 +202,5 @@ export const SYMBOLS = Object.freeze([
     unit: "Wb",
     category: "Flujos",
     requirements: {},
-    source: el3103SymbolsSource("p. 1"),
   },
 ]);

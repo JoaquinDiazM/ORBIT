@@ -4,11 +4,18 @@ import {
   CONSTANTS,
   FORMULAS,
   GLOSSARY,
+  REFERENCE_COLLECTIONS,
   REFERENCE_VIEWS,
   SYMBOLS,
 } from "../data/reference/index.js";
 import { AREAS } from "../data/world.js";
 import { evaluateExercise } from "../core/exercises.js";
+import {
+  createExerciseSequenceState,
+  isExerciseSequenceComplete,
+  markExerciseSequenceItemPassed,
+  normalizeExerciseSequenceState,
+} from "../core/exercise-sequence.js";
 import {
   getLocationSteps,
   markLocationStepPassed,
@@ -18,6 +25,11 @@ import {
 } from "../core/location-steps.js";
 import { describeMissingRequirements, meetsRequirements } from "../core/requirements.js";
 import { createEquationFigure, renderMath } from "./math-renderer.js";
+import {
+  VectorField2D,
+  createFieldAConfig,
+  createFieldBConfig,
+} from "./vector-field-2d.js";
 
 function element(tagName, options = {}) {
   const node = document.createElement(tagName);
@@ -56,6 +68,8 @@ export class UIController {
     this.openPanels = [];
     this.panelReturnFocus = new Map();
     this.locationStepStates = new Map();
+    this.exerciseStates = new Map();
+    this.activeInteractiveFigures = [];
     this.activeReferenceView = "symbols";
     this.secondaryPanelIds = ["knowledge-panel", "reference-panel", "help-panel"];
 
@@ -232,9 +246,16 @@ export class UIController {
   }
 
   #clearTransientLocationState() {
+    this.#destroyInteractiveFigures();
     this.locationStepStates.clear();
+    this.exerciseStates.clear();
     this.closePanel("lesson-panel");
     this.elements.lessonBody.replaceChildren();
+  }
+
+  #destroyInteractiveFigures() {
+    for (const figure of this.activeInteractiveFigures) figure.destroy();
+    this.activeInteractiveFigures = [];
   }
 
   hideLoadingScreen() {
@@ -298,6 +319,7 @@ export class UIController {
 
   #renderLocationBody(location) {
     const body = this.elements.lessonBody;
+    this.#destroyInteractiveFigures();
     body.replaceChildren();
     body.classList.add("prose");
 
@@ -330,9 +352,20 @@ export class UIController {
     }
 
     const completed = this.progression.isLocationCompleted(location.id);
+    const passed = state.passedStepIds.has(activeStep.id);
+    const reviewableExercise =
+      activeStep.exercise?.type === "sequence"
+      || activeStep.exercise?.presentation === "vector-field-cards";
+    if ((completed || passed) && reviewableExercise) {
+      body.append(
+        this.#renderExercise(location, activeStep, state.activeIndex, steps.length, {
+          resolved: true,
+        }),
+      );
+    }
     if (completed) {
       body.append(this.#renderCompletionCard(location, activeStep.exercise));
-    } else if (state.passedStepIds.has(activeStep.id)) {
+    } else if (passed) {
       body.append(this.#renderStepContinue(location, activeStep, state.activeIndex, steps.length));
     } else if (activeStep.exercise?.type !== "none") {
       body.append(this.#renderExercise(location, activeStep, state.activeIndex, steps.length));
@@ -455,7 +488,119 @@ export class UIController {
     return section;
   }
 
-  #renderExercise(location, step, stepIndex, stepCount) {
+  #renderExercise(location, step, stepIndex, stepCount, { resolved = false } = {}) {
+    if (step.exercise.presentation === "vector-field-cards") {
+      return this.#renderVectorFieldExercise(location, step, stepIndex, stepCount, { resolved });
+    }
+    if (step.exercise.type === "sequence") {
+      return this.#renderSequenceExercise(location, step, stepIndex, stepCount, { resolved });
+    }
+    return this.#renderAtomicExercise(location, step, stepIndex, stepCount);
+  }
+
+  #exerciseStateKey(location, step) {
+    return `${location.id}:${step.id}`;
+  }
+
+  #choiceLabel(choice) {
+    if (typeof choice === "string") return choice;
+    return choice?.label ?? choice?.text ?? choice?.id ?? "Alternativa";
+  }
+
+  #appendAtomicExerciseControl(form, exercise, inputName) {
+    if (exercise.type === "choice") {
+      const fieldset = element("fieldset");
+      fieldset.append(
+        element("legend", { className: "eyebrow", text: "Selecciona una alternativa" }),
+      );
+      exercise.choices.forEach((choice, index) => {
+        const label = element("label", { className: "choice-option" });
+        const value = typeof choice === "string" ? String(index) : choice.id ?? String(index);
+        const input = element("input", {
+          attributes: { type: "radio", name: inputName, value },
+        });
+        label.append(input, element("span", { text: this.#choiceLabel(choice) }));
+        fieldset.append(label);
+      });
+      form.append(fieldset);
+      return () => {
+        const selected = fieldset.querySelector(`input[name="${inputName}"]:checked`);
+        return selected ? selected.value : Number.NaN;
+      };
+    }
+
+    if (exercise.type === "numeric" || exercise.type === "expression") {
+      const row = element("div", {
+        className: exercise.type === "expression" ? "math-input-row" : "numeric-row",
+      });
+      if (exercise.promptPrefix) {
+        row.append(this.#renderInlineMath(exercise.promptPrefix, "Expresión a completar"));
+      }
+      const input = element("input", {
+        className: exercise.type === "expression" ? "text-input" : "",
+        attributes: {
+          type: "text",
+          inputmode: exercise.type === "numeric" ? "decimal" : "text",
+          autocomplete: "off",
+          autocapitalize: "off",
+          spellcheck: "false",
+          placeholder:
+            exercise.placeholder
+            ?? (exercise.type === "expression" ? "Escribe una expresión" : "Respuesta numérica"),
+          "aria-label":
+            exercise.inputLabel
+            ?? (exercise.type === "expression"
+              ? "Expresión matemática"
+              : `Respuesta en ${exercise.unit ?? "unidades SI"}`),
+        },
+      });
+      row.append(input);
+      if (exercise.type === "numeric") row.append(element("span", { text: exercise.unit ?? "" }));
+      form.append(row);
+      return () => input.value;
+    }
+
+    if (exercise.type === "acknowledge") return () => true;
+    return () => null;
+  }
+
+  #renderFeedback() {
+    return element("p", {
+      className: "exercise-feedback",
+      attributes: { role: "status", "aria-live": "polite", "aria-atomic": "true" },
+    });
+  }
+
+  #showEvaluationError(feedback, evaluation, options = {}) {
+    feedback.className = "exercise-feedback error";
+    feedback.textContent =
+      evaluation.reason === "invalid-number"
+        ? "Ingresa un número válido; se acepta coma decimal y notación científica."
+        : evaluation.reason === "missing-response"
+          ? "Selecciona una alternativa antes de comprobar."
+          : options.retryExplanation
+            ? options.retryExplanation
+            : options.feedbackMode === "binary"
+              ? "Respuesta no válida. Puedes corregirla y volver a comprobar."
+              : evaluation.message
+                ?? "La respuesta todavía no es correcta. Revisa el planteamiento y vuelve a intentarlo.";
+  }
+
+  #passStepOrComplete(location, step, stepIndex, stepCount, exercise, feedback) {
+    if (stepIndex < stepCount - 1) {
+      let state = this.#getLocationStepState(location);
+      state = markLocationStepPassed(state, step.id);
+      state = unlockLocationStep(state, stepIndex, stepCount);
+      this.#setLocationStepState(location, state);
+      this.toast("Actividad superada. La etapa siguiente ya está disponible.", "success");
+      this.#renderLocationBody(location);
+      this.#focusActiveStep();
+      return;
+    }
+    this.#completeLocation(location, exercise, feedback);
+  }
+
+  #renderAtomicExercise(location, step, stepIndex, stepCount) {
     const exercise = step.exercise;
     const isFinalStep = stepIndex === stepCount - 1;
     const section = element("section", { className: "lesson-section" });
@@ -466,88 +611,295 @@ export class UIController {
     appendTextParagraph(card, exercise.prompt);
 
     const form = element("form");
-    let responseReader = () => null;
-
-    if (exercise.type === "choice") {
-      const fieldset = element("fieldset");
-      fieldset.append(element("legend", { className: "eyebrow", text: "Selecciona una alternativa" }));
-      const inputName = `exercise-${location.id}-${step.id}`;
-      exercise.choices.forEach((choice, index) => {
-        const label = element("label", { className: "choice-option" });
-        const input = element("input", {
-          attributes: { type: "radio", name: inputName, value: index },
-        });
-        label.append(input, element("span", { text: choice }));
-        fieldset.append(label);
-      });
-      responseReader = () => {
-        const selected = fieldset.querySelector(`input[name="${inputName}"]:checked`);
-        return selected ? selected.value : Number.NaN;
-      };
-      form.append(fieldset);
-    } else if (exercise.type === "numeric") {
-      const row = element("div", { className: "numeric-row" });
-      const input = element("input", {
-        attributes: {
-          type: "text",
-          inputmode: "decimal",
-          autocomplete: "off",
-          placeholder: exercise.placeholder ?? "Respuesta numérica",
-          "aria-label": `Respuesta en ${exercise.unit ?? "unidades SI"}`,
-        },
-      });
-      row.append(input, element("span", { text: exercise.unit ?? "" }));
-      responseReader = () => input.value;
-      form.append(row);
-    } else if (exercise.type === "acknowledge") {
-      responseReader = () => true;
-    }
-
+    const inputName = `exercise-${location.id}-${step.id}`;
+    const responseReader = this.#appendAtomicExerciseControl(form, exercise, inputName);
     const actions = element("div", { className: "exercise-actions" });
-    const submit = element("button", {
-      text:
-        exercise.buttonLabel ?? (isFinalStep ? "Comprobar y completar" : "Comprobar etapa"),
-      attributes: { type: "submit" },
-    });
-    actions.append(submit);
+    actions.append(
+      element("button", {
+        text:
+          exercise.buttonLabel ?? (isFinalStep ? "Comprobar y completar" : "Comprobar etapa"),
+        attributes: { type: "submit" },
+      }),
+    );
     form.append(actions);
-    const feedback = element("p", {
-      className: "exercise-feedback",
-      attributes: { role: "status", "aria-live": "polite", "aria-atomic": "true" },
-    });
+    const feedback = this.#renderFeedback();
     form.append(feedback);
 
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       const evaluation = evaluateExercise(exercise, responseReader());
       if (!evaluation.correct) {
-        feedback.className = "exercise-feedback error";
-        feedback.textContent =
-          evaluation.reason === "invalid-number"
-            ? "Ingresa un número válido; se acepta coma decimal y notación científica."
-            : evaluation.reason === "missing-response"
-              ? "Selecciona una alternativa antes de comprobar."
-              : "La respuesta todavía no es correcta. Revisa el modelo y las unidades.";
+        this.#showEvaluationError(feedback, evaluation);
         return;
       }
-
-      if (!isFinalStep) {
-        let state = this.#getLocationStepState(location);
-        state = markLocationStepPassed(state, step.id);
-        state = unlockLocationStep(state, stepIndex, stepCount);
-        this.#setLocationStepState(location, state);
-        this.toast("Actividad superada. La etapa siguiente ya está disponible.", "success");
-        this.#renderLocationBody(location);
-        this.#focusActiveStep();
-        return;
-      }
-
-      this.#completeLocation(location, exercise, feedback);
+      this.#passStepOrComplete(location, step, stepIndex, stepCount, exercise, feedback);
     });
 
     card.append(form);
     section.append(card);
     return section;
+  }
+
+  #vectorFieldConfig(location, step, choice, state, resolved) {
+    const figure = choice.figure;
+    const parameter = figure.parameter;
+    const factory = figure.fieldId === "radial-linear" ? createFieldAConfig : createFieldBConfig;
+    const currentValue = state.parameters[parameter.id] ?? parameter.nominal;
+    return factory({
+      id: `${location.id}-${step.id}-${choice.id}`,
+      title: choice.label,
+      domain: figure.domain,
+      samples: figure.samplesPerAxis,
+      scale: figure.visualScale,
+      parameters: {
+        [parameter.id]: {
+          label: parameter.id,
+          min: parameter.min,
+          max: parameter.max,
+          step: parameter.step,
+          nominal: parameter.nominal,
+        },
+      },
+      params: { [parameter.id]: currentValue },
+      integralCurves: false,
+      showParameters: resolved,
+      onParametersChange: ({ params }) => {
+        state.parameters = { ...state.parameters, ...params };
+        this.exerciseStates.set(this.#exerciseStateKey(location, step), state);
+      },
+    });
+  }
+
+  #appendRevealSections(parent, sections) {
+    for (const sectionData of sections ?? []) parent.append(this.#renderLessonSection(sectionData));
+  }
+
+  #renderVectorFieldExercise(location, step, stepIndex, stepCount, { resolved }) {
+    const exercise = step.exercise;
+    const key = this.#exerciseStateKey(location, step);
+    const state = this.exerciseStates.get(key) ?? { selectedId: null, parameters: {} };
+    if (resolved) state.selectedId = exercise.answerId;
+    this.exerciseStates.set(key, state);
+
+    const section = element("section", { className: "lesson-section vector-field-exercise" });
+    section.append(element("h3", { text: resolved ? "Comparación resuelta" : "Actividad visual" }));
+    const card = element("div", { className: "exercise-card" });
+    appendTextParagraph(card, exercise.prompt);
+    const form = element("form");
+    const fieldset = element("fieldset", { className: "vector-field-choice-set" });
+    fieldset.append(
+      element("legend", {
+        className: "eyebrow",
+        text: resolved ? "Campos comparados" : "Selecciona el campo que admite potencial escalar",
+      }),
+    );
+    const grid = element("div", { className: "vector-field-card-grid" });
+    const selectableCards = [];
+
+    const selectChoice = (choiceId) => {
+      if (resolved) return;
+      state.selectedId = choiceId;
+      this.exerciseStates.set(key, state);
+      for (const entry of selectableCards) {
+        const selected = entry.choiceId === choiceId;
+        entry.card.classList.toggle("selected", selected);
+        entry.card.setAttribute("aria-checked", String(selected));
+      }
+    };
+
+    for (const choice of exercise.choices) {
+      const resultClass = resolved
+        ? choice.id === exercise.answerId
+          ? "correct"
+          : "incorrect"
+        : "";
+      const fieldCard = element("article", {
+        className:
+          `vector-field-choice ${state.selectedId === choice.id ? "selected" : ""} ${resultClass}`.trim(),
+        attributes: resolved
+          ? { "data-choice-id": choice.id }
+          : {
+              role: "radio",
+              tabindex: "0",
+              "aria-checked": String(state.selectedId === choice.id),
+              "aria-label": `Seleccionar ${choice.label}`,
+              "data-choice-id": choice.id,
+            },
+      });
+      if (!resolved) {
+        selectableCards.push({ card: fieldCard, choiceId: choice.id });
+        fieldCard.addEventListener("click", () => selectChoice(choice.id));
+        fieldCard.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          event.preventDefault();
+          selectChoice(choice.id);
+        });
+      }
+      const figureMount = element("div", { className: "vector-field-mount" });
+      fieldCard.append(figureMount);
+      const vectorField = new VectorField2D({
+        container: figureMount,
+        ...this.#vectorFieldConfig(location, step, choice, state, resolved),
+      });
+      this.activeInteractiveFigures.push(vectorField);
+      if (resolved) {
+        fieldCard.append(
+          element("p", {
+            className: "vector-field-result",
+            text:
+              choice.id === exercise.answerId
+                ? "Resultado: admite potencial escalar."
+                : "Resultado: no admite potencial escalar.",
+          }),
+        );
+        const reveal = element("div", { className: "vector-field-reveal" });
+        this.#appendRevealSections(reveal, choice.reveal?.sections);
+        fieldCard.append(reveal);
+      }
+      grid.append(fieldCard);
+    }
+    fieldset.append(grid);
+    form.append(fieldset);
+
+    if (!resolved) {
+      const actions = element("div", { className: "exercise-actions" });
+      actions.append(
+        element("button", {
+          text: "Comprobar comparación",
+          attributes: { type: "submit" },
+        }),
+      );
+      form.append(actions);
+      const feedback = this.#renderFeedback();
+      form.append(feedback);
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const evaluation = evaluateExercise(exercise, state.selectedId);
+        if (!evaluation.correct) {
+          this.#showEvaluationError(feedback, evaluation, {
+            retryExplanation: exercise.retryExplanation,
+          });
+          return;
+        }
+        state.selectedId = exercise.answerId;
+        this.exerciseStates.set(key, state);
+        this.#passStepOrComplete(location, step, stepIndex, stepCount, exercise, feedback);
+      });
+    }
+
+    card.append(form);
+    section.append(card);
+    return section;
+  }
+
+  #renderSequenceSuccess(parent, item) {
+    const successSections = item.successSections ?? item.reveal?.sections ?? [];
+    if (item.explanation) {
+      parent.append(element("p", { className: "callout", text: item.explanation }));
+    }
+    if (successSections.length > 0) this.#appendRevealSections(parent, successSections);
+    else if (!item.explanation) {
+      parent.append(element("p", { className: "sequence-success", text: "Intervención validada." }));
+    }
+  }
+
+  #renderSequenceExercise(location, step, stepIndex, stepCount, { resolved }) {
+    const exercise = step.exercise;
+    const key = this.#exerciseStateKey(location, step);
+    const sequenceState = normalizeExerciseSequenceState(
+      exercise,
+      this.exerciseStates.get(key) ?? createExerciseSequenceState(exercise),
+      { completed: resolved },
+    );
+    this.exerciseStates.set(key, sequenceState);
+
+    const section = element("section", { className: "lesson-section sequence-exercise" });
+    section.append(
+      element("h3", {
+        text: resolved
+          ? "Resolución por intervenciones"
+          : exercise.feedback === "binary"
+            ? "Evaluación independiente"
+            : "Actividad guiada",
+      }),
+    );
+    const card = element("div", { className: "exercise-card" });
+    if (exercise.prompt) appendTextParagraph(card, exercise.prompt);
+    const list = element("ol", { className: "exercise-sequence-list" });
+
+    exercise.items.forEach((item, index) => {
+      const completed = resolved || sequenceState.completedItemIds.has(item.id);
+      const current = !resolved && index === sequenceState.activeItemIndex && !completed;
+      const entry = element("li", {
+        className: `sequence-item ${completed ? "completed" : current ? "current" : "pending"}`,
+        attributes: current ? { tabindex: "-1", "data-sequence-current": "true" } : {},
+      });
+      entry.append(
+        element("p", {
+          className: "sequence-item-state",
+          text: `Intervención ${index + 1} de ${exercise.items.length} · ${completed ? "validada" : current ? "actual" : "pendiente"}`,
+        }),
+      );
+
+      if (completed || current) {
+        entry.append(element("h4", { text: item.title ?? `Intervención ${index + 1}` }));
+        appendTextParagraph(entry, item.prompt);
+      }
+
+      if (completed) {
+        this.#renderSequenceSuccess(entry, item);
+      } else if (current) {
+        const form = element("form");
+        const responseReader = this.#appendAtomicExerciseControl(
+          form,
+          item,
+          `exercise-${location.id}-${step.id}-${item.id}`,
+        );
+        const actions = element("div", { className: "exercise-actions" });
+        actions.append(
+          element("button", {
+            text: item.buttonLabel ?? "Comprobar intervención",
+            attributes: { type: "submit" },
+          }),
+        );
+        form.append(actions);
+        const feedback = this.#renderFeedback();
+        form.append(feedback);
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const evaluation = evaluateExercise(item, responseReader());
+          if (!evaluation.correct) {
+            this.#showEvaluationError(feedback, evaluation, {
+              feedbackMode: exercise.feedback,
+            });
+            return;
+          }
+
+          const nextState = markExerciseSequenceItemPassed(exercise, sequenceState, item.id);
+          this.exerciseStates.set(key, nextState);
+          if (isExerciseSequenceComplete(exercise, nextState)) {
+            this.#passStepOrComplete(location, step, stepIndex, stepCount, exercise, feedback);
+          } else {
+            this.#renderLocationBody(location);
+            this.#focusSequenceItem();
+          }
+        });
+        entry.append(form);
+      } else {
+        entry.append(element("p", { text: "Se habilita al validar la intervención anterior." }));
+      }
+      list.append(entry);
+    });
+
+    card.append(list);
+    section.append(card);
+    return section;
+  }
+
+  #focusSequenceItem() {
+    this.elements.lessonBody
+      .querySelector("[data-sequence-current='true']")
+      ?.focus();
   }
 
   #completeLocation(location, exercise, feedback) {
@@ -558,27 +910,44 @@ export class UIController {
       feedback.textContent = "El lugar ya no cumple sus condiciones de acceso.";
       return;
     }
-      const after = this.progression.getSnapshot();
-      const newlyOpenedAreas = [...after.unlockedAreaIds].filter(
-        (areaId) => !before.unlockedAreaIds.has(areaId),
-      );
-      const newlyVisibleLocations = [...after.visibleLocationIds].filter(
-        (locationId) => !before.visibleLocationIds.has(locationId),
-      );
+    const after = this.progression.getSnapshot();
+    const newlyOpenedAreas = [...after.unlockedAreaIds].filter(
+      (areaId) => !before.unlockedAreaIds.has(areaId),
+    );
+    const newlyVisibleLocations = [...after.visibleLocationIds].filter(
+      (locationId) => !before.visibleLocationIds.has(locationId),
+    );
+    const citationLabels = this.#newlyUnlockedCitationLabels(before, after);
 
-      const messageParts = [exercise.explanation ?? "Misión completada."];
-      if (newlyOpenedAreas.length) {
-        const names = newlyOpenedAreas
-          .map((areaId) => AREAS.find((area) => area.id === areaId)?.title ?? areaId)
-          .join(", ");
-        messageParts.push(`Nueva zona abierta: ${names}.`);
+    const messageParts = [exercise.explanation ?? "Misión completada."];
+    if (newlyOpenedAreas.length) {
+      const names = newlyOpenedAreas
+        .map((areaId) => AREAS.find((area) => area.id === areaId)?.title ?? areaId)
+        .join(", ");
+      messageParts.push(`Nueva zona abierta: ${names}.`);
+    }
+    if (newlyVisibleLocations.length) {
+      messageParts.push(`${newlyVisibleLocations.length} lugar(es) del Árbol II revelado(s).`);
+    }
+    if (citationLabels.length) {
+      messageParts.push(`Referencia del contenido desbloqueado: ${citationLabels.join("; ")}.`);
+    }
+    this.toast(messageParts.join(" "), "success", 6400);
+    this.#renderLocationBody(location);
+    this.#focusActiveStep();
+  }
+
+  #newlyUnlockedCitationLabels(before, after) {
+    const labels = new Set();
+    for (const entries of Object.values(REFERENCE_COLLECTIONS)) {
+      for (const entry of entries) {
+        if (!entry.source) continue;
+        const wasUnlocked = this.#isReferenceUnlocked(entry, before);
+        const isUnlocked = this.#isReferenceUnlocked(entry, after);
+        if (!wasUnlocked && isUnlocked) labels.add(entry.source.label);
       }
-      if (newlyVisibleLocations.length) {
-        messageParts.push(`${newlyVisibleLocations.length} lugar(es) del Árbol II revelado(s).`);
-      }
-      this.toast(messageParts.join(" "), "success", 5200);
-      this.#renderLocationBody(location);
-      this.#focusActiveStep();
+    }
+    return [...labels];
   }
 
   #focusActiveStep() {
@@ -774,53 +1143,6 @@ export class UIController {
     return node;
   }
 
-  #renderSourceLine(source) {
-    const text = [source?.label, source?.locator].filter(Boolean).join(", ");
-    const usage = [source?.usage, source?.license].filter(Boolean).join("; ");
-    const validationSource = [source?.validationLabel, source?.validationLocator]
-      .filter(Boolean)
-      .join("; ");
-    const validation = [validationSource, source?.validationLicense].filter(Boolean).join("; ");
-    const selection = [source?.selectionLabel, source?.selectionLocator]
-      .filter(Boolean)
-      .join(", ");
-    const details = [
-      text ? `Fuente: ${text}${usage ? ` (${usage})` : ""}.` : "Fuente bibliográfica pendiente.",
-      validation ? `Validación abierta: ${validation}.` : "",
-      selection ? `Selección nomenclatural: ${selection}.` : "",
-    ]
-      .filter(Boolean)
-      .join(" ");
-    return element("p", {
-      className: "reference-source",
-      text: details,
-    });
-  }
-
-  #renderCollectionSources(entries, snapshot) {
-    const sources = element("section", {
-      className: "reference-sources",
-      attributes: { "aria-label": "Fuentes de la tabla" },
-    });
-    const seen = new Set();
-    for (const entry of entries) {
-      if (!this.#isReferenceUnlocked(entry, snapshot)) continue;
-      const source = entry.source;
-      const key = [
-        source?.citationKey,
-        source?.locator,
-        source?.validationCitationKey,
-        source?.validationLocator,
-        source?.selectionCitationKey,
-        source?.selectionLocator,
-      ].join("|");
-      if (seen.has(key)) continue;
-      seen.add(key);
-      sources.append(this.#renderSourceLine(source));
-    }
-    return sources;
-  }
-
   #renderSymbolReference(body, snapshot) {
     this.#renderReferenceIntro(
       body,
@@ -849,7 +1171,7 @@ export class UIController {
       tbody.append(row);
     }
     table.append(head, tbody);
-    body.append(table, this.#renderCollectionSources(SYMBOLS, snapshot));
+    body.append(table);
   }
 
   #renderConstantReference(body, snapshot) {
@@ -884,7 +1206,7 @@ export class UIController {
       tbody.append(row);
     }
     table.append(head, tbody);
-    body.append(table, this.#renderCollectionSources(CONSTANTS, snapshot));
+    body.append(table);
   }
 
   #renderFormulaReference(body, snapshot) {
@@ -910,7 +1232,6 @@ export class UIController {
       if (unlocked) {
         card.append(createEquationFigure(entry.equation));
         appendTextParagraph(card, `Condiciones: ${entry.conditions}`);
-        card.append(this.#renderSourceLine(entry.source));
       } else appendTextParagraph(card, this.#referenceUnlockHint(entry, snapshot));
       list.append(card);
     }
@@ -940,7 +1261,6 @@ export class UIController {
       if (unlocked) {
         appendTextParagraph(card, entry.statement);
         card.append(this.#renderInlineMath(entry.notation, `Notación de ${entry.term}`));
-        card.append(this.#renderSourceLine(entry.source));
       } else appendTextParagraph(card, this.#referenceUnlockHint(entry, snapshot));
       list.append(card);
     }

@@ -6,18 +6,52 @@ import { LOCATIONS } from "../src/data/locations.js";
 import { CONSTANTS, FORMULAS, GLOSSARY, SYMBOLS } from "../src/data/reference/index.js";
 import { KATEX_RENDER_OPTIONS, getEquationTex } from "../src/ui/math-renderer.js";
 
+function equationsFromSections(sections, locationId, path) {
+  return (sections ?? []).flatMap((section, sectionIndex) =>
+    section.equation
+      ? [{ equation: section.equation, locationId, sectionIndex: `${path}:${sectionIndex}` }]
+      : [],
+  );
+}
+
+function equationsFromExercise(exercise, locationId, path) {
+  if (!exercise) return [];
+  const equations = equationsFromSections(exercise.reveal?.sections, locationId, `${path}:reveal`);
+  for (const [choiceIndex, choice] of (exercise.choices ?? []).entries()) {
+    if (typeof choice === "string") continue;
+    equations.push(
+      ...equationsFromSections(
+        choice.reveal?.sections,
+        locationId,
+        `${path}:choice-${choice.id ?? choiceIndex}:reveal`,
+      ),
+    );
+  }
+  for (const [itemIndex, item] of (exercise.items ?? []).entries()) {
+    const itemPath = `${path}:item-${item.id ?? itemIndex}`;
+    equations.push(
+      ...equationsFromSections(item.successSections, locationId, `${itemPath}:success`),
+      ...equationsFromExercise(item, locationId, itemPath),
+    );
+  }
+  return equations;
+}
+
 function collectEquations() {
   return LOCATIONS.flatMap((location) =>
+    getLocationSteps(location).flatMap((step) => [
+      ...equationsFromSections(step.sections, location.id, step.id),
+      ...equationsFromExercise(step.exercise, location.id, `${step.id}:exercise`),
+    ]),
+  );
+}
+
+function collectExerciseInlineMath() {
+  return LOCATIONS.flatMap((location) =>
     getLocationSteps(location).flatMap((step) =>
-      step.sections.flatMap((section, sectionIndex) =>
-        section.equation
-          ? [
-              {
-                equation: section.equation,
-                locationId: location.id,
-                sectionIndex: `${step.id}:${sectionIndex}`,
-              },
-            ]
+      (step.exercise?.items ?? []).flatMap((item) =>
+        item.promptPrefix
+          ? [{ id: `${location.id}:${step.id}:${item.id}:prompt-prefix`, tex: item.promptPrefix }]
           : [],
       ),
     ),
@@ -30,6 +64,7 @@ function collectReferenceMath() {
     ...CONSTANTS.map((entry) => ({ id: `constant:${entry.id}`, tex: entry.tex, displayMode: false })),
     ...FORMULAS.map((entry) => ({ id: `formula:${entry.id}`, tex: entry.equation.tex, displayMode: true })),
     ...GLOSSARY.map((entry) => ({ id: `glossary:${entry.id}`, tex: entry.notation, displayMode: false })),
+    ...collectExerciseInlineMath().map((entry) => ({ ...entry, displayMode: false })),
   ];
 }
 

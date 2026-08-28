@@ -1,17 +1,3 @@
-function el3103VectorSource(locator, validationLocator) {
-  return Object.freeze({
-    citationKey: "el3103-team-vector-2025",
-    label: "Equipo docente EL3103, Clase auxiliar extra",
-    locator,
-    usage: "consulta",
-    license: "no indicada",
-    validationCitationKey: "ellingson-electromagnetics-i-2018",
-    validationLabel: "Ellingson, Electromagnetics I",
-    validationLocator,
-    validationLicense: "CC BY-SA 4.0",
-  });
-}
-
 const VECTOR_WORKSHOP_REQUIREMENT = Object.freeze({
   completedLocations: ["vector-workshop"],
 });
@@ -35,7 +21,6 @@ export const FORMULAS = Object.freeze([
     },
     conditions: "f diferenciable en la región de interés.",
     requirements: VECTOR_WORKSHOP_REQUIREMENT,
-    source: el3103VectorSource("p. 2, ec. (7)", "cap. 4"),
   },
   {
     id: "divergence-cartesian",
@@ -47,7 +32,6 @@ export const FORMULAS = Object.freeze([
     },
     conditions: "F de clase C¹ en la región de interés.",
     requirements: VECTOR_WORKSHOP_REQUIREMENT,
-    source: el3103VectorSource("p. 1, ec. (2)", "cap. 4"),
   },
   {
     id: "curl-cartesian",
@@ -59,7 +43,6 @@ export const FORMULAS = Object.freeze([
     },
     conditions: "F de clase C¹ en la región de interés.",
     requirements: VECTOR_WORKSHOP_REQUIREMENT,
-    source: el3103VectorSource("p. 2, ec. (5)", "cap. 4"),
   },
   {
     id: "scalar-laplacian",
@@ -71,7 +54,6 @@ export const FORMULAS = Object.freeze([
     },
     conditions: "f de clase C² en la región de interés.",
     requirements: VECTOR_WORKSHOP_REQUIREMENT,
-    source: el3103VectorSource("p. 1, ec. (4)", "cap. 4"),
   },
   {
     id: "divergence-of-curl",
@@ -83,7 +65,6 @@ export const FORMULAS = Object.freeze([
     },
     conditions: "F con derivadas segundas continuas.",
     requirements: VECTOR_WORKSHOP_REQUIREMENT,
-    source: el3103VectorSource("p. 2, ec. (9)", "apéndice 10.6"),
   },
   {
     id: "curl-of-gradient",
@@ -95,7 +76,6 @@ export const FORMULAS = Object.freeze([
     },
     conditions: "f con derivadas segundas continuas.",
     requirements: VECTOR_WORKSHOP_REQUIREMENT,
-    source: el3103VectorSource("p. 2, ec. (10)", "apéndice 10.6"),
   },
   {
     id: "divergence-scalar-product",
@@ -107,7 +87,6 @@ export const FORMULAS = Object.freeze([
     },
     conditions: "f y F diferenciables.",
     requirements: VECTOR_WORKSHOP_REQUIREMENT,
-    source: el3103VectorSource("p. 2, ec. (11)", "apéndice 10.6"),
   },
   {
     id: "curl-scalar-product",
@@ -119,7 +98,6 @@ export const FORMULAS = Object.freeze([
     },
     conditions: "f y F diferenciables.",
     requirements: VECTOR_WORKSHOP_REQUIREMENT,
-    source: el3103VectorSource("p. 2, ec. (12)", "apéndice 10.6"),
   },
   {
     id: "divergence-cross-product",
@@ -131,7 +109,6 @@ export const FORMULAS = Object.freeze([
     },
     conditions: "F y G diferenciables.",
     requirements: VECTOR_WORKSHOP_REQUIREMENT,
-    source: el3103VectorSource("p. 2, ec. (13)", "apéndice 10.6"),
   },
   {
     id: "curl-cross-product",
@@ -143,7 +120,6 @@ export const FORMULAS = Object.freeze([
     },
     conditions: "F y G diferenciables.",
     requirements: VECTOR_WORKSHOP_REQUIREMENT,
-    source: el3103VectorSource("p. 2, ec. (14)", "apéndice 10.6"),
   },
   {
     id: "divergence-theorem",

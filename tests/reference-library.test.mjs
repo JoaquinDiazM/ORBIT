@@ -32,14 +32,39 @@ test("los IDs de referencia son estables, namespaced por colección y no se dupl
   }
 });
 
-test("simbología y constantes están disponibles como convención base", () => {
+test("la simbología matemática y las constantes están disponibles como convención base", () => {
   const progression = new ProgressionModel({ profile: "reference-base", storage: new MemoryStorage() });
   const context = requirementContext(progression.getSnapshot());
+  const deferredIds = new Set(["electric-field", "electric-potential"]);
   for (const entry of [
-    ...REFERENCE_COLLECTIONS.symbols,
+    ...REFERENCE_COLLECTIONS.symbols.filter((symbol) => !deferredIds.has(symbol.id)),
     ...REFERENCE_COLLECTIONS.constants,
   ]) {
     assert.equal(meetsRequirements(entry.requirements, context), true, entry.id);
+  }
+});
+
+test("E y V permanecen ocultos hasta completar el Observatorio de Coulomb", () => {
+  const progression = new ProgressionModel({ profile: "reference-coulomb", storage: new MemoryStorage() });
+  const entries = REFERENCE_COLLECTIONS.symbols.filter((entry) =>
+    ["electric-field", "electric-potential"].includes(entry.id),
+  );
+  for (const entry of entries) {
+    assert.equal(
+      meetsRequirements(entry.requirements, requirementContext(progression.getSnapshot())),
+      false,
+      entry.id,
+    );
+  }
+
+  progression.completeLocation("vector-workshop");
+  progression.completeLocation("coulomb-observatory");
+  for (const entry of entries) {
+    assert.equal(
+      meetsRequirements(entry.requirements, requirementContext(progression.getSnapshot())),
+      true,
+      entry.id,
+    );
   }
 });
 
@@ -74,13 +99,22 @@ test("un personaje secundario puede conceder una referencia sin bloquear el tron
   assert.equal(meetsRequirements(theorem.requirements, requirementContext(progression.getSnapshot())), true);
 });
 
-test("cada referencia declara una fuente trazable", async () => {
+test("las fuentes son opcionales y trazables cuando una entrada realmente las necesita", async () => {
   const bibliography = await readFile(
     new URL("../docs/references/references.bib", import.meta.url),
     "utf8",
   );
+  let sourcedEntries = 0;
+  let unsourcedEntries = 0;
+
   for (const [collectionId, entries] of Object.entries(REFERENCE_COLLECTIONS)) {
     for (const entry of entries) {
+      if (!entry.source) {
+        unsourcedEntries += 1;
+        continue;
+      }
+
+      sourcedEntries += 1;
       const keys = [
         entry.source?.citationKey,
         entry.source?.validationCitationKey,
@@ -95,7 +129,41 @@ test("cada referencia declara una fuente trazable", async () => {
           `${collectionId}:${entry.id} cita una clave BibTeX inexistente: ${key}`,
         );
       }
-      assert.ok(entry.source?.locator, `${collectionId}:${entry.id}`);
+      assert.ok(
+        entry.source.locator || entry.source.validationLocator,
+        `${collectionId}:${entry.id} debe localizar la afirmación o dato específico que respalda.`,
+      );
     }
+  }
+
+  assert.ok(sourcedEntries > 0, "Los datos y teoremas específicos deben conservar trazabilidad.");
+  assert.ok(unsourcedEntries > 0, "La matemática rutinaria no debe recibir citas repetidas.");
+});
+
+test("las colecciones no exponen procedencia local del curso ni selección nomenclatural", () => {
+  const serialized = JSON.stringify(REFERENCE_COLLECTIONS);
+  assert.doesNotMatch(serialized, /el3103|clase auxiliar|guías del curso/i);
+
+  for (const entries of Object.values(REFERENCE_COLLECTIONS)) {
+    for (const entry of entries) {
+      const sourceKeys = Object.keys(entry.source ?? {});
+      assert.equal(
+        sourceKeys.some((key) => key.startsWith("selection")),
+        false,
+        entry.id,
+      );
+    }
+  }
+});
+
+test("el glosario introductorio usa notación general F/f antes de Coulomb", () => {
+  const introductoryEntries = REFERENCE_COLLECTIONS.glossary.filter((entry) =>
+    ["conservative-field", "potential-implies-irrotational", "curl-free-conservative"].includes(
+      entry.id,
+    ),
+  );
+
+  for (const entry of introductoryEntries) {
+    assert.doesNotMatch(entry.notation, /\\mathbf\{E\}|\\nabla V/);
   }
 });
