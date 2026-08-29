@@ -22,7 +22,7 @@ En este orden:
 
 ## 2. Estado actual
 
-La versión publicada `0.4.0` es un prototipo estático con una dependencia local respaldada por ADR y dos entradas deliberadamente separadas. El checkout local incorpora en revisión un flujo de actualizaciones con autorización y revisión humana:
+La versión publicada `0.4.1` es un prototipo estático con una dependencia local respaldada por ADR, dos entradas deliberadamente separadas y un flujo de actualizaciones por cohortes con autorización y revisión humana:
 
 - **ORBIT** en `index.html`, con perfiles normal y debug;
 - **ORBIT Editor** en `editor.html`, con borrador cartográfico local.
@@ -200,7 +200,7 @@ Prefiere funciones puras y pruebas unitarias. Si una nueva mecánica requiere es
 
 Las figuras SVG y las políticas de expresión introducidas en `0.3.1` no autorizan por sí solas un sistema de gráficos 3D, álgebra simbólica general, backend o dependencia nueva. La visión transversal de ORBIT tampoco autoriza a declarar soporte multicurso sin un contrato curricular verificable. Amplía primero los contratos nativos existentes y conserva límites explícitos de entrada y costo.
 
-El Editor 0.4.0 tampoco autoriza contenido editable, creación de entidades, autenticación, colaboración ni despliegue automático. Un cambio del esquema editorial se versiona dentro de su propio contrato; no incrementes `progressSchemaVersion` salvo que cambie realmente el perfil de ORBIT.
+La base actual de ORBIT Editor tampoco autoriza contenido editable, creación de entidades, autenticación, colaboración ni despliegue automático. Un cambio del esquema editorial se versiona dentro de su propio contrato; no incrementes `progressSchemaVersion` salvo que cambie realmente el perfil de ORBIT.
 
 ## 9. Protocolo de actualizaciones
 

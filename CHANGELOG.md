@@ -2,6 +2,35 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [0.4.1] - 2026-08-29
+
+### Añadido
+
+- Fuente canónica reproducible para la marca de ORBIT, con generador verificable, favicon,
+  manifiesto web y una presentación compacta en el README.
+- Registro vivo de actualizaciones con estados inequívocos, cohortes de versión, validación
+  automática y un historial técnico separado para las fichas publicadas.
+
+### Cambiado
+
+- La experiencia principal se denomina **ORBIT** en la interfaz y la documentación vigente;
+  **ORBIT Editor** queda reservado para la herramienta de autoría. Los nombres originales se
+  conservan en el historial de las versiones que los publicaron.
+- Una cohorte puede reunir varios IDs y se publica como una sola unidad únicamente después de
+  quedar cerrada y completamente aprobada; la versión, el changelog y el push ya no avanzan por
+  entregas parciales.
+
+### Corregido
+
+- La cabecera de ORBIT Editor evita el solapamiento de marca, estadísticas y herramientas a
+  1280 px, y conserva un enlace compacto, accesible y enfocable de regreso a ORBIT bajo 1120 px.
+
+### Verificación y alcance
+
+- La cohorte corresponde exactamente a `UPD-000`, `UPD-004`, `UPD-005` y `UPD-007`.
+- Se mantienen el inventario curricular, el progreso `v3`, el documento editorial `v1` y la
+  única dependencia de ejecución existente; no se añaden backend, autenticación ni telemetría.
+
 ## [0.4.0] - 2026-08-28
 
 ### Añadido

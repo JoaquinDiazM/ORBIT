@@ -196,7 +196,7 @@ JoaquinDiazM confirmó que no se añadirá otro ID a ORBIT 0.4.1.
 
 ### UPD-000 — Registro vivo de actualizaciones
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `documentación`
 - Versión objetivo: `0.4.1`
 - Impacto sugerido: `Z`.
@@ -375,7 +375,7 @@ que el resultado esperado aún no está definido.
 
 ### UPD-004 — Icono de ORBIT
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `0.4.1`
 - Impacto sugerido: `Z` si solo sustituye recursos visuales compatibles.
@@ -419,7 +419,7 @@ Revisar el generador y actualizar el icono de ORBIT.
 
 ### UPD-005 — Nomenclatura pública de ORBIT y ORBIT Editor
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `documentación`
 - Versión objetivo: `0.4.1`
 - Impacto sugerido: `Z` si solo cambia nomenclatura compatible.
@@ -501,7 +501,7 @@ perfil o modo de estudiante claramente más limitado que el modo docente.
 
 ### UPD-007 — Posible solapamiento en la cabecera de ORBIT Editor
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `bug`
 - Versión objetivo: `0.4.1`
 - Impacto sugerido: `Z` si se reproduce.

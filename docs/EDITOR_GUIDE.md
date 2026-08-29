@@ -1,6 +1,6 @@
 # Guía de ORBIT Editor
 
-ORBIT 0.4.0 distingue dos aplicaciones que comparten la cartografía y el lenguaje visual:
+ORBIT distingue dos aplicaciones que comparten la cartografía y el lenguaje visual:
 
 - **ORBIT** se abre desde `index.html` y conserva los perfiles normal y debug.
 - **ORBIT Editor** se abre desde `editor.html` y permite preparar la disposición del curso antes de revisar, construir y desplegar manualmente una nueva versión.
@@ -72,7 +72,7 @@ Una flecha siempre se interpreta como:
 prerrequisito ─────────▶ destino
 ```
 
-En 0.4.0 Spider edita únicamente requisitos directos `completedLocations`: crear `A → B` significa que el destino `B` requiere que el lugar `A` esté completado. Selecciona primero la fuente, inicia **Conectar** y elige el destino. La interfaz identifica ambos extremos antes de confirmar.
+Spider edita únicamente requisitos directos `completedLocations`: crear `A → B` significa que el destino `B` requiere que el lugar `A` esté completado. Selecciona primero la fuente, inicia **Conectar** y elige el destino. La interfaz identifica ambos extremos antes de confirmar.
 
 Las relaciones derivadas de `concepts` o `rewards` se muestran para comprender la red, pero son de solo lectura. Si una misma pareja deriva de más de una causa, eliminar su requisito directo no elimina las causas conceptuales o de recompensa; por ello la flecha puede seguir visible con una explicación distinta.
 
@@ -144,7 +144,7 @@ Flujo recomendado de publicación:
 - `Esc` cancela una conexión o un arrastre pendiente sin confirmar cambios parciales.
 - La reducción de movimiento del sistema elimina transiciones prescindibles, sin cambiar las reglas editoriales.
 
-## Alcance y limitaciones de 0.4.0
+## Alcance y limitaciones actuales
 
 Esta versión sienta las bases del editor cartográfico. Todavía no permite:
 

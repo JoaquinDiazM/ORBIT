@@ -10,7 +10,7 @@
 
 ![Captura de referencia de ORBIT Editor 0.4.0](docs/screenshots/editor.png)
 
-_Captura de referencia de 0.4.0; la cabecera corregida de 0.4.1 debe revisarse en la aplicación._
+_Captura de referencia de 0.4.0; la corrección de cabecera de 0.4.1 está incorporada en la aplicación._
 
 ORBIT es un proyecto educativo abierto y transversal para construir intuición, teoría y conexiones entre rutas de aprendizaje mediante una interfaz narrativa en dos dimensiones. La ruta implementada actualmente es **Electromagnetismo Aplicado**: el estudiante explora libremente un mundo abstracto dividido en hexágonos, resuelve actividades universitarias y abre nuevas regiones mediante conocimiento adquirido.
 
@@ -18,7 +18,7 @@ El autor sitúa el origen pedagógico de esta primera ruta en su experiencia doc
 
 La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra lineal y física clásica, especialmente quienes consideran estudiar Ingeniería Eléctrica o comienzan los primeros semestres de la especialidad.
 
-> **Estado:** base técnica y pedagógica `0.4.0`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
+> **Estado:** base técnica y pedagógica `0.4.1`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
 
 ## Qué demuestra esta versión
 
@@ -47,7 +47,17 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
 - Dos entradas estáticas: **ORBIT** en `index.html`, con perfiles normal y debug, y **ORBIT Editor** en `editor.html`.
 - Editor cartográfico local con dos docks retractables: **Spider** mueve nodos y edita dependencias directas del Árbol II; **Bee** intercambia zonas únicamente dentro de su anillo.
 - Borrador editorial `v1` con autoguardado local, historial, importación y exportación JSON; nunca modifica el progreso `v3` ni publica automáticamente.
-- Una dependencia npm fijada y documentada: KaTeX 0.18.1; `0.4.0` no añade paquetes, backend, autenticación, render 3D ni CDN.
+- Una dependencia npm fijada y documentada: KaTeX 0.18.1; `0.4.1` no añade paquetes, backend, autenticación, render 3D ni CDN.
+
+### Cambios centrales de 0.4.1
+
+La experiencia principal se llama **ORBIT** y la herramienta de autoría se llama **ORBIT Editor** en la interfaz y la documentación vigente. Las denominaciones anteriores se conservan únicamente donde forman parte del historial de una versión publicada.
+
+La marca aprobada de ORBIT cuenta con una fuente canónica, derivados web reproducibles y comprobación automática. El logotipo encabeza este README en un tamaño contenido, y el favicon y el manifiesto apuntan a los recursos versionados en `public/` sin depender de `dist/`.
+
+La cabecera de ORBIT Editor distribuye marca, estadísticas y herramientas sin solaparse en el ancho reproducido de 1280 px. En anchos menores conserva un enlace compacto, accesible y enfocable de regreso a ORBIT.
+
+El desarrollo usa ahora `ORBIT_UPDATES.md` como cola operativa: varias UPD pueden compartir una cohorte y la versión, el changelog y el push avanzan solo cuando la cohorte completa está cerrada y aprobada. Las fichas publicadas se trasladan a `docs/UPDATES_HISTORY.md`; el changelog continúa siendo el resumen del producto.
 
 ### Cambios centrales de 0.4.0
 

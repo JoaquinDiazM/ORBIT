@@ -92,7 +92,7 @@ El ambiente comienza solo después de tu primer clic o tecla. El panel **Sonido*
 
 Las interacciones ordinarias solicitan el cue de confirmación predeterminado. Si una acción tiene un cue específico —por ejemplo, una finalización que abre una zona—, ese cue sustituye al predeterminado: nunca deben superponerse los dos. Las mismas acciones conservan siempre una indicación visual aunque el volumen esté en cero o el recurso no esté disponible.
 
-El inventario incorporado en 0.3.2 continúa vigente en 0.4.0: cinco recursos verificables y cinco botones de prueba en el debugger —ambiente global, cambio de hexágono, confirmación de interacción, clic de interfaz y zona desbloqueada—. Los tres sonidos procedentes de Freesound son CC0 1.0; los dos efectos nuevos son contribuciones de ORBIT aportadas por JoaquinDiazM mediante ChatGPT y publicadas bajo MIT.
+El inventario incorporado en 0.3.2 sigue vigente: cinco recursos verificables y cinco botones de prueba en el debugger —ambiente global, cambio de hexágono, confirmación de interacción, clic de interfaz y zona desbloqueada—. Los tres sonidos procedentes de Freesound son CC0 1.0; los dos efectos nuevos son contribuciones de ORBIT aportadas por JoaquinDiazM mediante ChatGPT y publicadas bajo MIT.
 
 Las ecuaciones se escriben en TeX, se muestran con tipografía matemática y exponen MathML para tecnologías de asistencia.
 

@@ -122,7 +122,7 @@
 - [ ] La salida matemática expone representación MathML y el fallback TeX es legible.
 - [ ] Un fallo de recurso durante el arranque reemplaza la espera infinita por una alerta con pasos de recuperación.
 
-## ORBIT Editor 0.4.0
+## ORBIT Editor
 
 - [ ] `editor.html` identifica inequívocamente **ORBIT Editor** y enlaza de vuelta a ORBIT.
 - [ ] El dataset compartido conserva 19 zonas, 20 conceptos, 28 nodos, 13 parejas derivadas y cuatro conexiones directas canónicas.
