@@ -171,11 +171,15 @@ Un párrafo libre.
 
 <!--
 Añade aquí una idea en lenguaje natural. No necesita ID ni detalles técnicos.
-- Título: ...
-  Descripción: ...
+- Título: Cambio de nombre del curso
+  Descripción: Actualmente el curso se llama electromagnetismo aplicado, pero quiero dejarlo simplemente en electromagnetismo. Eso no significa que vayamos a quitar el anillo exterior con zonas de aplicacion de la teoria electromagnetica, ni que vamos a cambiar el source material de este curso, que es el curso de electromagnetismo aplicado de Tomas Cassanelli, solo es un cambio de nombre por algo mas general.
+- Titulo: Aumentar rangos visuales del mapamundi
+  Descripción: Tanto el mapamundi de ORBIT como el del ORBIT editor tienen dos problemas; 1.- El zoom out, es decir el zoom para ver mas cantidad de mapa, es muy limitado. 2.- El rango de mapa extra, fuera de los limites de laz zonas/hexagonos, tambien es muy limitado. Ambos puntos son basicamente lo mismo, y no merecen ser tratados en dos updates diferentes.
+- Título: Perfiles estudiante/docente/debug
+  Descripcion: Quiero cambiar la forma en la que llamamos al perfil normal para que pase a ser denominado como estudiante, tambien agregar un perfil de docente y mantener el perfil de debug, 3 en total. Ademas, para el perfil de estudiante y docente hay que quitar el nodo de debug en el mapamundi, quitar su interaccion y visualizacion.
 -->
 
-Sin propuestas pendientes de clasificar.
+Una vez asignadas las nuevas entradas/updates, dejar libre la bandeja nuevamente.
 
 ## Cohorte inmediata
 
@@ -192,7 +196,7 @@ JoaquinDiazM confirmó que no se añadirá otro ID a ORBIT 0.4.1.
 
 ### UPD-000 — Registro vivo de actualizaciones
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `documentación`
 - Versión objetivo: `0.4.1`
 - Impacto sugerido: `Z`.
@@ -246,7 +250,7 @@ notas de versión, haga commit y publique.
   versiones posteriores, los commits locales sin push y `docs/UPDATES_HISTORY.md`.
 ### UPD-001 — Hub de gadgets y explorador de campos vectoriales
 
-- Estado: `autorizado`
+- Estado: `propuesto`
 - Tipo: `épica`
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y` cuando se defina una primera capacidad completa.
@@ -371,7 +375,7 @@ que el resultado esperado aún no está definido.
 
 ### UPD-004 — Icono de ORBIT
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `feature`
 - Versión objetivo: `0.4.1`
 - Impacto sugerido: `Z` si solo sustituye recursos visuales compatibles.
@@ -415,7 +419,7 @@ Revisar el generador y actualizar el icono de ORBIT.
 
 ### UPD-005 — Nomenclatura pública de ORBIT y ORBIT Editor
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `documentación`
 - Versión objetivo: `0.4.1`
 - Impacto sugerido: `Z` si solo cambia nomenclatura compatible.
@@ -497,7 +501,7 @@ perfil o modo de estudiante claramente más limitado que el modo docente.
 
 ### UPD-007 — Posible solapamiento en la cabecera de ORBIT Editor
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `bug`
 - Versión objetivo: `0.4.1`
 - Impacto sugerido: `Z` si se reproduce.
