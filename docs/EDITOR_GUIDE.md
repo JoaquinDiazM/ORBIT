@@ -2,7 +2,7 @@
 
 ORBIT 0.4.0 distingue dos aplicaciones que comparten la cartografía y el lenguaje visual:
 
-- **ORBIT Estudiante** se abre desde `index.html` y conserva los perfiles normal y debug.
+- **ORBIT** se abre desde `index.html` y conserva los perfiles normal y debug.
 - **ORBIT Editor** se abre desde `editor.html` y permite preparar la disposición del curso antes de revisar, construir y desplegar manualmente una nueva versión.
 
 El Editor es una herramienta local para docentes y responsables de contenido. No es un panel de administración remoto: no publica cambios, no escribe en el servidor y no incorpora autenticación. Si se sirve en una red, el control de acceso y la ventana de mantenimiento pertenecen a la infraestructura que lo aloja.
@@ -22,7 +22,7 @@ Abre la URL exacta que imprime la terminal y añade `editor.html`. Normalmente s
 http://127.0.0.1:4173/editor.html
 ```
 
-Si el servidor selecciona otro puerto, usa ese número. `index.html`, `?profile=...` y `?debug=1` siguen perteneciendo a ORBIT Estudiante; el modo Editor no se activa mediante un perfil de progreso.
+Si el servidor selecciona otro puerto, usa ese número. `index.html`, `?profile=...` y `?debug=1` siguen perteneciendo a ORBIT; el modo Editor no se activa mediante un perfil de progreso.
 
 ## Estado editorial y separación del estudiante
 
@@ -32,7 +32,7 @@ Al comenzar, el Editor crea un borrador independiente desde la cartografía publ
 orbit-editor:v1:electromagnetism-applied
 ```
 
-El borrador nunca lee, sobrescribe ni migra claves `orbit-progress`. Completar lugares, conceder conceptos o usar el debugger de Estudiante tampoco modifica el borrador editorial.
+El borrador nunca lee, sobrescribe ni migra claves `orbit-progress`. Completar lugares, conceder conceptos o usar el debugger de ORBIT tampoco modifica el borrador editorial.
 
 El autoguardado protege frente a una recarga en el mismo navegador y equipo, pero no sustituye una copia versionada. Borrar los datos del sitio, usar otro navegador o cambiar de dispositivo puede hacer inaccesible ese borrador. Exporta JSON con frecuencia y antes de importar, restablecer o desplegar.
 
@@ -49,7 +49,7 @@ Minimizar un menú no descarta la selección, el borrador ni el historial. En un
 
 ## Spider: nodos y conexiones
 
-Spider presenta todos los lugares del curso con independencia de su estado de desbloqueo en Estudiante.
+Spider presenta todos los lugares del curso con independencia de su estado de desbloqueo en ORBIT.
 
 ### Mover un nodo
 
@@ -120,7 +120,7 @@ Los atajos del historial editorial no interceptan la edición de campos de texto
 
 ## Exportar e importar
 
-**Exportar JSON** descarga una instantánea versionada del borrador. El documento identifica su tipo (`orbit-editor-project`), esquema, curso y versión de datos base; contiene coordenadas de zonas, `areaId + offset` de nodos y conexiones editoriales `completedLocation`. No contiene respuestas ni progreso de estudiantes. El archivo sirve para revisión, intercambio y aplicación manual al repositorio; descargarlo no modifica la versión que usa Estudiante.
+**Exportar JSON** descarga una instantánea versionada del borrador. El documento identifica su tipo (`orbit-editor-project`), esquema, curso y versión de datos base; contiene coordenadas de zonas, `areaId + offset` de nodos y conexiones editoriales `completedLocation`. No contiene respuestas ni progreso de estudiantes. El archivo sirve para revisión, intercambio y aplicación manual al repositorio; descargarlo no modifica la versión que usa ORBIT.
 
 Si una importación descarta IDs desconocidos, restaura entidades ausentes o rebasa otra versión base, el Editor abre **Resumen**, muestra cada advertencia y conserva el detalle hasta la siguiente edición. Un JSON incompatible o malformado no reemplaza el borrador previo; si el valor ya persistido no puede interpretarse al iniciar, ORBIT abre una copia canónica sin sobrescribir el texto local dañado.
 
@@ -129,9 +129,9 @@ Flujo recomendado de publicación:
 1. Realiza los cambios en Editor y revisa los avisos.
 2. Exporta el JSON y conserva una copia anterior.
 3. Revisa el diff editorial y aplica el archivo al proceso de autoría del repositorio.
-4. Ejecuta `npm run check` y recorre Estudiante normal y debug.
+4. Ejecuta `npm run check` y recorre ORBIT normal y debug.
 5. Construye y despliega mediante el procedimiento del servidor durante su ventana de mantenimiento.
-6. Reabre el servicio de Estudiante solo después de verificar la versión construida.
+6. Reabre ORBIT solo después de verificar la versión construida.
 
 **Importar JSON** permite continuar un borrador o revisar el trabajo de otra persona. El Editor valida esquema, IDs, coordenadas, anillos, offsets y conexiones antes de reemplazar el estado local. Exporta el borrador actual antes de importar: una importación válida lo sustituye y una inválida debe dejarlo intacto.
 

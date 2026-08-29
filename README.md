@@ -1,14 +1,16 @@
-# ORBIT
+# <img src="public/assets/brand/orbit-mark.svg" alt="" width="40" height="40" /> ORBIT
 
 **Open Roadmap for Building Intuition and Theory**
 
-**ORBIT Estudiante**
+**ORBIT**
 
-![Captura de ORBIT Estudiante](docs/screenshots/prototype.png)
+![Captura de ORBIT](docs/screenshots/prototype.png)
 
 **ORBIT Editor**
 
-![Captura de ORBIT Editor](docs/screenshots/editor.png)
+![Captura de referencia de ORBIT Editor 0.4.0](docs/screenshots/editor.png)
+
+_Captura de referencia de 0.4.0; la cabecera corregida de 0.4.1 debe revisarse en la aplicación._
 
 ORBIT es un proyecto educativo abierto y transversal para construir intuición, teoría y conexiones entre rutas de aprendizaje mediante una interfaz narrativa en dos dimensiones. La ruta implementada actualmente es **Electromagnetismo Aplicado**: el estudiante explora libremente un mundo abstracto dividido en hexágonos, resuelve actividades universitarias y abre nuevas regiones mediante conocimiento adquirido.
 
@@ -42,7 +44,7 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
 - Estación de Superconductividad con el encuentro histórico no evaluativo de Heike Kamerlingh Onnes y un Laboratorio de Transición Superconductora independiente.
 - Validación automática contra bloqueos lógicos de progresión.
 - Build estático y despliegue preparado para GitHub Pages.
-- Dos entradas estáticas: **ORBIT Estudiante** en `index.html`, con perfiles normal y debug, y **ORBIT Editor** en `editor.html`.
+- Dos entradas estáticas: **ORBIT** en `index.html`, con perfiles normal y debug, y **ORBIT Editor** en `editor.html`.
 - Editor cartográfico local con dos docks retractables: **Spider** mueve nodos y edita dependencias directas del Árbol II; **Bee** intercambia zonas únicamente dentro de su anillo.
 - Borrador editorial `v1` con autoguardado local, historial, importación y exportación JSON; nunca modifica el progreso `v3` ni publica automáticamente.
 - Una dependencia npm fijada y documentada: KaTeX 0.18.1; `0.4.0` no añade paquetes, backend, autenticación, render 3D ni CDN.
@@ -94,7 +96,7 @@ npm install
 npm run dev
 ```
 
-Abre la URL exacta que imprime la terminal. ORBIT Estudiante usa la raíz y ORBIT Editor su entrada propia; normalmente serán:
+Abre la URL exacta que imprime la terminal. ORBIT usa la raíz y ORBIT Editor su entrada propia; normalmente serán:
 
 ```text
 http://127.0.0.1:4173/
@@ -127,7 +129,7 @@ Para una sesión de pruebas separada del progreso normal, usa el puerto indicado
 http://127.0.0.1:<puerto>/?debug=1&profile=debug
 ```
 
-El parámetro `debug` pertenece a ORBIT Estudiante. ORBIT Editor no usa perfiles de progreso y conserva su borrador en una clave editorial separada.
+El parámetro `debug` pertenece a ORBIT. ORBIT Editor no usa perfiles de progreso y conserva su borrador en una clave editorial separada.
 
 ## Controles
 
@@ -180,7 +182,7 @@ lugares dentro de la zona ─ Árbol II ─ prerrequisitos y recompensas
 
 El estado persistido contiene logros y preferencias. Las zonas y lugares disponibles se **derivan** desde ese estado; no se guardan como una segunda verdad que pueda quedar inconsistente.
 
-ORBIT Editor opera sobre otra rama de estado: un borrador cartográfico local. Ese documento conserva ubicaciones, coordenadas y las cuatro dependencias `completedLocations` canónicas, pero no respuestas ni logros. Exportarlo no lo aplica a los datos de Estudiante.
+ORBIT Editor opera sobre otra rama de estado: un borrador cartográfico local. Ese documento conserva ubicaciones, coordenadas y las cuatro dependencias `completedLocations` canónicas, pero no respuestas ni logros. Exportarlo no lo aplica a los datos de ORBIT.
 
 Más detalles:
 
@@ -190,7 +192,9 @@ Más detalles:
 - [Esqueleto curricular preliminar](docs/CURRICULUM_SKELETON.md)
 - [Autoría de contenido](docs/CONTENT_AUTHORING.md)
 - [Nomenclatura e IDs](docs/CONTENT_NAMING.md)
-- [Plantilla mínima de cambios de contenido](docs/content-changes/CONTENT_CHANGE_TEMPLATE.md)
+- [Registro vivo de actualizaciones](ORBIT_UPDATES.md)
+- [Historial técnico de actualizaciones](docs/UPDATES_HISTORY.md)
+- [Anexo técnico opcional para cambios de contenido](docs/content-changes/CONTENT_CHANGE_TEMPLATE.md)
 - [Ejemplo no aplicable](docs/content-changes/examples/update-vector-workshop.example.md)
 - [Bibliografía BibTeX](docs/references/references.bib)
 - [Debugger](docs/DEBUGGING.md)
@@ -202,7 +206,7 @@ Más detalles:
 ```text
 .
 ├── AGENTS.md                 # reglas globales para agentes y colaboradores
-├── index.html                # entrada de ORBIT Estudiante
+├── index.html                # entrada de ORBIT
 ├── editor.html               # entrada de ORBIT Editor
 ├── src/
 │   ├── core/                 # geometría, progreso, secuencias, expresiones y validación
@@ -218,7 +222,7 @@ Más detalles:
 └── .github/workflows/        # validación remota y publicación opcional en Pages
 ```
 
-## Debugger de ORBIT Estudiante
+## Debugger de ORBIT
 
 La interfaz de depuración permite:
 
@@ -259,7 +263,7 @@ No definas esa variable mientras quieras conservar el proyecto únicamente como 
 
 Todas las rutas del prototipo son relativas, por lo que funciona tanto en `usuario.github.io` como en `usuario.github.io/nombre-del-repositorio/`.
 
-El build incluye las entradas Estudiante y Editor, pero no aplica un borrador editorial exportado ni protege `editor.html`. La incorporación del JSON al curso, la revisión y el control de acceso durante mantenimiento son pasos manuales o responsabilidades de la infraestructura externa.
+El build incluye las entradas ORBIT y ORBIT Editor, pero no aplica un borrador editorial exportado ni protege `editor.html`. La incorporación del JSON al curso, la revisión y el control de acceso durante mantenimiento son pasos manuales o responsabilidades de la infraestructura externa.
 
 ## Contribuciones y uso de agentes
 
@@ -267,10 +271,16 @@ Lee primero:
 
 - [AGENTS.md](AGENTS.md)
 - [CONTRIBUTING.md](CONTRIBUTING.md)
+- [ORBIT_UPDATES.md](ORBIT_UPDATES.md)
 - [docs/CODEX_START_HERE.md](docs/CODEX_START_HERE.md)
-- [docs/CODEX_TASK_TEMPLATE.md](docs/CODEX_TASK_TEMPLATE.md)
 
-Las modificaciones grandes deben preservar los invariantes de progresión y acompañarse de pruebas. No se deben copiar evaluaciones, pautas o material docente protegido sin autorización explícita.
+Para el flujo interno basta registrar una idea en `ORBIT_UPDATES.md`; el agente completa los
+detalles técnicos. Solo un estado `autorizado` permite implementar, `en-revision` espera la
+comprobación del usuario y una cohorte cerrada se publica una sola vez cuando todos sus IDs
+están `aprobado`. Puede haber commits locales de revisión, pero no pushes parciales de una
+versión. Las fichas publicadas se conservan en `docs/UPDATES_HISTORY.md`. Las modificaciones
+grandes deben preservar los invariantes de progresión y acompañarse de pruebas. No se deben
+copiar evaluaciones, pautas o material docente protegido sin autorización explícita.
 
 ## Licencias
 

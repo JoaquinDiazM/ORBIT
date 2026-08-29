@@ -7,7 +7,7 @@
 - [ ] Ejecutar `npm run check`.
 - [ ] Confirmar que no hay errores ni advertencias inesperadas en consola.
 - [ ] Abrir la URL impresa por la ejecución actual, no una pestaña servida por un proceso anterior.
-- [ ] Probar por separado ORBIT Estudiante en `index.html` y ORBIT Editor en `editor.html`.
+- [ ] Probar por separado ORBIT en `index.html` y ORBIT Editor en `editor.html`.
 - [ ] Exportar una copia del borrador editorial antes de importaciones o restauraciones destructivas.
 
 ## Mundo y movimiento
@@ -76,7 +76,7 @@
 
 - [ ] El progreso sobrevive a recarga.
 - [ ] Perfiles distintos no se mezclan.
-- [ ] Un perfil de ORBIT Estudiante 0.4.0 se guarda con esquema `v3` bajo el prefijo `orbit-progress`.
+- [ ] Un perfil de ORBIT compatible con 0.4.0 se guarda con esquema `v3` bajo el prefijo `orbit-progress`.
 - [ ] Un perfil `v1` o `v2` bajo el prefijo histórico `aea-progress` migra sin perder logros compatibles y se vuelve a guardar bajo `orbit-progress`.
 - [ ] La migración convierte la preferencia y el volumen históricos en `ambienceVolume` y `effectsVolume`; un perfil antes silenciado migra ambos a cero.
 - [ ] La migración inicializa `treeTwoVisualizationMode` en `hidden`; una selección válida se persiste y un valor desconocido se sanea a **Oculta**.
@@ -87,7 +87,7 @@
 - [ ] El borrador Editor usa `orbit-editor:v1:electromagnetism-applied` y nunca aparece bajo `orbit-progress`.
 - [ ] Progreso y borrador sobreviven recarga de forma independiente y sus JSON no mezclan campos.
 
-## Debugger de ORBIT Estudiante
+## Debugger de ORBIT
 
 - [ ] F2 y tecla grave abren/cierran el panel; cerrarlo con × mantiene el siguiente atajo sincronizado.
 - [ ] Noclip funciona.
@@ -124,11 +124,11 @@
 
 ## ORBIT Editor 0.4.0
 
-- [ ] `editor.html` identifica inequívocamente **ORBIT Editor** y enlaza de vuelta a Estudiante.
+- [ ] `editor.html` identifica inequívocamente **ORBIT Editor** y enlaza de vuelta a ORBIT.
 - [ ] El dataset compartido conserva 19 zonas, 20 conceptos, 28 nodos, 13 parejas derivadas y cuatro conexiones directas canónicas.
 - [ ] Los docks **General** y **Editor** se minimizan y expanden por separado; el control de reapertura nunca desaparece.
 - [ ] `aria-expanded`, foco visible, `Tab`, `Enter` y `Espacio` reflejan el estado real de ambos docks.
-- [ ] Spider muestra todos los nodos sin depender del progreso de Estudiante.
+- [ ] Spider muestra todos los nodos sin depender del progreso de ORBIT.
 - [ ] Arrastrar un nodo actualiza `areaId + offset` respecto de la zona correcta aun con zoom o cámara desplazada.
 - [ ] Un nodo trasladado a otra zona queda dentro de su margen seguro y los campos del inspector coinciden con el Canvas.
 - [ ] Flechas y `Shift` + flechas ofrecen ajuste fino y mayor como alternativa al ratón.
@@ -141,14 +141,14 @@
 - [ ] Campamento Base permanece fijo en `(0,0)`.
 - [ ] Tras cada intercambio se conservan coordenadas únicas, distancias axiales `0/1/2`, distribución `1 + 6 + 12`, IDs, `tier`, `order` y contenido.
 - [ ] Los lugares viajan con su zona y conservan offsets locales al intercambiar hexágonos.
-- [ ] Arrastrar el fondo desplaza la cámara, la rueda ajusta zoom y un gesto de edición no dispara acciones de Estudiante.
+- [ ] Arrastrar el fondo desplaza la cámara, la rueda ajusta zoom y un gesto de edición no dispara acciones de ORBIT.
 - [ ] `Esc` o `pointercancel` cancela el gesto activo sin cambios parciales.
 - [ ] Deshacer y rehacer funcionan mediante botones, `Ctrl`/`Cmd` + `Z`, `Ctrl`/`Cmd` + `Shift` + `Z` y `Ctrl` + `Y`.
 - [ ] Importar o restaurar inicia un historial nuevo; undo/redo nunca cruza esa frontera.
 - [ ] Cada operación válida se autoguarda en `orbit-editor:v1:electromagnetism-applied` y una recarga la recupera.
 - [ ] Exportar produce `orbit-editor-project` esquema `v1` con curso, versión base, áreas, ubicaciones y conexiones, sin progreso estudiantil.
 - [ ] Una importación válida reemplaza el borrador solo después de sanearlo; una inválida conserva intacto el estado anterior.
-- [ ] El JSON exportado no se aplica a Estudiante hasta integrarlo manualmente al repositorio y reconstruir.
+- [ ] El JSON exportado no se aplica a ORBIT hasta integrarlo manualmente al repositorio y reconstruir.
 - [ ] Editor sigue siendo usable a 200 % de zoom, en ventana estrecha y con `prefers-reduced-motion`.
 - [ ] La consola queda limpia durante movimiento, conexión, intercambio, undo/redo, recarga e importación.
 

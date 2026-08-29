@@ -114,7 +114,7 @@ Si un destino acaba de volverse accesible, únicamente la arista desde el lugar 
 
 ## Autoría cartográfica en ORBIT Editor
 
-ORBIT Editor abre en `editor.html` y trabaja sobre una copia editorial de la cartografía. No sustituye los perfiles normal o debug de ORBIT Estudiante en `index.html` ni comparte su estado. El progreso del estudiante conserva el esquema `v3`; el borrador editorial usa el esquema `v1` y la clave `orbit-editor:v1:electromagnetism-applied`.
+ORBIT Editor abre en `editor.html` y trabaja sobre una copia editorial de la cartografía. No sustituye los perfiles normal o debug de ORBIT en `index.html` ni comparte su estado. El progreso del estudiante conserva el esquema `v3`; el borrador editorial usa el esquema `v1` y la clave `orbit-editor:v1:electromagnetism-applied`.
 
 La herramienta **Spider** opera sobre los lugares y el Árbol II:
 

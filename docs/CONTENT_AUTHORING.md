@@ -8,7 +8,12 @@ La fuente declarativa actual corresponde a la ruta de Electromagnetismo Aplicado
 Open Roadmap for Building Intuition and Theory**. Una ruta futura de otro curso deberá declarar
 su alcance, perfil de entrada e IDs sin asumir que ya existe un cargador o esquema multicurso.
 
-La [plantilla de cambios](content-changes/CONTENT_CHANGE_TEMPLATE.md) es una especificación breve para agentes, no una fuente runtime. El [ejemplo del Taller Vectorial](content-changes/examples/update-vector-workshop.example.md) tiene `apply: false` y no se importa durante el build.
+Las propuestas internas nacen en [`ORBIT_UPDATES.md`](../ORBIT_UPDATES.md): el usuario solo
+necesita escribir intención y estado. La [plantilla de cambios](content-changes/CONTENT_CHANGE_TEMPLATE.md)
+se conserva como anexo técnico opcional que puede completar el agente, no como formulario
+obligatorio para el usuario ni como fuente runtime. El
+[ejemplo del Taller Vectorial](content-changes/examples/update-vector-workshop.example.md) tiene
+`apply: false` y no se importa durante el build.
 
 Antes de editar `src/data/`, lee `src/data/AGENTS.md`.
 

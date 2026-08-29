@@ -5,14 +5,16 @@ import test from "node:test";
 import { getEditorHistoryAction } from "../src/editor/editor-ui-controller.js";
 
 const EDITOR_PATH = new URL("../editor.html", import.meta.url);
-const STUDENT_PATH = new URL("../index.html", import.meta.url);
+const ORBIT_PATH = new URL("../index.html", import.meta.url);
 const EDITOR_MAIN_PATH = new URL("../src/editor/editor-main.js", import.meta.url);
 
-test("ORBIT Estudiante enlaza una entrada editorial independiente", async () => {
-  const student = await readFile(STUDENT_PATH, "utf8");
-  assert.match(student, />ORBIT estudiante</);
-  assert.match(student, /href=["']\.\/editor\.html["']/);
-  assert.match(student, />Abrir editor</);
+test("ORBIT enlaza una entrada editorial independiente", async () => {
+  const orbit = await readFile(ORBIT_PATH, "utf8");
+  assert.match(orbit, /<title>ORBIT · Electromagnetismo Aplicado<\/title>/);
+  assert.match(orbit, />Ruta interactiva</);
+  assert.match(orbit, /href=["']\.\/editor\.html["']/);
+  assert.match(orbit, />Abrir ORBIT Editor</);
+  assert.doesNotMatch(orbit, /ORBIT\s+Estudiante/i);
 });
 
 test("el shell del editor expone dos menús retractables y separa Spider de Bee", async () => {
@@ -39,7 +41,10 @@ test("el shell del editor expone dos menús retractables y separa Spider de Bee"
   for (const id of requiredIds) {
     assert.match(editor, new RegExp(`id=["']${id}["']`), id);
   }
-  assert.match(editor, /ORBIT EDITOR/);
+  assert.match(editor, /ORBIT Editor/);
+  assert.match(editor, /href=["']\.\/index\.html["'][^>]*aria-label=["']Volver a ORBIT["']/s);
+  assert.match(editor, /class=["']mode-entry-label["']>Volver a ORBIT</);
+  assert.doesNotMatch(editor, /ORBIT\s+Estudiante/i);
   assert.match(editor, /Anillo 1 · fundamentos teóricos/);
   assert.match(editor, /Anillo 2 · aplicaciones/);
   assert.match(editor, /src\/editor\/editor-bootstrap\.js/);
@@ -80,8 +85,8 @@ test("el ciclo de vida conserva el editor cuando pagehide entra en BFCache", asy
   assert.doesNotMatch(main, /pagehide[\s\S]{0,240}\{ once: true \}/);
 });
 
-test("el editor explica que el borrador no publica ni toca el progreso estudiantil", async () => {
+test("el editor explica que el borrador no publica ni toca el progreso de ORBIT", async () => {
   const editor = await readFile(EDITOR_PATH, "utf8");
-  assert.match(editor, /separado del progreso de ORBIT Estudiante/i);
+  assert.match(editor, /separado del progreso de aprendizaje guardado por ORBIT/i);
   assert.match(editor, /no escribe el repositorio ni publica cambios automáticamente/i);
 });

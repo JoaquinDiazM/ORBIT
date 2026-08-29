@@ -11,9 +11,19 @@
   gap: 0.8rem;
 }
 
+.editor-brand > div {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
 .editor-brand .eyebrow {
   margin-bottom: 0.14rem;
   font-size: 0.54rem;
+}
+
+.editor-brand .mode-entry-link {
+  gap: 0.3rem;
 }
 
 .mode-entry-link {
@@ -457,8 +467,15 @@
   }
 
   .editor-brand .eyebrow,
-  .editor-brand .mode-entry-link {
+  .editor-brand .mode-entry-label {
     display: none;
+  }
+
+  .editor-brand .mode-entry-link {
+    width: 2rem;
+    min-width: 2rem;
+    padding: 0;
+    justify-content: center;
   }
 }
 

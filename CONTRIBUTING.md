@@ -8,10 +8,21 @@ alcance académico sin asumir que el soporte multicurso ya está disponible.
 
 Lee, en este orden:
 
-1. `AGENTS.md`.
-2. `docs/CODEX_START_HERE.md`.
-3. `docs/ARCHITECTURE.md`.
-4. El `AGENTS.md` más cercano al directorio que modificarás.
+1. `ORBIT_UPDATES.md` si trabajas en la cola interna con el mantenedor.
+2. `AGENTS.md`.
+3. `docs/CODEX_START_HERE.md`.
+4. `docs/ARCHITECTURE.md`.
+5. El `AGENTS.md` más cercano al directorio que modificarás.
+
+El flujo interno mantenedor–agente usa `ORBIT_UPDATES.md`: la descripción de una idea no
+autoriza cambios; solo `autorizado` permite implementarla, `en-revision` espera prueba humana y
+solo la aprobación de todos los IDs de una cohorte cerrada permite versionar y publicar. Los
+commits locales de revisión son válidos y no se hacen pushes parciales. Una publicación usa un
+push de release y, tras verificarlo, un segundo push documental que archiva las fichas; ambos
+ocurren únicamente cuando la cohorte completa está aprobada. El mantenedor puede escribir solo
+un título y un párrafo; el agente completa la especificación. Las contribuciones externas pueden
+seguir usando issues y pull requests sin editar los estados o el cierre de cohorte reservados al
+mantenedor.
 
 Para una modificación conceptual grande, abre primero un issue que indique:
 
@@ -55,6 +66,8 @@ http://127.0.0.1:4173/?debug=1&profile=tu-prueba
 - Unidades: SI.
 - Commits: pequeños, coherentes y con verbo en imperativo.
 - No mezclar refactorizaciones extensas con nuevo contenido académico.
+- Versionado ORBIT: `Z` para arreglos/documentación/pulido compatible, `Y` para capacidades
+  grandes y `X` para hitos clave o contratos incompatibles. Un lote usa el incremento mayor.
 
 ## Añadir una zona
 

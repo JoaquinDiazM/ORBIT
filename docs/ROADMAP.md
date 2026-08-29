@@ -2,6 +2,11 @@
 
 Esta hoja de ruta prioriza valor pedagógico y control de alcance. No representa fechas comprometidas.
 
+La hoja de ruta expresa dirección estratégica, no autorización de implementación. La cola
+operativa, sus preguntas, revisión humana y estado de publicación viven en
+[`ORBIT_UPDATES.md`](../ORBIT_UPDATES.md). Un hito mencionado aquí solo se trabaja cuando su
+punto correspondiente está `autorizado`.
+
 ORBIT significa **Open Roadmap for Building Intuition and Theory**. Los hitos hasta `1.0`
 describen la ruta actual de Electromagnetismo Aplicado. Migrar y conectar cursos diferentes es
 una dirección posterior: el prototipo todavía no ofrece una arquitectura multicurso.

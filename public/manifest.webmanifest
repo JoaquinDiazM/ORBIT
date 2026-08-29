@@ -1,10 +1,18 @@
 {
   "name": "ORBIT — Electromagnetismo Aplicado",
   "short_name": "ORBIT",
-  "start_url": "./",
+  "start_url": "../",
+  "scope": "../",
   "display": "standalone",
   "background_color": "#08111f",
   "theme_color": "#08111f",
   "lang": "es-CL",
-  "icons": []
+  "icons": [
+    {
+      "src": "./assets/brand/orbit-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
 }

@@ -41,11 +41,11 @@ Sirve el directorio del proyecto sin transformar los módulos; el navegador carg
 Las dos entradas son:
 
 ```text
-http://127.0.0.1:<puerto>/             # ORBIT Estudiante
+http://127.0.0.1:<puerto>/             # ORBIT
 http://127.0.0.1:<puerto>/editor.html  # ORBIT Editor
 ```
 
-`?profile=...` y `?debug=1` pertenecen solo a Estudiante. Editor usa un borrador local independiente y no debe probarse como si fuera otro perfil.
+`?profile=...` y `?debug=1` pertenecen solo a ORBIT. Editor usa un borrador local independiente y no debe probarse como si fuera otro perfil.
 
 No reutilices un servidor iniciado antes de actualizar el repositorio: su lógica puede no corresponder al código actual. Detén su terminal con `Ctrl+C` y vuelve a ejecutar `npm run dev`. Para exigir un puerto concreto, define por ejemplo `$env:PORT = 4200`; un puerto explícito ocupado produce un error breve en vez de seleccionar otro.
 
@@ -71,19 +71,37 @@ Ejecuta validación, pruebas y build. Es el control mínimo antes de commit o pu
 
 ## Flujo recomendado
 
-1. Crea una rama pequeña y descriptiva.
-2. Lee los `AGENTS.md` aplicables.
-3. Reproduce el comportamiento actual con un perfil separado.
-4. Implementa el cambio mínimo.
-5. Añade pruebas.
-6. Ejecuta `npm run check`.
-7. Prueba manualmente Estudiante con `?debug=1&profile=debug-<tarea>`.
-8. Si el cambio afecta cartografía o Editor, prueba además `editor.html`, round-trip JSON y separación de almacenamiento.
-9. Actualiza documentación y `CHANGELOG.md`.
+1. Lee `ORBIT_UPDATES.md`, ejecuta `git fetch origin` y audita `git log origin/main..HEAD` junto
+   con `git diff origin/main...HEAD`. Completa primero cualquier cierre local pendiente y
+   recupera después una preparación `publicando`, incluso si aún está staged/unstaged, sin crear
+   otra versión. No subas commits locales ajenos a la cohorte.
+2. Publica solo cuando la cohorte inmediata esté cerrada y todos sus IDs estén `aprobado`. Si no,
+   trabaja únicamente en puntos `autorizado` de esa versión. Si falta una decisión material,
+   registra preguntas y cambia el punto a `faltan-detalles` sin alterar el producto por él.
+3. Lee los `AGENTS.md` aplicables, reproduce el comportamiento actual con un perfil separado y
+   convierte el alcance en criterios verificables.
+4. Marca `en-implementacion`, implementa el cambio mínimo y añade pruebas.
+5. Ejecuta `npm run check`.
+6. Prueba manualmente ORBIT con `?debug=1&profile=debug-<id>`.
+7. Si el cambio afecta cartografía o Editor, prueba además `editor.html`, round-trip JSON y
+   separación de almacenamiento.
+8. Registra resultado, pruebas y limitaciones en el punto y déjalo `en-revision`. Puede quedar en
+   un commit local coherente; no actualices todavía versión o `CHANGELOG.md` ni hagas push.
+9. Cuando **todos** los IDs de la cohorte cerrada estén `aprobado`, revalida el conjunto,
+   confirma primero en un commit local el árbol exacto aprobado, elige X/Y/Z, actualiza una sola
+   vez documentación, changelog y archivos de versión, inspecciona cada hunk y cambia el lote a
+   `publicando` dentro del commit de release. Haz el push del release y verifica el mismo commit;
+   después mueve las fichas a `docs/UPDATES_HISTORY.md` con un manifiesto de IDs, versión, fecha
+   y hash en un commit breve de cierre, sube ese segundo commit documental y también verifícalo.
+   Ningún push publica un subconjunto de la cohorte.
+
+Existe un límite estricto de una cohorte de versión en implementación, revisión o publicación
+por checkout. Puede contener varios IDs independientes y varios estados `en-revision`; una
+versión futura no se implementa hasta publicar la inmediata.
 
 ## Perfiles de prueba
 
-Usa un perfil distinto por tarea para no contaminar el progreso de Estudiante:
+Usa un perfil distinto por tarea para no contaminar el progreso de ORBIT:
 
 ```text
 ?debug=1&profile=debug-border-rules
@@ -106,13 +124,13 @@ Editor no usa perfiles. Su clave estable es `orbit-editor:v1:electromagnetism-ap
 
 ## Estado y efectos laterales
 
-- `ProgressionModel` es la única autoridad que modifica el progreso de Estudiante.
+- `ProgressionModel` es la única autoridad que modifica el progreso de ORBIT.
 - `ProgressStorage` es el único acceso directo a las claves de progreso en `localStorage`.
 - El modelo/almacenamiento editorial encapsula únicamente `orbit-editor:v1:electromagnetism-applied`; nunca accede a `orbit-progress`.
 - El renderer lee snapshots; no concede conceptos ni recompensas.
 - La UI solicita acciones al modelo; no modifica arrays persistidos directamente.
 - Zonas abiertas, fronteras y lugares visibles son datos derivados.
-- El documento editorial se materializa sobre copias; exportarlo no modifica `AREAS`, `LOCATIONS` ni Estudiante.
+- El documento editorial se materializa sobre copias; exportarlo no modifica `AREAS`, `LOCATIONS` ni ORBIT.
 
 ## Añadir una prueba
 
@@ -151,12 +169,12 @@ test("la nueva regla conserva la propiedad esperada", () => {
 - Noclip activado y desactivado fuera de una zona abierta.
 - Zoom y cámara.
 - Vista con `prefers-reduced-motion`.
-- Entrada Estudiante normal y debug sin controles Spider/Bee.
+- Entrada ORBIT normal y debug sin controles Spider/Bee.
 - Entrada Editor con ambos docks retractables, Spider y Bee.
 - Movimiento de nodo por puntero y teclado, incluida transferencia de zona válida.
 - Conexión directa y relación derivada de solo lectura.
 - Intercambio Bee dentro del mismo anillo y rechazo entre anillos.
 - Deshacer/rehacer, recarga, exportación e importación inválida sin pérdida del borrador válido.
-- Confirmación de que el borrador no cambia la cartografía publicada en Estudiante.
+- Confirmación de que el borrador no cambia la cartografía publicada en ORBIT.
 
 Consulta `docs/QA_CHECKLIST.md` para una revisión más completa.

@@ -203,7 +203,7 @@ export class EditorRenderer {
   constructor(canvas) {
     this.canvas = canvas;
     this.context = canvas?.getContext?.("2d", { alpha: false });
-    if (!this.context) throw new Error("Canvas 2D no está disponible para ORBIT editor.");
+    if (!this.context) throw new Error("Canvas 2D no está disponible para ORBIT Editor.");
     this.width = 0;
     this.height = 0;
     this.pixelRatio = 1;

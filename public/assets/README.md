@@ -6,13 +6,17 @@ Esta carpeta contiene recursos estáticos listos para copiar dentro de:
 ORBIT/public/assets/
 ```
 
-En esta versión solo existe la categoría `audio/`. Las demás clases de recursos —imágenes, tipografías, mapas o video— deberán añadirse como carpetas hermanas cuando sean necesarias.
+La carpeta contiene actualmente el sistema de audio y la marca vectorial pública. Las demás
+clases de recursos —tipografías, mapas o video— deberán añadirse como carpetas hermanas cuando
+sean necesarias.
 
 ## Organización
 
 ```text
 assets/
 ├── README.md
+├── brand/
+│   └── orbit-mark.svg
 └── audio/
     ├── audio-manifest.json
     ├── ATTRIBUTION.md
@@ -25,6 +29,19 @@ assets/
     ├── locations/
     ├── characters/
     └── gadgets/
+```
+
+### Marca
+
+`brand/orbit-mark.svg` es la copia pública utilizada por el README y el manifiesto web.
+`public/favicon.svg` conserva una segunda copia en la ruta estable que ya consumen los shells.
+Ambos archivos se generan desde `asset_sources/brand/orbit-mark.svg`; no deben editarse a mano.
+
+Para regenerarlos o comprobar que no existe deriva:
+
+```text
+node scripts/generate-orbit-brand-assets.mjs
+node scripts/generate-orbit-brand-assets.mjs --check
 ```
 
 ### Categorías
@@ -122,7 +139,9 @@ La implementación activa está en `src/audio/audio-manager.js`. El ambiente com
 
 ## Reglas para colaboradores y agentes
 
-1. Modificar solamente `public/assets/`; nunca editar manualmente la copia generada en `dist/`.
+1. Modificar la fuente canónica declarada para cada recurso y regenerar sus derivados; nunca
+   editar manualmente `dist/`. Para la marca, la fuente vive en `asset_sources/brand/`; para el
+   audio actual, los archivos versionados viven directamente en `public/assets/audio/`.
 2. Registrar cada recurso nuevo en `audio-manifest.json` cuando deba ser invocado por el juego.
 3. Incluir un `.json` homónimo con su procedencia y licencia.
 4. Actualizar `ATTRIBUTION.md` aunque la licencia sea CC0.

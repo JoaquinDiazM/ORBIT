@@ -69,16 +69,46 @@ una ruta futura deberá declarar con igual precisión su público, convenciones 
 
 ## Flujo obligatorio para agentes
 
-1. Lee `README.md`, este archivo y el `AGENTS.md` más cercano a los archivos que modificarás.
-2. Lee `docs/CODEX_START_HERE.md` y las decisiones relevantes.
-3. Audita `public/assets/audio/`: compara archivos `.ogg` y metadatos `.json` con `audio-manifest.json` y busca cada ID en `src/`.
-4. Si aparece audio nuevo sin un punto de reproducción verificable y la instrucción no indica dónde usarlo, pregunta al usuario dónde debe escucharse antes de asignarle un destino. No asumas que un recurso fue añadido por azar; puedes continuar otras partes independientes y seguras de la tarea.
-5. Describe brevemente qué invariante puede afectar tu cambio.
-6. Implementa el cambio mínimo que resuelva la tarea.
-7. Añade o actualiza pruebas. Todo audio versionado debe tener atribución, entrada de manifiesto y una forma accesible de ser escuchado; nunca debe ser la única señal de un estado.
-8. Ejecuta `npm run check`.
-9. Revisa manualmente el mundo en perfil de depuración, incluidos los eventos de audio aplicables.
-10. Actualiza documentación y `CHANGELOG.md` cuando cambie comportamiento visible.
+1. Lee completo `ORBIT_UPDATES.md`, ejecuta `git fetch origin` y compara HEAD con `origin/main`.
+   Audita tanto `git log origin/main..HEAD` como `git diff origin/main...HEAD`: no subas commits
+   locales ajenos a la cohorte. Si existe un cierre local ya verificado mientras el remoto
+   conserva sus IDs `publicando`, sube y verifica exactamente ese cierre antes de otra acción.
+   La cola es la fuente canónica: una descripción por sí sola no autoriza implementación.
+2. Recupera cualquier preparación `publicando` —confirmada, staged o unstaged— antes de trabajo
+   nuevo. Si versión/changelog ya cambiaron con estados aún `aprobado`, trátalo también como una
+   preparación interrumpida. Completa o reintenta exactamente ese release solo cuando todo el
+   diff pertenezca a la cohorte; ante mezcla, marca `bloqueado`. Después completa
+   `docs/UPDATES_HISTORY.md` comparando su manifiesto y fichas con la cohorte leída directamente
+   del commit de release verificado, sin crear otra versión ni duplicar changelog.
+3. Publica una cohorte solo cuando esté cerrada y todos sus IDs estén `aprobado`. Revalida el
+   conjunto y confirma primero en un commit local el árbol exacto aprobado. Luego actualiza una
+   sola vez `CHANGELOG.md` y los archivos de versión, inspecciona cada hunk, cambia el lote a
+   `publicando`, confirma, haz el push del release y verifica. Solo entonces archiva las fichas
+   completas en un commit breve, sube ese cierre documental y vuelve a verificar el remoto.
+   Ninguno de esos pushes es una entrega parcial.
+4. Lee `README.md`, este archivo, el `AGENTS.md` más cercano, `docs/CODEX_START_HERE.md` y las
+   decisiones relevantes.
+5. Solo los puntos `autorizado` de la cohorte inmediata pueden pasar a preflight e
+   implementación. Si alguno todavía requiere una decisión material, cámbialo a
+   `faltan-detalles`, escribe preguntas concretas y no modifiques el producto por ese punto.
+6. Mantén como máximo una cohorte de versión en implementación, revisión o publicación por
+   checkout. Varios IDs independientes de esa misma versión pueden avanzar y revisarse en
+   paralelo; nunca implementes una versión posterior antes de publicar la inmediata.
+7. Audita `public/assets/audio/`: compara archivos `.ogg` y metadatos `.json` con
+   `audio-manifest.json` y busca cada ID en `src/`.
+8. Si aparece audio nuevo sin un punto de reproducción verificable y la instrucción no indica
+   dónde usarlo, pregunta al usuario dónde debe escucharse antes de asignarle un destino. No
+   asumas que un recurso fue añadido por azar; puedes continuar otras partes independientes y
+   seguras de la tarea.
+9. Describe brevemente qué invariante puede afectar el cambio e implementa el alcance mínimo
+   autorizado y acordado.
+10. Añade o actualiza pruebas. Todo audio versionado debe tener atribución, entrada de manifiesto
+   y una forma accesible de ser escuchado; nunca debe ser la única señal de un estado.
+11. Ejecuta `npm run check` y la revisión manual específica, incluido el perfil de depuración y
+    los eventos de audio aplicables.
+12. Registra la evidencia en `ORBIT_UPDATES.md`, cambia el punto a `en-revision` y crea de
+    preferencia un commit local coherente. En este estado no actualices versión o changelog ni
+    hagas push: espera que el usuario lo marque `aprobado` y que toda la cohorte quede lista.
 
 ## Criterios de término
 
@@ -92,6 +122,11 @@ Una tarea no está completa hasta que:
 - la interfaz explica cualquier control nuevo;
 - el contenido científico modificado tiene fuente y revisión razonable;
 - el cambio conserva navegación por teclado y contraste legible.
+
+Cumplir estos criterios permite pasar a `en-revision`; no equivale a aprobación humana ni a
+publicación. Solo JoaquinDiazM puede establecer `autorizado`, `aprobado` y el cierre o reapertura
+de una cohorte, directamente en `ORBIT_UPDATES.md` o mediante una instrucción explícita que
+identifique el ID, estado o versión involucrada.
 
 ## Cambios que requieren ADR
 

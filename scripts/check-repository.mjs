@@ -116,6 +116,34 @@ async function checkPackagePolicy() {
     );
   }
 
+  const packageLock = JSON.parse(
+    await readFile(resolve(root, "package-lock.json"), "utf8"),
+  );
+  const lockVersions = [
+    ["package-lock.json.version", packageLock.version],
+    ["package-lock.json.packages[''].version", packageLock.packages?.[""]?.version],
+  ];
+  for (const [label, version] of lockVersions) {
+    if (version !== packageJson.version) {
+      failures.push(
+        `${label} (${version ?? "no encontrada"}) no coincide con package.json (${packageJson.version}).`,
+      );
+    }
+  }
+
+  const changelogText = await readFile(resolve(root, "CHANGELOG.md"), "utf8");
+  const escapedVersion = packageJson.version.replaceAll(".", "\\.");
+  const changelogHeadings = [
+    ...changelogText.matchAll(
+      new RegExp(`^## \\[${escapedVersion}\\] - \\d{4}-\\d{2}-\\d{2}$`, "gm"),
+    ),
+  ];
+  if (changelogHeadings.length !== 1) {
+    failures.push(
+      `CHANGELOG.md debe contener exactamente una sección para ${packageJson.version}; se encontraron ${changelogHeadings.length}.`,
+    );
+  }
+
   return { label: "Política del paquete y versión", failures };
 }
 

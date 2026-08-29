@@ -2,7 +2,7 @@
 
 ## Objetivo técnico
 
-Mantener dos aplicaciones web estáticas, comprensibles y modificables sin un motor de juego: **ORBIT Estudiante** para aprendizaje y **ORBIT Editor** para autoría cartográfica local. La arquitectura separa datos curriculares, reglas de progreso, geometría, borradores editoriales, ejecución del juego y presentación.
+Mantener dos aplicaciones web estáticas, comprensibles y modificables sin un motor de juego: **ORBIT** para aprendizaje y **ORBIT Editor** para autoría cartográfica local. La arquitectura separa datos curriculares, reglas de progreso, geometría, borradores editoriales, ejecución del juego y presentación.
 
 ORBIT significa **Open Roadmap for Building Intuition and Theory**. La arquitectura descrita
 aquí implementa por ahora una sola ruta, Electromagnetismo Aplicado. La conexión futura entre
@@ -107,7 +107,7 @@ La preferencia persistida `treeTwoVisualizationMode` filtra esas conexiones eleg
 
 ### Persistencia
 
-`src/core/storage.js` encapsula el progreso de Estudiante en `localStorage`. El formato vigente es `v3` y está versionado por `APP_CONFIG.progressSchemaVersion`. La clave primaria usa `orbit-progress`; el arranque también consulta las claves publicadas con el prefijo histórico `aea-progress` y, después de sanear o migrar, guarda bajo la clave de ORBIT.
+`src/core/storage.js` encapsula el progreso de ORBIT en `localStorage`. El formato vigente es `v3` y está versionado por `APP_CONFIG.progressSchemaVersion`. La clave primaria usa `orbit-progress`; el arranque también consulta las claves publicadas con el prefijo histórico `aea-progress` y, después de sanear o migrar, guarda bajo la clave de ORBIT.
 
 El estado de Editor usa otro contrato y otra clave: `orbit-editor:v1:electromagnetism-applied`. El esquema editorial `v1` no es una versión del progreso, no participa en sus migraciones y nunca debe almacenarse bajo `orbit-progress`.
 
@@ -123,7 +123,7 @@ Los modos iniciales son `numeric-equivalent`, `expression-equivalent` y `gradien
 
 `src/core/exercise-sequence.js` administra el avance efímero por intervenciones. Una secuencia solo se considera aprobada después de validar todos sus items en orden; este estado no se escribe en `localStorage`.
 
-## ORBIT Estudiante: juego
+## ORBIT: juego
 
 ### `input-controller.js`
 
@@ -159,7 +159,7 @@ Orquesta el loop:
 - solicita interacciones a la UI;
 - expone operaciones de depuración.
 
-## ORBIT Estudiante: interfaz
+## ORBIT: interfaz
 
 `src/ui/ui-controller.js` controla la barra de estado, la ventana principal del lugar, un único panel secundario, etapas, secuencias, ejercicios, árboles, visualización, referencias, sonido, ayuda, avisos y debugger. La ventana principal y la secundaria pueden coexistir en escritorio. El menú ofrece **Árboles**, **Visual**, **Símbolos**, **Constantes**, **Formulario**, **Glosario**, **Ayuda** y **Sonido**; abrir uno sustituye al panel secundario anterior. **Árboles** lista la progresión, mientras **Visual** controla la red del mapa y las vistas de referencia consultan el contenido desbloqueado sin volver a mostrar su bibliografía. La UI construye contenido mediante APIs DOM y `textContent`.
 
@@ -206,7 +206,7 @@ Cada OGG tiene un sidecar homónimo, entrada de manifiesto, atribución y botón
 4. publica `window.OrbitDebug`;
 5. inicia el loop.
 
-Ese flujo corresponde a `index.html`, la entrada de Estudiante. `editor.html` usa su propio bootstrap y valida el borrador antes de iniciar el renderer editorial. La guardia de arranque evita una espera infinita en ambas entradas. El build estático copia las dos páginas y sus módulos sin añadir bundle ni dependencia.
+Ese flujo corresponde a `index.html`, la entrada de ORBIT. `editor.html` usa su propio bootstrap y valida el borrador antes de iniciar el renderer editorial. La guardia de arranque evita una espera infinita en ambas entradas. El build estático copia las dos páginas y sus módulos sin añadir bundle ni dependencia.
 
 ## Modelo de estado
 
@@ -264,13 +264,13 @@ treeTwoConnections[]: sourceId + targetId + completedLocation
 updatedAt
 ```
 
-El autoguardado editorial no cambia el estado persistido ni derivado de Estudiante. Solo una revisión y aplicación posterior al repositorio puede cambiar la cartografía publicada.
+El autoguardado editorial no cambia el estado persistido ni derivado de ORBIT. Solo una revisión y aplicación posterior al repositorio puede cambiar la cartografía publicada.
 
 ## Frontera de seguridad del debugger
 
 Los overrides de área se guardan solo dentro del perfil que los usa. Se recomienda reservar perfiles `debug-*`. La progresión forzada sigue pasando por `ProgressionModel`, para mantener el estado saneado y exportable.
 
-El debugger pertenece a ORBIT Estudiante y no es una vía de acceso al Editor. De forma recíproca, `editor.html` no obtiene privilegios de depuración ni acceso al progreso. Separar las entradas no reemplaza autenticación: cualquier restricción de acceso debe proporcionarla el entorno de despliegue.
+El debugger pertenece a ORBIT y no es una vía de acceso al Editor. De forma recíproca, `editor.html` no obtiene privilegios de depuración ni acceso al progreso. Separar las entradas no reemplaza autenticación: cualquier restricción de acceso debe proporcionarla el entorno de despliegue.
 
 ## Evolución prevista
 

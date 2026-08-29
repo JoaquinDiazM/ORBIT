@@ -1,6 +1,6 @@
-# Guía de ORBIT Estudiante
+# Guía de ORBIT
 
-ORBIT 0.4.0 ofrece dos entradas. Esta guía describe **ORBIT Estudiante** en `index.html`, tanto en perfil normal como debug. La autoría cartográfica se realiza por separado en `editor.html` y se documenta en la [Guía de ORBIT Editor](EDITOR_GUIDE.md).
+ORBIT ofrece dos entradas. Esta guía describe **ORBIT** en `index.html`, tanto en perfil normal como debug. La autoría cartográfica se realiza por separado en `editor.html` y se documenta en la [Guía de ORBIT Editor](EDITOR_GUIDE.md).
 
 ## Abrir el prototipo
 
@@ -133,7 +133,7 @@ Abre el debugger con `F2` y usa:
 
 Conserva copias antes de probar cambios incompatibles en el contenido.
 
-Este JSON pertenece al progreso `v3` de Estudiante. No es compatible ni intercambiable con un documento `orbit-editor-project` `v1`: el primero contiene logros y preferencias; el segundo contiene cartografía y conexiones directas.
+Este JSON pertenece al progreso `v3` de ORBIT. No es compatible ni intercambiable con un documento `orbit-editor-project` `v1`: el primero contiene logros y preferencias; el segundo contiene cartografía y conexiones directas.
 
 ## Relación con ORBIT Editor
 
@@ -145,7 +145,7 @@ http://127.0.0.1:<puerto>/editor.html
 
 Su propósito es que docentes preparen posiciones de nodos, dependencias directas y ordenamiento de zonas. Usa dos docks retractables y las herramientas **Spider** y **Bee**, pero no ejecuta ejercicios, no concede conceptos y no usa perfiles.
 
-El borrador editorial se autoguarda bajo `orbit-editor:v1:electromagnetism-applied`. Exportarlo no cambia este mapa ni el progreso de ningún estudiante. Para que una edición llegue a ORBIT Estudiante debe revisarse, aplicarse manualmente al repositorio, superar validación y pruebas, construirse y desplegarse. `editor.html` tampoco ofrece autenticación por sí solo.
+El borrador editorial se autoguarda bajo `orbit-editor:v1:electromagnetism-applied`. Exportarlo no cambia este mapa ni el progreso de ningún estudiante. Para que una edición llegue a ORBIT debe revisarse, aplicarse manualmente al repositorio, superar validación y pruebas, construirse y desplegarse. `editor.html` tampoco ofrece autenticación por sí solo.
 
 ## Accesibilidad básica
 

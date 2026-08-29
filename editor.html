@@ -8,7 +8,7 @@
       content="ORBIT Editor: editor visual local para organizar zonas, nodos y prerrequisitos de una ruta educativa."
     />
     <meta name="theme-color" content="#08111f" />
-    <link rel="icon" href="./public/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="./public/favicon.svg" type="image/svg+xml" sizes="any" />
     <link rel="stylesheet" href="./src/styles.css" />
     <link rel="stylesheet" href="./src/editor/editor.css" />
     <title>ORBIT Editor · Electromagnetismo Aplicado</title>
@@ -27,10 +27,15 @@
         <div class="hud-brand editor-brand">
           <div>
             <p class="eyebrow">Open Roadmap for Building Intuition and Theory</p>
-            <h1><span class="orbit-wordmark">ORBIT EDITOR</span><span class="orbit-route"> · Electromagnetismo Aplicado</span></h1>
+            <h1><span class="orbit-wordmark">ORBIT Editor</span><span class="orbit-route"> · Electromagnetismo Aplicado</span></h1>
           </div>
           <span id="editor-draft-badge" class="status-badge">borrador local</span>
-          <a class="mode-entry-link" href="./index.html">ORBIT estudiante</a>
+          <a
+            class="mode-entry-link"
+            href="./index.html"
+            aria-label="Volver a ORBIT"
+            title="Volver a ORBIT"
+          ><span aria-hidden="true">←</span><span class="mode-entry-label">Volver a ORBIT</span></a>
         </div>
         <dl class="hud-stats editor-stats">
           <div><dt>Herramienta</dt><dd id="editor-active-tool">Spider · mover</dd></div>
@@ -184,7 +189,7 @@
 
           <section id="editor-overview-panel" hidden>
             <h3>Base editorial de ORBIT 0.4.0</h3>
-            <p>El borrador se guarda únicamente en este navegador y permanece separado del progreso de ORBIT Estudiante.</p>
+            <p>El borrador se guarda únicamente en este navegador y permanece separado del progreso de aprendizaje guardado por ORBIT.</p>
             <dl class="editor-summary-list">
               <div><dt>Spider</dt><dd>Ubica nodos y añade dependencias explícitas del Árbol II.</dd></div>
               <div><dt>Bee</dt><dd>Reordena zonas mediante intercambios dentro de cada anillo.</dd></div>

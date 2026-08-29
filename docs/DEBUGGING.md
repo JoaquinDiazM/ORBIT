@@ -1,6 +1,6 @@
-# Debugger de ORBIT Estudiante
+# Debugger de ORBIT
 
-Esta herramienta pertenece a `index.html`. Sirve para inspeccionar o forzar una sesión de **ORBIT Estudiante** y no debe confundirse con **ORBIT Editor**, cuya entrada es `editor.html`.
+Esta herramienta pertenece a `index.html`. Sirve para inspeccionar o forzar una sesión de **ORBIT** y no debe confundirse con **ORBIT Editor**, cuya entrada es `editor.html`.
 
 ## Perfil recomendado
 
@@ -127,13 +127,13 @@ No interpreta `?debug=1`, no carga `window.OrbitDebug` y no usa perfiles. Su aut
 
 Para comprobar la frontera entre ambos:
 
-1. abre Estudiante con un perfil `debug-editor-separation` y completa algún lugar;
+1. abre ORBIT con un perfil `debug-editor-separation` y completa algún lugar;
 2. abre Editor, mueve un nodo y recarga;
-3. vuelve a Estudiante y confirma que la cartografía publicada y su progreso no cambiaron;
+3. vuelve a ORBIT y confirma que la cartografía publicada y su progreso no cambiaron;
 4. exporta el borrador editorial y comprueba que no contiene conceptos adquiridos, respuestas ni posición del jugador;
 5. exporta el progreso debug y confirma que no contiene zonas, offsets ni conexiones editoriales.
 
-Spider y Bee tienen validación, historial e importación/exportación propios descritos en la [Guía de ORBIT Editor](EDITOR_GUIDE.md). El archivo editorial exportado no se aplica automáticamente a Estudiante y no sustituye `npm run check`, revisión, build ni despliegue manual.
+Spider y Bee tienen validación, historial e importación/exportación propios descritos en la [Guía de ORBIT Editor](EDITOR_GUIDE.md). El archivo editorial exportado no se aplica automáticamente a ORBIT y no sustituye `npm run check`, revisión, build ni despliegue manual.
 
 ## Casos de prueba recomendados
 

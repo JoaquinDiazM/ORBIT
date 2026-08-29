@@ -30,7 +30,7 @@ La historia no sustituye el orden de prerrequisitos. El currículo es un grafo c
 
 ## Dos experiencias del producto
 
-### ORBIT Estudiante
+### ORBIT
 
 El estudiante controla un personaje que se mueve libremente en un mundo abstracto bidimensional. El movimiento visual nunca queda restringido a nodos o caminos: puede recorrer cualquier punto físicamente accesible de una zona abierta.
 
@@ -51,7 +51,7 @@ La entrada `editor.html` sienta una base de autoría cartográfica local para do
 
 Dos docks retractables separan operaciones generales y herramientas editoriales. **Spider** mueve lugares y edita únicamente dependencias directas `completedLocations`; conceptos y recompensas continúan como causas derivadas de solo lectura. **Bee** intercambia zonas dentro de su mismo anillo, sin mover la Base ni mezclar fundamentos de `tier 1` con aplicaciones de `tier 2`.
 
-El borrador usa esquema editorial `v1`, autoguardado local, importación/exportación JSON e historial. Es independiente del progreso `v3` y no se aplica automáticamente a Estudiante. Un docente o mantenedor debe revisar el archivo exportado, integrarlo al repositorio, validar, construir y desplegar durante el procedimiento operativo correspondiente.
+El borrador usa esquema editorial `v1`, autoguardado local, importación/exportación JSON e historial. Es independiente del progreso `v3` y no se aplica automáticamente a ORBIT. Un docente o mantenedor debe revisar el archivo exportado, integrarlo al repositorio, validar, construir y desplegar durante el procedimiento operativo correspondiente.
 
 ## Dos grafos de conocimiento
 
@@ -149,7 +149,7 @@ El proyecto debe privilegiar contenido y ejercicios sobre producción audiovisua
 - assets costosos;
 - animaciones largas.
 
-La versión `0.4.0` no añade backend, autenticación, gráficos 3D, telemetría ni dependencias. El avance dentro de etapas, los parámetros de figuras y las respuestas parciales siguen siendo estado local de sesión. El progreso Estudiante permanece en `v3`; el documento Editor comienza en `v1` bajo otra clave y otro contrato. Cambiar cualquiera de ellos requiere versionar y sanear el esquema correspondiente, sin confundir ambos espacios.
+La versión `0.4.0` no añade backend, autenticación, gráficos 3D, telemetría ni dependencias. El avance dentro de etapas, los parámetros de figuras y las respuestas parciales siguen siendo estado local de sesión. El progreso de ORBIT permanece en `v3`; el documento Editor comienza en `v1` bajo otra clave y otro contrato. Cambiar cualquiera de ellos requiere versionar y sanear el esquema correspondiente, sin confundir ambos espacios.
 
 La entrada Editor no escribe archivos fuente, Git ni el servidor y no constituye control de acceso. La publicación sigue siendo manual; cualquier restricción para profesores debe proporcionarla la infraestructura externa.
 
@@ -159,7 +159,7 @@ La interfaz debe verse suficientemente clara para probar la experiencia, pero la
 
 **Recurso educativo abierto e interactivo, con una experiencia de aprendizaje basada en dos grafos de conocimiento y una base local de autoría cartográfica.**
 
-No se presenta todavía como MOOC, videojuego completo, LMS ni plataforma multicurso operativa. Técnicamente son dos entradas web estáticas sobre la misma primera ruta: ORBIT Estudiante y ORBIT Editor. El segundo no es aún un editor completo de contenido ni un sistema de publicación.
+No se presenta todavía como MOOC, videojuego completo, LMS ni plataforma multicurso operativa. Técnicamente son dos entradas web estáticas sobre la misma primera ruta: ORBIT y ORBIT Editor. El segundo no es aún un editor completo de contenido ni un sistema de publicación.
 
 ## Criterios de éxito a mediano plazo
 
