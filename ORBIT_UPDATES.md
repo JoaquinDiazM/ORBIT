@@ -198,12 +198,12 @@ Sin propuestas pendientes de clasificar.
 
 ### UPD-001 — Hub de gadgets y explorador de campos vectoriales
 
-- Estado: `autorizado`
+- Estado: `en-implementacion`
 - Tipo: `épica`
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y` cuando se defina una primera capacidad completa.
-- Próximo responsable: agente de desarrollo, que debe completar el preflight de la cohorte
-  inmediata 0.5.0 y delimitar un MVP verificable antes de editar.
+- Próximo responsable: agente de desarrollo, que implementa y verifica el MVP coordinado de
+  Gadgets para la cohorte 0.5.0.
 
 #### Solicitud original
 
@@ -215,37 +215,52 @@ ser utilizables en otros lugares de aprendizaje.
 
 #### Especificación elaborada por el agente
 
-- Objetivo observable: pendiente de limitar a un primer MVP seguro.
-- Decisiones confirmadas: el valor pedagógico debe estar en la herramienta, no en una
-  proyección decorativa sobre el mapamundi.
-- Criterios de aceptación: se redactarán después de fijar el primer gadget.
-- Fuera de alcance provisional: evaluar JavaScript arbitrario, un motor 3D o implementar a la
-  vez todos los gadgets futuros.
-- Dependencias, invariantes o ADR: reutilizar `VectorField2D` y una gramática matemática
-  limitada; revisar desbloqueos del Árbol II, accesibilidad y costo de entrada.
+- Objetivo observable: el dock izquierdo abre un panel Gadgets con una calculadora científica
+  disponible desde el inicio, un explorador cartesiano 2D desbloqueable y un esqueleto de Carta
+  de Smith desbloqueable mediante un nuevo nodo opcional.
+- Decisiones confirmadas: el explorador reemplaza por completo la antigua superposición del
+  Lente y su atajo `G`; se conservan los IDs publicados `field-lens-cache` y
+  `gadgets:field-lens` para compatibilidad, aunque su identidad visible cambia. La Carta de
+  Smith no calcula todavía impedancias, admitancias, ROE ni trayectorias.
+- Criterios de aceptación: expresiones matemáticas evaluadas mediante AST restringido, nunca
+  JavaScript; calculadora con funciones científicas y errores accesibles; explorador con
+  componentes `Fx(x,y)`/`Fy(x,y)`, dominio cartesiano acotado, malla, flechas y líneas de flujo;
+  herramientas reactivas al desbloqueo; nuevo nodo `smith-chart-station` conectado directamente
+  desde `transmission-line-bench`; ausencia completa de la acción global `G` y del estado visual
+  obsoleto; rebase de borradores editoriales que restaure el nodo y solo sus conexiones
+  canónicas nuevas.
+- Fuera de alcance: coordenadas no cartesianas, 3D, animación temporal del campo, historial
+  persistente de cálculos, matrices, unidades, números complejos y una Carta de Smith operativa.
+- Dependencias, invariantes o ADR: ampliar la política matemática solo mediante perfiles
+  opt-in; mantener el tronco curricular independiente del gadget opcional; conservar progreso
+  histórico; coordinar el documento editorial `v2` y su rebase con UPD-013/UPD-014; no añadir
+  dependencias ni assets de audio.
 
 #### Preguntas bloqueantes
 
-1. Para la primera iteración, ¿aceptamos la recomendación de limitar el explorador a campos 2D
-   cartesianos, con flechas y líneas de flujo, antes de añadir otros sistemas de coordenadas?
-2. ¿El explorador debe reemplazar por completo la superposición actual del Lente de Campo
-   activada con `G`, o ambos comportamientos deben coexistir?.
+- Ninguna; las respuestas del usuario fijan el MVP cartesiano y el reemplazo completo del Lente.
 
 #### Implementación y revisión
 
-- Resultado: no iniciada; la descripción no autoriza cambios.
-- Pruebas: no aplican todavía.
+- Base revisada: `3e0a6f6` (`0.4.3` publicada y cohorte 0.5.0 abierta).
+- Rutas propias: datos de lugares, política matemática, campos 2D, panel Gadgets, entrada,
+  renderizado, progresión y sus pruebas; el esquema editorial compartido se coordina con
+  UPD-013 y UPD-014.
+- Resultado: preflight completado sin bloqueos; implementación en curso.
+- Pruebas previstas: expresiones y rechazo de código, campos radial/rotacional/nulo/singular,
+  desbloqueos históricos y nuevos, rebase 0.4.x, teclado/foco/`Esc`, responsive y los tres
+  perfiles.
 - Observaciones del usuario: Para la primera pregunta bloquente centrate en ese y en una calculadora cientifica (Esta no es desbloqueable, todos la deben tener desde el inicio). Puedes dejar el esqueleto del gadget de la carta smith, creando el nodo+conexion tambien, pero no gastaremos recursos en una primera version de los nuevos gadgets solo para construir una carta smith completamete operativa, funcional y util para resolver ejercicios. En definitiva hay que quitar la superposicion actual del lente de campo y lo del boton G, ahora sera un menu al que se accede en la barra lateral izquierda con un click
 
 ### UPD-013 — Bowerbird: personalización visual de zonas
 
-- Estado: `autorizado`
+- Estado: `en-implementacion`
 - Tipo: `feature`
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y`; el objetivo provisional debe coordinarse con los demás puntos de 0.5.0
   antes de cerrar esa cohorte.
-- Próximo responsable: agente de desarrollo, que debe completar el preflight y coordinar el
-  esquema visual con UPD-014 antes de editar.
+- Próximo responsable: agente de desarrollo, que implementa el contrato visual y editorial `v2`
+  coordinado con UPD-014.
 
 #### Solicitud original
 
@@ -255,46 +270,53 @@ opciones de colores, dibujos estáticos o móviles y contornos.
 
 #### Especificación elaborada por el agente
 
-- Objetivo observable: Bowerbird previsualiza y configura paleta, motivos y contorno de una zona
-  sin alterar posición, anillo, contenido ni progresión.
-- Decisiones confirmadas: es una herramienta visual distinta de Bee; no cambia geometría ni
-  topología y debe existir para ambos perfiles con alcances de persistencia explícitos.
-- Criterios de aceptación provisionales: selección accesible de zona, vista previa inmediata,
-  presets legibles más allá del color, animaciones compatibles con `prefers-reduced-motion`,
-  historial y saneamiento editorial para Docente, y ninguna mutación lógica o geométrica.
-- Fuera de alcance: dibujo o código arbitrario, carga libre de imágenes, editor gráfico general,
-  publicación del curso o assets sin procedencia y licencia.
-- Dependencias, invariantes o ADR: requiere una definición visual compartida por ambos renderers,
-  decidir migración del documento editorial `v1` y reconciliar la política Estudiante de solo
-  lectura con personalizaciones locales.
+- Objetivo observable: Bowerbird selecciona cualquiera de las 19 zonas y previsualiza/configura
+  presets versionados de paleta, motivo y contorno sin alterar posición, anillo, contenido ni
+  progresión.
+- Decisiones confirmadas: Docente modifica el borrador común y participa del mismo historial y
+  autoguardado de Spider/Bee; Estudiante conserva Spider/Bee de solo lectura y guarda únicamente
+  preferencias visuales personales aisladas; Debug no inicia Editor. La precedencia visual es
+  `personal → publicada → canónica`, pero una zona bloqueada se representa neutral hasta abrirse.
+- Criterios de aceptación: catálogo estable con apariencia canónica, al menos cuatro paletas
+  oscuras/de alto contraste, un motivo estático y uno animado además de ninguno, y contornos
+  sólido/discontinuo/doble; selección por mapa y control accesible; disclaimer permanente de
+  que decorar no desbloquea; `prefers-reduced-motion`; migración íntegra del documento Docente
+  `v1` a `v2`; exportación exclusivamente Docente; la misma terna produce la misma apariencia en
+  Editor y Estudiante; esquemas o catálogos futuros desconocidos fallan de forma cerrada.
+- Fuera de alcance: dibujo o código arbitrario, colores o archivos libres, nuevos assets,
+  cambios de geometría/grafos/progreso y publicación remota.
+- Dependencias, invariantes o ADR: documento `orbit-editor-project` v2 con
+  `appearanceCatalogVersion: 1`; preferencias Estudiante en documento y clave separados; ningún
+  acceso directo nuevo a `localStorage`; nuevo ADR 0008 que enmienda ADR 0007; no añadir
+  dependencias.
 
 #### Preguntas bloqueantes
 
-1. ¿Docente modifica el borrador común mientras Estudiante guarda una apariencia local aislada
-   y visible solo en su propio ORBIT? Recomendación: sí; Estudiante nunca altera el curso base.
-2. ¿Aceptamos para el MVP presets versionados de paleta, contorno y motivos propios, sin selector
-   de archivos ni dibujo libre?
-3. ¿Estudiante puede decorar todas las zonas o solo las ya desbloqueadas? Recomendación inicial:
-   todas, dejando claro que la apariencia no concede progreso.
-4. ¿La exportación del curso incluye solo el borrador Docente y deja las preferencias personales
-   en una clave separada? Recomendación: sí.
+- Ninguna; el usuario aceptó la separación Docente/Estudiante, los presets cerrados, la edición
+  de cualquier zona con disclaimer y la exclusión de preferencias personales de la exportación.
 
 #### Implementación y revisión
 
-- Resultado: no iniciada; faltan decisiones de persistencia y alcance estudiantil.
-- Pruebas: no aplican todavía.
-- Cómo revisar para JoaquinDiazM: responder las cuatro preguntas antes de autorizar.
+- Base revisada: `3e0a6f6` (`0.4.3` publicada y cohorte 0.5.0 abierta).
+- Rutas propias: catálogo/aplicación visual, preferencias personales, documento y modelo Editor,
+  renderers, control Bowerbird, ADR, documentación y pruebas.
+- Resultado: preflight completado sin bloqueos; implementación en curso.
+- Pruebas previstas: catálogo/saneamiento/resolución/reduced-motion, aislamiento y corrupción de
+  preferencias, migración `v1→v2`, historial Docente, política Estudiante/Debug, exportación sin
+  preferencias y paridad visual.
+- Cómo revisar para JoaquinDiazM: decorar una zona como Docente y otra como Estudiante, comprobar
+  que una zona bloqueada sigue neutral, reiniciar y verificar que cada alcance persiste aislado.
 - Observaciones del usuario: Pregunta 1: Esa es justo la politica adecuada, aceptu tu recomentacion. Pregunta 2: Si, mantengamos el producto minimo viable en opciones pre-construidas. Pregunta 3: Si, estudiante y docente pueden decorar las zonas que quiera, pero hay que añadir un disclaimer de que los cambios a zonas todavia no desbloqueadas en ORBIT no se veran de inmediato. Pregunta 4: Sí.
 
 ### UPD-014 — Aplicar una edición del curso
 
-- Estado: `autorizado`
+- Estado: `en-implementacion`
 - Tipo: `infraestructura`
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y` si se limita a una aplicación local; una publicación remota depende de
   UPD-002 y puede requerir otro alcance de versión.
-- Próximo responsable: agente de desarrollo, que debe completar el preflight y definir una
-  aplicación local atómica y recuperable antes de editar.
+- Próximo responsable: agente de desarrollo, que implementa el adaptador, la transacción local y
+  el helper de autoría sobre el documento Editor `v2`.
 
 #### Solicitud original
 
@@ -305,39 +327,44 @@ perfil.
 
 #### Especificación elaborada por el agente
 
-- Objetivo observable: una acción confirmada valida el borrador, explica el progreso afectado y
-  aplica la configuración al destino acordado sin dejar estados parciales.
-- Decisiones confirmadas: la primera política será reinicio total, no mezcla de progreso; debe
-  existir una advertencia cuantificada y confirmación explícita.
-- Criterios de aceptación provisionales: validar y respaldar antes de perder datos; mostrar por
-  perfil el avance afectado; aplicar y resetear de forma atómica o no hacer ninguna de ambas;
-  mantener una ruta recuperable; el resultado debe volver a pasar validación y build cuando
-  corresponda.
-- Fuera de alcance: resolución de conflictos, edición simultánea, cuentas reales, despliegue
-  remoto improvisado, escritura silenciosa al repositorio o resets parciales.
-- Dependencias, invariantes o ADR: ADR 0007 separa Editor de fuentes, despliegue y progreso; una
-  aplicación directa exige revisarlo. Depende del esquema editorial final y de UPD-002 para
-  afectar cuentas remotas.
+- Objetivo observable: Resumen valida el borrador Docente completo, muestra un diff y el avance
+  local afectado, exige confirmación accesible y aplica una edición local respaldada junto con un
+  reinicio total verificable de Estudiante, Docente y Debug.
+- Decisiones confirmadas: la página estática aplica la edición al navegador; un helper Node de
+  autoría, ligado exclusivamente a loopback, escribe el artefacto fuente fijo y ejecuta
+  validación/build. La edición incluye Spider, Bee y Bowerbird Docente; nunca incluye ni elimina
+  preferencias personales Bowerbird de Estudiante.
+- Criterios de aceptación: documento desplegable `orbit-course-edition` v1 con revisión y digest;
+  validar esquema, catálogo, IDs, anillos, offsets, conexiones, ciclos y progresión antes de
+  resetear; contar lugares y conceptos por perfil; confirmación en línea invalidada por cambios
+  posteriores; respaldo, journal y recuperación; borrar solo claves de progreso canónicas y
+  legadas; helper sin nombres de ruta enviados por cliente, con token mismo origen, límite de
+  cuerpo, escritura atómica, checks/build y rollback; evidencia final de edición, fuente, build y
+  perfiles reiniciados.
+- Fuera de alcance: conflictos, concurrencia editorial, cuentas reales, publicación/despliegue
+  remoto, Git automático, reset parcial y cualquier sustituto improvisado de UPD-002.
+- Dependencias, invariantes o ADR: consume `orbit-editor-project` v2 de UPD-013; el runtime
+  materializa un artefacto fijo sobre los datos académicos base; el sitio desplegado sigue siendo
+  estático; los estados de curso y progreso incorporan revisión para impedir resurrección desde
+  pestañas antiguas; nuevo ADR 0008 enmienda la frontera de ADR 0007; no añadir dependencias.
 
 #### Preguntas bloqueantes
 
-1. ¿«Subir/aplicar» significa usar el borrador solo en este navegador, modificar fuentes y build
-   mediante una herramienta local, o publicar al futuro servidor? Recomendación: no simular una
-   subida remota antes de UPD-002.
-2. ¿«Todos los perfiles» son Estudiante, Docente y Debug de este navegador o todas las cuentas
-   futuras del curso? El sitio estático solo puede conocer los tres estados locales.
-3. ¿Debe aplicar únicamente Spider/Bee, también Bowerbird o todo el futuro documento editorial?
-4. ¿Aceptas validar y crear respaldo antes de aplicar, y resetear solo cuando se confirme que la
-   operación puede completarse?
-5. ¿La advertencia debe contar lugares completados y conceptos adquiridos por perfil?
-   Recomendación: mostrar ambos y declarar el reinicio total.
+- Ninguna; las respuestas del usuario fijan aplicación local de todo el documento, tres estados
+  locales, validación previa, respaldo, conteos de lugares/conceptos y reinicio total.
 
 #### Implementación y revisión
 
-- Resultado: no iniciada; el Editor actual solo exporta JSON y no existe un destino de
-  publicación acordado.
-- Pruebas: no aplican todavía.
-- Cómo revisar para JoaquinDiazM: responder las cinco preguntas antes de autorizar.
+- Base revisada: `3e0a6f6` (`0.4.3` publicada y cohorte 0.5.0 abierta).
+- Rutas propias: edición desplegable y adaptador, revisión de progreso, transacción de
+  almacenamiento, Resumen, helper Node, build/validación, ADR, documentación y pruebas.
+- Resultado: preflight completado sin bloqueos; implementación híbrida local en curso.
+- Pruebas previstas: aplicación v2 completa, rechazo de contratos futuros, conteos, cancelación,
+  rollback e interrupciones inyectadas, revisión de progreso, preservación de borrador y
+  preferencias personales, seguridad del helper y coincidencia fuente/dist/build-info.
+- Cómo revisar para JoaquinDiazM: modificar una zona, un nodo, una conexión y una apariencia;
+  validar el plan en Resumen, aplicar con el helper local y comprobar el nuevo mapa y el progreso
+  vacío de los tres perfiles.
 - Observaciones del usuario: Pregunta 1: Subir/aplicar significa unar el borrador en nuestro navegador y modificar fuentes/build de manera local. Sin embargo, esta actualizacion debe estar pensada para que en el momento que abordemos UPD-002 no tengamos que pensar los detalles que ahora estamos definiendo como politica de perdida de datos/progreso, verificacion de reseteo en todos los tipos de perfiles por accion de docente en ORBIT Editor, verificacion de cambios efectuados en el mapamundi (Nodos, zonas, etc), etc. Pregunta 2: Como todavia no tenemos sistema de cuentas, es para todos los estados locales de nuestro navegador. Pregunta 3: Todo, por lo quje hay que mantener coherencia en las actualizaciones de ORBIT Editor para que no se incluyan opciones que arruinen el objetivo principal de ORBIT, aprender. Pregunta 4: Si, el primer paso es validar y el segundo confirmar, y soltar datos utiles entre medio. Manten todo ese desarrollo en la ventana de resumen sin quitar lo que ya esta, complementandolo. 5.- Mostrar ambos y declarar el reinicio total
 
 ### UPD-002 — Sistema de servidor online
