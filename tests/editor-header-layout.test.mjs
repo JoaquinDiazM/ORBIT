@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const EDITOR_CSS_PATH = new URL("../src/editor/editor.css", import.meta.url);
+const SHARED_CSS_PATH = new URL("../src/styles.css", import.meta.url);
 
 function declarationsFor(css, selector) {
   const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -18,6 +19,16 @@ test("la marca del Editor puede encogerse sin invadir las estadísticas", async 
   assert.match(brandContent, /\bflex\s*:\s*1\s+1\s+auto\s*;/);
   assert.match(brandContent, /\bmin-width\s*:\s*0\s*;/);
   assert.match(brandContent, /\boverflow\s*:\s*hidden\s*;/);
+});
+
+test("el título compartido reserva espacio para descendentes sin perder la elipsis", async () => {
+  const css = await readFile(SHARED_CSS_PATH, "utf8");
+  const title = declarationsFor(css, ".hud-brand h1");
+
+  assert.match(title, /\bpadding-block\s*:\s*0\.04em\s+0\.12em\s*;/);
+  assert.match(title, /\boverflow\s*:\s*hidden\s*;/);
+  assert.match(title, /\btext-overflow\s*:\s*ellipsis\s*;/);
+  assert.match(title, /\bwhite-space\s*:\s*nowrap\s*;/);
 });
 
 test("la cabecera conserva sus cortes responsive alrededor del ancho reproducido", async () => {

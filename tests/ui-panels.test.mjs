@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { APP_CONFIG } from "../src/config.js";
 import { UIController } from "../src/ui/ui-controller.js";
 
 function makeNode(id, documentHarness) {
@@ -227,6 +228,18 @@ function withController(run) {
     global.document = previousDocument;
   }
 }
+
+test("el HUD deriva la versión de APP_CONFIG y deja el perfil únicamente en el selector", () => {
+  withController((_controller, { getNode, progression }) => {
+    const versionBadge = getNode("orbit-version-badge");
+    assert.equal(versionBadge.textContent, `v${APP_CONFIG.version}`);
+    assert.equal(
+      versionBadge.getAttribute("aria-label"),
+      `Versión actual de ${APP_CONFIG.appName}: ${APP_CONFIG.version}`,
+    );
+    assert.equal(getNode("profile-select").value, progression.profile);
+  });
+});
 
 test("la lección coexiste con menús secundarios, que siguen siendo exclusivos", () => {
   withController((controller, { controls, document, getNode }) => {

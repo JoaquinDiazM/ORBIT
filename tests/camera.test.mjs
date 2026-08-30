@@ -94,6 +94,42 @@ test("el margen de navegación alcanza un diámetro de hexágono en los cuatro l
   assertClose(topLeft.y, rawBounds.minY - padding);
 });
 
+test("el Editor puede centrar el mundo en el área útil sin perder un retorno acotado", () => {
+  const padding = WORLD_CONFIG.hexSize * 2;
+  const rawBounds = getWorldBounds(AREAS, WORLD_CONFIG.hexSize, 0);
+  const navigationBounds = getWorldBounds(AREAS, WORLD_CONFIG.hexSize, padding);
+  const camera = new Camera2D({
+    x: 0,
+    y: 0,
+    zoom: APP_CONFIG.minZoom,
+    bounds: navigationBounds,
+    focusBounds: rawBounds,
+  });
+  camera.resize(1280, 720);
+
+  const worldCenter = {
+    x: (rawBounds.minX + rawBounds.maxX) / 2,
+    y: (rawBounds.minY + rawBounds.maxY) / 2,
+  };
+  const inspectorHalfWidth = (33 * 16) / 2;
+  camera.setCenter(inspectorHalfWidth / camera.zoom, 0);
+
+  assertClose(camera.worldToScreen(worldCenter.x, worldCenter.y).x, 640 - inspectorHalfWidth);
+
+  camera.panByScreen(inspectorHalfWidth, 0);
+  assertClose(camera.x, 0);
+  assertClose(camera.worldToScreen(worldCenter.x, worldCenter.y).x, 640);
+
+  camera.setCenter(1e9, -1e9);
+  assertClose(camera.worldToScreen(rawBounds.minX, worldCenter.y).x, 0);
+  assertClose(camera.worldToScreen(worldCenter.x, rawBounds.maxY).y, 720);
+
+  camera.setZoom(0.88);
+  camera.setCenter(1e9, 1e9);
+  assertClose(camera.screenToWorld(1280, 720).x, navigationBounds.maxX);
+  assertClose(camera.screenToWorld(1280, 720).y, navigationBounds.maxY);
+});
+
 test("el encuadre editorial usa el ancho completo y respeta los insets verticales", () => {
   const rawBounds = getWorldBounds(AREAS, WORLD_CONFIG.hexSize, 0);
   const fitBounds = getWorldBounds(AREAS, WORLD_CONFIG.hexSize, 120);

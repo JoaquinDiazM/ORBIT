@@ -184,6 +184,7 @@ code {
 
 .hud-brand h1 {
   min-width: 0;
+  padding-block: 0.04em 0.12em;
   overflow: hidden;
   color: #f5fbff;
   font-size: clamp(0.82rem, 1.25vw, 1.05rem);

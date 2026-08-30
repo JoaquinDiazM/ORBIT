@@ -1,3 +1,4 @@
+import { APP_CONFIG } from "../config.js";
 import { CONCEPTS, REWARDS, getConcept, getReward, parseRewardKey } from "../data/knowledge.js";
 import { LOCATIONS } from "../data/locations.js";
 import {
@@ -25,7 +26,6 @@ import {
 } from "../core/location-steps.js";
 import {
   getProfileCapabilities,
-  getProfileLabel,
   shouldAutoCompleteLocationOnInteraction,
 } from "../core/profile-policy.js";
 import { describeMissingRequirements, meetsRequirements } from "../core/requirements.js";
@@ -92,7 +92,7 @@ export class UIController {
       transport: document.querySelector("#hud-transport"),
       concepts: document.querySelector("#hud-concepts"),
       mission: document.querySelector("#hud-mission"),
-      profileBadge: document.querySelector("#profile-badge"),
+      versionBadge: document.querySelector("#orbit-version-badge"),
       profileSelect: document.querySelector("#profile-select"),
       editorLink: document.querySelector("#open-orbit-editor"),
       interactionPrompt: document.querySelector("#interaction-prompt"),
@@ -129,7 +129,10 @@ export class UIController {
       debugImport: document.querySelector("#debug-import"),
     };
 
-    this.elements.profileBadge.textContent = `perfil: ${getProfileLabel(progression.profile)}`;
+    const versionLabel = `Versión actual de ${APP_CONFIG.appName}: ${APP_CONFIG.version}`;
+    this.elements.versionBadge.textContent = `v${APP_CONFIG.version}`;
+    this.elements.versionBadge.setAttribute("aria-label", versionLabel);
+    this.elements.versionBadge.title = versionLabel;
     this.elements.profileSelect.value = progression.profile;
     for (const element of document.querySelectorAll("[data-debug-only]")) {
       element.hidden = !this.profileCapabilities.canUseDebugger;

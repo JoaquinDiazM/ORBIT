@@ -239,11 +239,22 @@ function parsePublishedHistory(historyMarkdown) {
   const cohortHeadings = [
     ...masked.matchAll(/^## ORBIT (\d+\.\d+\.\d+) — (\d{4}-\d{2}-\d{2})\s*$/gm),
   ];
+  const publishedStart = indexHeadings[0].index + indexHeadings[0][0].length;
+  const publishedBody = masked.slice(publishedStart);
   if (cohortHeadings.length === 0) {
-    assert.doesNotMatch(masked, /^### UPD-/gm, "hay fichas sin manifiesto de cohorte");
-    assert.match(historyMarkdown, /Ninguna registrada/);
+    assert.doesNotMatch(
+      publishedBody,
+      /^### UPD-/gm,
+      "hay fichas publicadas sin manifiesto de cohorte",
+    );
+    assert.match(historyMarkdown.slice(publishedStart), /Ninguna registrada/);
     return [];
   }
+
+  assert.ok(
+    cohortHeadings.every(({ index }) => index > indexHeadings[0].index),
+    "las cohortes deben estar dentro de su sección publicada",
+  );
 
   const versions = cohortHeadings.map((heading) => heading[1]);
   assert.equal(new Set(versions).size, versions.length, "una versión histórica está duplicada");
@@ -297,14 +308,74 @@ function parsePublishedHistory(historyMarkdown) {
   });
 }
 
+function parseDiscardedHistory(historyMarkdown) {
+  const masked = maskFencedBlocks(historyMarkdown);
+  const discardedHeadings = [
+    ...masked.matchAll(/^## Actualizaciones descartadas\s*$/gm),
+  ];
+  assert.ok(
+    discardedHeadings.length <= 1,
+    "el historial no puede duplicar la sección de descartes",
+  );
+  if (discardedHeadings.length === 0) {
+    return [];
+  }
+
+  const publishedHeading = masked.match(/^## Cohortes publicadas\s*$/m);
+  assert.ok(publishedHeading, "el historial debe conservar sus cohortes publicadas");
+  assert.ok(
+    discardedHeadings[0].index < publishedHeading.index,
+    "los descartes deben preceder a las cohortes publicadas",
+  );
+
+  const start = discardedHeadings[0].index + discardedHeadings[0][0].length;
+  const raw = historyMarkdown.slice(start, publishedHeading.index);
+  const discardedMasked = masked.slice(start, publishedHeading.index);
+  const entries = parseSection(
+    { raw, masked: discardedMasked },
+    "discarded",
+  );
+  if (entries.length === 0) {
+    assert.match(raw, /Ninguna registrada/);
+  }
+  return entries;
+}
+
 function validateRegistry(markdown, historyMarkdown, publishedVersion = "0.4.0") {
   const sections = getWorkflowSections(markdown);
   const history =
     historyMarkdown ??
     `# Historial\n\n## Cohortes publicadas\n\nNinguna registrada todavía.`;
+  const historyMasked = maskFencedBlocks(history);
+  const historyHeadingLike = [
+    ...historyMasked.matchAll(/^#{1,6}\s+UPD.*$/gm),
+  ].map((match) => match[0]);
+  const malformedHistoryHeadings = historyHeadingLike.filter(
+    (heading) => !/^### UPD-\d{3} — \S.*$/.test(heading),
+  );
+  assert.deepEqual(
+    malformedHistoryHeadings,
+    [],
+    "el historial contiene encabezados de actualización inválidos",
+  );
+  const discardedEntries = parseDiscardedHistory(history);
+  const publishedEntries = parsePublishedHistory(history);
+  const parsedHistoryHeadings = [
+    ...discardedEntries,
+    ...publishedEntries,
+  ].map(({ id }) => id).sort();
+  const declaredHistoryHeadings = [
+    ...historyMasked.matchAll(/^### (UPD-\d{3}) — \S.*$/gm),
+  ].map((match) => match[1]).sort();
+  assert.deepEqual(
+    parsedHistoryHeadings,
+    declaredHistoryHeadings,
+    "toda ficha histórica debe pertenecer a descartes o a una cohorte publicada",
+  );
   const entries = [
     ...parseSection(sections.active, "active"),
-    ...parsePublishedHistory(history),
+    ...discardedEntries,
+    ...publishedEntries,
   ];
   const ids = entries.map(({ id }) => id);
 
@@ -321,6 +392,11 @@ function validateRegistry(markdown, historyMarkdown, publishedVersion = "0.4.0")
 
     if (entry.section === "active") {
       assert.notEqual(entry.state, "publicado", `${entry.id} está en la sección incorrecta`);
+      assert.notEqual(
+        entry.state,
+        "descartado",
+        `${entry.id} descartado debe archivarse fuera de la cola activa`,
+      );
       assert.equal(
         entry.versionCount,
         1,
@@ -329,7 +405,7 @@ function validateRegistry(markdown, historyMarkdown, publishedVersion = "0.4.0")
       if (entry.state === "publicando") {
         assert.notEqual(entry.version, "auto", `${entry.id} debe resolver su versión`);
       }
-    } else {
+    } else if (entry.section === "published") {
       assert.equal(entry.state, "publicado", `${entry.id} debe estar publicado`);
       const publishedVersionMatch = requireSingleMatch(
         entry.metadata,
@@ -354,6 +430,19 @@ function validateRegistry(markdown, historyMarkdown, publishedVersion = "0.4.0")
       assert.equal(publishedVersionMatch[1], entry.publishedCohort.version, entry.id);
       assert.equal(dateMatch[1], entry.publishedCohort.date, entry.id);
       assert.equal(releaseMatch[1], entry.publishedCohort.releaseHash, entry.id);
+    } else {
+      assert.equal(entry.section, "discarded", `${entry.id} está en una sección desconocida`);
+      assert.equal(entry.state, "descartado", `${entry.id} debe estar descartado`);
+      requireSingleMatch(
+        entry.metadata,
+        /^- Fecha de descarte: \d{4}-\d{2}-\d{2}\.$/gm,
+        `${entry.id} debe declarar su fecha de descarte`,
+      );
+      assert.doesNotMatch(
+        entry.metadata,
+        /^- (?:Versión publicada|Commit de release):/gm,
+        `${entry.id} descartado no puede fingir una publicación`,
+      );
     }
 
     if (entry.state === "en-revision") {
@@ -621,6 +710,59 @@ Sin cohorte inmediata en preparación.
 ## Actualizaciones activas
 ## Historial
 `),
+  );
+});
+
+test("un descarte se archiva fuera de la cola sin fingir una publicación", () => {
+  const activeDiscard = registry(`
+### UPD-810 — Descarte todavía activo
+- Estado: \`descartado\`
+- Tipo: \`feature\`
+- Versión objetivo: \`auto\`
+`);
+  assert.throws(() => validateRegistry(activeDiscard));
+
+  const archivedDiscard = `
+# Historial
+
+## Actualizaciones descartadas
+
+### UPD-810 — Descarte archivado
+- Estado: \`descartado\`
+- Tipo: \`feature\`
+- Versión objetivo: \`auto\`
+- Fecha de descarte: 2026-08-29.
+
+## Cohortes publicadas
+
+Ninguna registrada todavía.
+`;
+  const entries = validateRegistry(registry("Ninguna."), archivedDiscard);
+  assert.deepEqual(
+    entries.map(({ id, state, section }) => ({ id, state, section })),
+    [{ id: "UPD-810", state: "descartado", section: "discarded" }],
+  );
+
+  assert.throws(() =>
+    validateRegistry(
+      registry("Ninguna."),
+      archivedDiscard.replace("- Fecha de descarte: 2026-08-29.\n", ""),
+    ),
+  );
+  assert.throws(() =>
+    validateRegistry(
+      registry("Ninguna."),
+      archivedDiscard.replace(
+        "- Fecha de descarte: 2026-08-29.",
+        "- Fecha de descarte: 2026-08-29.\n- Commit de release: `0123456789abcdef0123456789abcdef01234567`",
+      ),
+    ),
+  );
+  assert.throws(() =>
+    validateRegistry(
+      registry("Ninguna."),
+      archivedDiscard.replace("## Actualizaciones descartadas\n\n", ""),
+    ),
   );
 });
 

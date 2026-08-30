@@ -1,12 +1,16 @@
 # Historial de actualizaciones de ORBIT
 
-Este archivo conserva las fichas completas y los intercambios de las cohortes publicadas.
-`ORBIT_UPDATES.md` contiene únicamente la cola operativa; `CHANGELOG.md` resume los cambios del
-producto para quienes usan ORBIT.
+Este archivo conserva las fichas completas y los intercambios tanto de las cohortes publicadas
+como de las propuestas descartadas. `ORBIT_UPDATES.md` contiene únicamente la cola operativa;
+`CHANGELOG.md` resume los cambios publicados del producto para quienes usan ORBIT.
 
 Una cohorte se incorpora aquí solo después de verificar su commit de release en `origin/main`.
 Cada sección publicada registra la versión, fecha, hash del release y las fichas UPD retiradas
 de la cola. Los IDs son permanentes y no se reutilizan.
+
+Una ficha descartada se mueve aquí apenas JoaquinDiazM le asigna `descartado`. Conserva su
+solicitud, decisiones e intercambios, pero no recibe versión publicada, commit de release ni
+entrada de changelog. Solo una instrucción explícita del usuario puede devolverla a la cola.
 
 El manifiesto de cada cohorte enumera todos sus IDs. Las fichas que siguen deben coincidir
 exactamente con esa lista y repetir la misma versión, fecha y hash; las pruebas del repositorio
@@ -32,6 +36,48 @@ El formato es:
 
 <!-- Sigue la ficha completa retirada de ORBIT_UPDATES.md. -->
 ```
+
+La sección de descartes usa la ficha original y añade únicamente su fecha de descarte.
+
+## Actualizaciones descartadas
+
+### UPD-006 — Perfil estudiantil limitado dentro de ORBIT Editor
+
+- Estado: `descartado`
+- Tipo: `feature`
+- Versión objetivo: `auto`
+- Fecha de descarte: 2026-08-29.
+- Impacto sugerido: `Y`.
+- Próximo responsable: JoaquinDiazM.
+
+#### Solicitud original
+
+Hacer que ORBIT Editor esté pensado tanto para estudiantes como para el cuerpo docente, con un
+perfil o modo de estudiante claramente más limitado que el modo docente.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: pendiente de definir capacidades por rol.
+- Decisiones confirmadas: se trata de una capacidad distinta de UPD-005.
+- Criterios de aceptación: pendientes.
+- Fuera de alcance provisional: presentar una restricción de interfaz como seguridad real.
+- Dependencias, invariantes o ADR: sin backend y autenticación, cualquier limitación será solo
+  de interfaz. Debe coordinarse con UPD-002 antes de prometer control de acceso.
+
+#### Preguntas bloqueantes
+
+1. ¿Qué operaciones exactas podrá realizar el estudiante: solo visualizar, proponer cambios sin
+   guardarlos, mover elementos en un borrador propio u otra combinación?
+2. ¿El objetivo inmediato es únicamente una vista limitada local o debe esperar al sistema de
+   cuentas y permisos de UPD-002?
+
+#### Implementación y revisión
+
+- Resultado: no iniciada; no hay todavía contrato de permisos.
+- Pruebas: no aplican todavía.
+- Observaciones del usuario: Cuando cambie el estado de un update a descartado solo archivalo y
+  quitalo de ORBIT_UPDATES.md, si gustas cambia este mismo archivo donde creas pertinente para
+  advertir a los futuros agentes de esa politica.
 
 ## Cohortes publicadas
 

@@ -20,7 +20,9 @@ test("ORBIT enlaza una entrada editorial independiente", async () => {
   assert.match(orbit, /aria-label="ORBIT, ruta interactiva de Electromagnetismo"/);
   assert.match(orbit, /class="orbit-route"> · Electromagnetismo<\/span>/);
   assert.doesNotMatch(orbit, /Electromagnetismo Aplicado/);
-  assert.match(orbit, />Ruta interactiva</);
+  assert.match(orbit, /id="orbit-version-badge"/);
+  assert.doesNotMatch(orbit, /Ruta interactiva/);
+  assert.doesNotMatch(orbit, /id="profile-badge"/);
   assert.match(orbit, /href=["']\.\/editor\.html\?profile=student["']/);
   assert.match(orbit, />Abrir ORBIT Editor</);
   assert.match(orbit, /id="profile-select"/);

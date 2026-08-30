@@ -8,6 +8,7 @@ import { EDITOR_LOCATION_SAFE_MARGIN } from "./editor-document.js";
 const POINTER_NODE_RADIUS_PX = 27;
 const EDITOR_FIT_PADDING = 120;
 const EDITOR_FIT_MAX_ZOOM = 0.9;
+const EDITOR_NAVIGATION_PADDING = WORLD_CONFIG.hexSize * 2;
 
 export function calculateEditorFitZoom(bounds, viewportWidth, viewportHeight) {
   const width = Math.max(1, bounds.maxX - bounds.minX);
@@ -73,6 +74,7 @@ export class EditorApp {
       snapshot.areas.find((area) => area.tier > 0)?.id ??
       null;
 
+    const worldBounds = getWorldBounds(snapshot.areas, WORLD_CONFIG.hexSize, 0);
     this.camera = new Camera2D({
       x: 0,
       y: 0,
@@ -80,8 +82,9 @@ export class EditorApp {
       bounds: getWorldBounds(
         snapshot.areas,
         WORLD_CONFIG.hexSize,
-        WORLD_CONFIG.hexSize * 2,
+        EDITOR_NAVIGATION_PADDING,
       ),
+      focusBounds: worldBounds,
     });
     this.renderer.resize();
     this.camera.resize(this.renderer.width, this.renderer.height);

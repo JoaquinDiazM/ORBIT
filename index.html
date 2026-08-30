@@ -23,12 +23,15 @@
       <section id="hud" class="glass-card hud-bar" aria-label="Estado de la expedición">
         <div class="hud-brand">
           <h1><span class="orbit-wordmark">ORBIT</span><span class="orbit-route"> · Electromagnetismo</span></h1>
-          <span class="status-badge product-mode-badge">Ruta interactiva</span>
-          <span id="profile-badge" class="status-badge">perfil: estudiante</span>
+          <span
+            id="orbit-version-badge"
+            class="status-badge product-mode-badge"
+            aria-label="Versión actual de ORBIT"
+          >Versión</span>
           <select
             id="profile-select"
             class="profile-select"
-            aria-label="Cambiar perfil local"
+            aria-label="Cambiar perfil local; no constituye autenticación"
             title="Perfiles locales sin autenticación"
           >
             <option value="student" selected>Estudiante</option>

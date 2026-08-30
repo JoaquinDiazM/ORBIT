@@ -4,12 +4,30 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
+function clampAxis(value, boundsMin, boundsMax, halfViewport, focusMin, focusMax) {
+  let minCenter = boundsMin + halfViewport;
+  let maxCenter = boundsMax - halfViewport;
+  let hasRange = minCenter <= maxCenter;
+
+  const focusMinCenter = focusMax - halfViewport;
+  const focusMaxCenter = focusMin + halfViewport;
+  if (focusMinCenter <= focusMaxCenter) {
+    minCenter = hasRange ? Math.min(minCenter, focusMinCenter) : focusMinCenter;
+    maxCenter = hasRange ? Math.max(maxCenter, focusMaxCenter) : focusMaxCenter;
+    hasRange = true;
+  }
+
+  return hasRange ? clamp(value, minCenter, maxCenter) : (boundsMin + boundsMax) / 2;
+}
+
 export class Camera2D {
-  constructor({ x = 0, y = 0, zoom = APP_CONFIG.defaultZoom, bounds }) {
+  constructor({ x = 0, y = 0, zoom = APP_CONFIG.defaultZoom, bounds, focusBounds }) {
     this.x = x;
     this.y = y;
     this.zoom = zoom;
     this.bounds = bounds;
+    // Optional content bounds keep the world reachable when a zoomed-out viewport fits.
+    this.focusBounds = focusBounds;
     this.viewportWidth = window.innerWidth;
     this.viewportHeight = window.innerHeight;
   }
@@ -84,7 +102,31 @@ export class Camera2D {
     const minY = this.bounds.minY + halfHeight;
     const maxY = this.bounds.maxY - halfHeight;
 
-    this.x = minX <= maxX ? clamp(this.x, minX, maxX) : (this.bounds.minX + this.bounds.maxX) / 2;
-    this.y = minY <= maxY ? clamp(this.y, minY, maxY) : (this.bounds.minY + this.bounds.maxY) / 2;
+    if (!this.focusBounds) {
+      this.x = minX <= maxX
+        ? clamp(this.x, minX, maxX)
+        : (this.bounds.minX + this.bounds.maxX) / 2;
+      this.y = minY <= maxY
+        ? clamp(this.y, minY, maxY)
+        : (this.bounds.minY + this.bounds.maxY) / 2;
+      return;
+    }
+
+    this.x = clampAxis(
+      this.x,
+      this.bounds.minX,
+      this.bounds.maxX,
+      halfWidth,
+      this.focusBounds.minX,
+      this.focusBounds.maxX,
+    );
+    this.y = clampAxis(
+      this.y,
+      this.bounds.minY,
+      this.bounds.maxY,
+      halfHeight,
+      this.focusBounds.minY,
+      this.focusBounds.maxY,
+    );
   }
 }

@@ -81,6 +81,7 @@ test("el shell expone todos los menús secundarios de ORBIT", async () => {
     "open-help",
     "sound-ambience",
     "sound-effects",
+    "orbit-version-badge",
     "profile-select",
     "open-orbit-editor",
   ];
@@ -98,7 +99,7 @@ test("el shell expone todos los menús secundarios de ORBIT", async () => {
   assert.match(index, /Confirmar interacción/);
   assert.match(index, /Clic de interfaz/);
   assert.match(index, /Zona desbloqueada/);
-  assert.match(index, /aria-label="Cambiar perfil local"/);
+  assert.match(index, /aria-label="Cambiar perfil local; no constituye autenticación"/);
   assert.match(index, /title="Perfiles locales sin autenticación"/);
 });
 

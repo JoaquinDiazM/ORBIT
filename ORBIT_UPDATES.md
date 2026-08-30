@@ -41,7 +41,7 @@ Solo JoaquinDiazM puede cerrar o reabrir una cohorte de versión.
 | `bloqueado` | Agente | Un impedimento técnico o externo verificable impide continuar. Debe registrar causa, responsable y condición para reanudar. |
 | `publicado` | Agente | El cambio aprobado quedó versionado, incluido en el changelog, confirmado, subido y verificado en el remoto. Es terminal; cualquier ampliación usa otro ID. |
 | `pospuesto` | Solo usuario | No se trabaja hasta una nueva decisión. |
-| `descartado` | Solo usuario | Se conserva el registro, pero no se implementará. |
+| `descartado` | Solo usuario | No se implementa: el agente archiva de inmediato la ficha completa en `docs/UPDATES_HISTORY.md` y la retira de esta cola, sin versión ni changelog. |
 
 Flujo normal:
 
@@ -56,8 +56,9 @@ en-revision → autorizado      (si el usuario solicita correcciones)
 Un punto `en-revision` con correcciones solicitadas vuelve a `autorizado`. Un punto
 `aprobado` que falla al revalidarse vuelve a `en-revision` o `bloqueado`; nunca se publica
 un resultado distinto del que el usuario aprobó. Si corregirlo cambia el alcance acordado,
-vuelve a `faltan-detalles` o `autorizado` para una nueva decisión. `pospuesto` y `descartado`
-solo se reactivan por instrucción explícita del usuario.
+vuelve a `faltan-detalles` o `autorizado` para una nueva decisión. `pospuesto` solo se reactiva
+por instrucción explícita del usuario. Un punto `descartado` sale de la cola; para reactivarlo,
+el usuario debe pedir expresamente que su ficha vuelva desde el historial con un estado activo.
 
 ## Orden obligatorio para el agente al ser activado
 
@@ -67,6 +68,9 @@ solo se reactivan por instrucción explícita del usuario.
    dudoso, bloquear la publicación y pedir dirección. Si el checkout tiene por delante un commit
    documental que archivó una cohorte ya verificada —local sin cohorte, remoto con sus IDs
    `publicando`—, subir y verificar exactamente ese cierre antes de cualquier otra acción.
+   En esa misma lectura, archivar primero toda ficha cuyo estado sea `descartado`: moverla completa
+   a la sección correspondiente de `docs/UPDATES_HISTORY.md`, añadir la fecha de descarte y
+   retirarla de esta cola. Este trámite no modifica versión ni changelog y no autoriza código.
 2. Recuperar primero una cohorte `publicando`, esté confirmada o todavía preparada en el índice
    o working tree. Si no existe aún el commit de release, comprobar que versión, changelog,
    estados y rutas sucias corresponden exactamente al lote y completar una sola vez esa misma
@@ -95,8 +99,8 @@ solo se reactivan por instrucción explícita del usuario.
 7. Mientras exista una cohorte inmediata sin publicar, no implementar IDs destinados a una
    versión posterior. Sí se pueden refinar sus especificaciones y preguntas, incluso moverlos a
    `faltan-detalles`, sin tocar el producto por ellos.
-8. Informar preguntas pendientes. No tocar código por puntos `propuesto`, `en-revision`,
-   `pospuesto` o `descartado`.
+8. Informar preguntas pendientes. No tocar código por puntos `propuesto`, `en-revision` o
+   `pospuesto`; un punto `descartado` únicamente se archiva como indica el paso 1.
 
 El límite es **una sola cohorte de versión en implementación, revisión o publicación por
 checkout**, no un solo ID. Todos los puntos activos deben pertenecer a esa versión inmediata;
@@ -315,41 +319,6 @@ que el resultado esperado aún no está definido.
 - Pruebas: no aplican todavía.
 - Observaciones del usuario: pendientes.
 
-### UPD-006 — Perfil estudiantil limitado dentro de ORBIT Editor
-
-- Estado: `descartado`
-- Tipo: `feature`
-- Versión objetivo: `auto`
-- Impacto sugerido: `Y`.
-- Próximo responsable: JoaquinDiazM.
-
-#### Solicitud original
-
-Hacer que ORBIT Editor esté pensado tanto para estudiantes como para el cuerpo docente, con un
-perfil o modo de estudiante claramente más limitado que el modo docente.
-
-#### Especificación elaborada por el agente
-
-- Objetivo observable: pendiente de definir capacidades por rol.
-- Decisiones confirmadas: se trata de una capacidad distinta de UPD-005.
-- Criterios de aceptación: pendientes.
-- Fuera de alcance provisional: presentar una restricción de interfaz como seguridad real.
-- Dependencias, invariantes o ADR: sin backend y autenticación, cualquier limitación será solo
-  de interfaz. Debe coordinarse con UPD-002 antes de prometer control de acceso.
-
-#### Preguntas bloqueantes
-
-1. ¿Qué operaciones exactas podrá realizar el estudiante: solo visualizar, proponer cambios sin
-   guardarlos, mover elementos en un borrador propio u otra combinación?
-2. ¿El objetivo inmediato es únicamente una vista limitada local o debe esperar al sistema de
-   cuentas y permisos de UPD-002?
-
-#### Implementación y revisión
-
-- Resultado: no iniciada; no hay todavía contrato de permisos.
-- Pruebas: no aplican todavía.
-- Observaciones del usuario: pendientes.
-
 ### UPD-008 — Nombre visible de la ruta: Electromagnetismo
 
 - Estado: `en-revision`
@@ -388,22 +357,26 @@ nombre por uno más general.
 
 #### Implementación y revisión
 
-- Base revisada: `eb15a6715545d97519a5a904ee28cbcbd77569fb` (checkpoint local de la
-  cohorte cerrada sobre `origin/main` en `831a5ea06da750e3b27b781b1275b9d2429f494c`).
+- Base revisada: `ec739aba111ee4592f7fb339d795b60fa44f3ed9` (primera candidata local de
+  la cohorte, sobre `origin/main` en `831a5ea06da750e3b27b781b1275b9d2429f494c`).
 - Rutas propias: shells y metadatos web, `src/config.js`, documentación vigente, captura
   `docs/screenshots/prototype.png` y regresiones de marca/shell. Se excluyeron títulos oficiales
   de fuentes, historial, IDs estables y nombres técnicos persistidos.
 - Resultado: ORBIT, ORBIT Editor, manifiesto, metadatos y documentación vigente presentan la
   ruta como **Electromagnetismo**. Se conservaron el anillo de aplicaciones, la atribución y el
   título oficial de EL3103, además de `electromagnetism-applied` en los IDs y claves técnicas que
-  ya forman parte de contratos persistidos. La captura principal quedó regenerada a 1280 × 720.
-- Pruebas: comprobación de recursos de marca correcta; suite completa `222/222`; validación de
-  contenido, revisión del repositorio y build estático correctos; inspección visual a 1280 × 720.
+  ya forman parte de contratos persistidos. La cabecera compartida reserva ahora espacio para
+  descendentes sin perder su elipsis, por lo que la «g» deja de recortarse. La captura principal
+  quedó regenerada a 1280 × 720 con el HUD corregido.
+- Pruebas: comprobación de recursos de marca y regresión tipográfica correctas; suite completa
+  `226/226`; validación de contenido, revisión del repositorio y build estático correctos;
+  inspección visual de ORBIT y Editor a 1280 × 720.
 - Cómo revisar para JoaquinDiazM: abrir ORBIT y ORBIT Editor y comprobar **Electromagnetismo**
-  en sus cabeceras; revisar la captura principal del README y confirmar que la mención
+  en sus cabeceras, incluida la cola inferior completa de la «g»; revisar la captura principal
+  del README y confirmar que la mención
   **Electromagnetismo Aplicado** se conserva únicamente cuando identifica el curso fuente o un
   registro histórico.
-- Observaciones del usuario: ninguna.
+- Observaciones del usuario: El cambio pedido si se logro, pero me parece haber un bug visual minusculo. En la panel superior de la interfaz, donde dice electromagnetismo, me parece que la parte inferior de la letra "g" esta cortada, revisa que sea asi y solucionalo.
 
 ### UPD-009 — Ampliar zoom y margen del mapamundi
 
@@ -442,22 +415,25 @@ básicamente lo mismo y no merecen ser tratados en dos actualizaciones diferente
 
 #### Implementación y revisión
 
-- Base revisada: `eb15a6715545d97519a5a904ee28cbcbd77569fb` (checkpoint local de la
-  cohorte cerrada sobre `origin/main` en `831a5ea06da750e3b27b781b1275b9d2429f494c`).
+- Base revisada: `ec739aba111ee4592f7fb339d795b60fa44f3ed9` (primera candidata local de
+  la cohorte, sobre `origin/main` en `831a5ea06da750e3b27b781b1275b9d2429f494c`).
 - Rutas propias: `src/config.js`, cámaras de ORBIT y ORBIT Editor, controlador del Editor y
   pruebas de cámara, layout, renderer y shell editorial.
 - Resultado: el zoom mínimo común bajó de `0.58` a `0.28`; el límite exterior común aumentó a
   dos tamaños de hexágono (`460` unidades). Encuadrar oculta el inspector, devuelve el foco al
-  canvas y usa todo el ancho con insets verticales; el clamp recentra únicamente el eje cuyo
-  mundo completo ya cabe. El hit testing conserva un radio constante en pantalla.
-- Pruebas: cámara, bounds, fit, pan, zoom al puntero e hit testing cubiertos dentro de la suite
-  completa `222/222`; validación de contenido, revisión del repositorio y build correctos;
+  canvas y usa todo el ancho con insets verticales. En Editor, el mundo real actúa además como
+  ancla cuando cabe completo: la cámara puede compensar paneles abiertos dentro del margen de
+  460 unidades, alcanzar los extremos y volver al centro sin alterar el clamp de ORBIT. El hit
+  testing conserva un radio constante en pantalla.
+- Pruebas: cámara, bounds, foco editorial, fit, pan, zoom al puntero e hit testing cubiertos
+  dentro de la suite completa `226/226`; validación de contenido, revisión del repositorio y build correctos;
   recorrido visual a 1280 × 720 en ORBIT y Editor.
 - Cómo revisar para JoaquinDiazM: usar la rueda hasta el alejamiento máximo en ORBIT; en Editor,
-  pulsar **Encuadrar**, desplazar el mapa hacia los cuatro límites con ratón y volver con flechas
-  en Estudiante; acercar de nuevo y confirmar que selección, arrastre Spider y Bee siguen siendo
-  precisos en Docente.
-- Observaciones del usuario: ninguna.
+  pulsar **Encuadrar**, abrir Spider o Bee y desplazar el mundo hasta dejarlo centrado en el área
+  visible junto al inspector; recorrer los cuatro límites y volver con el gesto inverso o con
+  flechas en Estudiante; acercar de nuevo y confirmar que selección, arrastre Spider y Bee siguen
+  siendo precisos en Docente.
+- Observaciones del usuario: En ORBIT Editor esta bloqueado el movimiento hacia las areas de rango extra. Lo anterior es importante, porque el usuario que esta usando el editor quiere ver el mapamundi al centro de su pantalla mientras tambien tiene abierta la vetana derecha o los menus del lado izquierdo, pero ahora mismo el movimiento del mapa esta tan restringido que esas cosas se solapan y tapan al mapamundi.
 
 ### UPD-010 — Perfiles estudiante, docente y debug
 
@@ -508,8 +484,8 @@ mapamundi, incluida su interacción y visualización.
 
 #### Implementación y revisión
 
-- Base revisada: `eb15a6715545d97519a5a904ee28cbcbd77569fb` (checkpoint local de la
-  cohorte cerrada sobre `origin/main` en `831a5ea06da750e3b27b781b1275b9d2429f494c`).
+- Base revisada: `ec739aba111ee4592f7fb339d795b60fa44f3ed9` (primera candidata local de
+  la cohorte, sobre `origin/main` en `831a5ea06da750e3b27b781b1275b9d2429f494c`).
 - Rutas propias: `src/core/profile-policy.js`, persistencia/progresión, arranque e interfaz de
   ORBIT, modelo/aplicación/interfaz del Editor, shells, estilos, documentación operativa y
   pruebas focalizadas.
@@ -519,23 +495,27 @@ mapamundi, incluida su interacción y visualización.
   Estudiante y Docente no renderizan ni pueden interactuar con el nodo, panel, atajos o API de
   debug. Editor abre completo para Docente —también sin query—, en consulta para Estudiante con
   Spider/Bee y toda mutación bloqueados por interfaz, aplicación, modelo y API, y bloquea Debug
-  antes de construir `EditorModel`. Todo se identifica expresamente como política local, no
-  autenticación.
+  antes de construir `EditorModel`. El HUD conserva el selector como única representación del
+  perfil y sustituye «Ruta interactiva» por una insignia `vX.Y.Z` derivada de `APP_CONFIG`, con
+  nombre accesible. Todo se identifica expresamente como política local, no autenticación.
 - Pruebas: política, migración, aislamiento, progresión, audio, shell, teclado y modelo editorial
-  cubiertos dentro de `222/222`; los cinco audios conservan claves y wiring; validación de
+  cubiertos dentro de `226/226`; los cinco audios conservan claves y wiring; validación de
   contenido, revisión del repositorio y build correctos. Se inspeccionaron visualmente ORBIT
   Estudiante y Editor Docente/Estudiante/Debug a 1280 × 720.
 - Cómo revisar para JoaquinDiazM: cambiar entre los tres valores del selector y confirmar que sus
-  avances no se copian; en Docente interactuar con una lección o misión evaluable y comprobar el
+  avances no se copian; confirmar que el HUD muestra un solo control de perfil y la versión
+  vigente; en Docente interactuar con una lección o misión evaluable y comprobar el
   autocompletado; confirmar ausencia de Terminal/F2/API en Estudiante y Docente; abrir el Editor
   desde cada perfil y probar, respectivamente, consulta con aviso y bloqueo de Spider/Bee,
   edición completa, y pantalla Debug bloqueada sin mapa editorial.
 - Observaciones del usuario: Respecto a la primera pregunta, el perfil de docente tiene la habilidad de autocompletacion cuando interactua en una zona que requiera respuesta, es decir lugares de aprendizage o misiones. De momento esa sera la unica caracteristica que distinge al perfil de docente respecto al perfil de estudiante. Respecto a la segunda pregunta, en efecto, lo vamos a mantener local, pero tener definidos los perfiles nos va a ayudar mas tarde cuando vayamos a abordar la UPD-002, en ese sentido es una update intermedia de menor riesgo y volumen que nos facilitara la posterior tarea, por lo mismo la clasifique dentro del cohorte de una version tipo Z y no tipo Y. Respecto a la tercera pregunta, el progreso de cada perfil debe ser separado (Al igual que en el futuro con multiples cuentas, repitiendo tipos de perfiles, cada usuario debe mantener su avance aislado). El estado en el que esta ahora el perfil normal, proximamente perfil de estudiante, es algo que se resetea solo despues de actualizaciones de contenido o cuya naturaleza requiera un reset, lo mismo con el perfil docente y debug (Mientras tengamos bien configurado el perfil debug podremos hacer las pruebas que queramos de manera agil sin gastar tiempo en resolver/responder a las preguntas del curso). Cuando el proyecto este mas avanzado y equipos docentes lo este pidiendo para sus cursos, habran otras normativas para el reset, incluso resets paraciales, pero de moemnto nisiquiera esta activado el sistema de cuentas, asi que no intentaremos resolver algo que no es un problema ahora. Respecto a la cuarta pregunta, el esquema final sera el siguiente: 1.- Cada cuenta tendra acceso al ORBIT editor del curso, pero solo las cuentas que son perfiles docente podran tener acceso completo a todos los menus del editor. 2.- Las cuentas con perfil de estudiante solo podran realizar cambios minusculos al esquema del mapamundi, principalmente visuales y que, al volver a ORBIT, solo ellos en su cuenta puedan ver. En el update de ahora lo correcto seria darles acceso, pero bloquera spider y bee, que salte un mensaje de perfil de estudiante no permite esta accion o algo asi. 3.- El perfil de debug que no tiene razon de ser en ORBIT editor, por lo que bloquear el acceso de ese perfil al editor seria buena idea. Los tres puntos que te acabo de mensionar implican una version final cuando tengamos las cuentas verificadas, un editor maduro con menus de editor que si puedan ser accedidos por estudiantes, etc, por el momento en nuestro ambiente local solo aplica lo minimo que despues facilite la tarea de updates mas grandes. Quiero ver como queda esto una vez aprobado y despues darte un UPD mas preciso que el que ahora estoy descartando, UPD-006.
+- Observaciones del usuario (2): A nivel funcional quedo excelente, pero visualmente hay una redundancia, en el panel superior de la interfaz de ORBIT esta cuadro que dice "perfil: {perfil}" y el cuadro que muestra "{Perfil}" a secas, deja solo uno de ellos, yo recomiendo el segundo. Cerca de esa misma zona, en el cuadro que dice "ruta interactiva" mejor pongamos la version actual de ORBIT, el mensaje de ruta interactiva es totalmente intrasendente para cualquier usuario para el que este pensado ORBIT.
 
 ## Historial
 
-Las cohortes verificadas se retiran de este archivo y se conservan, junto con cada ficha y sus
-intercambios, en [`docs/UPDATES_HISTORY.md`](docs/UPDATES_HISTORY.md). `CHANGELOG.md` mantiene
-solo el resumen orientado a quienes usan ORBIT.
+Las cohortes verificadas y las propuestas descartadas se retiran de este archivo y se conservan,
+junto con cada ficha y sus intercambios, en
+[`docs/UPDATES_HISTORY.md`](docs/UPDATES_HISTORY.md). `CHANGELOG.md` mantiene solo el resumen
+orientado a quienes usan ORBIT; los descartes no reciben versión ni entrada de changelog.
 
 La cohorte ORBIT 0.4.1 está publicada y archivada bajo esta metodología.
