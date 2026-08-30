@@ -73,7 +73,9 @@ una ruta futura deberá declarar con igual precisión su público, convenciones 
    Audita tanto `git log origin/main..HEAD` como `git diff origin/main...HEAD`: no subas commits
    locales ajenos a la cohorte. Si existe un cierre local ya verificado mientras el remoto
    conserva sus IDs `publicando`, sube y verifica exactamente ese cierre antes de otra acción.
-   La cola es la fuente canónica: una descripción por sí sola no autoriza implementación.
+   La cola es la fuente canónica: una descripción por sí sola no autoriza implementación. En
+   cada activación normaliza sus fichas activas por `Versión objetivo` semántica ascendente,
+   deja `auto` al final y desempata por ID; el estado nunca altera ese orden de presentación.
 2. Recupera cualquier preparación `publicando` —confirmada, staged o unstaged— antes de trabajo
    nuevo. Si versión/changelog ya cambiaron con estados aún `aprobado`, trátalo también como una
    preparación interrumpida. Completa o reintenta exactamente ese release solo cuando todo el

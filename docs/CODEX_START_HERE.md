@@ -229,7 +229,8 @@ Orden obligatorio al comenzar:
 
 1. ejecutar `git fetch origin`, auditar commits y diff locales frente a `origin/main`, reconciliar
    un cierre pendiente y recuperar cualquier preparación `publicando` sin duplicar versión o
-   changelog;
+   changelog; después, normalizar las fichas activas por versión semántica ascendente, con
+   `auto` al final e ID como desempate, sin agruparlas por estado;
 2. publicar una cohorte solo si está cerrada y todos sus IDs están `aprobado`;
 3. recuperar los `en-implementacion` de la versión inmediata;
 4. revisar únicamente los `autorizado` de esa cohorte y devolver a `faltan-detalles` lo ambiguo;

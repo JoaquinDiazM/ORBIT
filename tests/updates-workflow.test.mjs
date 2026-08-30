@@ -133,6 +133,24 @@ function compareSemver(left, right) {
   return 0;
 }
 
+function compareActiveUpdates(left, right) {
+  const leftIsAuto = left.version === "auto";
+  const rightIsAuto = right.version === "auto";
+
+  if (leftIsAuto !== rightIsAuto) {
+    return leftIsAuto ? 1 : -1;
+  }
+
+  if (!leftIsAuto) {
+    const versionOrder = compareSemver(left.version, right.version);
+    if (versionOrder !== 0) {
+      return versionOrder;
+    }
+  }
+
+  return Number(left.id.slice(4)) - Number(right.id.slice(4));
+}
+
 function parseSection(section, sectionName) {
   const headingLike = [
     ...section.masked.matchAll(/^#{1,6}\s+UPD.*$/gm),
@@ -469,6 +487,12 @@ function validateRegistry(markdown, historyMarkdown, publishedVersion = "0.4.0")
   }
 
   const activeEntries = entries.filter(({ section }) => section === "active");
+  const expectedActiveOrder = [...activeEntries].sort(compareActiveUpdates);
+  assert.deepEqual(
+    activeEntries.map(({ id }) => id),
+    expectedActiveOrder.map(({ id }) => id),
+    "las fichas activas deben ordenarse por versión objetivo ascendente, con auto al final e ID como desempate",
+  );
   const cohort = parseImmediateCohort(sections.cohort);
   let releaseInTransit = false;
   const activeWork = activeEntries.filter(({ state }) =>
@@ -611,6 +635,36 @@ test("el registro usa IDs únicos, estados canónicos y archivo histórico", asy
     readFile(PACKAGE_PATH, "utf8"),
   ]);
   validateRegistry(updates, history, JSON.parse(packageText).version);
+});
+
+test("las fichas activas se ordenan por versión, no por estado ni por ID global", () => {
+  const card = (id, state, version) => `### ${id} — Entrada ${id}
+- Estado: \`${state}\`
+- Tipo: \`feature\`
+- Versión objetivo: \`${version}\`
+`;
+  const patchPostponed = card("UPD-902", "pospuesto", "0.4.3");
+  const patchProposed = card("UPD-903", "propuesto", "0.4.3");
+  const laterLowerId = card("UPD-901", "pospuesto", "0.5.0");
+  const unresolved = card("UPD-904", "propuesto", "auto");
+
+  assert.doesNotThrow(() =>
+    validateRegistry(
+      registry([patchPostponed, patchProposed, laterLowerId, unresolved].join("\n")),
+    ),
+  );
+  assert.throws(
+    () => validateRegistry(registry([laterLowerId, patchPostponed].join("\n"))),
+    /versión objetivo ascendente/,
+  );
+  assert.throws(
+    () => validateRegistry(registry([patchProposed, patchPostponed].join("\n"))),
+    /ID como desempate/,
+  );
+  assert.throws(
+    () => validateRegistry(registry([unresolved, laterLowerId].join("\n"))),
+    /auto al final/,
+  );
 });
 
 test("una cohorte admite varios IDs pero impide adelantar otra versión", () => {

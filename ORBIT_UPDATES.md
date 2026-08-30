@@ -60,6 +60,10 @@ vuelve a `faltan-detalles` o `autorizado` para una nueva decisión. `pospuesto` 
 por instrucción explícita del usuario. Un punto `descartado` sale de la cola; para reactivarlo,
 el usuario debe pedir expresamente que su ficha vuelva desde el historial con un estado activo.
 
+Las fichas de **Actualizaciones activas** se presentan por `Versión objetivo`: las versiones
+semánticas explícitas van en orden ascendente, `auto` queda al final y los empates se resuelven
+por ID ascendente. El estado —incluido `pospuesto`— no crea grupos ni altera ese orden.
+
 ## Orden obligatorio para el agente al ser activado
 
 1. Leer este archivo completo, ejecutar `git fetch origin` y comparar HEAD con `origin/main`.
@@ -70,7 +74,9 @@ el usuario debe pedir expresamente que su ficha vuelva desde el historial con un
    `publicando`—, subir y verificar exactamente ese cierre antes de cualquier otra acción.
    En esa misma lectura, archivar primero toda ficha cuyo estado sea `descartado`: moverla completa
    a la sección correspondiente de `docs/UPDATES_HISTORY.md`, añadir la fecha de descarte y
-   retirarla de esta cola. Este trámite no modifica versión ni changelog y no autoriza código.
+   retirarla de esta cola. Después de clasificar la bandeja, asignar o cambiar una versión, o
+   archivar fichas, normalizar el orden de todas las actualizaciones activas según la regla
+   anterior. Este trámite no modifica versión ni changelog y no autoriza código.
 2. Recuperar primero una cohorte `publicando`, esté confirmada o todavía preparada en el índice
    o working tree. Si no existe aún el commit de release, comprobar que versión, changelog,
    estados y rutas sucias corresponden exactamente al lote y completar una sola vez esa misma
@@ -183,13 +189,97 @@ Sin propuestas pendientes de clasificar.
 
 ## Cohorte inmediata
 
-Sin cohorte inmediata en preparación.
+- Versión: `0.4.3`
+- Estado de la cohorte: `cerrada`
+- IDs: `UPD-011`, `UPD-012`
+- Cierre confirmado por JoaquinDiazM: 2026-08-30.
 
 ## Actualizaciones activas
 
+### UPD-011 — Menú de ajustes para herramientas auxiliares
+
+- Estado: `autorizado`
+- Tipo: `feature`
+- Versión objetivo: `0.4.3`
+- Impacto sugerido: `Z`.
+- Próximo responsable: agente de desarrollo, que debe realizar el preflight de la cohorte
+  cerrada 0.4.3.
+
+#### Solicitud original
+
+Envolver algunos menús del panel izquierdo en un único acceso primario. El nuevo menú
+**Ajustes** debe reunir los accesos actuales a Visual, Sonido y Ayuda para recuperar espacio de
+la barra ante futuras incorporaciones; el diseño exacto queda delegado al agente.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: sustituir los tres accesos primarios Visual, Sonido y Ayuda por un único
+  acceso Ajustes, desde el que se abren esas mismas vistas sin perder capacidad.
+- Decisiones confirmadas: Árboles, Símbolos, Constantes, Formulario y Glosario permanecen como
+  accesos propios; este punto reorganiza navegación, no preferencias ni contenido.
+- Criterios de aceptación: Ajustes permite llegar con puntero y teclado a las tres vistas; los
+  atajos `H` y `M`, foco, exclusividad de paneles, persistencia y layout responsive se conservan;
+  el dock reduce sus accesos persistentes sin ocultar el estado activo.
+- Fuera de alcance: añadir ajustes nuevos, cambiar la semántica de Visual o Sonido o rediseñar
+  por completo el dock.
+- Dependencias, invariantes o ADR: preservar la pila de paneles y el wiring de audio; no requiere
+  dependencia ni ADR.
+
+#### Preguntas bloqueantes
+
+- Ninguna; el alcance está listo para que el usuario decida si lo autoriza.
+
+#### Implementación y revisión
+
+- Resultado: no iniciada; la descripción no autoriza cambios.
+- Pruebas: no aplican todavía.
+- Cómo revisar para JoaquinDiazM: pendiente de implementación.
+- Observaciones del usuario: Tambien aprovecha de quitar los atajos con letras, quiero mantener "h" y "m" libres.
+
+### UPD-012 — Progreso porcentual en el HUD
+
+- Estado: `autorizado`
+- Tipo: `feature`
+- Versión objetivo: `0.4.3`
+- Impacto sugerido: `Z`.
+- Próximo responsable: agente de desarrollo, que debe realizar el preflight de la cohorte
+  cerrada 0.4.3.
+
+#### Solicitud original
+
+Reemplazar la sección **Conceptos** del HUD superior por **Progreso**. En lugar del contador
+actual, mostrar una barra de avance con el porcentaje centrado, calculado a partir de lo mismo
+que cuenta hoy esa sección.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: el HUD muestra una barra Progreso y un porcentaje derivados de conceptos
+  adquiridos sobre el total vigente.
+- Decisiones confirmadas: se conserva exactamente la fuente conceptual del contador actual; el
+  porcentaje es estado derivado y no se persiste.
+- Criterios de aceptación: se actualiza al progresar o cambiar de perfil; permanece entre 0 y
+  100; comunica porcentaje y equivalente «X de Y» a tecnologías asistivas; no depende solo del
+  color y se mantiene legible en los cortes responsive.
+- Fuera de alcance: redefinir el progreso, ponderar zonas o actividades, añadir analítica o
+  cambiar el esquema de guardado.
+- Dependencias, invariantes o ADR: una única fuente de verdad en `ProgressionModel`; no requiere
+  dependencia ni ADR.
+
+#### Preguntas bloqueantes
+
+- Ninguna; se recomienda redondear al entero más cercano y conservar «X de Y» como texto
+  accesible.
+
+#### Implementación y revisión
+
+- Resultado: no iniciada; la descripción no autoriza cambios.
+- Pruebas: no aplican todavía.
+- Cómo revisar para JoaquinDiazM: pendiente de implementación.
+- Observaciones del usuario: ninguna.
+
 ### UPD-001 — Hub de gadgets y explorador de campos vectoriales
 
-- Estado: `propuesto`
+- Estado: `pospuesto`
 - Tipo: `épica`
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y` cuando se defina una primera capacidad completa.
@@ -228,145 +318,14 @@ ser utilizables en otros lugares de aprendizaje.
 - Pruebas: no aplican todavía.
 - Observaciones del usuario: para la primera pregunta bloquente centrate en ese y en una calculadora cientifica (Esta no es desbloqueable, todos la deben tener desde el inicio). Puedes dejar el esqueleto del gadget de la carta smith, creando el nodo+conexion tambien, pero no gastaremos recursos en una primera version de los nuevos gadgets solo para construir una carta smith completamete operativa, funcional y util para resolver ejercicios. En definitiva hay que quitar la superposicion actual del lente de campo y lo del boton G, ahora sera un menu al que se accede en la barra lateral izquierda con un click
 
-### UPD-002 — Sistema de servidor online
-
-- Estado: `pospuesto`
-- Tipo: `épica`
-- Versión objetivo: `auto`
-- Impacto sugerido: se decidirá al dividir la épica; una operación real multiusuario será un
-  hito mayor que una especificación o prototipo aislado.
-- Próximo responsable: JoaquinDiazM.
-
-#### Solicitud original
-
-Operar ORBIT desde un computador del cuerpo docente, con reinicio recuperable, cuentas de
-curso, progreso separado por estudiante, checkpoints solicitados por docentes, presencia de
-otros usuarios en el mapamundi, estadísticas generales, un rol docente y actualizaciones de
-contenido mediante ORBIT Editor durante mantenciones planificadas.
-
-#### Especificación elaborada por el agente
-
-- Objetivo observable: la primera entrega segura será una especificación/ADR; no el servidor
-  completo.
-- Decisiones confirmadas: debe tolerar reinicios sin perder el último estado persistido y
-  diferenciar estudiantes de personal docente.
-- Criterios de aceptación provisionales: arquitectura, modelo de datos, amenazas, respaldo,
-  recuperación, despliegue, actualización y rollback documentados antes de código productivo.
-- Fuera de alcance provisional: escoger tecnologías o exponer datos personales sin requisitos
-  operativos y de privacidad.
-- Dependencias, invariantes o ADR: backend, autenticación, persistencia y colaboración requieren
-  uno o más ADR; contradicen deliberadamente la restricción estática vigente y deben reemplazarla
-  de forma explícita, no accidental.
-
-#### Preguntas bloqueantes
-
-1. ¿La primera instalación deberá funcionar solo dentro de la red universitaria/VPN o también
-   desde Internet público? Recomendación inicial: red institucional o VPN, salvo necesidad real
-   de acceso público.
-2. ¿Qué sistema operativo usará el computador docente y se permite instalar servicios,
-   contenedores y una base de datos?
-3. ¿Cuántos estudiantes simultáneos y cuántos cursos debe soportar la primera instalación?
-4. ¿Aceptamos guardar cada avance relevante inmediatamente y usar los checkpoints como copias
-   recuperables? Guardar únicamente al crear un checkpoint podría perder progreso entre cortes.
-5. ¿Los demás estudiantes aparecerán con nombre real, seudónimo o avatar anónimo?
-
-#### Implementación y revisión
-
-- Resultado: no iniciada; debe dividirse en diseño, persistencia, cuentas, presencia, rol
-  docente, estadísticas, respaldo y publicación editorial.
-- Pruebas: no aplican todavía.
-- Observaciones del usuario: pendientes.
-
-### UPD-011 — Menú de ajustes para herramientas auxiliares
-
-- Estado: `propuesto`
-- Tipo: `feature`
-- Versión objetivo: `0.4.3`
-- Impacto sugerido: `Z`.
-- Próximo responsable: JoaquinDiazM, que debe decidir si autoriza este punto y si 0.4.3
-  contendrá también UPD-012.
-
-#### Solicitud original
-
-Envolver algunos menús del panel izquierdo en un único acceso primario. El nuevo menú
-**Ajustes** debe reunir los accesos actuales a Visual, Sonido y Ayuda para recuperar espacio de
-la barra ante futuras incorporaciones; el diseño exacto queda delegado al agente.
-
-#### Especificación elaborada por el agente
-
-- Objetivo observable: sustituir los tres accesos primarios Visual, Sonido y Ayuda por un único
-  acceso Ajustes, desde el que se abren esas mismas vistas sin perder capacidad.
-- Decisiones confirmadas: Árboles, Símbolos, Constantes, Formulario y Glosario permanecen como
-  accesos propios; este punto reorganiza navegación, no preferencias ni contenido.
-- Criterios de aceptación: Ajustes permite llegar con puntero y teclado a las tres vistas; los
-  atajos `H` y `M`, foco, exclusividad de paneles, persistencia y layout responsive se conservan;
-  el dock reduce sus accesos persistentes sin ocultar el estado activo.
-- Fuera de alcance: añadir ajustes nuevos, cambiar la semántica de Visual o Sonido o rediseñar
-  por completo el dock.
-- Dependencias, invariantes o ADR: preservar la pila de paneles y el wiring de audio; no requiere
-  dependencia ni ADR.
-
-#### Preguntas bloqueantes
-
-- Ninguna; el alcance está listo para que el usuario decida si lo autoriza.
-
-#### Implementación y revisión
-
-- Resultado: no iniciada; la descripción no autoriza cambios.
-- Pruebas: no aplican todavía.
-- Cómo revisar para JoaquinDiazM: pendiente de implementación.
-- Observaciones del usuario: ninguna.
-
-### UPD-012 — Progreso porcentual en el HUD
-
-- Estado: `propuesto`
-- Tipo: `feature`
-- Versión objetivo: `0.4.3`
-- Impacto sugerido: `Z`.
-- Próximo responsable: JoaquinDiazM, que debe decidir si autoriza este punto y si 0.4.3
-  contendrá también UPD-011.
-
-#### Solicitud original
-
-Reemplazar la sección **Conceptos** del HUD superior por **Progreso**. En lugar del contador
-actual, mostrar una barra de avance con el porcentaje centrado, calculado a partir de lo mismo
-que cuenta hoy esa sección.
-
-#### Especificación elaborada por el agente
-
-- Objetivo observable: el HUD muestra una barra Progreso y un porcentaje derivados de conceptos
-  adquiridos sobre el total vigente.
-- Decisiones confirmadas: se conserva exactamente la fuente conceptual del contador actual; el
-  porcentaje es estado derivado y no se persiste.
-- Criterios de aceptación: se actualiza al progresar o cambiar de perfil; permanece entre 0 y
-  100; comunica porcentaje y equivalente «X de Y» a tecnologías asistivas; no depende solo del
-  color y se mantiene legible en los cortes responsive.
-- Fuera de alcance: redefinir el progreso, ponderar zonas o actividades, añadir analítica o
-  cambiar el esquema de guardado.
-- Dependencias, invariantes o ADR: una única fuente de verdad en `ProgressionModel`; no requiere
-  dependencia ni ADR.
-
-#### Preguntas bloqueantes
-
-- Ninguna; se recomienda redondear al entero más cercano y conservar «X de Y» como texto
-  accesible.
-
-#### Implementación y revisión
-
-- Resultado: no iniciada; la descripción no autoriza cambios.
-- Pruebas: no aplican todavía.
-- Cómo revisar para JoaquinDiazM: pendiente de implementación.
-- Observaciones del usuario: ninguna.
-
 ### UPD-013 — Bowerbird: personalización visual de zonas
 
-- Estado: `faltan-detalles`
+- Estado: `pospuesto`
 - Tipo: `feature`
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y`; el objetivo provisional debe coordinarse con los demás puntos de 0.5.0
   antes de cerrar esa cohorte.
-- Próximo responsable: JoaquinDiazM, que debe resolver la política estudiantil y el catálogo
-  visual mínimo.
+- Próximo responsable: JoaquinDiazM, cuando decida reactivar este punto dentro de 0.5.0.
 
 #### Solicitud original
 
@@ -405,17 +364,16 @@ opciones de colores, dibujos estáticos o móviles y contornos.
 - Resultado: no iniciada; faltan decisiones de persistencia y alcance estudiantil.
 - Pruebas: no aplican todavía.
 - Cómo revisar para JoaquinDiazM: responder las cuatro preguntas antes de autorizar.
-- Observaciones del usuario: ninguna.
+- Observaciones del usuario: Pregunta 1: Esa es justo la politica adecuada, aceptu tu recomentacion. Pregunta 2: Si, mantengamos el producto minimo viable en opciones pre-construidas. Pregunta 3: Si, estudiante y docente pueden decorar las zonas que quiera, pero hay que añadir un disclaimer de que los cambios a zonas todavia no desbloqueadas en ORBIT no se veran de inmediato. Pregunta 4: Sí.
 
 ### UPD-014 — Aplicar una edición del curso
 
-- Estado: `faltan-detalles`
+- Estado: `pospuesto`
 - Tipo: `infraestructura`
-- Versión objetivo: `auto`
+- Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y` si se limita a una aplicación local; una publicación remota depende de
   UPD-002 y puede requerir otro alcance de versión.
-- Próximo responsable: JoaquinDiazM, que debe definir qué significa aplicar o subir en la
-  arquitectura estática actual.
+- Próximo responsable: JoaquinDiazM, cuando decida reactivar este punto dentro de 0.5.0.
 
 #### Solicitud original
 
@@ -459,7 +417,56 @@ perfil.
   publicación acordado.
 - Pruebas: no aplican todavía.
 - Cómo revisar para JoaquinDiazM: responder las cinco preguntas antes de autorizar.
-- Observaciones del usuario: ninguna.
+- Observaciones del usuario: Pregunta 1: Subir/aplicar significa unar el borrador en nuestro navegador y modificar fuentes/build de manera local. Sin embargo, esta actualizacion debe estar pensada para que en el momento que abordemos UPD-002 no tengamos que pensar los detalles que ahora estamos definiendo como politica de perdida de datos/progreso, verificacion de reseteo en todos los tipos de perfiles por accion de docente en ORBIT Editor, verificacion de cambios efectuados en el mapamundi (Nodos, zonas, etc), etc. Pregunta 2: Como todavia no tenemos sistema de cuentas, es para todos los estados locales de nuestro navegador. Pregunta 3: Todo, por lo quje hay que mantener coherencia en las actualizaciones de ORBIT Editor para que no se incluyan opciones que arruinen el objetivo principal de ORBIT, aprender. Pregunta 4: Si, el primer paso es validar y el segundo confirmar, y soltar datos utiles entre medio. Manten todo ese desarrollo en la ventana de resumen sin quitar lo que ya esta, complementandolo. 5.- Mostrar ambos y declarar el reinicio total
+
+### UPD-002 — Sistema de servidor online
+
+- Estado: `pospuesto`
+- Tipo: `épica`
+- Versión objetivo: `0.6.0`
+- Impacto sugerido: se decidirá al dividir la épica; una operación real multiusuario será un
+  hito mayor que una especificación o prototipo aislado.
+- Próximo responsable: JoaquinDiazM.
+
+#### Solicitud original
+
+Operar ORBIT desde un computador del cuerpo docente, con reinicio recuperable, cuentas de
+curso, progreso separado por estudiante, checkpoints solicitados por docentes, presencia de
+otros usuarios en el mapamundi, estadísticas generales, un rol docente y actualizaciones de
+contenido mediante ORBIT Editor durante mantenciones planificadas.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: la primera entrega segura será una especificación/ADR; no el servidor
+  completo.
+- Decisiones confirmadas: debe tolerar reinicios sin perder el último estado persistido y
+  diferenciar estudiantes de personal docente.
+- Criterios de aceptación provisionales: arquitectura, modelo de datos, amenazas, respaldo,
+  recuperación, despliegue, actualización y rollback documentados antes de código productivo.
+- Fuera de alcance provisional: escoger tecnologías o exponer datos personales sin requisitos
+  operativos y de privacidad.
+- Dependencias, invariantes o ADR: backend, autenticación, persistencia y colaboración requieren
+  uno o más ADR; contradicen deliberadamente la restricción estática vigente y deben reemplazarla
+  de forma explícita, no accidental.
+
+#### Preguntas bloqueantes
+
+1. ¿La primera instalación deberá funcionar solo dentro de la red universitaria/VPN o también
+   desde Internet público? Recomendación inicial: red institucional o VPN, salvo necesidad real
+   de acceso público.
+2. ¿Qué sistema operativo usará el computador docente y se permite instalar servicios,
+   contenedores y una base de datos?
+3. ¿Cuántos estudiantes simultáneos y cuántos cursos debe soportar la primera instalación?
+4. ¿Aceptamos guardar cada avance relevante inmediatamente y usar los checkpoints como copias
+   recuperables? Guardar únicamente al crear un checkpoint podría perder progreso entre cortes.
+5. ¿Los demás estudiantes aparecerán con nombre real, seudónimo o avatar anónimo?
+
+#### Implementación y revisión
+
+- Resultado: no iniciada; debe dividirse en diseño, persistencia, cuentas, presencia, rol
+  docente, estadísticas, respaldo y publicación editorial.
+- Pruebas: no aplican todavía.
+- Observaciones del usuario: pendientes.
 
 ## Historial
 
