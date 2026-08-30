@@ -95,8 +95,12 @@ function listen(candidatePort, attemptsRemaining) {
 
   candidateServer.listen(candidatePort, "127.0.0.1", () => {
     activeServer = candidateServer;
-    console.log(`ORBIT disponible en http://127.0.0.1:${candidatePort}/`);
-    console.log(`Debugger aislado: http://127.0.0.1:${candidatePort}/?debug=1&profile=debug`);
+    console.log(`ORBIT · Estudiante: http://127.0.0.1:${candidatePort}/`);
+    console.log(`ORBIT · Docente: http://127.0.0.1:${candidatePort}/?profile=teacher`);
+    console.log(`ORBIT · Debug: http://127.0.0.1:${candidatePort}/?debug=1&profile=debug`);
+    console.log(`ORBIT Editor · Docente: http://127.0.0.1:${candidatePort}/editor.html`);
+    console.log(`ORBIT Editor · Estudiante (solo lectura): http://127.0.0.1:${candidatePort}/editor.html?profile=student`);
+    console.log(`ORBIT Editor · Debug (bloqueado): http://127.0.0.1:${candidatePort}/editor.html?profile=debug`);
     console.log("Presiona Ctrl+C para detener el servidor.");
   });
 }

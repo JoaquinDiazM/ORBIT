@@ -237,6 +237,18 @@ code {
   background: rgba(72, 58, 30, 0.68);
 }
 
+.profile-select {
+  flex: 0 0 auto;
+  min-height: 2rem;
+  max-width: 7.2rem;
+  padding: 0.38rem 1.7rem 0.38rem 0.58rem;
+  border-radius: 999px;
+  color: #dcf7ff;
+  background-color: rgba(17, 48, 72, 0.82);
+  font-size: 0.67rem;
+  font-weight: 760;
+}
+
 .mode-entry-link {
   display: inline-flex;
   min-height: 2rem;

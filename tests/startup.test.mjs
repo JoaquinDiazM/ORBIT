@@ -81,6 +81,8 @@ test("el shell expone todos los menús secundarios de ORBIT", async () => {
     "open-help",
     "sound-ambience",
     "sound-effects",
+    "profile-select",
+    "open-orbit-editor",
   ];
 
   for (const id of requiredIds) assert.match(index, new RegExp(`id=["']${id}["']`));
@@ -96,6 +98,8 @@ test("el shell expone todos los menús secundarios de ORBIT", async () => {
   assert.match(index, /Confirmar interacción/);
   assert.match(index, /Clic de interfaz/);
   assert.match(index, /Zona desbloqueada/);
+  assert.match(index, /aria-label="Cambiar perfil local"/);
+  assert.match(index, /title="Perfiles locales sin autenticación"/);
 });
 
 test("la guardia convierte un fallo de módulo en un diagnóstico visible", async () => {

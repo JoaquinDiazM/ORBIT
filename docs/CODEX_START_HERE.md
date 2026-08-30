@@ -3,7 +3,7 @@
 Este archivo es la entrada obligatoria para una sesión nueva de trabajo asistido por agentes.
 
 El producto se llama **ORBIT — Open Roadmap for Building Intuition and Theory**. La ruta
-implementada actualmente es Electromagnetismo Aplicado; la conexión futura con otros cursos
+implementada actualmente es Electromagnetismo; la conexión futura con otros cursos
 todavía no está implementada.
 
 ## 1. Lee antes de modificar
@@ -24,8 +24,9 @@ En este orden:
 
 La versión publicada `0.4.1` es un prototipo estático con una dependencia local respaldada por ADR, dos entradas deliberadamente separadas y un flujo de actualizaciones por cohortes con autorización y revisión humana:
 
-- **ORBIT** en `index.html`, con perfiles normal y debug;
-- **ORBIT Editor** en `editor.html`, con borrador cartográfico local.
+- **ORBIT** en `index.html`, con perfiles locales Estudiante, Docente y Debug;
+- **ORBIT Editor** en `editor.html`, con acceso Docente completo por defecto, consulta
+  Estudiante y bloqueo Debug sobre un único borrador cartográfico local.
 
 El producto ya incluye:
 
@@ -34,7 +35,8 @@ El producto ya incluye:
 - fronteras físicas derivadas del Árbol I;
 - lugares y recompensas derivados del Árbol II, con 13 parejas únicas —cuatro `completedLocations` explícitas canónicas— y un menú **Visual** independiente con modos **Oculta**, **Directo** y **Total**;
 - ejercicios de alternativa, número, expresión segura, secuencia y confirmación;
-- guardado por perfil en `localStorage`;
+- guardado separado para los perfiles canónicos `student`, `teacher` y `debug` en
+  `localStorage`, con migración del antiguo `normal` a `student`;
 - progreso `v3`, migración desde `v1`/`v2` y lectura compatible del prefijo histórico `aea-progress`;
 - audio local con cinco recursos verificables y volúmenes independientes `ambience`/`effects`;
 - ventana principal compatible con un panel secundario de Árboles, Visual, Símbolos, Constantes, Formulario, Glosario, Ayuda o Sonido;
@@ -45,18 +47,21 @@ El producto ya incluye:
 - visor `VectorField2D` en SVG nativo con escala fija, muestreo determinista, controles accesibles y ausencia de animación automática;
 - `MathExpressionPolicy v1`, parser restringido y comparación por valor, función o gradiente sin `eval`, `Function` ni ejecución dinámica;
 - ecuaciones TeX renderizadas con KaTeX y MathML;
-- debugger visual y `window.OrbitDebug`;
+- selector local de perfil, autocompletado docente de lecciones/misiones evaluables y
+  aislamiento de avances;
+- debugger visual, Terminal de Cartografía, `F2` y `window.OrbitDebug` solo en Debug;
 - validador que simula la progresión completa;
 - pruebas unitarias;
 - build y workflow para GitHub Pages.
-- Editor con docks **General** y **Editor** retractables, Spider para nodos/conexiones directas y Bee para intercambios dentro de cada anillo;
+- Editor con docks **General** y **Editor** retractables: Docente usa Spider y Bee, Estudiante
+  recorre el mapa en solo lectura con ambas herramientas bloqueadas y Debug no inicia el modelo;
 - documento editorial `orbit-editor-project` `v1`, autoguardado local, importación/exportación JSON y deshacer/rehacer, sin backend ni dependencia nueva.
 
 El contenido científico es demostrativo. No lo trates como una guía terminada.
 
-Los pasos internos de una secuencia, la opción elegida dentro de una actividad, los parámetros de las figuras, las posiciones de cargas y el contexto `newlyAccessibleLocationIds`/`unlockSourceLocationId` son estado efímero. La preferencia `treeTwoVisualizationMode` sí pasa por `ProgressionModel`: `hidden` conserva el último desbloqueo causal, `direct` limita la red al mismo hexágono o a hexágonos con frontera compartida y `total` muestra todas las conexiones elegibles. El esquema vigente es `v3`: `src/main.js` consulta primero `orbit-progress` y admite claves antiguas `aea-progress`; `src/core/progress-migrations.js` transforma los ajustes históricos en `ambienceVolume`, `effectsVolume` y el modo visual inicial.
+Los pasos internos de una secuencia, la opción elegida dentro de una actividad, los parámetros de las figuras, las posiciones de cargas y el contexto `newlyAccessibleLocationIds`/`unlockSourceLocationId` son estado efímero. La preferencia `treeTwoVisualizationMode` sí pasa por `ProgressionModel`: `hidden` conserva el último desbloqueo causal, `direct` limita la red al mismo hexágono o a hexágonos con frontera compartida y `total` muestra todas las conexiones elegibles. El esquema vigente es `v3`: `src/main.js` resuelve exactamente `student`, `teacher` o `debug`; cada uno usa una clave propia bajo `orbit-progress`. Para Estudiante consulta además `orbit-progress:v3:normal` y, para versiones previas compatibles, las claves antiguas `aea-progress`; `src/core/progress-migrations.js` transforma los ajustes históricos en `ambienceVolume`, `effectsVolume` y el modo visual inicial.
 
-El borrador de Editor usa el esquema independiente `v1` y la clave `orbit-editor:v1:electromagnetism-applied`. Nunca lo trates como un perfil, una migración de progreso o una fuente aplicada automáticamente a ORBIT. Importar o exportar JSON editorial no modifica `src/data/`; la integración, validación, build y publicación son pasos manuales.
+El borrador de Editor usa el esquema independiente `v1` y la clave `orbit-editor:v1:electromagnetism-applied`. El perfil que abre la entrada solo decide capacidades locales: no crea un borrador por perfil ni una migración de progreso. Importar o exportar JSON editorial no modifica `src/data/`; la integración, validación, build y publicación son pasos manuales. Estas restricciones elegibles por URL no son autenticación.
 
 Las fuentes se añaden de forma selectiva cuando una afirmación específica las necesita. La biblioteca permanece en los datos, el validador y sus paneles de **Símbolos**, **Constantes**, **Formulario** y **Glosario**. Esos paneles muestran el contenido desbloqueado, pero no repiten cuadros bibliográficos: la UI comunica cada fuente pertinente una vez, en la transición que desbloquea su entrada. No cites operaciones elementales ni repitas dentro de un nodo la procedencia docente ya reconocida globalmente en el README.
 
@@ -98,6 +103,7 @@ Incluye esa evaluación en tu resumen de cambios o en el mensaje de commit.
 | Derivación de zonas/fronteras | `src/core/world-graph.js` |
 | Estado, progreso y guardado | `src/core/progression.js`, `src/core/storage.js` |
 | Migraciones de progreso | `src/core/progress-migrations.js` |
+| Perfiles locales y matriz de capacidades | `src/core/profile-policy.js` |
 | Geometría hexagonal | `src/core/hex.js` |
 | Entrada y movimiento | `src/game/input-controller.js`, `src/game/game-app.js` |
 | Dibujo del mundo | `src/game/renderer.js` |
@@ -117,31 +123,35 @@ Incluye esa evaluación en tu resumen de cambios o en el mensaje de commit.
 ```bash
 npm install
 npm run dev
-# abre la URL impresa por el servidor y añade ?debug=1&profile=debug
-# abre editor.html por separado para la autoría cartográfica
+# usa el selector para Estudiante/Docente; para Debug abre ?debug=1&profile=debug
+# abre editor.html sin query para autoría docente o con ?profile=student para consulta
 
 npm run check
 ```
 
 Para probar cambios de progresión:
 
-1. inicia un perfil limpio;
-2. completa el camino normal sin noclip;
-3. confirma que cada nueva zona abre todas las fronteras compartidas pertinentes;
-4. prueba los elementos opcionales del Árbol II;
-5. usa un perfil `debug-*` para casos extremos;
-6. exporta e importa un estado;
-7. revisa la consola.
+1. inicia Estudiante y confirma la migración de cualquier clave `normal` compatible;
+2. completa el camino del estudiante sin noclip;
+3. confirma que Docente conserva otro avance y autocompleta solo lecciones/misiones evaluables;
+4. confirma que el nodo, los atajos y la API de depuración no existen en esos dos perfiles;
+5. usa el perfil Debug para casos extremos y comprueba su avance independiente;
+6. exporta e importa el estado Debug;
+7. confirma que cada nueva zona abre todas las fronteras compartidas pertinentes;
+8. prueba los elementos opcionales del Árbol II y revisa la consola.
 
 Para probar cambios editoriales:
 
-1. abre `editor.html` sin reutilizar una URL debug;
+1. abre `editor.html` sin query y confirma el acceso Docente completo;
 2. confirma que ORBIT y ORBIT Editor conservan claves de almacenamiento separadas;
 3. mueve un nodo con puntero y teclado;
 4. crea y elimina una conexión directa con Spider;
 5. intercambia zonas del mismo anillo con Bee y fuerza un rechazo entre anillos;
 6. prueba deshacer, rehacer, recarga, exportación e importación inválida;
-7. vuelve a abrir ORBIT normal/debug y confirma que el borrador no se aplicó.
+7. abre `editor.html?profile=student`, verifica el aviso, la navegación y el bloqueo de toda
+   mutación, en especial Spider y Bee;
+8. abre `editor.html?profile=debug` y confirma que no se crea el modelo editorial;
+9. vuelve a ORBIT en los tres perfiles y confirma que el borrador no se aplicó.
 
 ## 6. Prohibiciones frecuentes
 
@@ -152,6 +162,8 @@ No:
 - uses nodos del grafo como puntos obligatorios de movimiento;
 - guardes `unlockedAreas` o `visibleLocations` como verdad persistente;
 - guardes cartografía editorial dentro de `orbit-progress` o progreso dentro de `orbit-editor`;
+- presentes el selector local o los bloqueos del Editor como cuentas, autenticación o seguridad;
+- inventes nombres de perfil: los únicos canónicos son `student`, `teacher` y `debug`;
 - añadas una lista paralela de aristas: Spider solo edita `completedLocations` y deja conceptos/recompensas como relaciones derivadas de solo lectura;
 - permitas que Bee mezcle `tier 1` y `tier 2` o mueva `origin`;
 - afirmes que exportar un borrador actualiza ORBIT, escribe Git o publica automáticamente;
@@ -200,7 +212,12 @@ Prefiere funciones puras y pruebas unitarias. Si una nueva mecánica requiere es
 
 Las figuras SVG y las políticas de expresión introducidas en `0.3.1` no autorizan por sí solas un sistema de gráficos 3D, álgebra simbólica general, backend o dependencia nueva. La visión transversal de ORBIT tampoco autoriza a declarar soporte multicurso sin un contrato curricular verificable. Amplía primero los contratos nativos existentes y conserva límites explícitos de entrada y costo.
 
-La base actual de ORBIT Editor tampoco autoriza contenido editable, creación de entidades, autenticación, colaboración ni despliegue automático. Un cambio del esquema editorial se versiona dentro de su propio contrato; no incrementes `progressSchemaVersion` salvo que cambie realmente el perfil de ORBIT.
+La base actual de ORBIT Editor tampoco autoriza contenido editable, creación de entidades,
+autenticación, colaboración ni despliegue automático. La vista Estudiante no autoriza todavía
+ajustes personalizados: solo consulta y exporta el borrador compartido. Un cambio del esquema
+editorial se versiona dentro de su propio contrato; no incrementes `progressSchemaVersion`
+salvo que cambie realmente la forma persistida de ORBIT. El alias `normal → student` conserva
+`v3` porque solo cambia la clave y el nombre canónico.
 
 ## 9. Protocolo de actualizaciones
 
@@ -238,4 +255,7 @@ La entrega de un agente debe indicar:
 - si cambió contenido visible, la nota que deberá incorporarse a `CHANGELOG.md` después de la
   aprobación; no edites todavía el changelog durante `en-revision`.
 
-Si la tarea afecta Editor, añade además el resultado de su recorrido manual, la separación de almacenamiento, el round-trip JSON y la no regresión de ORBIT normal/debug. Registra esa evidencia dentro del punto antes de pasarlo a `en-revision`.
+Si la tarea afecta Editor, añade además el resultado del recorrido Docente, la consulta
+Estudiante, el bloqueo Debug, la separación de almacenamiento, el round-trip JSON y la no
+regresión de los tres perfiles de ORBIT. Registra esa evidencia dentro del punto antes de
+pasarlo a `en-revision`.

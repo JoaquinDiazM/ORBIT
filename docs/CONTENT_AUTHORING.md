@@ -4,7 +4,7 @@
 
 El contenido se define en objetos JavaScript dentro de `src/data/`. Esta decisión mantiene el prototipo sin parser ni dependencia adicional. Una migración futura a Markdown/MDX requiere ADR.
 
-La fuente declarativa actual corresponde a la ruta de Electromagnetismo Aplicado de **ORBIT —
+La fuente declarativa actual corresponde a la ruta de Electromagnetismo de **ORBIT —
 Open Roadmap for Building Intuition and Theory**. Una ruta futura de otro curso deberá declarar
 su alcance, perfil de entrada e IDs sin asumir que ya existe un cargador o esquema multicurso.
 

@@ -2,7 +2,7 @@
 
 ## Público
 
-En la ruta actual de Electromagnetismo Aplicado, estudiantes con una base mínima de cálculo, álgebra lineal y física clásica, especialmente quienes exploran Ingeniería Eléctrica o comienzan la especialidad. Cada ruta futura de ORBIT deberá declarar su propio perfil de entrada en vez de heredar automáticamente estos prerrequisitos.
+En la ruta actual de Electromagnetismo, estudiantes con una base mínima de cálculo, álgebra lineal y física clásica, especialmente quienes exploran Ingeniería Eléctrica o comienzan la especialidad. Cada ruta futura de ORBIT deberá declarar su propio perfil de entrada en vez de heredar automáticamente estos prerrequisitos.
 
 ## Función de la historia
 

@@ -12,7 +12,7 @@
 
 _Captura de referencia de 0.4.0; la corrección de cabecera de 0.4.1 está incorporada en la aplicación._
 
-ORBIT es un proyecto educativo abierto y transversal para construir intuición, teoría y conexiones entre rutas de aprendizaje mediante una interfaz narrativa en dos dimensiones. La ruta implementada actualmente es **Electromagnetismo Aplicado**: el estudiante explora libremente un mundo abstracto dividido en hexágonos, resuelve actividades universitarias y abre nuevas regiones mediante conocimiento adquirido.
+ORBIT es un proyecto educativo abierto y transversal para construir intuición, teoría y conexiones entre rutas de aprendizaje mediante una interfaz narrativa en dos dimensiones. La ruta implementada actualmente es **Electromagnetismo**: el estudiante explora libremente un mundo abstracto dividido en hexágonos, resuelve actividades universitarias y abre nuevas regiones mediante conocimiento adquirido.
 
 El autor sitúa el origen pedagógico de esta primera ruta en su experiencia docente del curso EL3103 Electromagnetismo Aplicado de la Universidad de Chile, pero ORBIT es un recurso abierto e independiente. La arquitectura multicurso y las conexiones entre disciplinas son una dirección futura; la versión actual no afirma haberlas implementado.
 
@@ -34,8 +34,13 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
 - Política matemática segura para equivalencia numérica, funcional y por gradiente, con parser restringido y evaluación determinista sin ejecutar JavaScript ingresado por el usuario.
 - Menú secundario con **Árboles**, **Visual**, **Símbolos**, **Constantes**, **Formulario**, **Glosario**, **Ayuda** y **Sonido**, compatible con la ventana del lugar.
 - Las colecciones de referencia conservan sus paneles de consulta; lo que se omite son los cuadros bibliográficos repetidos. Cada procedencia pertinente se anuncia una sola vez al producirse su desbloqueo.
-- Persistencia local por perfiles, exportación e importación JSON.
-- Debugger visual y API de consola.
+- Selector local con exactamente tres perfiles —**Estudiante**, **Docente** y **Debug**— y
+  progreso separado para cada uno. El avance `v3` del antiguo perfil `normal` migra a
+  `student` sin perderse.
+- El perfil Docente autocompleta al interactuar las lecciones y misiones que exigen respuesta;
+  las lecturas, NPC y demás encuentros no evaluativos conservan su interacción ordinaria.
+- Debugger visual, nodo de depuración, atajos `F2`/`` ` `` y API de consola disponibles solo
+  en el perfil Debug.
 - Mezclador con volúmenes independientes para **Ambiente** e **Interfaz y efectos**; cero silencia solo la categoría correspondiente.
 - Cinco audios versionados y verificables: ambiente global, transición de hexágono, confirmación de interacción, clic de interfaz y desbloqueo de zona.
 - Ecuaciones TeX renderizadas localmente con KaTeX y salida visual + MathML.
@@ -44,9 +49,15 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
 - Estación de Superconductividad con el encuentro histórico no evaluativo de Heike Kamerlingh Onnes y un Laboratorio de Transición Superconductora independiente.
 - Validación automática contra bloqueos lógicos de progresión.
 - Build estático y despliegue preparado para GitHub Pages.
-- Dos entradas estáticas: **ORBIT** en `index.html`, con perfiles normal y debug, y **ORBIT Editor** en `editor.html`.
-- Editor cartográfico local con dos docks retractables: **Spider** mueve nodos y edita dependencias directas del Árbol II; **Bee** intercambia zonas únicamente dentro de su anillo.
+- Dos entradas estáticas: **ORBIT** en `index.html`, con perfiles Estudiante, Docente y Debug,
+  y **ORBIT Editor** en `editor.html`.
+- Editor cartográfico local con dos docks retractables: el perfil Docente usa por completo
+  **Spider** para nodos y dependencias directas del Árbol II y **Bee** para intercambiar zonas
+  dentro de su anillo; Estudiante entra en consulta con ambas herramientas bloqueadas y Debug
+  queda bloqueado antes de crear el modelo editorial.
 - Borrador editorial `v1` con autoguardado local, historial, importación y exportación JSON; nunca modifica el progreso `v3` ni publica automáticamente.
+- Los perfiles y bloqueos son modos locales elegibles, no cuentas, autenticación ni control de
+  acceso real.
 - Una dependencia npm fijada y documentada: KaTeX 0.18.1; `0.4.1` no añade paquetes, backend, autenticación, render 3D ni CDN.
 
 ### Cambios centrales de 0.4.1
@@ -109,8 +120,11 @@ npm run dev
 Abre la URL exacta que imprime la terminal. ORBIT usa la raíz y ORBIT Editor su entrada propia; normalmente serán:
 
 ```text
-http://127.0.0.1:4173/
-http://127.0.0.1:4173/editor.html
+http://127.0.0.1:4173/                         # ORBIT · Estudiante por defecto
+http://127.0.0.1:4173/?profile=teacher         # ORBIT · Docente
+http://127.0.0.1:4173/?debug=1&profile=debug   # ORBIT · Debug, panel abierto al iniciar
+http://127.0.0.1:4173/editor.html              # Editor · Docente completo por defecto
+http://127.0.0.1:4173/editor.html?profile=student # Editor · Estudiante, solo lectura
 ```
 
 `npm install` prepara el render matemático local. Los estudiantes que reciben el contenido ya construido no necesitan instalar nada.
@@ -133,13 +147,17 @@ $env:PORT = 4200
 npm run dev
 ```
 
-Para una sesión de pruebas separada del progreso normal, usa el puerto indicado por la terminal:
+Para una sesión de depuración separada de los avances Estudiante y Docente, usa el puerto
+indicado por la terminal:
 
 ```text
 http://127.0.0.1:<puerto>/?debug=1&profile=debug
 ```
 
-El parámetro `debug` pertenece a ORBIT. ORBIT Editor no usa perfiles de progreso y conserva su borrador en una clave editorial separada.
+ORBIT acepta únicamente `student`, `teacher` y `debug`; `normal` es un alias de migración hacia
+Estudiante. El parámetro `debug=1` mantiene compatibilidad y abre inicialmente el panel cuando
+el perfil resuelto es Debug. ORBIT Editor interpreta el perfil solo para decidir su capacidad
+local, pero conserva el borrador en una clave editorial separada y no carga progreso.
 
 ## Controles
 
@@ -153,7 +171,7 @@ El parámetro `debug` pertenece a ORBIT. ORBIT Editor no usa perfiles de progres
 | `M` | Abrir el mezclador de Ambiente e Interfaz y efectos |
 | `K` | Ver los dos árboles de progresión |
 | `H` | Ver ayuda |
-| `F2` o `` ` `` | Abrir/cerrar el debugger |
+| `F2` o `` ` `` | Abrir/cerrar el debugger, solo en el perfil Debug |
 | `Esc` | Cerrar el último panel abierto |
 | `Shift` + clic | Teletransportarse con el debugger activo |
 
@@ -192,7 +210,11 @@ lugares dentro de la zona ─ Árbol II ─ prerrequisitos y recompensas
 
 El estado persistido contiene logros y preferencias. Las zonas y lugares disponibles se **derivan** desde ese estado; no se guardan como una segunda verdad que pueda quedar inconsistente.
 
-ORBIT Editor opera sobre otra rama de estado: un borrador cartográfico local. Ese documento conserva ubicaciones, coordenadas y las cuatro dependencias `completedLocations` canónicas, pero no respuestas ni logros. Exportarlo no lo aplica a los datos de ORBIT.
+Cada perfil de ORBIT opera sobre un progreso `v3` independiente. Estudiante recupera además la
+clave `normal` publicada previamente; Docente y Debug comienzan y continúan en sus propias
+claves. Cambiar el selector recarga el modo elegido, no copia logros entre perfiles.
+
+ORBIT Editor opera sobre otra rama de estado: un borrador cartográfico local. Ese documento conserva ubicaciones, coordenadas y las cuatro dependencias `completedLocations` canónicas, pero no respuestas ni logros. Exportarlo no lo aplica a los datos de ORBIT, y el perfil elegido no crea una copia distinta del borrador.
 
 Más detalles:
 
@@ -234,7 +256,9 @@ Más detalles:
 
 ## Debugger de ORBIT
 
-La interfaz de depuración permite:
+La interfaz de depuración solo existe en el perfil Debug. En Estudiante y Docente no aparecen
+el nodo **Terminal de Cartografía**, el control `F2`, los overlays ni `window.OrbitDebug`. En
+Debug, la interfaz permite:
 
 - ignorar fronteras bloqueadas;
 - mostrar IDs, coordenadas y relaciones de los grafos;
@@ -258,7 +282,10 @@ OrbitDebug.setNoclip(true);
 
 Consulta [docs/DEBUGGING.md](docs/DEBUGGING.md) para la referencia completa.
 
-El debugger no es el Editor y no comparte su estado. Para autoría cartográfica abre `editor.html` y exporta el borrador siguiendo la [guía editorial](docs/EDITOR_GUIDE.md).
+El debugger no es el Editor y no comparte su estado. El acceso directo a `editor.html` abre el
+modo Docente completo; `?profile=student` deja el mapa en consulta y bloquea Spider/Bee, mientras
+`?profile=debug` muestra el bloqueo sin iniciar el modelo. Estas restricciones locales no
+reemplazan autenticación. Consulta la [guía editorial](docs/EDITOR_GUIDE.md).
 
 ## Publicación en GitHub Pages
 
@@ -273,7 +300,11 @@ No definas esa variable mientras quieras conservar el proyecto únicamente como 
 
 Todas las rutas del prototipo son relativas, por lo que funciona tanto en `usuario.github.io` como en `usuario.github.io/nombre-del-repositorio/`.
 
-El build incluye las entradas ORBIT y ORBIT Editor, pero no aplica un borrador editorial exportado ni protege `editor.html`. La incorporación del JSON al curso, la revisión y el control de acceso durante mantenimiento son pasos manuales o responsabilidades de la infraestructura externa.
+El build incluye las entradas ORBIT y ORBIT Editor, pero no aplica un borrador editorial
+exportado ni protege `editor.html`. El selector y los bloqueos por perfil son conveniencias de
+interfaz que cualquiera puede cambiar en la URL; la incorporación del JSON al curso, la
+revisión y el control de acceso real durante mantenimiento son pasos manuales o
+responsabilidades de la infraestructura externa.
 
 ## Contribuciones y uso de agentes
 

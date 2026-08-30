@@ -11,10 +11,10 @@
     <link rel="icon" href="./public/favicon.svg" type="image/svg+xml" sizes="any" />
     <link rel="stylesheet" href="./src/styles.css" />
     <link rel="stylesheet" href="./src/editor/editor.css" />
-    <title>ORBIT Editor · Electromagnetismo Aplicado</title>
+    <title>ORBIT Editor · Electromagnetismo</title>
   </head>
   <body>
-    <main id="app" class="editor-shell" aria-label="ORBIT Editor para Electromagnetismo Aplicado">
+    <main id="app" class="editor-shell" aria-label="ORBIT Editor para Electromagnetismo">
       <canvas
         id="world-canvas"
         tabindex="0"
@@ -27,10 +27,11 @@
         <div class="hud-brand editor-brand">
           <div>
             <p class="eyebrow">Open Roadmap for Building Intuition and Theory</p>
-            <h1><span class="orbit-wordmark">ORBIT Editor</span><span class="orbit-route"> · Electromagnetismo Aplicado</span></h1>
+            <h1><span class="orbit-wordmark">ORBIT Editor</span><span class="orbit-route"> · Electromagnetismo</span></h1>
           </div>
           <span id="editor-draft-badge" class="status-badge">borrador local</span>
           <a
+            id="editor-return-link"
             class="mode-entry-link"
             href="./index.html"
             aria-label="Volver a ORBIT"
@@ -47,6 +48,17 @@
           <button id="editor-undo" type="button" disabled>Deshacer</button>
           <button id="editor-redo" type="button" disabled>Rehacer</button>
         </div>
+      </section>
+
+      <section
+        id="editor-access-notice"
+        class="glass-card editor-access-notice"
+        role="status"
+        aria-live="polite"
+        hidden
+      >
+        <strong id="editor-access-title">Acceso local al Editor</strong>
+        <span id="editor-access-detail"></span>
       </section>
 
       <nav
@@ -219,7 +231,7 @@
         </div>
       </aside>
 
-      <section class="glass-card compact-card editor-controls-hint" aria-label="Controles principales del editor">
+      <section id="editor-controls-hint" class="glass-card compact-card editor-controls-hint" aria-label="Controles principales del editor">
         <span>Arrastra: mover o conectar</span>
         <span>Fondo: desplazar mapa</span>
         <span>Rueda: zoom</span>

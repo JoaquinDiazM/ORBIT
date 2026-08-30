@@ -17,6 +17,28 @@ export function getEditorHistoryAction(event) {
   return null;
 }
 
+export function getReadOnlyCameraPan(event) {
+  const directions = {
+    ArrowLeft: [-1, 0],
+    ArrowRight: [1, 0],
+    ArrowUp: [0, -1],
+    ArrowDown: [0, 1],
+  };
+  const direction = directions[event?.code];
+  if (!direction) return null;
+  const step = event.shiftKey ? 96 : 32;
+  return {
+    dx: direction[0] === 0 ? 0 : -direction[0] * step,
+    dy: direction[1] === 0 ? 0 : -direction[1] * step,
+  };
+}
+
+export function fitEditorWorld({ app, inspector, canvas }) {
+  inspector.hidden = true;
+  canvas.focus({ preventScroll: true });
+  return app.fitWorld();
+}
+
 function downloadJson(filename, text) {
   const blob = new Blob([text], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -49,7 +71,8 @@ export class EditorUIController {
   constructor({ model, app }) {
     this.model = model;
     this.app = app;
-    this.currentView = "spider";
+    this.readOnly = Boolean(model.getSnapshot().readOnly);
+    this.currentView = this.readOnly ? "overview" : "spider";
     this.toastTimer = null;
 
     this.elements = {
@@ -86,6 +109,7 @@ export class EditorUIController {
       nextArea: query("#editor-area-next"),
       undo: query("#editor-undo"),
       redo: query("#editor-redo"),
+      reset: query("#editor-reset"),
       activeTool: query("#editor-active-tool"),
       areaCount: query("#editor-area-count"),
       locationCount: query("#editor-location-count"),
@@ -94,6 +118,8 @@ export class EditorUIController {
       importInput: query("#editor-import"),
       toastRegion: query("#toast-region"),
     };
+
+    if (this.readOnly) this.#applyReadOnlyControls();
 
     this.#bindEvents();
     this.unsubscribeModel = this.model.subscribe(() => this.render());
@@ -109,6 +135,25 @@ export class EditorUIController {
     this.unsubscribeApp?.();
     window.removeEventListener("keydown", this.onKeyDown);
     if (this.toastTimer !== null) window.clearTimeout(this.toastTimer);
+  }
+
+  #applyReadOnlyControls() {
+    for (const button of [this.elements.spiderButton, this.elements.beeButton]) {
+      button.setAttribute("aria-disabled", "true");
+      button.title = "El perfil estudiante no permite usar Spider ni Bee.";
+    }
+    this.elements.undo.disabled = true;
+    this.elements.redo.disabled = true;
+    this.elements.reset.disabled = true;
+    this.elements.importInput.disabled = true;
+    this.elements.importInput.closest("label")?.classList.add("is-disabled");
+    for (const panel of [this.elements.spiderPanel, this.elements.beePanel]) {
+      panel.inert = true;
+      panel.setAttribute("aria-disabled", "true");
+      for (const control of panel.querySelectorAll("button, input, select")) {
+        control.disabled = true;
+      }
+    }
   }
 
   #bindEvents() {
@@ -128,7 +173,13 @@ export class EditorUIController {
       this.elements.inspector.hidden = true;
       this.elements.canvas.focus({ preventScroll: true });
     });
-    on("#editor-fit-world", "click", () => this.app.fitWorld());
+    on("#editor-fit-world", "click", () =>
+      fitEditorWorld({
+        app: this.app,
+        inspector: this.elements.inspector,
+        canvas: this.elements.canvas,
+      }),
+    );
     on("#editor-undo", "click", () => this.#report(this.model.undo(), "Cambio deshecho."));
     on("#editor-redo", "click", () => this.#report(this.model.redo(), "Cambio rehecho."));
     on("#editor-export", "click", () => {
@@ -213,6 +264,10 @@ export class EditorUIController {
     const historyAction = getEditorHistoryAction(event);
     if (historyAction) {
       event.preventDefault();
+      if (this.readOnly) {
+        this.toast("El perfil estudiante no puede modificar el historial editorial.", "warning");
+        return;
+      }
       const result = historyAction === "redo" ? this.model.redo() : this.model.undo();
       this.#report(result, historyAction === "redo" ? "Cambio rehecho." : "Cambio deshecho.");
       return;
@@ -227,6 +282,11 @@ export class EditorUIController {
     const direction = directions[event.code];
     if (!direction) return;
     event.preventDefault();
+    if (this.readOnly) {
+      const pan = getReadOnlyCameraPan(event);
+      this.app.panCameraByScreen(pan.dx, pan.dy);
+      return;
+    }
     if (this.app.getState().activeTool === "bee") {
       this.#swapSelectedArea(direction[0] + direction[1] < 0 ? -1 : 1);
       return;
@@ -307,11 +367,16 @@ export class EditorUIController {
       "tree-two-cycle": "La conexión produciría un ciclo en el Árbol II.",
       "nothing-to-undo": "No hay cambios para deshacer.",
       "nothing-to-redo": "No hay cambios para rehacer.",
+      "profile-read-only": "El perfil estudiante no puede modificar el borrador editorial.",
     };
     return messages[reason] ?? "La operación no superó la validación del editor.";
   }
 
   showView(view) {
+    if (this.readOnly && (view === "spider" || view === "bee")) {
+      this.toast("El perfil estudiante no permite usar Spider ni Bee.", "warning");
+      return;
+    }
     this.currentView = view;
     this.elements.inspector.hidden = false;
     if (view === "spider" || view === "bee") this.app.setActiveTool(view);
@@ -326,24 +391,32 @@ export class EditorUIController {
     this.elements.areaCount.textContent = String(snapshot.areas.length);
     this.elements.locationCount.textContent = String(snapshot.locations.length);
     this.elements.saveStatus.textContent = timestampLabel(snapshot.document.updatedAt);
-    this.elements.draftBadge.textContent = snapshot.warnings.length
-      ? `${snapshot.warnings.length} advertencia${snapshot.warnings.length === 1 ? "" : "s"}`
-      : "borrador local";
-    this.elements.draftBadge.title = snapshot.warnings.length
-      ? "Abre Resumen para revisar las advertencias del borrador."
-      : "Borrador editorial guardado localmente.";
-    this.elements.undo.disabled = !snapshot.canUndo;
-    this.elements.redo.disabled = !snapshot.canRedo;
+    this.elements.draftBadge.textContent = this.readOnly
+      ? "solo lectura"
+      : snapshot.warnings.length
+        ? `${snapshot.warnings.length} advertencia${snapshot.warnings.length === 1 ? "" : "s"}`
+        : "borrador local";
+    this.elements.draftBadge.title = this.readOnly
+      ? "Consulta local sin permisos de edición."
+      : snapshot.warnings.length
+        ? "Abre Resumen para revisar las advertencias del borrador."
+        : "Borrador editorial guardado localmente.";
+    this.elements.undo.disabled = this.readOnly || !snapshot.canUndo;
+    this.elements.redo.disabled = this.readOnly || !snapshot.canRedo;
 
     this.elements.spiderButton.setAttribute(
       "aria-pressed",
-      String(appState.activeTool === "spider"),
+      String(!this.readOnly && appState.activeTool === "spider"),
     );
     this.elements.beeButton.setAttribute(
       "aria-pressed",
-      String(appState.activeTool === "bee"),
+      String(!this.readOnly && appState.activeTool === "bee"),
     );
-    const activeMode = appState.activeTool === "bee" ? "Bee" : `Spider · ${appState.spiderMode === "connect" ? "conectar" : "mover"}`;
+    const activeMode = this.readOnly
+      ? "Consulta · solo lectura"
+      : appState.activeTool === "bee"
+        ? "Bee"
+        : `Spider · ${appState.spiderMode === "connect" ? "conectar" : "mover"}`;
     this.elements.activeTool.textContent = activeMode;
     for (const radio of document.querySelectorAll('input[name="editor-spider-mode"]')) {
       radio.checked = radio.value === appState.spiderMode;
@@ -466,6 +539,7 @@ export class EditorUIController {
           button.textContent = area.shortTitle ?? area.title;
           button.title = `${area.title} · hex(${area.q}, ${area.r})`;
           button.dataset.areaId = area.id;
+          button.disabled = this.readOnly;
           button.setAttribute("aria-pressed", String(area.id === appState.selectedAreaId));
           button.addEventListener("click", () => this.app.selectArea(area.id));
           return button;
@@ -478,8 +552,8 @@ export class EditorUIController {
     this.elements.selectedAreaSummary.textContent = selected
       ? `${selected.title}: anillo ${selected.tier}, hex(${selected.q}, ${selected.r}).`
       : "Selecciona una zona del anillo 1 o 2.";
-    this.elements.previousArea.disabled = !selected || selected.tier === 0;
-    this.elements.nextArea.disabled = !selected || selected.tier === 0;
+    this.elements.previousArea.disabled = this.readOnly || !selected || selected.tier === 0;
+    this.elements.nextArea.disabled = this.readOnly || !selected || selected.tier === 0;
   }
 
   #renderConnections(snapshot, appState) {
@@ -509,6 +583,7 @@ export class EditorUIController {
         const remove = document.createElement("button");
         remove.type = "button";
         remove.textContent = "Quitar Spider";
+        remove.disabled = this.readOnly;
         remove.addEventListener("click", () => {
           this.#report(
             this.model.disconnectLocations(edge.sourceId, edge.targetId),

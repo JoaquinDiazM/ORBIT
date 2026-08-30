@@ -352,11 +352,12 @@ perfil o modo de estudiante claramente más limitado que el modo docente.
 
 ### UPD-008 — Nombre visible de la ruta: Electromagnetismo
 
-- Estado: `autorizado`
+- Estado: `en-revision`
 - Tipo: `contenido`
 - Versión objetivo: `0.4.2`
 - Impacto sugerido: `Z`.
-- Próximo responsable: JoaquinDiazM, quien debe decidir si autoriza o pospone el punto.
+- Próximo responsable: JoaquinDiazM, que debe revisar el nombre vigente y aprobar o devolver el
+  resultado con observaciones.
 
 #### Solicitud original
 
@@ -387,21 +388,31 @@ nombre por uno más general.
 
 #### Implementación y revisión
 
-- Rutas propias: por determinar durante el preflight.
-- Resultado: no iniciado; la propuesta no autoriza cambios.
-- Pruebas: no aplican todavía.
-- Cómo revisar para JoaquinDiazM: una vez implementado, comprobar el nombre en ORBIT, ORBIT
-  Editor y documentación vigente, además de la conservación del anillo exterior y la atribución
-  del material fuente.
+- Base revisada: `eb15a6715545d97519a5a904ee28cbcbd77569fb` (checkpoint local de la
+  cohorte cerrada sobre `origin/main` en `831a5ea06da750e3b27b781b1275b9d2429f494c`).
+- Rutas propias: shells y metadatos web, `src/config.js`, documentación vigente, captura
+  `docs/screenshots/prototype.png` y regresiones de marca/shell. Se excluyeron títulos oficiales
+  de fuentes, historial, IDs estables y nombres técnicos persistidos.
+- Resultado: ORBIT, ORBIT Editor, manifiesto, metadatos y documentación vigente presentan la
+  ruta como **Electromagnetismo**. Se conservaron el anillo de aplicaciones, la atribución y el
+  título oficial de EL3103, además de `electromagnetism-applied` en los IDs y claves técnicas que
+  ya forman parte de contratos persistidos. La captura principal quedó regenerada a 1280 × 720.
+- Pruebas: comprobación de recursos de marca correcta; suite completa `222/222`; validación de
+  contenido, revisión del repositorio y build estático correctos; inspección visual a 1280 × 720.
+- Cómo revisar para JoaquinDiazM: abrir ORBIT y ORBIT Editor y comprobar **Electromagnetismo**
+  en sus cabeceras; revisar la captura principal del README y confirmar que la mención
+  **Electromagnetismo Aplicado** se conserva únicamente cuando identifica el curso fuente o un
+  registro histórico.
 - Observaciones del usuario: ninguna.
 
 ### UPD-009 — Ampliar zoom y margen del mapamundi
 
-- Estado: `autorizado`
+- Estado: `en-revision`
 - Tipo: `feature`
 - Versión objetivo: `0.4.2`
 - Impacto sugerido: `Z`.
-- Próximo responsable: JoaquinDiazM, quien debe decidir si autoriza o pospone el punto.
+- Próximo responsable: JoaquinDiazM, que debe recorrer ambos mapas y aprobar o devolver el
+  resultado con observaciones.
 
 #### Solicitud original
 
@@ -431,20 +442,32 @@ básicamente lo mismo y no merecen ser tratados en dos actualizaciones diferente
 
 #### Implementación y revisión
 
-- Rutas propias: por determinar durante el preflight.
-- Resultado: no iniciado; la propuesta no autoriza cambios.
-- Pruebas: no aplican todavía.
-- Cómo revisar para JoaquinDiazM: una vez implementado, comparar el alejamiento máximo y los
-  cuatro márgenes de desplazamiento en ORBIT y ORBIT Editor, con ratón y teclado.
+- Base revisada: `eb15a6715545d97519a5a904ee28cbcbd77569fb` (checkpoint local de la
+  cohorte cerrada sobre `origin/main` en `831a5ea06da750e3b27b781b1275b9d2429f494c`).
+- Rutas propias: `src/config.js`, cámaras de ORBIT y ORBIT Editor, controlador del Editor y
+  pruebas de cámara, layout, renderer y shell editorial.
+- Resultado: el zoom mínimo común bajó de `0.58` a `0.28`; el límite exterior común aumentó a
+  dos tamaños de hexágono (`460` unidades). Encuadrar oculta el inspector, devuelve el foco al
+  canvas y usa todo el ancho con insets verticales; el clamp recentra únicamente el eje cuyo
+  mundo completo ya cabe. El hit testing conserva un radio constante en pantalla.
+- Pruebas: cámara, bounds, fit, pan, zoom al puntero e hit testing cubiertos dentro de la suite
+  completa `222/222`; validación de contenido, revisión del repositorio y build correctos;
+  recorrido visual a 1280 × 720 en ORBIT y Editor.
+- Cómo revisar para JoaquinDiazM: usar la rueda hasta el alejamiento máximo en ORBIT; en Editor,
+  pulsar **Encuadrar**, desplazar el mapa hacia los cuatro límites con ratón y volver con flechas
+  en Estudiante; acercar de nuevo y confirmar que selección, arrastre Spider y Bee siguen siendo
+  precisos en Docente.
 - Observaciones del usuario: ninguna.
 
 ### UPD-010 — Perfiles estudiante, docente y debug
 
-- Estado: `autorizado`
+- Estado: `en-revision`
 - Tipo: `feature`
 - Versión objetivo: `0.4.2`
-- Impacto sugerido: `Y`, sujeto al contrato de capacidades y persistencia.
-- Próximo responsable: JoaquinDiazM, quien debe responder las cuatro preguntas bloqueantes.
+- Impacto sugerido: `Z`; el contrato local acotado prepara futuras capacidades de mayor
+  alcance sin adelantar cuentas ni autorización real.
+- Próximo responsable: JoaquinDiazM, que debe recorrer los tres perfiles y aprobar o devolver el
+  resultado con observaciones.
 
 #### Solicitud original
 
@@ -460,11 +483,11 @@ mapamundi, incluida su interacción y visualización.
   ni participa en la interacción de estudiante o docente.
 - Decisiones confirmadas: se mantienen exactamente tres perfiles; debug conserva sus
   capacidades actuales; estudiante y docente no muestran ni permiten activar el nodo de debug.
-- Criterios de aceptación provisionales: nombres coherentes en interfaz, documentación y
+- Criterios de aceptación: nombres coherentes en interfaz, documentación y
   pruebas; nodo de debug ausente del render, foco, hit testing e interacción para estudiante y
   docente; migración compatible del perfil normal; capacidades y persistencia definidas antes
   de implementar.
-- Fuera de alcance provisional: presentar un modo local como autenticación o seguridad real,
+- Fuera de alcance: presentar un modo local como autenticación o seguridad real,
   implementar el servidor de UPD-002 o decidir por anticipado los permisos del Editor de UPD-006.
 - Dependencias, invariantes o ADR: debe coordinarse explícitamente con UPD-002 para cuentas y
   control de acceso reales, y con UPD-006 para el alcance estudiantil/docente dentro de ORBIT
@@ -485,12 +508,28 @@ mapamundi, incluida su interacción y visualización.
 
 #### Implementación y revisión
 
-- Rutas propias: por determinar después de resolver capacidades, persistencia y relación con el
-  Editor.
-- Resultado: no iniciado; no se modifica el producto mientras falten estas decisiones.
-- Pruebas: no aplican todavía.
-- Cómo revisar para JoaquinDiazM: responder las cuatro preguntas y confirmar el contrato de cada
-  perfil antes de autorizar.
+- Base revisada: `eb15a6715545d97519a5a904ee28cbcbd77569fb` (checkpoint local de la
+  cohorte cerrada sobre `origin/main` en `831a5ea06da750e3b27b781b1275b9d2429f494c`).
+- Rutas propias: `src/core/profile-policy.js`, persistencia/progresión, arranque e interfaz de
+  ORBIT, modelo/aplicación/interfaz del Editor, shells, estilos, documentación operativa y
+  pruebas focalizadas.
+- Resultado: el selector expone exactamente Estudiante, Docente y Debug. `normal` migra a
+  `student` sin perder avance y los tres perfiles guardan progreso por separado. Docente
+  autocompleta, sin `force` ni doble audio, solo lecciones y misiones que exigen respuesta.
+  Estudiante y Docente no renderizan ni pueden interactuar con el nodo, panel, atajos o API de
+  debug. Editor abre completo para Docente —también sin query—, en consulta para Estudiante con
+  Spider/Bee y toda mutación bloqueados por interfaz, aplicación, modelo y API, y bloquea Debug
+  antes de construir `EditorModel`. Todo se identifica expresamente como política local, no
+  autenticación.
+- Pruebas: política, migración, aislamiento, progresión, audio, shell, teclado y modelo editorial
+  cubiertos dentro de `222/222`; los cinco audios conservan claves y wiring; validación de
+  contenido, revisión del repositorio y build correctos. Se inspeccionaron visualmente ORBIT
+  Estudiante y Editor Docente/Estudiante/Debug a 1280 × 720.
+- Cómo revisar para JoaquinDiazM: cambiar entre los tres valores del selector y confirmar que sus
+  avances no se copian; en Docente interactuar con una lección o misión evaluable y comprobar el
+  autocompletado; confirmar ausencia de Terminal/F2/API en Estudiante y Docente; abrir el Editor
+  desde cada perfil y probar, respectivamente, consulta con aviso y bloqueo de Spider/Bee,
+  edición completa, y pantalla Debug bloqueada sin mapa editorial.
 - Observaciones del usuario: Respecto a la primera pregunta, el perfil de docente tiene la habilidad de autocompletacion cuando interactua en una zona que requiera respuesta, es decir lugares de aprendizage o misiones. De momento esa sera la unica caracteristica que distinge al perfil de docente respecto al perfil de estudiante. Respecto a la segunda pregunta, en efecto, lo vamos a mantener local, pero tener definidos los perfiles nos va a ayudar mas tarde cuando vayamos a abordar la UPD-002, en ese sentido es una update intermedia de menor riesgo y volumen que nos facilitara la posterior tarea, por lo mismo la clasifique dentro del cohorte de una version tipo Z y no tipo Y. Respecto a la tercera pregunta, el progreso de cada perfil debe ser separado (Al igual que en el futuro con multiples cuentas, repitiendo tipos de perfiles, cada usuario debe mantener su avance aislado). El estado en el que esta ahora el perfil normal, proximamente perfil de estudiante, es algo que se resetea solo despues de actualizaciones de contenido o cuya naturaleza requiera un reset, lo mismo con el perfil docente y debug (Mientras tengamos bien configurado el perfil debug podremos hacer las pruebas que queramos de manera agil sin gastar tiempo en resolver/responder a las preguntas del curso). Cuando el proyecto este mas avanzado y equipos docentes lo este pidiendo para sus cursos, habran otras normativas para el reset, incluso resets paraciales, pero de moemnto nisiquiera esta activado el sistema de cuentas, asi que no intentaremos resolver algo que no es un problema ahora. Respecto a la cuarta pregunta, el esquema final sera el siguiente: 1.- Cada cuenta tendra acceso al ORBIT editor del curso, pero solo las cuentas que son perfiles docente podran tener acceso completo a todos los menus del editor. 2.- Las cuentas con perfil de estudiante solo podran realizar cambios minusculos al esquema del mapamundi, principalmente visuales y que, al volver a ORBIT, solo ellos en su cuenta puedan ver. En el update de ahora lo correcto seria darles acceso, pero bloquera spider y bee, que salte un mensaje de perfil de estudiante no permite esta accion o algo asi. 3.- El perfil de debug que no tiene razon de ser en ORBIT editor, por lo que bloquear el acceso de ese perfil al editor seria buena idea. Los tres puntos que te acabo de mensionar implican una version final cuando tengamos las cuentas verificadas, un editor maduro con menus de editor que si puedan ser accedidos por estudiantes, etc, por el momento en nuestro ambiente local solo aplica lo minimo que despues facilite la tarea de updates mas grandes. Quiero ver como queda esto una vez aprobado y despues darte un UPD mas preciso que el que ahora estoy descartando, UPD-006.
 
 ## Historial

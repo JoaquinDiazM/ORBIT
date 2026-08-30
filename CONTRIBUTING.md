@@ -1,7 +1,7 @@
 # Contribuir a ORBIT
 
 ORBIT significa **Open Roadmap for Building Intuition and Theory**. La ruta implementada en
-este prototipo es Electromagnetismo Aplicado; las futuras rutas deberán declarar su propio
+este prototipo es Electromagnetismo; las futuras rutas deberán declarar su propio
 alcance académico sin asumir que el soporte multicurso ya está disponible.
 
 ## Antes de empezar
@@ -55,8 +55,13 @@ Ese comando valida datos, ejecuta pruebas y genera el build estático.
 Para una prueba manual aislada:
 
 ```text
-http://127.0.0.1:4173/?debug=1&profile=tu-prueba
+http://127.0.0.1:4173/?debug=1&profile=debug
 ```
+
+ORBIT admite exactamente `student`, `teacher` y `debug`. Sus avances locales están aislados;
+los nombres arbitrarios ya no crean perfiles de prueba. Usa el selector de la interfaz para
+recorrer también Estudiante y Docente. El alias histórico `normal` se reserva para migrar el
+avance publicado hacia `student`.
 
 ## Convenciones
 
@@ -85,7 +90,8 @@ http://127.0.0.1:4173/?debug=1&profile=tu-prueba
 3. Declara requisitos del Árbol II y concesiones.
 4. Incluye objetivo, explicación, aplicación, ejercicio y fuentes.
 5. Verifica que no se exija a sí mismo ni el concepto que concede.
-6. Prueba el desbloqueo normal y por debugger.
+6. Prueba el desbloqueo con Estudiante, el autocompletado evaluable con Docente y el avance
+   forzado con Debug.
 
 Consulta `docs/CONTENT_AUTHORING.md`.
 

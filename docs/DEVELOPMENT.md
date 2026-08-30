@@ -41,11 +41,15 @@ Sirve el directorio del proyecto sin transformar los módulos; el navegador carg
 Las dos entradas son:
 
 ```text
-http://127.0.0.1:<puerto>/             # ORBIT
-http://127.0.0.1:<puerto>/editor.html  # ORBIT Editor
+http://127.0.0.1:<puerto>/                         # ORBIT · Estudiante
+http://127.0.0.1:<puerto>/?profile=teacher         # ORBIT · Docente
+http://127.0.0.1:<puerto>/?debug=1&profile=debug   # ORBIT · Debug
+http://127.0.0.1:<puerto>/editor.html              # Editor · Docente completo
 ```
 
-`?profile=...` y `?debug=1` pertenecen solo a ORBIT. Editor usa un borrador local independiente y no debe probarse como si fuera otro perfil.
+ORBIT admite únicamente `student`, `teacher` y `debug`; `normal` es un alias de migración hacia
+Estudiante. Editor interpreta `profile` solo para escoger acceso local —Docente completo,
+Estudiante en lectura y Debug bloqueado— y siempre usa un borrador independiente del progreso.
 
 No reutilices un servidor iniciado antes de actualizar el repositorio: su lógica puede no corresponder al código actual. Detén su terminal con `Ctrl+C` y vuelve a ejecutar `npm run dev`. Para exigir un puerto concreto, define por ejemplo `$env:PORT = 4200`; un puerto explícito ocupado produce un error breve en vez de seleccionar otro.
 
@@ -78,13 +82,14 @@ Ejecuta validación, pruebas y build. Es el control mínimo antes de commit o pu
 2. Publica solo cuando la cohorte inmediata esté cerrada y todos sus IDs estén `aprobado`. Si no,
    trabaja únicamente en puntos `autorizado` de esa versión. Si falta una decisión material,
    registra preguntas y cambia el punto a `faltan-detalles` sin alterar el producto por él.
-3. Lee los `AGENTS.md` aplicables, reproduce el comportamiento actual con un perfil separado y
-   convierte el alcance en criterios verificables.
+3. Lee los `AGENTS.md` aplicables, reproduce el comportamiento actual en los perfiles afectados
+   y convierte el alcance en criterios verificables.
 4. Marca `en-implementacion`, implementa el cambio mínimo y añade pruebas.
 5. Ejecuta `npm run check`.
-6. Prueba manualmente ORBIT con `?debug=1&profile=debug-<id>`.
-7. Si el cambio afecta cartografía o Editor, prueba además `editor.html`, round-trip JSON y
-   separación de almacenamiento.
+6. Prueba manualmente ORBIT en Estudiante, Docente y `?debug=1&profile=debug`.
+7. Si el cambio afecta cartografía o Editor, prueba además `editor.html`,
+   `editor.html?profile=student`, `editor.html?profile=debug`, round-trip JSON y separación de
+   almacenamiento.
 8. Registra resultado, pruebas y limitaciones en el punto y déjalo `en-revision`. Puede quedar en
    un commit local coherente; no actualices todavía versión o `CHANGELOG.md` ni hagas push.
 9. Cuando **todos** los IDs de la cohorte cerrada estén `aprobado`, revalida el conjunto,
@@ -101,15 +106,18 @@ versión futura no se implementa hasta publicar la inmediata.
 
 ## Perfiles de prueba
 
-Usa un perfil distinto por tarea para no contaminar el progreso de ORBIT:
+ORBIT dispone exactamente de estas sesiones locales:
 
 ```text
-?debug=1&profile=debug-border-rules
-?debug=1&profile=debug-gauss-node
-?debug=1&profile=debug-save-v3
+?profile=student
+?profile=teacher
+?debug=1&profile=debug
 ```
 
-Editor no usa perfiles. Su clave estable es `orbit-editor:v1:electromagnetism-applied`; exporta una copia antes de restaurar o importar durante pruebas destructivas.
+Cada perfil conserva un avance separado. Estudiante migra la clave `normal` compatible; no
+uses sufijos arbitrarios para crear sesiones nuevas. Editor usa el perfil solo como política de
+capacidad y mantiene una única clave estable `orbit-editor:v1:electromagnetism-applied`; exporta
+una copia antes de restaurar o importar durante pruebas destructivas.
 
 ## Convenciones
 
@@ -126,6 +134,8 @@ Editor no usa perfiles. Su clave estable es `orbit-editor:v1:electromagnetism-ap
 
 - `ProgressionModel` es la única autoridad que modifica el progreso de ORBIT.
 - `ProgressStorage` es el único acceso directo a las claves de progreso en `localStorage`.
+- `profile-policy.js` resuelve los tres perfiles y su matriz de capacidades; no representa
+  autenticación.
 - El modelo/almacenamiento editorial encapsula únicamente `orbit-editor:v1:electromagnetism-applied`; nunca accede a `orbit-progress`.
 - El renderer lee snapshots; no concede conceptos ni recompensas.
 - La UI solicita acciones al modelo; no modifica arrays persistidos directamente.
@@ -144,7 +154,11 @@ Para Editor, prueba por separado:
 - intercambio Bee dentro del anillo y rechazo cruzado;
 - undo/redo, autoguardado e importación atómica;
 - Pointer Events, teclado y estado de ambos docks;
-- presencia de ambas entradas en el build y no regresión normal/debug.
+- resolución exacta de perfiles, migración `normal → student` y aislamiento de avances;
+- autocompletado docente solo para lecciones/misiones evaluables;
+- ausencia del nodo, `F2` y `window.OrbitDebug` fuera de Debug;
+- acceso Docente, solo lectura Estudiante y bloqueo Debug del Editor;
+- presencia de ambas entradas en el build y no regresión de los tres perfiles.
 
 Ejemplo:
 
@@ -169,8 +183,13 @@ test("la nueva regla conserva la propiedad esperada", () => {
 - Noclip activado y desactivado fuera de una zona abierta.
 - Zoom y cámara.
 - Vista con `prefers-reduced-motion`.
-- Entrada ORBIT normal y debug sin controles Spider/Bee.
-- Entrada Editor con ambos docks retractables, Spider y Bee.
+- Selector ORBIT con Estudiante, Docente y Debug, cada uno con avance independiente.
+- Estudiante y Docente sin Terminal de Cartografía, atajos ni API de depuración.
+- Docente autocompleta al interactuar una lección o misión evaluable, sin completar NPC ni
+  lecturas de confirmación.
+- Entrada Editor sin query con ambos docks retractables, Spider y Bee operativos para Docente.
+- Entrada Editor Estudiante navegable y exportable, con mutaciones, Spider y Bee bloqueados.
+- Entrada Editor Debug bloqueada sin crear el modelo editorial.
 - Movimiento de nodo por puntero y teclado, incluida transferencia de zona válida.
 - Conexión directa y relación derivada de solo lectura.
 - Intercambio Bee dentro del mismo anillo y rechazo entre anillos.

@@ -1,4 +1,4 @@
-# Esqueleto curricular preliminar — Electromagnetismo Aplicado
+# Esqueleto curricular preliminar — Electromagnetismo
 
 > Documento de diseño, no programa definitivo. Debe contrastarse con programas universitarios, experiencia docente y pruebas con estudiantes antes de fijar el mapa completo.
 

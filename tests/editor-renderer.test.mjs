@@ -64,6 +64,28 @@ test("el radio de hit testing de nodos permanece constante en pantalla", () => {
     }),
     null,
   );
+  assert.equal(
+    findLocationAtWorldPoint({
+      x: 99,
+      y: 0,
+      areas,
+      locations,
+      zoom: 0.28,
+      hitRadiusPx: 28,
+    })?.id,
+    "node",
+  );
+  assert.equal(
+    findLocationAtWorldPoint({
+      x: 101,
+      y: 0,
+      areas,
+      locations,
+      zoom: 0.28,
+      hitRadiusPx: 28,
+    }),
+    null,
+  );
 });
 
 test("cuando los radios se solapan se elige el nodo más cercano", () => {

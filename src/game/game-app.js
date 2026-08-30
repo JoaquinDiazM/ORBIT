@@ -2,6 +2,7 @@ import { APP_CONFIG, DEBUG_DEFAULTS } from "../config.js";
 import { LOCATIONS } from "../data/locations.js";
 import { AREAS, WORLD_CONFIG } from "../data/world.js";
 import { getWorldBounds } from "../core/hex.js";
+import { getProfileCapabilities } from "../core/profile-policy.js";
 import {
   createWorldIndex,
   getAreaAtWorldPosition,
@@ -33,12 +34,19 @@ export function reduceLatestTreeTwoUnlock(current, event) {
 }
 
 export function openLocationWithInteractionCue(location, audio, ui) {
-  if (typeof audio?.playInteractionCue === "function") {
-    void audio.playInteractionCue({ specificAssetKey: LOCATION_INTERACTION_AUDIO_KEY });
-  } else {
-    void audio?.play?.(LOCATION_INTERACTION_AUDIO_KEY);
-  }
-  ui.openLocation(location);
+  const completionWillHandleCue = Boolean(ui.willAutoCompleteLocation?.(location));
+  const playInteractionCue = () => {
+    if (typeof audio?.playInteractionCue === "function") {
+      void audio.playInteractionCue({ specificAssetKey: LOCATION_INTERACTION_AUDIO_KEY });
+    } else {
+      void audio?.play?.(LOCATION_INTERACTION_AUDIO_KEY);
+    }
+  };
+
+  if (!completionWillHandleCue) playInteractionCue();
+  const result = ui.openLocation(location);
+  if (completionWillHandleCue && !result?.completionCueHandled) playInteractionCue();
+  return result;
 }
 
 export class GameApp {
@@ -47,13 +55,19 @@ export class GameApp {
     this.progression = progression;
     this.ui = ui;
     this.audio = audio;
+    this.profileCapabilities = getProfileCapabilities(progression.profile);
     this.worldIndex = createWorldIndex(AREAS);
     this.renderer = new CanvasRenderer(canvas);
     this.input = new InputController(canvas);
-    this.debugState = {
-      ...DEBUG_DEFAULTS,
-      enabled: debugInitiallyEnabled,
-    };
+    this.debugState = this.profileCapabilities.canUseDebugger
+      ? { ...DEBUG_DEFAULTS, enabled: debugInitiallyEnabled }
+      : {
+          enabled: false,
+          noclip: false,
+          showIds: false,
+          showGraph: false,
+          showCoords: false,
+        };
 
     const initialPlayer = progression.getSnapshot().state.player;
     this.player = {
@@ -66,7 +80,7 @@ export class GameApp {
     this.camera = new Camera2D({
       x: this.player.x,
       y: this.player.y,
-      bounds: getWorldBounds(AREAS, WORLD_CONFIG.hexSize, 160),
+      bounds: getWorldBounds(AREAS, WORLD_CONFIG.hexSize, WORLD_CONFIG.hexSize * 2),
     });
     this.nearestLocation = null;
     this.currentArea = null;
@@ -187,7 +201,7 @@ export class GameApp {
       this.progression.setPlayerPosition(this.player.x, this.player.y);
       this.lastPositionSave = timestamp;
     }
-    if (timestamp - this.lastDebugUpdate >= 240) {
+    if (this.profileCapabilities.canUseDebugger && timestamp - this.lastDebugUpdate >= 240) {
       this.ui.updateDebugState(this.getDebugSnapshot());
       this.lastDebugUpdate = timestamp;
     }
@@ -198,10 +212,14 @@ export class GameApp {
   #handleActions() {
     if (this.input.consume("escape")) this.ui.closeTopPanel();
     if (this.input.consume("debug")) {
-      this.debugState.enabled = !this.debugState.enabled;
-      if (this.debugState.enabled) this.ui.openDebugPanel();
-      else this.ui.closePanel("debug-panel");
-      void this.audio?.playInteractionCue?.();
+      if (!this.profileCapabilities.canUseDebugger) {
+        this.ui.toast("El debugger solo está disponible en el perfil debug.", "warning");
+      } else {
+        this.debugState.enabled = !this.debugState.enabled;
+        if (this.debugState.enabled) this.ui.openDebugPanel();
+        else this.ui.closePanel("debug-panel");
+        void this.audio?.playInteractionCue?.();
+      }
     }
     if (this.input.consume("knowledge")) {
       this.ui.toggleKnowledgePanel();
@@ -325,6 +343,7 @@ export class GameApp {
   }
 
   setDebugOption(option, value) {
+    if (!this.profileCapabilities.canUseDebugger) return false;
     if (!(option in this.debugState)) return false;
     this.debugState[option] = Boolean(value);
     if (option === "noclip" && !value) {

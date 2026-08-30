@@ -10,17 +10,18 @@ http://127.0.0.1:<puerto>/?debug=1&profile=debug
 
 Sustituye `<puerto>` por el número que imprimió la ejecución actual de `npm run dev`.
 
-Usa perfiles más específicos para tareas independientes:
-
-```text
-?debug=1&profile=debug-new-area
-```
+Debug es uno de los tres perfiles locales canónicos y mantiene un único avance separado de
+Estudiante y Docente. Los nombres arbitrarios ya no crean sesiones de prueba. `?debug=1` abre
+el panel al iniciar; `?profile=debug` es la capacidad que habilita el debugger.
 
 ## Abrir la interfaz
 
-- `F2`
-- tecla `` ` ``
-- Terminal de Cartografía dentro del Campamento Base
+- `F2`;
+- tecla `` ` ``;
+- Terminal de Cartografía dentro del Campamento Base.
+
+Esas tres superficies existen únicamente en Debug. El nodo no es visible ni interactivo en
+Estudiante o Docente y esos perfiles tampoco publican `window.OrbitDebug`.
 
 ## Funciones visuales
 
@@ -117,18 +118,22 @@ OrbitDebug.reset();
 
 ## Editor no es debugger
 
-ORBIT Editor se abre de forma independiente:
+ORBIT Editor se abre de forma independiente. Sin query, la entrada usa Docente completo:
 
 ```text
 http://127.0.0.1:<puerto>/editor.html
 ```
 
-No interpreta `?debug=1`, no carga `window.OrbitDebug` y no usa perfiles. Su autoguardado reside en `orbit-editor:v1:electromagnetism-applied`; el debugger conserva progreso `v3` bajo `orbit-progress`.
+Editor sí interpreta `profile` para una limitación local: `?profile=student` abre consulta con
+Spider y Bee bloqueados, y `?profile=debug` muestra un bloqueo sin crear el modelo. `?debug=1`
+no concede privilegios editoriales. Ningún modo del Editor carga `window.OrbitDebug` o progreso;
+su autoguardado único reside en `orbit-editor:v1:electromagnetism-applied`, mientras Debug
+conserva su progreso `v3` bajo `orbit-progress:v3:debug`. La query no constituye autenticación.
 
 Para comprobar la frontera entre ambos:
 
-1. abre ORBIT con un perfil `debug-editor-separation` y completa algún lugar;
-2. abre Editor, mueve un nodo y recarga;
+1. abre ORBIT con `?debug=1&profile=debug` y completa algún lugar;
+2. abre `editor.html` sin query, mueve un nodo y recarga;
 3. vuelve a ORBIT y confirma que la cartografía publicada y su progreso no cambiaron;
 4. exporta el borrador editorial y comprueba que no contiene conceptos adquiridos, respuestas ni posición del jugador;
 5. exporta el progreso debug y confirma que no contiene zonas, offsets ni conexiones editoriales.
@@ -163,7 +168,9 @@ Spider y Bee tienen validación, historial e importación/exportación propios d
 6. Importa.
 7. Confirma esquema `v3`, conceptos, recompensas, posición, transporte y ambos volúmenes.
 
-Para compatibilidad, prueba además un perfil antiguo bajo `aea-progress`: debe migrarse a `v3` y guardarse bajo `orbit-progress` sin perder logros.
+Para compatibilidad, prueba además `orbit-progress:v3:normal` y un estado antiguo bajo
+`aea-progress`: ambos deben sanearse como Estudiante, conservar logros compatibles y guardarse
+bajo `orbit-progress:v3:student`. Confirma también que Docente y Debug permanecen aislados.
 
 ### Grafo II
 

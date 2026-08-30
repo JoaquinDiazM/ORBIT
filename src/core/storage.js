@@ -69,21 +69,39 @@ export class ProgressStorage {
   }
 }
 
-export function createLegacyProgressKeys({ prefixes = [], currentVersion, profile }) {
+export function createLegacyProgressKeys({
+  prefixes = [],
+  currentVersion,
+  profile,
+  profileAliases = [],
+}) {
   const highestLegacyVersion = Math.max(0, Math.trunc(Number(currentVersion)) - 1);
   const uniquePrefixes = [...new Set(
     prefixes.filter((prefix) => typeof prefix === "string" && prefix.length > 0),
   )];
+  const profiles = [...new Set(
+    [profile, ...profileAliases].filter(
+      (profileName) => typeof profileName === "string" && profileName.length > 0,
+    ),
+  )];
+  const currentAliasKeys = profiles.slice(1).flatMap((profileName) =>
+    uniquePrefixes.map(
+      (prefix) => `${prefix}:v${currentVersion}:${profileName}`,
+    ),
+  );
 
-  return Array.from(
+  const olderKeys = Array.from(
     { length: highestLegacyVersion },
     (_, index) => highestLegacyVersion - index,
   ).flatMap((version) =>
-    uniquePrefixes.map((prefix) => `${prefix}:v${version}:${profile}`),
+    profiles.flatMap((profileName) =>
+      uniquePrefixes.map((prefix) => `${prefix}:v${version}:${profileName}`),
+    ),
   );
+  return [...currentAliasKeys, ...olderKeys];
 }
 
-export function sanitizeProfileName(value, fallback = "normal") {
+export function sanitizeProfileName(value, fallback = "student") {
   const normalized = String(value ?? "")
     .trim()
     .toLowerCase()

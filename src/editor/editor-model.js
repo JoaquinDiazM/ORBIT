@@ -67,6 +67,7 @@ export class EditorModel {
     baseDataVersion,
     clock = () => new Date(),
     historyLimit = DEFAULT_HISTORY_LIMIT,
+    readOnly = false,
   } = {}) {
     const resolvedStorageKey = storageKey ?? storage?.key;
     if (
@@ -83,6 +84,7 @@ export class EditorModel {
     }
 
     this.storage = storage;
+    this.readOnly = Boolean(readOnly);
     this.clock = clock;
     this.historyLimit = Math.max(1, Math.trunc(Number(historyLimit)) || DEFAULT_HISTORY_LIMIT);
     this.documentOptions = {
@@ -123,7 +125,7 @@ export class EditorModel {
         updatedAt: this.#timestamp(),
       });
       this.#refreshCourse();
-      this.storage.save(this.document);
+      if (!this.readOnly) this.storage.save(this.document);
       return;
     }
 
@@ -193,6 +195,13 @@ export class EditorModel {
   }
 
   #commit(candidate, type, detail = {}) {
+    if (this.readOnly) {
+      return mutationFailure(
+        this,
+        "profile-read-only",
+        [localIssue("profile-read-only", "El perfil estudiante no puede modificar el borrador editorial.")],
+      );
+    }
     candidate.updatedAt = this.#timestamp();
     const result = sanitizeEditorDocument(candidate, this.documentOptions);
     if (!result.ok) {
@@ -234,6 +243,7 @@ export class EditorModel {
       warnings: structuredClone(this.warnings),
       canUndo: this.history.length > 0,
       canRedo: this.future.length > 0,
+      readOnly: this.readOnly,
     };
   }
 
@@ -459,6 +469,13 @@ export class EditorModel {
   }
 
   undo() {
+    if (this.readOnly) {
+      return mutationFailure(
+        this,
+        "profile-read-only",
+        [localIssue("profile-read-only", "El perfil estudiante no puede deshacer cambios editoriales.")],
+      );
+    }
     if (this.history.length === 0) {
       return mutationFailure(
         this,
@@ -490,6 +507,13 @@ export class EditorModel {
   }
 
   redo() {
+    if (this.readOnly) {
+      return mutationFailure(
+        this,
+        "profile-read-only",
+        [localIssue("profile-read-only", "El perfil estudiante no puede rehacer cambios editoriales.")],
+      );
+    }
     if (this.future.length === 0) {
       return mutationFailure(
         this,
@@ -521,6 +545,13 @@ export class EditorModel {
   }
 
   resetDraft() {
+    if (this.readOnly) {
+      return mutationFailure(
+        this,
+        "profile-read-only",
+        [localIssue("profile-read-only", "El perfil estudiante no puede restaurar el borrador editorial.")],
+      );
+    }
     const canonical = createEditorDocument({
       ...this.documentOptions,
       updatedAt: this.#timestamp(),
@@ -541,6 +572,13 @@ export class EditorModel {
   }
 
   importDocument(candidate) {
+    if (this.readOnly) {
+      return mutationFailure(
+        this,
+        "profile-read-only",
+        [localIssue("profile-read-only", "El perfil estudiante no puede importar borradores editoriales.")],
+      );
+    }
     const result = importEditorDocument(candidate, this.documentOptions);
     if (!result.ok) {
       return mutationFailure(

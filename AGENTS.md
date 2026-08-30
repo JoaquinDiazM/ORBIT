@@ -15,7 +15,7 @@ abierto y transversal que combine:
 4. exploración libre en un mundo 2D;
 5. progresión transparente mediante dos grafos de conocimiento.
 
-La ruta implementada actualmente es **Electromagnetismo Aplicado**. En el futuro ORBIT
+La ruta implementada actualmente es **Electromagnetismo**. En el futuro ORBIT
 pretende migrar y conectar rutas de cursos diferentes, pero el prototipo todavía no debe
 presentarse como una plataforma multicurso terminada. Cada ampliación conservará objetivos,
 prerrequisitos y validación propios de la disciplina correspondiente.
@@ -39,7 +39,7 @@ La interfaz narrativa apoya el aprendizaje. No es el objetivo principal ni debe 
 
 ## Reglas científicas y pedagógicas
 
-Las reglas disciplinares siguientes se aplican a la ruta actual de Electromagnetismo Aplicado;
+Las reglas disciplinares siguientes se aplican a la ruta actual de Electromagnetismo;
 una ruta futura deberá declarar con igual precisión su público, convenciones y criterios de rigor.
 
 - El público mínimo ya conoce cálculo, álgebra lineal y física clásica.

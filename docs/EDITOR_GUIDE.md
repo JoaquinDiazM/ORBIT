@@ -2,7 +2,8 @@
 
 ORBIT distingue dos aplicaciones que comparten la cartografía y el lenguaje visual:
 
-- **ORBIT** se abre desde `index.html` y conserva los perfiles normal y debug.
+- **ORBIT** se abre desde `index.html` y ofrece exactamente los perfiles locales Estudiante,
+  Docente y Debug, con avances separados.
 - **ORBIT Editor** se abre desde `editor.html` y permite preparar la disposición del curso antes de revisar, construir y desplegar manualmente una nueva versión.
 
 El Editor es una herramienta local para docentes y responsables de contenido. No es un panel de administración remoto: no publica cambios, no escribe en el servidor y no incorpora autenticación. Si se sirve en una red, el control de acceso y la ventana de mantenimiento pertenecen a la infraestructura que lo aloja.
@@ -22,7 +23,21 @@ Abre la URL exacta que imprime la terminal y añade `editor.html`. Normalmente s
 http://127.0.0.1:4173/editor.html
 ```
 
-Si el servidor selecciona otro puerto, usa ese número. `index.html`, `?profile=...` y `?debug=1` siguen perteneciendo a ORBIT; el modo Editor no se activa mediante un perfil de progreso.
+Si el servidor selecciona otro puerto, usa ese número. Abrir `editor.html` sin query equivale a
+Docente con acceso completo. `profile` no carga progreso dentro del Editor: solo selecciona una
+capacidad local sobre el mismo borrador.
+
+## Acceso local por perfil
+
+- **Docente:** `editor.html` o `editor.html?profile=teacher`; dispone de General, Spider, Bee,
+  historial, importación, restauración y exportación.
+- **Estudiante:** `editor.html?profile=student`; puede consultar, desplazar, ampliar, encuadrar y
+  exportar el mapa. Spider, Bee y todas las mutaciones quedan bloqueadas con un mensaje claro.
+- **Debug:** `editor.html?profile=debug`; muestra el bloqueo y no crea el modelo editorial.
+
+`?debug=1` no eleva capacidades del Editor. Como cualquiera puede cambiar estas queries, la
+matriz no es autenticación ni autorización real; esa protección corresponderá a infraestructura
+y cuentas futuras.
 
 ## Estado editorial y separación del estudiante
 
@@ -32,7 +47,10 @@ Al comenzar, el Editor crea un borrador independiente desde la cartografía publ
 orbit-editor:v1:electromagnetism-applied
 ```
 
-El borrador nunca lee, sobrescribe ni migra claves `orbit-progress`. Completar lugares, conceder conceptos o usar el debugger de ORBIT tampoco modifica el borrador editorial.
+El borrador nunca lee, sobrescribe ni migra claves `orbit-progress`. Los tres accesos al Editor
+apuntan a la misma clave editorial: no existe aún un borrador visual personalizado por
+estudiante. Completar lugares, autocompletar como Docente o usar el debugger de ORBIT tampoco
+modifica el borrador editorial.
 
 El autoguardado protege frente a una recarga en el mismo navegador y equipo, pero no sustituye una copia versionada. Borrar los datos del sitio, usar otro navegador o cambiar de dispositivo puede hacer inaccesible ese borrador. Exporta JSON con frecuencia y antes de importar, restablecer o desplegar.
 
@@ -49,7 +67,9 @@ Minimizar un menú no descarta la selección, el borrador ni el historial. En un
 
 ## Spider: nodos y conexiones
 
-Spider presenta todos los lugares del curso con independencia de su estado de desbloqueo en ORBIT.
+Spider está disponible únicamente con acceso Docente y presenta todos los lugares del curso con
+independencia de su estado de desbloqueo en ORBIT. En Estudiante, intentar abrirla comunica la
+restricción sin modificar el borrador.
 
 ### Mover un nodo
 
@@ -87,7 +107,9 @@ Esta política conserva una única fuente de verdad: el Árbol II continúa deri
 
 ## Bee: organización de zonas
 
-Bee reorganiza hexágonos mediante intercambio. El mapa actual ocupa todas las posiciones de sus tres niveles, por lo que no existen celdas vacías a las que trasladar una zona.
+Bee está disponible únicamente con acceso Docente y reorganiza hexágonos mediante intercambio.
+En Estudiante permanece bloqueada. El mapa actual ocupa todas las posiciones de sus tres
+niveles, por lo que no existen celdas vacías a las que trasladar una zona.
 
 Con ratón o puntero:
 
@@ -129,11 +151,14 @@ Flujo recomendado de publicación:
 1. Realiza los cambios en Editor y revisa los avisos.
 2. Exporta el JSON y conserva una copia anterior.
 3. Revisa el diff editorial y aplica el archivo al proceso de autoría del repositorio.
-4. Ejecuta `npm run check` y recorre ORBIT normal y debug.
+4. Ejecuta `npm run check` y recorre ORBIT en Estudiante, Docente y Debug.
 5. Construye y despliega mediante el procedimiento del servidor durante su ventana de mantenimiento.
 6. Reabre ORBIT solo después de verificar la versión construida.
 
 **Importar JSON** permite continuar un borrador o revisar el trabajo de otra persona. El Editor valida esquema, IDs, coordenadas, anillos, offsets y conexiones antes de reemplazar el estado local. Exporta el borrador actual antes de importar: una importación válida lo sustituye y una inválida debe dejarlo intacto.
+
+Importar, restaurar, deshacer y rehacer requieren Docente. Estudiante puede exportar una copia
+de consulta, pero no reemplazar ni modificar el borrador.
 
 ## Controles y accesibilidad
 
@@ -154,7 +179,8 @@ Esta versión sienta las bases del editor cartográfico. Todavía no permite:
 - trasladar zonas entre los anillos 1 y 2;
 - gestionar varias rutas o cursos;
 - colaborar simultáneamente entre dispositivos;
-- autenticar profesores;
-- escribir en Git, construir o publicar automáticamente.
+- autenticar o proteger realmente los perfiles locales;
+- escribir en Git, construir o publicar automáticamente;
+- guardar personalizaciones visuales separadas por estudiante.
 
 La edición de contenido, la publicación asistida y la arquitectura multicurso requieren contratos y revisiones posteriores. Consulta también [Arquitectura](ARCHITECTURE.md), [Diseño del mundo y los grafos](WORLD_AND_KNOWLEDGE_DESIGN.md), [Checklist de QA](QA_CHECKLIST.md) y [ADR 0007](decisions/0007-static-local-editor.md).

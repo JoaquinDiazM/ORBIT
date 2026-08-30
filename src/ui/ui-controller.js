@@ -23,6 +23,11 @@ import {
   selectLocationStep,
   unlockLocationStep,
 } from "../core/location-steps.js";
+import {
+  getProfileCapabilities,
+  getProfileLabel,
+  shouldAutoCompleteLocationOnInteraction,
+} from "../core/profile-policy.js";
 import { describeMissingRequirements, meetsRequirements } from "../core/requirements.js";
 import { createEquationFigure, renderMath } from "./math-renderer.js";
 import { playLocationCompletionCue } from "./audio-policy.js";
@@ -66,6 +71,7 @@ export class UIController {
   constructor({ progression, audio }) {
     this.progression = progression;
     this.audio = audio;
+    this.profileCapabilities = getProfileCapabilities(progression.profile);
     this.gameApi = null;
     this.openPanels = [];
     this.panelReturnFocus = new Map();
@@ -87,6 +93,8 @@ export class UIController {
       concepts: document.querySelector("#hud-concepts"),
       mission: document.querySelector("#hud-mission"),
       profileBadge: document.querySelector("#profile-badge"),
+      profileSelect: document.querySelector("#profile-select"),
+      editorLink: document.querySelector("#open-orbit-editor"),
       interactionPrompt: document.querySelector("#interaction-prompt"),
       interactionText: document.querySelector("#interaction-text"),
       lessonPanel: document.querySelector("#lesson-panel"),
@@ -121,7 +129,25 @@ export class UIController {
       debugImport: document.querySelector("#debug-import"),
     };
 
-    this.elements.profileBadge.textContent = `perfil: ${progression.profile}`;
+    this.elements.profileBadge.textContent = `perfil: ${getProfileLabel(progression.profile)}`;
+    this.elements.profileSelect.value = progression.profile;
+    for (const element of document.querySelectorAll("[data-debug-only]")) {
+      element.hidden = !this.profileCapabilities.canUseDebugger;
+    }
+    const editorUrl = new URL(
+      "./editor.html",
+      document.baseURI ?? globalThis.location?.href ?? "http://localhost/",
+    );
+    editorUrl.search = "";
+    editorUrl.searchParams.set("profile", progression.profile);
+    this.elements.editorLink.href = editorUrl.href;
+    if (this.profileCapabilities.editorAccess === "blocked") {
+      this.elements.editorLink.title = "El perfil debug no puede iniciar ORBIT Editor.";
+      this.elements.editorLink.setAttribute(
+        "aria-label",
+        "Abrir ORBIT Editor; acceso bloqueado para el perfil debug",
+      );
+    }
     this.#populateDebugAreaSelect();
     this.#bindStaticControls();
     this.#updateVisualControls();
@@ -144,6 +170,14 @@ export class UIController {
   }
 
   #bindStaticControls() {
+    this.elements.profileSelect.addEventListener("change", () => {
+      const destination = new URL(globalThis.location?.href ?? document.baseURI);
+      const profile = this.elements.profileSelect.value;
+      destination.searchParams.set("profile", profile);
+      destination.searchParams.delete("debug");
+      if (profile === "debug") destination.searchParams.set("debug", "1");
+      globalThis.location.assign(destination.href);
+    });
     document.querySelector("#open-knowledge").addEventListener("click", () => {
       this.toggleKnowledgePanel();
     });
@@ -344,8 +378,20 @@ export class UIController {
 
   openLocation(location) {
     if (location.exercise?.type === "action" && location.exercise.action === "open-debug") {
-      this.openDebugPanel();
-      return;
+      if (this.profileCapabilities.canUseDebugger) this.openDebugPanel();
+      else this.toast("El debugger solo está disponible en el perfil debug.", "warning");
+      return { completionCueHandled: false };
+    }
+    let completionCueHandled = false;
+    if (this.willAutoCompleteLocation(location)) {
+      const finalExercise = getLocationSteps(location).at(-1)?.exercise;
+      const result = this.#completeLocationProgress(location, finalExercise, {
+        completionMessage: "Perfil docente: actividad autocompletada al interactuar.",
+      });
+      completionCueHandled = result.ok;
+      if (!result.ok) {
+        this.toast("La actividad ya no cumple sus condiciones de acceso.", "warning");
+      }
     }
     this.elements.lessonEyebrow.textContent = locationKindLabel(location.kind);
     this.elements.lessonTitle.textContent = location.title;
@@ -357,6 +403,12 @@ export class UIController {
     this.locationStepStates.set(location.id, state);
     this.#renderLocationBody(location);
     this.openPanel("lesson-panel");
+    return { completionCueHandled };
+  }
+
+  willAutoCompleteLocation(location) {
+    return shouldAutoCompleteLocationOnInteraction(this.progression.profile, location)
+      && !this.progression.isLocationCompleted(location.id);
   }
 
   #getLocationStepState(location) {
@@ -1062,15 +1114,10 @@ export class UIController {
       ?.focus();
   }
 
-  #completeLocation(location, exercise, feedback) {
+  #completeLocationProgress(location, exercise, { completionMessage } = {}) {
     const before = this.progression.getSnapshot();
     const result = this.progression.completeLocation(location.id);
-    if (!result.ok) {
-      feedback.className = "exercise-feedback error";
-      feedback.textContent = "El lugar ya no cumple sus condiciones de acceso.";
-      this.#playInteractionCue();
-      return;
-    }
+    if (!result.ok) return result;
     const after = this.progression.getSnapshot();
     const newlyOpenedAreas = result.newlyUnlockedAreaIds ?? [];
     const newlyVisibleLocations = [...after.visibleLocationIds].filter(
@@ -1079,7 +1126,9 @@ export class UIController {
     const citationLabels = this.#newlyUnlockedCitationLabels(before, after);
     void playLocationCompletionCue(this.audio, result);
 
-    const messageParts = [exercise.explanation ?? "Misión completada."];
+    const messageParts = [
+      completionMessage ?? exercise?.explanation ?? "Misión completada.",
+    ];
     if (newlyOpenedAreas.length) {
       const names = newlyOpenedAreas
         .map((areaId) => AREAS.find((area) => area.id === areaId)?.title ?? areaId)
@@ -1093,6 +1142,17 @@ export class UIController {
       messageParts.push(`Referencia del contenido desbloqueado: ${citationLabels.join("; ")}.`);
     }
     this.toast(messageParts.join(" "), "success", 6400);
+    return result;
+  }
+
+  #completeLocation(location, exercise, feedback) {
+    const result = this.#completeLocationProgress(location, exercise);
+    if (!result.ok) {
+      feedback.className = "exercise-feedback error";
+      feedback.textContent = "El lugar ya no cumple sus condiciones de acceso.";
+      this.#playInteractionCue();
+      return;
+    }
     this.#renderLocationBody(location);
     this.#focusActiveStep();
   }
@@ -1496,6 +1556,10 @@ export class UIController {
   }
 
   openDebugPanel() {
+    if (!this.profileCapabilities.canUseDebugger) {
+      this.toast("El debugger solo está disponible en el perfil debug.", "warning");
+      return;
+    }
     this.gameApi?.setDebugOption("enabled", true);
     this.openPanel("debug-panel");
   }

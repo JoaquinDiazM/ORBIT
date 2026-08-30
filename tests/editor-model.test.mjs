@@ -67,6 +67,36 @@ test("inicializa, persiste y entrega snapshots independientes", () => {
   assert.equal(second.locations[0].offset.x, 0);
 });
 
+test("el perfil estudiante consulta el borrador sin persistir ni mutar", () => {
+  const storage = new MemoryStorage();
+  const editor = new EditorModel({
+    storage,
+    clock: tickingClock(),
+    readOnly: true,
+  });
+  const before = editor.exportDocument();
+
+  assert.equal(editor.getSnapshot().readOnly, true);
+  assert.equal(storage.saveCount, 0);
+  for (const result of [
+    editor.moveLocation("field-lens-cache", {
+      areaId: "electrostatics",
+      offset: { x: 0, y: 0 },
+    }),
+    editor.connectLocations("vector-workshop", "circuit-analysis-bench"),
+    editor.moveArea("electrostatics", { q: 0, r: -1 }),
+    editor.undo(),
+    editor.redo(),
+    editor.resetDraft(),
+    editor.importDocument(JSON.parse(before)),
+  ]) {
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "profile-read-only");
+  }
+  assert.equal(editor.exportDocument(), before);
+  assert.equal(storage.saveCount, 0);
+});
+
 test("Bee intercambia zonas del mismo anillo de forma atómica", () => {
   const editor = model();
   const before = editor.getSnapshot();
@@ -313,7 +343,9 @@ test("reset vuelve al canónico, persiste y vacía ambos historiales", () => {
 
 test("la clave del editor nunca altera ni elimina progreso estudiantil", () => {
   const values = new Map([
-    ["orbit-progress:v3:normal", JSON.stringify({ schemaVersion: 3, marker: "student" })],
+    ["orbit-progress:v3:student", JSON.stringify({ schemaVersion: 3, marker: "student" })],
+    ["orbit-progress:v3:teacher", JSON.stringify({ schemaVersion: 3, marker: "teacher" })],
+    ["orbit-progress:v3:debug", JSON.stringify({ schemaVersion: 3, marker: "debug" })],
   ]);
   const browserStorage = {
     getItem: (key) => values.get(key) ?? null,
@@ -329,10 +361,12 @@ test("la clave del editor nunca altera ni elimina progreso estudiantil", () => {
   });
   editor.resetDraft();
 
-  assert.deepEqual(JSON.parse(values.get("orbit-progress:v3:normal")), {
-    schemaVersion: 3,
-    marker: "student",
-  });
+  for (const profile of ["student", "teacher", "debug"]) {
+    assert.deepEqual(JSON.parse(values.get(`orbit-progress:v3:${profile}`)), {
+      schemaVersion: 3,
+      marker: profile,
+    });
+  }
   assert.equal(values.has(EDITOR_KEY), true);
 });
 

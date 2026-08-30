@@ -61,6 +61,48 @@
   font-size: 0.68rem;
 }
 
+.editor-access-notice {
+  position: fixed;
+  z-index: 36;
+  top: calc(var(--chrome-gap) + var(--hud-height) + 0.55rem);
+  left: 50%;
+  display: flex;
+  width: min(44rem, calc(100vw - 2rem));
+  padding: 0.72rem 0.9rem;
+  gap: 0.45rem;
+  align-items: baseline;
+  transform: translateX(-50%);
+  color: var(--text);
+  font-size: 0.76rem;
+}
+
+.editor-access-notice[hidden] {
+  display: none;
+}
+
+.editor-shell[data-access="read-only"] #world-canvas {
+  cursor: grab;
+}
+
+.editor-shell[data-access="read-only"] .editor-inspector {
+  top: calc(var(--chrome-gap) + var(--hud-height) + 4.55rem);
+  height: calc(100vh - var(--hud-height) - 5.65rem);
+}
+
+.editor-shell[data-access="read-only"] .editor-tools-dock .dock-button,
+.editor-shell[data-access="read-only"] .editor-file-button.is-disabled {
+  opacity: 0.5;
+}
+
+.editor-shell[data-access="blocked"] #world-canvas,
+.editor-shell[data-access="blocked"] .editor-dock,
+.editor-shell[data-access="blocked"] .editor-inspector,
+.editor-shell[data-access="blocked"] .editor-controls-hint,
+.editor-shell[data-access="blocked"] .editor-history-controls,
+.editor-shell[data-access="blocked"] .editor-stats {
+  display: none;
+}
+
 .editor-dock {
   width: var(--editor-general-width);
   transition: width 150ms ease, left 150ms ease;

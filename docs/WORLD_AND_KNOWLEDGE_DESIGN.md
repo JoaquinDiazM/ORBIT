@@ -1,4 +1,4 @@
-# Diseño del mundo de Electromagnetismo Aplicado y sus dos grafos
+# Diseño del mundo de Electromagnetismo y sus dos grafos
 
 ## Principio central
 
@@ -88,6 +88,12 @@ La propiedad `visibility` define cómo se representa antes de cumplir los requis
 - `visibleWhenAreaUnlocked`: se ve al abrir la zona, aunque todavía no sea interactivo;
 - `hiddenUntilUnlocked`: no se revela hasta cumplir sus requisitos.
 
+La política de perfil aplica un filtro adicional solo al lugar de tipo `debug`: Estudiante y
+Docente no lo incluyen entre lugares visibles o accesibles, mientras Debug sí. La cartografía y
+los requisitos académicos restantes son comunes. Docente acelera la revisión al completar por
+la vía ordinaria de `ProgressionModel` una lección o misión evaluable cuando interactúa; no
+altera la definición del Árbol I o II.
+
 ### Guías direccionales derivadas
 
 `src/core/knowledge-graph.js` resuelve los requisitos `completedLocations`, `concepts` y `rewards` hacia el lugar que actúa como prerrequisito. La dirección es siempre:
@@ -114,20 +120,35 @@ Si un destino acaba de volverse accesible, únicamente la arista desde el lugar 
 
 ## Autoría cartográfica en ORBIT Editor
 
-ORBIT Editor abre en `editor.html` y trabaja sobre una copia editorial de la cartografía. No sustituye los perfiles normal o debug de ORBIT en `index.html` ni comparte su estado. El progreso del estudiante conserva el esquema `v3`; el borrador editorial usa el esquema `v1` y la clave `orbit-editor:v1:electromagnetism-applied`.
+ORBIT Editor abre en `editor.html` y trabaja sobre una copia editorial de la cartografía. No
+sustituye los perfiles Estudiante, Docente o Debug de ORBIT en `index.html` ni comparte su
+progreso. Sin query concede capacidad Docente completa; `?profile=student` conserva el mapa en
+consulta con Spider, Bee y las mutaciones bloqueadas; `?profile=debug` se detiene antes de crear el
+modelo. El borrador editorial único usa el esquema `v1` y la clave
+`orbit-editor:v1:electromagnetism-applied`, separada de los tres avances `v3`.
 
-La herramienta **Spider** opera sobre los lugares y el Árbol II:
+Con capacidad Docente, la herramienta **Spider** opera sobre los lugares y el Árbol II:
 
 - mueve un lugar cambiando su `areaId` y su `offset` local;
 - crea o elimina únicamente requisitos directos `completedLocations`;
 - muestra las relaciones derivadas de conceptos y recompensas como información de solo lectura;
 - rechaza autorrelaciones, duplicados y ciclos antes de aceptar una conexión.
 
-La herramienta **Bee** reorganiza las zonas del disco axial. Como las 19 celdas ya están ocupadas, la operación disponible es un intercambio: solo admite dos zonas con el mismo `tier` o anillo, mantiene fijo el origen y desplaza cada zona junto con los lugares que contiene. De esta manera, el anillo uno de fundamentos teóricos nunca se mezcla con el anillo dos de aplicaciones.
+También con capacidad Docente, **Bee** reorganiza las zonas del disco axial. Como las 19 celdas
+ya están ocupadas, la operación disponible es un intercambio: solo admite dos zonas con el
+mismo `tier` o anillo, mantiene fijo el origen y desplaza cada zona junto con los lugares que
+contiene. De esta manera, el anillo uno de fundamentos teóricos nunca se mezcla con el anillo
+dos de aplicaciones.
 
 Los docks **General** y **Editor** son retractables. El mapa admite selección y manipulación con ratón, alternativas de teclado, cancelación y un historial local de deshacer/rehacer. Estas operaciones solo actualizan el borrador editorial y su guardado automático.
 
-Importar valida el documento completo antes de reemplazarlo; exportar produce JSON para revisión. Ninguna de esas acciones modifica `orbit-progress:*` ni aplica automáticamente el borrador al estudiante. Publicar exige integrar manualmente el JSON revisado en los datos fuente, ejecutar la validación y el build, y desplegar una nueva versión. ORBIT Editor 0.4.0 no tiene backend, autenticación, colaboración multiusuario ni dependencias nuevas de ejecución.
+Importar valida el documento completo antes de reemplazarlo; exportar produce JSON para
+revisión. Estudiante solo puede exportar y recorrer; no existe aún un borrador personalizado.
+Ninguna acción modifica `orbit-progress:*` ni aplica automáticamente el borrador al estudiante.
+Publicar exige integrar manualmente el JSON revisado en los datos fuente, ejecutar la
+validación y el build, y desplegar una nueva versión. Las capacidades locales se eligen por URL
+y no son autenticación; ORBIT Editor sigue sin backend, cuentas, colaboración multiusuario ni
+dependencias nuevas de ejecución.
 
 ## Clases de lugar actuales
 
@@ -139,7 +160,7 @@ Importar valida el documento completo antes de reemplazarlo; exportar produce JS
 | `gadget` | herramienta visual |
 | `transport` | mejora de desplazamiento |
 | `npc` | personaje o ruta lateral |
-| `debug` | acceso explícito a herramientas de desarrollo |
+| `debug` | acceso explícito a herramientas de desarrollo, derivado solo en el perfil Debug |
 
 La clase no determina por sí sola el progreso; los campos `requirements` y `grants` son la autoridad.
 

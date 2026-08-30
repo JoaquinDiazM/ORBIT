@@ -1,6 +1,8 @@
 # Guía de ORBIT
 
-ORBIT ofrece dos entradas. Esta guía describe **ORBIT** en `index.html`, tanto en perfil normal como debug. La autoría cartográfica se realiza por separado en `editor.html` y se documenta en la [Guía de ORBIT Editor](EDITOR_GUIDE.md).
+ORBIT ofrece dos entradas. Esta guía describe **ORBIT** en `index.html`, con los perfiles
+locales Estudiante, Docente y Debug. La autoría cartográfica se realiza por separado en
+`editor.html` y se documenta en la [Guía de ORBIT Editor](EDITOR_GUIDE.md).
 
 ## Abrir el prototipo
 
@@ -14,6 +16,13 @@ npm run dev
 Abre la URL exacta que imprime la terminal. Normalmente es `http://127.0.0.1:4173/`; si ese puerto ya está ocupado, el servidor selecciona el siguiente disponible. No añadas `editor.html` si deseas recorrer el curso.
 
 `npm install` se ejecuta una vez para disponer del render matemático local.
+
+El selector de la cabecera ofrece exactamente tres perfiles. **Estudiante** es el modo por
+defecto. **Docente** conserva las mismas reglas curriculares, pero autocompleta al interactuar
+una lección o misión que exige respuesta y abre su contenido ya completado para revisión. No
+autocompleta lecturas, personajes u otros encuentros no evaluativos. **Debug** habilita la
+Terminal de Cartografía, `F2`/`` ` `` y `window.OrbitDebug`; esas superficies no aparecen ni
+pueden interactuarse en los otros dos perfiles. Son modos locales, no cuentas autenticadas.
 
 ## Objetivo de la demostración
 
@@ -104,29 +113,31 @@ La **Estación de Superconductividad** contiene dos lugares complementarios. Hei
 
 ## Guardado
 
-El progreso se guarda automáticamente en el navegador usando un perfil.
+El progreso se guarda automáticamente y por separado para cada perfil.
 
-Perfil normal:
-
-```text
-http://127.0.0.1:<puerto>/
-```
-
-Perfil separado:
+Estudiante, Docente y Debug:
 
 ```text
-http://127.0.0.1:<puerto>/?profile=prueba-1
+http://127.0.0.1:<puerto>/?profile=student
+http://127.0.0.1:<puerto>/?profile=teacher
+http://127.0.0.1:<puerto>/?debug=1&profile=debug
 ```
 
-Usa en ambos casos el puerto indicado por la ejecución actual de `npm run dev`.
+Usa en los tres casos el puerto indicado por la ejecución actual de `npm run dev`.
 
-Los nombres de perfil se normalizan para evitar claves inválidas. El progreso de un navegador no se sincroniza automáticamente con otro equipo.
+Cambiar el selector recarga el perfil elegido, pero no copia logros ni preferencias. Cualquier
+nombre desconocido vuelve a Estudiante; no se crean perfiles arbitrarios. El progreso de un
+navegador no se sincroniza automáticamente con otro equipo.
 
-El formato vigente es `v3`. Al abrir un perfil anterior, ORBIT migra los esquemas `v1`/`v2` y también consulta las claves históricas con prefijo `aea-progress`; después guarda el estado saneado bajo `orbit-progress`. La migración conserva los logros compatibles, transforma los antiguos ajustes de audio en los dos volúmenes independientes e inicia la visualización del Árbol II en **Oculta**.
+El formato vigente sigue siendo `v3`. Al abrir Estudiante, ORBIT consulta el antiguo perfil
+`normal`, lo sanea como `student` y lo guarda bajo `orbit-progress:v3:student` sin perder
+logros compatibles. Las migraciones `v1`/`v2` y las claves históricas `aea-progress` siguen
+admitidas; transforman los ajustes antiguos en dos volúmenes independientes e inician la
+visualización del Árbol II en **Oculta**.
 
 ## Exportar e importar progreso
 
-Abre el debugger con `F2` y usa:
+Cambia a Debug, abre el debugger con `F2` y usa:
 
 - **Exportar progreso:** descarga un JSON del perfil actual.
 - **Importar progreso:** valida e incorpora un JSON compatible.
@@ -143,9 +154,17 @@ ORBIT Editor se abre en:
 http://127.0.0.1:<puerto>/editor.html
 ```
 
-Su propósito es que docentes preparen posiciones de nodos, dependencias directas y ordenamiento de zonas. Usa dos docks retractables y las herramientas **Spider** y **Bee**, pero no ejecuta ejercicios, no concede conceptos y no usa perfiles.
+Sin query, su propósito es que Docente prepare posiciones de nodos, dependencias directas y
+ordenamiento de zonas con **Spider** y **Bee**. Con `?profile=student` permite consultar,
+recorrer, encuadrar y exportar el mapa, pero bloquea ambas herramientas y cualquier mutación con
+un mensaje. Con `?profile=debug` bloquea la entrada antes de crear el modelo editorial.
 
-El borrador editorial se autoguarda bajo `orbit-editor:v1:electromagnetism-applied`. Exportarlo no cambia este mapa ni el progreso de ningún estudiante. Para que una edición llegue a ORBIT debe revisarse, aplicarse manualmente al repositorio, superar validación y pruebas, construirse y desplegarse. `editor.html` tampoco ofrece autenticación por sí solo.
+El borrador editorial se autoguarda bajo `orbit-editor:v1:electromagnetism-applied`. Es uno solo:
+el perfil no crea borradores propios ni mezcla este documento con los tres avances de ORBIT.
+Exportarlo no cambia este mapa ni el progreso de ningún estudiante. Para que una edición llegue
+a ORBIT debe revisarse, aplicarse manualmente al repositorio, superar validación y pruebas,
+construirse y desplegarse. Como la query se puede editar, `editor.html` no ofrece autenticación
+ni control de acceso real.
 
 ## Accesibilidad básica
 

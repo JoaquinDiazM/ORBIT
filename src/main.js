@@ -1,25 +1,29 @@
 import { APP_CONFIG } from "./config.js";
 import { AudioManager } from "./audio/audio-manager.js";
+import {
+  getProfileCapabilities,
+  resolveOrbitProfile,
+} from "./core/profile-policy.js";
 import { ProgressionModel } from "./core/progression.js";
-import { createLegacyProgressKeys, sanitizeProfileName } from "./core/storage.js";
+import { createLegacyProgressKeys } from "./core/storage.js";
 import { validateProjectData } from "./core/validator.js";
 import { GameApp } from "./game/game-app.js";
 import { UIController } from "./ui/ui-controller.js";
 
 const url = new URL(window.location.href);
-const debugInitiallyEnabled = ["1", "true", "yes"].includes(
+const debugRequested = ["1", "true", "yes"].includes(
   (url.searchParams.get("debug") ?? "").toLowerCase(),
 );
 const requestedProfile = url.searchParams.get("profile");
-const profile = sanitizeProfileName(
-  requestedProfile ?? (debugInitiallyEnabled ? APP_CONFIG.debugProfile : APP_CONFIG.defaultProfile),
-  APP_CONFIG.defaultProfile,
-);
+const profile = resolveOrbitProfile({ requestedProfile, debugRequested });
+const profileCapabilities = getProfileCapabilities(profile);
+const debugInitiallyEnabled = profileCapabilities.canUseDebugger && debugRequested;
 const storageKey = `${APP_CONFIG.storagePrefix}:v${APP_CONFIG.progressSchemaVersion}:${profile}`;
 const legacyStorageKeys = createLegacyProgressKeys({
   prefixes: [APP_CONFIG.storagePrefix, ...APP_CONFIG.legacyStoragePrefixes],
   currentVersion: APP_CONFIG.progressSchemaVersion,
   profile,
+  profileAliases: profile === APP_CONFIG.defaultProfile ? ["normal"] : [],
 });
 
 const validation = validateProjectData();
@@ -72,7 +76,7 @@ requestAnimationFrame(() => {
   window.OrbitStartup?.ready();
 });
 
-window.OrbitDebug = Object.freeze({
+const debugApi = Object.freeze({
   help() {
     return {
       profile,
@@ -119,8 +123,10 @@ window.OrbitDebug = Object.freeze({
   },
 });
 
+if (profileCapabilities.canUseDebugger) window.OrbitDebug = debugApi;
+
 console.info(
-  `%c${APP_CONFIG.appName} ${APP_CONFIG.version}%c\nDebugger disponible en window.OrbitDebug. Ejecuta OrbitDebug.help().`,
+  `%c${APP_CONFIG.appName} ${APP_CONFIG.version}%c\nPerfil local: ${profile}. ${profileCapabilities.canUseDebugger ? "Debugger disponible en window.OrbitDebug." : "Las herramientas de depuración no están disponibles en este perfil."}`,
   "color:#78e3ff;font-weight:700;font-size:14px",
   "color:#a9bfd0",
 );

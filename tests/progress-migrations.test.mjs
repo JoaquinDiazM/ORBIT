@@ -279,3 +279,49 @@ test("las claves históricas priorizan el esquema más reciente entre prefijos",
 
   assert.deepEqual(storage.load(), { schemaVersion: 2, marker: "latest" });
 });
+
+test("student adopta una sola vez el progreso vigente del antiguo perfil normal", () => {
+  const legacyKeys = createLegacyProgressKeys({
+    prefixes: ["orbit-progress", "aea-progress"],
+    currentVersion: 3,
+    profile: "student",
+    profileAliases: ["normal"],
+  });
+  assert.deepEqual(legacyKeys, [
+    "orbit-progress:v3:normal",
+    "aea-progress:v3:normal",
+    "orbit-progress:v2:student",
+    "aea-progress:v2:student",
+    "orbit-progress:v2:normal",
+    "aea-progress:v2:normal",
+    "orbit-progress:v1:student",
+    "aea-progress:v1:student",
+    "orbit-progress:v1:normal",
+    "aea-progress:v1:normal",
+  ]);
+
+  const oldProgress = {
+    ...v2State(),
+    schemaVersion: 3,
+    profile: "normal",
+    completedLocations: ["vector-workshop"],
+  };
+  const values = new Map([
+    ["orbit-progress:v3:normal", JSON.stringify(oldProgress)],
+  ]);
+  const storage = new ProgressStorage(
+    "orbit-progress:v3:student",
+    {
+      getItem: (key) => values.get(key) ?? null,
+      setItem: (key, value) => values.set(key, value),
+      removeItem: (key) => values.delete(key),
+    },
+    legacyKeys,
+  );
+  const progression = new ProgressionModel({ profile: "student", storage });
+
+  assert.equal(progression.getSnapshot().profile, "student");
+  assert.equal(progression.isLocationCompleted("vector-workshop"), true);
+  assert.equal(JSON.parse(values.get("orbit-progress:v3:student")).profile, "student");
+  assert.equal(values.has("orbit-progress:v3:normal"), true);
+});

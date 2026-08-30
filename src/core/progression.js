@@ -3,6 +3,7 @@ import { CONCEPTS, REWARDS, getReward, parseRewardKey, rewardKey } from "../data
 import { LOCATIONS } from "../data/locations.js";
 import { AREAS, WORLD_CONFIG } from "../data/world.js";
 import { TREE_TWO_VISUALIZATION_MODES } from "./knowledge-graph.js";
+import { isLocationAllowedForProfile } from "./profile-policy.js";
 import { meetsRequirements } from "./requirements.js";
 import { migrateProgressState } from "./progress-migrations.js";
 import { ProgressStorage } from "./storage.js";
@@ -172,6 +173,7 @@ export class ProgressionModel {
       this.locations
         .filter(
           (location) =>
+            isLocationAllowedForProfile(this.profile, location) &&
             unlockedAreas.has(location.areaId) &&
             meetsRequirements(location.requirements, context),
         )
@@ -200,6 +202,7 @@ export class ProgressionModel {
         ? this.locations.find((candidate) => candidate.id === locationOrId)
         : locationOrId;
     if (!location) return false;
+    if (!isLocationAllowedForProfile(this.profile, location)) return false;
 
     const unlockedAreas = this.getUnlockedAreaIds();
     if (!unlockedAreas.has(location.areaId)) return false;
@@ -212,6 +215,7 @@ export class ProgressionModel {
         ? this.locations.find((candidate) => candidate.id === locationOrId)
         : locationOrId;
     if (!location) return false;
+    if (!isLocationAllowedForProfile(this.profile, location)) return false;
     if (!this.isAreaUnlocked(location.areaId)) return false;
     if (location.visibility === "hiddenUntilUnlocked") {
       return this.isLocationAccessible(location);

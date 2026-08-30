@@ -23,8 +23,8 @@ class MemoryStorage {
   }
 }
 
-function model() {
-  return new ProgressionModel({ profile: "test", storage: new MemoryStorage() });
+function model(profile = "student") {
+  return new ProgressionModel({ profile, storage: new MemoryStorage() });
 }
 
 test("el perfil nuevo comienza solamente con el Campamento Base abierto", () => {
@@ -32,6 +32,23 @@ test("el perfil nuevo comienza solamente con el Campamento Base abierto", () => 
   assert.deepEqual([...progression.getUnlockedAreaIds()], ["origin"]);
   assert.equal(progression.isLocationAccessible("vector-workshop"), true);
   assert.equal(progression.isLocationAccessible("coulomb-observatory"), false);
+});
+
+test("la Terminal de Cartografía solo existe en el perfil debug", () => {
+  for (const profile of ["student", "teacher"]) {
+    const progression = model(profile);
+    assert.equal(progression.isLocationVisible("debug-terminal"), false, profile);
+    assert.equal(progression.isLocationAccessible("debug-terminal"), false, profile);
+    assert.equal(
+      progression.getSnapshot().visibleLocationIds.has("debug-terminal"),
+      false,
+      profile,
+    );
+  }
+
+  const debug = model("debug");
+  assert.equal(debug.isLocationVisible("debug-terminal"), true);
+  assert.equal(debug.isLocationAccessible("debug-terminal"), true);
 });
 
 test("completar Vectores abre las tres rutas fundamentales iniciales y revela el gadget", () => {

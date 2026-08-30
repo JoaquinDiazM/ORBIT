@@ -3,7 +3,8 @@
 ## Antes de revisar
 
 - [ ] Leer los `AGENTS.md` aplicables.
-- [ ] Usar un perfil de prueba separado.
+- [ ] Probar por separado los perfiles canónicos Estudiante, Docente y Debug; no inventar
+      sufijos de perfil.
 - [ ] Ejecutar `npm run check`.
 - [ ] Confirmar que no hay errores ni advertencias inesperadas en consola.
 - [ ] Abrir la URL impresa por la ejecución actual, no una pestaña servida por un proceso anterior.
@@ -61,6 +62,10 @@
 - [ ] La unidad aparece en enunciado o campo de respuesta.
 - [ ] La explicación incluye razonamiento físico, no solo número.
 - [ ] El lugar no concede un concepto que exige.
+- [ ] Docente autocompleta al interactuar una lección o misión que exige respuesta y abre el
+      contenido completado para revisión.
+- [ ] Docente no autocompleta NPC, gadgets, transportes, lugares base ni actividades de mera
+      confirmación; Estudiante nunca autocompleta.
 
 ## Contenido científico e histórico
 
@@ -75,7 +80,10 @@
 ## Persistencia
 
 - [ ] El progreso sobrevive a recarga.
-- [ ] Perfiles distintos no se mezclan.
+- [ ] `student`, `teacher` y `debug` usan claves y avances separados; cambiar el selector no
+      copia logros ni preferencias.
+- [ ] Una clave `orbit-progress:v3:normal` compatible migra a
+      `orbit-progress:v3:student`, conserva logros y sanea `profile` como `student`.
 - [ ] Un perfil de ORBIT compatible con 0.4.0 se guarda con esquema `v3` bajo el prefijo `orbit-progress`.
 - [ ] Un perfil `v1` o `v2` bajo el prefijo histórico `aea-progress` migra sin perder logros compatibles y se vuelve a guardar bajo `orbit-progress`.
 - [ ] La migración convierte la preferencia y el volumen históricos en `ambienceVolume` y `effectsVolume`; un perfil antes silenciado migra ambos a cero.
@@ -89,17 +97,26 @@
 
 ## Debugger de ORBIT
 
-- [ ] F2 y tecla grave abren/cierran el panel; cerrarlo con × mantiene el siguiente atajo sincronizado.
+- [ ] Solo Debug ve e interactúa con la Terminal de Cartografía; Estudiante y Docente no la
+      incluyen en render, foco, hit testing ni lugar cercano.
+- [ ] Solo Debug publica `window.OrbitDebug` y muestra las ayudas de depuración.
+- [ ] En Debug, F2 y tecla grave abren/cierran el panel; cerrarlo con × mantiene el siguiente atajo sincronizado.
+- [ ] En Estudiante y Docente, F2 y tecla grave no abren el panel y explican la restricción sin
+      habilitar capacidades.
 - [ ] Noclip funciona.
 - [ ] Al apagar noclip fuera de una zona abierta se retorna a spawn.
 - [ ] Teletransporte por selector funciona.
 - [ ] `Shift` + clic funciona dentro de la cartografía.
 - [ ] `OrbitDebug.help()` y `snapshot()` funcionan.
-- [ ] Completar cercano no selecciona contenido inaccesible en modo normal.
-- [ ] Abrir `?debug=1` no activa Editor ni carga su borrador.
+- [ ] Completar cercano no selecciona contenido inaccesible sin forzar sus requisitos.
+- [ ] Abrir `?debug=1` sin perfil conserva la compatibilidad al resolver Debug, pero no activa
+      Editor ni carga su borrador.
 
 ## Interfaz y accesibilidad
 
+- [ ] El selector ofrece exactamente **Estudiante**, **Docente** y **Debug**, refleja el perfil
+      activo y su cambio conserva una URL canónica.
+- [ ] La interfaz informa que los perfiles son locales y no autenticación.
 - [ ] Todas las acciones esenciales tienen teclado.
 - [ ] El foco es visible.
 - [ ] Abrir un panel mueve el foco a su cierre; `Esc` o el botón de cierre lo devuelve al control que lo abrió.
@@ -125,6 +142,17 @@
 ## ORBIT Editor
 
 - [ ] `editor.html` identifica inequívocamente **ORBIT Editor** y enlaza de vuelta a ORBIT.
+- [ ] `editor.html` sin query y `?profile=teacher` abren Docente con capacidad completa.
+- [ ] `?profile=student` muestra un aviso de solo lectura, permite pan/zoom/encuadre/consulta y
+      exportación, y bloquea Spider, Bee, importación, restauración, historial y toda mutación.
+- [ ] En Estudiante, intentar Spider/Bee o una mutación por puntero, teclado o API conserva
+      intacto el borrador y comunica la restricción por texto.
+- [ ] `?profile=debug` muestra un bloqueo enfocable, no crea `EditorModel` ni renderer y no
+      expone métodos mutadores en `window.OrbitEditor`.
+- [ ] Ninguno de los tres accesos al Editor lee o escribe progreso; Docente y Estudiante
+      comparten la única clave editorial `orbit-editor:v1:electromagnetism-applied`.
+- [ ] Cambiar la query demuestra que estas restricciones son locales y no se presenta como
+      autenticación o seguridad real.
 - [ ] El dataset compartido conserva 19 zonas, 20 conceptos, 28 nodos, 13 parejas derivadas y cuatro conexiones directas canónicas.
 - [ ] Los docks **General** y **Editor** se minimizan y expanden por separado; el control de reapertura nunca desaparece.
 - [ ] `aria-expanded`, foco visible, `Tab`, `Enter` y `Espacio` reflejan el estado real de ambos docks.
@@ -165,6 +193,8 @@
 - [ ] Completar un lugar que abre una o varias zonas reproduce `zone_unlocked` una sola vez; una finalización sin zona nueva no lo solicita.
 - [ ] Una interacción sin cue específico solicita solo la confirmación predeterminada.
 - [ ] Una acción con cue específico lo solicita en lugar del predeterminado; ambos nunca se superponen.
+- [ ] El autocompletado Docente reproduce una sola señal de finalización y no superpone
+      `mission_start`.
 - [ ] Los cinco botones de prueba del debugger reproducen, respectivamente, ambiente, transición de hexágono, confirmación de interacción, clic de interfaz y zona desbloqueada.
 - [ ] El manifiesto contiene cinco `.ogg` versionados, cada uno con sidecar, atribución y un uso verificable.
 - [ ] Los tres recursos de Freesound conservan licencia CC0 1.0; `ui-select-default.ogg` y `zone-unlocked-airlock.ogg` se identifican como contribuciones de ORBIT aportadas por JoaquinDiazM mediante ChatGPT y publicadas bajo MIT.

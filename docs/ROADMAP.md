@@ -8,7 +8,7 @@ operativa, sus preguntas, revisión humana y estado de publicación viven en
 punto correspondiente está `autorizado`.
 
 ORBIT significa **Open Roadmap for Building Intuition and Theory**. Los hitos hasta `1.0`
-describen la ruta actual de Electromagnetismo Aplicado. Migrar y conectar cursos diferentes es
+describen la ruta actual de Electromagnetismo. Migrar y conectar cursos diferentes es
 una dirección posterior: el prototipo todavía no ofrece una arquitectura multicurso.
 
 ## 0.1 — Base técnica y mecánica
@@ -60,14 +60,21 @@ Criterio de salida: sirve como plantilla de calidad para todos los nodos posteri
 
 Estado: base cartográfica implementada en `0.4.0`; no es todavía un editor completo de cursos.
 
-- Separar **ORBIT Estudiante** (`index.html`, perfiles normal/debug) de **ORBIT Editor** (`editor.html`).
+- Mantener **ORBIT** (`index.html`) con exactamente tres perfiles locales de avance separado:
+  Estudiante, Docente y Debug; migrar el antiguo `normal` a Estudiante.
+- Reservar las superficies de depuración para Debug y permitir que el perfil Docente
+  autocomplete las
+  lecciones y misiones evaluables al interactuar.
+- Mantener **ORBIT Editor** (`editor.html`) con Docente completo por defecto, Estudiante en
+  consulta con Spider/Bee bloqueados y Debug bloqueado antes de crear el modelo.
 - Incorporar docks General y Editor retractables y operables con puntero o teclado.
 - Implementar Spider para mover nodos y editar requisitos directos `completedLocations`, conservando conceptos/recompensas como relaciones derivadas de solo lectura.
 - Implementar Bee para intercambiar zonas dentro de `tier 1` o `tier 2`, con Base fija y rechazo entre anillos.
 - Versionar el borrador como esquema editorial `v1`, separado del progreso Estudiante `v3`.
 - Añadir autoguardado, importación/exportación JSON validada y deshacer/rehacer.
 - Conservar el dataset canónico de 19 zonas, 20 conceptos, 28 lugares, 13 parejas derivadas y cuatro requisitos directos `completedLocations`.
-- Mantener operación estática, sin backend, autenticación, dependencia nueva ni publicación automática.
+- Mantener operación estática: los perfiles y bloqueos son conveniencias locales, sin backend,
+  cuentas, autenticación, dependencia nueva ni publicación automática.
 
 El sistema de contenido escalable que antes ocupaba este hito permanece pendiente como línea posterior:
 
@@ -113,6 +120,8 @@ El sistema de contenido escalable que antes ocupaba este hito permanece pendient
 - Sincronización opcional entre dispositivos.
 - Paquetes de contenido de terceros.
 - Edición visual de contenido, creación de entidades y publicación asistida sobre la base de Editor 0.4.0.
+- Cuentas autenticadas, asignación protegida de roles y borradores visuales personalizados para
+  estudiantes; la matriz local vigente no adelanta esa seguridad.
 - Idioma inglés.
 - Integración con LMS mediante un estándar abierto.
 - Simulaciones interactivas propias.

@@ -1,3 +1,4 @@
+import { APP_CONFIG } from "../config.js";
 import { WORLD_CONFIG } from "../data/world.js";
 import { axialToPixel, getWorldBounds, pointInHex } from "../core/hex.js";
 import { createWorldIndex, getLocationWorldPosition } from "../core/world-graph.js";
@@ -5,6 +6,19 @@ import { Camera2D } from "../game/camera.js";
 import { EDITOR_LOCATION_SAFE_MARGIN } from "./editor-document.js";
 
 const POINTER_NODE_RADIUS_PX = 27;
+const EDITOR_FIT_PADDING = 120;
+const EDITOR_FIT_MAX_ZOOM = 0.9;
+
+export function calculateEditorFitZoom(bounds, viewportWidth, viewportHeight) {
+  const width = Math.max(1, bounds.maxX - bounds.minX);
+  const height = Math.max(1, bounds.maxY - bounds.minY);
+  const availableHeight = Math.max(320, viewportHeight - 130);
+  return Math.min(
+    EDITOR_FIT_MAX_ZOOM,
+    viewportWidth / width,
+    availableHeight / height,
+  );
+}
 
 function pointerPosition(event, canvas, renderer) {
   const rectangle = canvas.getBoundingClientRect();
@@ -37,6 +51,7 @@ export class EditorApp {
     this.canvas = canvas;
     this.model = model;
     this.renderer = renderer;
+    this.readOnly = Boolean(model.getSnapshot().readOnly);
     this.listeners = new Set();
     this.activeTool = "spider";
     this.spiderMode = "move";
@@ -61,8 +76,12 @@ export class EditorApp {
     this.camera = new Camera2D({
       x: 0,
       y: 0,
-      zoom: 0.58,
-      bounds: getWorldBounds(snapshot.areas, WORLD_CONFIG.hexSize, 210),
+      zoom: APP_CONFIG.defaultZoom,
+      bounds: getWorldBounds(
+        snapshot.areas,
+        WORLD_CONFIG.hexSize,
+        WORLD_CONFIG.hexSize * 2,
+      ),
     });
     this.renderer.resize();
     this.camera.resize(this.renderer.width, this.renderer.height);
@@ -140,10 +159,12 @@ export class EditorApp {
       hoveredAreaId: this.hoveredAreaId,
       gesture: this.gesture?.type ?? null,
       edges: structuredClone(snapshot.treeTwoTopology ?? []),
+      readOnly: this.readOnly,
     };
   }
 
   setActiveTool(tool) {
+    if (this.readOnly) return false;
     if (!["spider", "bee"].includes(tool) || tool === this.activeTool) return;
     this.cancelGesture();
     this.activeTool = tool;
@@ -152,6 +173,7 @@ export class EditorApp {
   }
 
   setSpiderMode(mode) {
+    if (this.readOnly) return false;
     if (!["move", "connect"].includes(mode) || mode === this.spiderMode) return;
     this.cancelGesture();
     this.spiderMode = mode;
@@ -181,16 +203,19 @@ export class EditorApp {
 
   fitWorld({ announce = true } = {}) {
     const snapshot = this.model.getSnapshot();
-    const bounds = getWorldBounds(snapshot.areas, WORLD_CONFIG.hexSize, 120);
-    const width = Math.max(1, bounds.maxX - bounds.minX);
-    const height = Math.max(1, bounds.maxY - bounds.minY);
-    const availableWidth = Math.max(420, this.renderer.width - Math.min(470, this.renderer.width * 0.32));
-    const availableHeight = Math.max(320, this.renderer.height - 130);
-    const zoom = Math.min(0.9, availableWidth / width, availableHeight / height);
+    const bounds = getWorldBounds(snapshot.areas, WORLD_CONFIG.hexSize, EDITOR_FIT_PADDING);
+    const zoom = calculateEditorFitZoom(bounds, this.renderer.width, this.renderer.height);
     this.camera.setZoom(zoom);
     this.camera.setCenter((bounds.minX + bounds.maxX) / 2, (bounds.minY + bounds.maxY) / 2);
     if (announce) this.#emit("camera-fitted", { message: "Mapamundi encuadrado.", level: "info" });
     this.requestRender();
+  }
+
+  panCameraByScreen(dx, dy) {
+    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return false;
+    this.camera.panByScreen(dx, dy);
+    this.requestRender();
+    return true;
   }
 
   cancelGesture() {
@@ -290,7 +315,7 @@ export class EditorApp {
     this.canvas.focus({ preventScroll: true });
     const { screen, world } = this.#worldPoint(event);
     const scene = this.#scene();
-    const forcePan = event.button === 1;
+    const forcePan = this.readOnly || event.button === 1;
 
     if (!forcePan && this.activeTool === "spider") {
       const location = this.#locationAt(world, scene, {

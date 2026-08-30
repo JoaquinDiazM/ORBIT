@@ -48,6 +48,53 @@ test("la señal visual sigue abriéndose si el servicio de audio no existe", () 
   assert.deepEqual(openedLocations, ["base-camp"]);
 });
 
+test("el autocompletado docente emite finalización sin duplicar mission_start", () => {
+  const events = [];
+  const location = { id: "evaluated-mission" };
+  const audio = {
+    playInteractionCue({ specificAssetKey } = {}) {
+      events.push(`cue:${specificAssetKey}`);
+    },
+  };
+  const ui = {
+    willAutoCompleteLocation(candidate) {
+      return candidate.id === location.id;
+    },
+    openLocation(candidate) {
+      events.push(`completion:${candidate.id}`);
+      return { completionCueHandled: true };
+    },
+  };
+
+  const result = openLocationWithInteractionCue(location, audio, ui);
+
+  assert.deepEqual(events, ["completion:evaluated-mission"]);
+  assert.equal(result.completionCueHandled, true);
+});
+
+test("si el autocompletado docente falla se conserva una señal de interacción", () => {
+  const events = [];
+  const location = { id: "stale-mission" };
+  const audio = {
+    playInteractionCue({ specificAssetKey } = {}) {
+      events.push(`cue:${specificAssetKey}`);
+    },
+  };
+  const ui = {
+    willAutoCompleteLocation() {
+      return true;
+    },
+    openLocation(candidate) {
+      events.push(`visual:${candidate.id}`);
+      return { completionCueHandled: false };
+    },
+  };
+
+  openLocationWithInteractionCue(location, audio, ui);
+
+  assert.deepEqual(events, ["visual:stale-mission", "cue:mission_start"]);
+});
+
 test("el último desbloqueo visual sobrevive completaciones que no abren nodos", () => {
   const empty = {
     newlyAccessibleLocationIds: new Set(),

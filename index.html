@@ -5,27 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="ORBIT, Open Roadmap for Building Intuition and Theory: mundo 2D, progresión conceptual y una primera ruta de Electromagnetismo Aplicado."
+      content="ORBIT, Open Roadmap for Building Intuition and Theory: mundo 2D, progresión conceptual y una primera ruta de Electromagnetismo."
     />
     <meta name="theme-color" content="#08111f" />
     <link rel="icon" href="./public/favicon.svg" type="image/svg+xml" sizes="any" />
     <link rel="manifest" href="./public/manifest.webmanifest" />
     <link rel="stylesheet" href="./node_modules/katex/dist/katex.min.css" />
     <link rel="stylesheet" href="./src/styles.css" />
-    <title>ORBIT · Electromagnetismo Aplicado</title>
+    <title>ORBIT · Electromagnetismo</title>
   </head>
   <body>
-    <main id="app" aria-label="ORBIT, ruta interactiva de electromagnetismo aplicado">
+    <main id="app" aria-label="ORBIT, ruta interactiva de Electromagnetismo">
       <canvas id="world-canvas" tabindex="0" aria-label="Mundo interactivo en dos dimensiones">
         Tu navegador necesita soporte para Canvas 2D.
       </canvas>
 
       <section id="hud" class="glass-card hud-bar" aria-label="Estado de la expedición">
         <div class="hud-brand">
-          <h1><span class="orbit-wordmark">ORBIT</span><span class="orbit-route"> · Electromagnetismo Aplicado</span></h1>
+          <h1><span class="orbit-wordmark">ORBIT</span><span class="orbit-route"> · Electromagnetismo</span></h1>
           <span class="status-badge product-mode-badge">Ruta interactiva</span>
-          <span id="profile-badge" class="status-badge">perfil: normal</span>
-          <a class="mode-entry-link" href="./editor.html">Abrir ORBIT Editor</a>
+          <span id="profile-badge" class="status-badge">perfil: estudiante</span>
+          <select
+            id="profile-select"
+            class="profile-select"
+            aria-label="Cambiar perfil local"
+            title="Perfiles locales sin autenticación"
+          >
+            <option value="student" selected>Estudiante</option>
+            <option value="teacher">Docente</option>
+            <option value="debug">Debug</option>
+          </select>
+          <a id="open-orbit-editor" class="mode-entry-link" href="./editor.html?profile=student">Abrir ORBIT Editor</a>
         </div>
         <dl class="hud-stats">
           <div><dt>Zona</dt><dd id="hud-area">Campamento Base</dd></div>
@@ -112,7 +122,7 @@
         <span><kbd>G</kbd>: gadget</span>
         <span><kbd>T</kbd>: transporte</span>
         <span><kbd>M</kbd>: sonido</span>
-        <span><kbd>F2</kbd>: debugger</span>
+        <span data-debug-only hidden><kbd>F2</kbd>: debugger</span>
       </section>
 
       <div id="interaction-prompt" class="interaction-prompt" hidden>
@@ -233,7 +243,7 @@
             <div><dt>Rueda del ratón</dt><dd>Ajustar el zoom.</dd></div>
             <div><dt><kbd>K</kbd></dt><dd>Abrir los dos árboles de progresión.</dd></div>
             <div><dt><kbd>M</kbd></dt><dd>Abrir el mezclador de ambiente y efectos.</dd></div>
-            <div><dt><kbd>F2</kbd></dt><dd>Abrir el debugger para pruebas.</dd></div>
+            <div data-debug-only hidden><dt><kbd>F2</kbd></dt><dd>Abrir el debugger para pruebas.</dd></div>
             <div><dt><kbd>Esc</kbd></dt><dd>Cerrar paneles.</dd></div>
           </dl>
           <p class="callout">El contenido científico incluido es demostrativo. La arquitectura está preparada para sustituirlo por unidades completas y problemas revisados.</p>
@@ -249,7 +259,7 @@
           <button class="icon-button" data-close-panel="debug-panel" type="button" aria-label="Cerrar">×</button>
         </header>
         <div class="debug-body">
-          <p class="debug-note">Usa <code>?debug=1&amp;profile=debug</code> para separar estas pruebas del progreso normal.</p>
+          <p class="debug-note">Usa <code>?debug=1&amp;profile=debug</code> para mantener estas pruebas separadas del progreso de estudiante y docente.</p>
           <div class="debug-grid">
             <label><input id="debug-noclip" type="checkbox" /> Ignorar aristas bloqueadas</label>
             <label><input id="debug-show-ids" type="checkbox" checked /> Mostrar IDs</label>

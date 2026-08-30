@@ -5,7 +5,7 @@
 Mantener dos aplicaciones web estáticas, comprensibles y modificables sin un motor de juego: **ORBIT** para aprendizaje y **ORBIT Editor** para autoría cartográfica local. La arquitectura separa datos curriculares, reglas de progreso, geometría, borradores editoriales, ejecución del juego y presentación.
 
 ORBIT significa **Open Roadmap for Building Intuition and Theory**. La arquitectura descrita
-aquí implementa por ahora una sola ruta, Electromagnetismo Aplicado. La conexión futura entre
+aquí implementa por ahora una sola ruta, Electromagnetismo. La conexión futura entre
 cursos es una dirección de producto, no una capacidad ya disponible ni una justificación para
 añadir abstracciones prematuras.
 
@@ -78,6 +78,11 @@ Define simbología, constantes, fórmulas y glosario. Cada entrada tiene requisi
 
 `src/core/requirements.js` normaliza y evalúa requisitos contra un contexto de conceptos, ubicaciones completadas, recompensas y zonas abiertas.
 
+`src/core/profile-policy.js` es la matriz única de los modos locales. Resuelve exactamente
+`student`, `teacher` y `debug`; acepta `normal` solo como alias histórico hacia `student`,
+declara las capacidades de depuración y Editor y decide qué lugares participan en cada perfil.
+Es una política de interfaz y ejecución local, no una identidad autenticada.
+
 `src/core/knowledge-graph.js` deriva las guías del Árbol II desde `completedLocations`, `concepts` y `rewards`. Resuelve conceptos y recompensas al lugar que los concede, agrupa requisitos repetidos por pareja y conserva una única dirección semántica: prerrequisito → destino. Los requisitos de área no crean estas aristas. El dataset vigente produce 13 parejas únicas; cuatro relaciones `completedLocations` están declaradas explícitamente y pueden coincidir con causas conceptuales en una misma pareja.
 
 Primero se clasifica cada extremo visible como `completed`, `completable` o `blocked`. Una conexión `completed → completed/completable` usa apariencia `bright`; una conexión `completable → blocked` usa apariencia `muted`. Las demás combinaciones y cualquier extremo oculto quedan fuera. El renderer expresa además esa distinción mediante trazo sólido luminoso frente a trazo tenue discontinuo, de modo que no dependa solo del color.
@@ -103,11 +108,25 @@ La preferencia persistida `treeTwoVisualizationMode` filtra esas conexiones eleg
 - expone snapshots inmutables para game/UI;
 - exporta e importa perfiles.
 
+Estudiante y Docente excluyen de sus conjuntos visibles y accesibles todo lugar de tipo
+`debug`; por ello el nodo de depuración tampoco entra en foco, hit testing o interacción. Debug
+lo conserva. Docente usa el mismo modelo de progreso que Estudiante, pero la UI completa al
+interactuar una lección o misión todavía incompleta que contenga una respuesta de tipo
+`choice`, `numeric`, `expression` o `sequence`; los encuentros no evaluativos siguen el flujo
+ordinario.
+
 `src/core/progress-migrations.js` transforma perfiles publicados antes del saneamiento. El paso `v1 → v2` conserva logros y traslada posiciones y overrides asociados a las antiguas zonas de Inducción y Aplicaciones. El paso `v2 → v3` sustituye la preferencia booleana y el volumen maestro históricos por `ambienceVolume` y `effectsVolume`; si el perfil estaba silenciado, ambas categorías migran a cero. Ese paso inicializa además `treeTwoVisualizationMode` en `hidden`, equivalente a **Oculta**.
 
 ### Persistencia
 
-`src/core/storage.js` encapsula el progreso de ORBIT en `localStorage`. El formato vigente es `v3` y está versionado por `APP_CONFIG.progressSchemaVersion`. La clave primaria usa `orbit-progress`; el arranque también consulta las claves publicadas con el prefijo histórico `aea-progress` y, después de sanear o migrar, guarda bajo la clave de ORBIT.
+`src/core/storage.js` encapsula el progreso de ORBIT en `localStorage`. El formato vigente es
+`v3` y está versionado por `APP_CONFIG.progressSchemaVersion`. Cada uno de los tres perfiles
+usa una clave propia bajo `orbit-progress:v3:<profile>`, por lo que Estudiante, Docente y Debug
+no comparten logros ni preferencias. Al resolver Estudiante, el arranque consulta además la
+clave `orbit-progress:v3:normal`; para cualquier migración compatible también recorre versiones
+anteriores y el prefijo histórico `aea-progress`. Después sanea el contenido como `student` y
+lo guarda bajo la clave canónica sin incrementar el esquema, porque la forma del estado sigue
+siendo `v3`.
 
 El estado de Editor usa otro contrato y otra clave: `orbit-editor:v1:electromagnetism-applied`. El esquema editorial `v1` no es una versión del progreso, no participa en sus migraciones y nunca debe almacenarse bajo `orbit-progress`.
 
@@ -159,9 +178,22 @@ Orquesta el loop:
 - solicita interacciones a la UI;
 - expone operaciones de depuración.
 
+Las operaciones de depuración se aceptan únicamente cuando la política del perfil lo permite.
+El autocompletado docente entra por la misma finalización de lugar que una respuesta correcta y
+emite una sola señal de finalización; no superpone el cue ordinario de interacción.
+
 ## ORBIT: interfaz
 
-`src/ui/ui-controller.js` controla la barra de estado, la ventana principal del lugar, un único panel secundario, etapas, secuencias, ejercicios, árboles, visualización, referencias, sonido, ayuda, avisos y debugger. La ventana principal y la secundaria pueden coexistir en escritorio. El menú ofrece **Árboles**, **Visual**, **Símbolos**, **Constantes**, **Formulario**, **Glosario**, **Ayuda** y **Sonido**; abrir uno sustituye al panel secundario anterior. **Árboles** lista la progresión, mientras **Visual** controla la red del mapa y las vistas de referencia consultan el contenido desbloqueado sin volver a mostrar su bibliografía. La UI construye contenido mediante APIs DOM y `textContent`.
+`src/ui/ui-controller.js` controla la barra de estado, el selector de perfiles locales, la
+ventana principal del lugar, un único panel secundario, etapas, secuencias, ejercicios,
+árboles, visualización, referencias, sonido, ayuda, avisos y debugger. La ventana principal y
+la secundaria pueden coexistir en escritorio. El menú ofrece **Árboles**, **Visual**,
+**Símbolos**, **Constantes**, **Formulario**, **Glosario**, **Ayuda** y **Sonido**; abrir uno
+sustituye al panel secundario anterior. **Árboles** lista la progresión, mientras **Visual**
+controla la red del mapa y las vistas de referencia consultan el contenido desbloqueado sin
+volver a mostrar su bibliografía. Cambiar el selector recarga ORBIT con el perfil canónico y
+propaga ese modo al enlace del Editor. Los controles y ayudas de depuración se ocultan fuera de
+Debug. La UI construye contenido mediante APIs DOM y `textContent`.
 
 `src/ui/vector-field-2d.js` dibuja campos 2D con SVG y DOM nativos. Separa normalización, muestreo, trazado de curvas integrales simples y escala fija del renderer accesible. Las dos figuras de una comparación comparten dominio, densidad y escala; los deslizadores actualizan parámetros locales sin animación, persistencia ni pérdida de la respuesta. `prefers-reduced-motion` queda satisfecho porque no se inician interpolaciones ni partículas automáticas. Este módulo no implementa render 3D, álgebra simbólica ni un lenguaje general de gráficos.
 
@@ -171,7 +203,13 @@ Orquesta el loop:
 
 ## ORBIT Editor
 
-`editor.html` es una entrada independiente. No interpreta `profile` ni `debug`, no crea `ProgressionModel`, no concede conceptos y no publica `window.OrbitDebug`. Inicializa los módulos de `src/editor/` sobre copias controladas de `AREAS` y `LOCATIONS`.
+`editor.html` es una entrada independiente. Interpreta `profile` solo para aplicar la política
+local de acceso; no crea `ProgressionModel`, no concede conceptos, no lee claves de progreso y
+no publica `window.OrbitDebug`. Sin query usa Docente y crea el Editor completo sobre copias
+controladas de `AREAS` y `LOCATIONS`. Con `?profile=student` crea un modelo de solo lectura:
+permite recorrer, encuadrar, consultar y exportar, pero bloquea Spider, Bee, historial,
+restauración e importación con un mensaje visible. Con `?profile=debug` muestra el bloqueo y no
+crea el modelo editorial.
 
 El documento editorial `orbit-editor-project` usa esquema `v1` y contiene:
 
@@ -186,7 +224,12 @@ No incluye respuestas, conceptos adquiridos, recompensas ni posición de un estu
 
 **Bee** opera sobre zonas. Como las posiciones de los anillos están completas, un gesto válido intercambia `(q,r)` entre dos zonas del mismo `tier`; no crea huecos. `origin` permanece en `(0,0)`, las zonas teóricas mantienen distancia axial 1 y las aplicaciones distancia 2. El intercambio conserva IDs, contenido, `tier`, `order` y los offsets locales de sus lugares.
 
-El menú **General** y el menú **Editor** son docks retractables independientes. Pointer Events proporcionan arrastre y cancelación; listas, campos, botones y ajustes con flechas ofrecen una alternativa de teclado. El historial permite deshacer y rehacer operaciones completas y cada transición válida se autoguarda.
+En acceso Docente, el menú **General** y el menú **Editor** son docks retractables
+independientes. Pointer Events proporcionan arrastre y cancelación; listas, campos, botones y
+ajustes con flechas ofrecen una alternativa de teclado. El historial permite deshacer y rehacer
+operaciones completas y cada transición válida se autoguarda. El modo Estudiante conserva la
+navegación del mapa, pero el modelo y la API pública rechazan cualquier mutación; no existe aún
+un borrador personalizado por estudiante.
 
 Importar y exportar intercambia JSON editorial. Exportar no modifica `src/data/`, no construye el sitio y no despliega. La aplicación del borrador al repositorio, la revisión y la publicación pertenecen a un flujo manual descrito en la [Guía de ORBIT Editor](EDITOR_GUIDE.md) y decidido en [ADR 0007](decisions/0007-static-local-editor.md).
 
@@ -200,13 +243,17 @@ Cada OGG tiene un sidecar homónimo, entrada de manifiesto, atribución y botón
 
 `src/main.js`:
 
-1. interpreta perfil y opciones URL;
+1. resuelve el perfil local exacto y sus claves compatibles;
 2. valida los datos;
 3. crea progreso, UI y juego;
-4. publica `window.OrbitDebug`;
+4. publica `window.OrbitDebug` solo para Debug;
 5. inicia el loop.
 
-Ese flujo corresponde a `index.html`, la entrada de ORBIT. `editor.html` usa su propio bootstrap y valida el borrador antes de iniciar el renderer editorial. La guardia de arranque evita una espera infinita en ambas entradas. El build estático copia las dos páginas y sus módulos sin añadir bundle ni dependencia.
+Ese flujo corresponde a `index.html`, la entrada de ORBIT. `editor.html` usa su propio
+bootstrap: resuelve primero el acceso local, no inicializa ningún modelo en Debug y valida el
+borrador antes de iniciar el renderer editorial en Docente o Estudiante. La guardia de arranque
+evita una espera infinita en ambas entradas. El build estático copia las dos páginas y sus
+módulos sin añadir bundle ni dependencia.
 
 ## Modelo de estado
 
@@ -268,9 +315,16 @@ El autoguardado editorial no cambia el estado persistido ni derivado de ORBIT. S
 
 ## Frontera de seguridad del debugger
 
-Los overrides de área se guardan solo dentro del perfil que los usa. Se recomienda reservar perfiles `debug-*`. La progresión forzada sigue pasando por `ProgressionModel`, para mantener el estado saneado y exportable.
+Los overrides de área se guardan solo dentro del perfil `debug`. La progresión forzada sigue
+pasando por `ProgressionModel`, para mantener el estado saneado y exportable. En Estudiante y
+Docente, la Terminal de Cartografía no se deriva como visible o accesible, `F2`/`` ` `` no abre
+el panel y `window.OrbitDebug` no se publica.
 
-El debugger pertenece a ORBIT y no es una vía de acceso al Editor. De forma recíproca, `editor.html` no obtiene privilegios de depuración ni acceso al progreso. Separar las entradas no reemplaza autenticación: cualquier restricción de acceso debe proporcionarla el entorno de despliegue.
+El debugger pertenece a ORBIT y no es una vía de acceso al Editor. De forma recíproca,
+`editor.html` no obtiene privilegios de depuración ni acceso al progreso. El bloqueo del Editor
+para Debug y la lectura limitada para Estudiante se basan en una query que cualquiera puede
+cambiar: separar las entradas y sus capacidades no reemplaza autenticación ni autorización del
+entorno de despliegue.
 
 ## Evolución prevista
 
