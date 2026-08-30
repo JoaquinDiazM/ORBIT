@@ -183,14 +183,7 @@ Sin propuestas pendientes de clasificar.
 
 ## Cohorte inmediata
 
-- Versión: `0.4.2`
-- Estado de la cohorte: `cerrada`
-- IDs: `UPD-008`, `UPD-009`, `UPD-010`
-- Cierre confirmado por JoaquinDiazM: 2026-08-29.
-
-JoaquinDiazM confirmó que estos tres IDs son los únicos de ORBIT 0.4.2. La cohorte puede
-implementarse y revisarse por partes, pero la versión, el changelog y el push esperan la
-aprobación de los tres resultados.
+Sin cohorte inmediata en preparación.
 
 ## Actualizaciones activas
 
@@ -200,7 +193,8 @@ aprobación de los tres resultados.
 - Tipo: `épica`
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y` cuando se defina una primera capacidad completa.
-- Próximo responsable: agente, después de publicar la cohorte inmediata 0.4.1.
+- Próximo responsable: JoaquinDiazM, que debe decidir si autoriza este punto cuando corresponda
+  preparar la cohorte 0.5.0.
 
 #### Solicitud original
 
@@ -282,198 +276,6 @@ contenido mediante ORBIT Editor durante mantenciones planificadas.
   docente, estadísticas, respaldo y publicación editorial.
 - Pruebas: no aplican todavía.
 - Observaciones del usuario: pendientes.
-
-### UPD-008 — Nombre visible de la ruta: Electromagnetismo
-
-- Estado: `publicando`
-- Tipo: `contenido`
-- Versión objetivo: `0.4.2`
-- Impacto sugerido: `Z`.
-- Próximo responsable: JoaquinDiazM, que debe revisar el nombre vigente y aprobar o devolver el
-  resultado con observaciones.
-
-#### Solicitud original
-
-Actualmente la ruta se llama «Electromagnetismo Aplicado», pero quiero dejarla simplemente en
-«Electromagnetismo». Eso no significa que vayamos a quitar el anillo exterior con zonas de
-aplicación de la teoría electromagnética ni que vayamos a cambiar el material fuente de esta
-ruta, que es el curso de Electromagnetismo Aplicado de Tomás Cassanelli; solo es un cambio de
-nombre por uno más general.
-
-#### Especificación elaborada por el agente
-
-- Objetivo observable: la interfaz y la documentación vigente presentan la ruta como
-  **Electromagnetismo**, sin alterar su estructura ni su procedencia académica.
-- Decisiones confirmadas: se conservan el anillo exterior de aplicaciones y el curso de
-  Electromagnetismo Aplicado de Tomás Cassanelli como material fuente; solo cambia el nombre
-  visible general de la ruta.
-- Criterios de aceptación: los rótulos vigentes usan «Electromagnetismo»; las menciones
-  históricas y de procedencia que deban conservar el título original siguen siendo trazables;
-  la progresión, el build y la revisión de repositorio pasan sin cambios funcionales.
-- Fuera de alcance: retirar o reorganizar zonas, modificar contenido científico, cambiar el
-  material fuente, renombrar IDs estables o convertir el prototipo en una plataforma multicurso.
-- Dependencias, invariantes o ADR: preservar IDs, formato de guardado y trazabilidad de fuentes;
-  no requiere una dependencia ni un ADR.
-
-#### Preguntas bloqueantes
-
-- Ninguna.
-
-#### Implementación y revisión
-
-- Base revisada: `ec739aba111ee4592f7fb339d795b60fa44f3ed9` (primera candidata local de
-  la cohorte, sobre `origin/main` en `831a5ea06da750e3b27b781b1275b9d2429f494c`).
-- Rutas propias: shells y metadatos web, `src/config.js`, documentación vigente, captura
-  `docs/screenshots/prototype.png` y regresiones de marca/shell. Se excluyeron títulos oficiales
-  de fuentes, historial, IDs estables y nombres técnicos persistidos.
-- Resultado: ORBIT, ORBIT Editor, manifiesto, metadatos y documentación vigente presentan la
-  ruta como **Electromagnetismo**. Se conservaron el anillo de aplicaciones, la atribución y el
-  título oficial de EL3103, además de `electromagnetism-applied` en los IDs y claves técnicas que
-  ya forman parte de contratos persistidos. La cabecera compartida reserva ahora espacio para
-  descendentes sin perder su elipsis, por lo que la «g» deja de recortarse. La captura principal
-  quedó regenerada a 1280 × 720 con el HUD corregido.
-- Pruebas: comprobación de recursos de marca y regresión tipográfica correctas; suite completa
-  `226/226`; validación de contenido, revisión del repositorio y build estático correctos;
-  inspección visual de ORBIT y Editor a 1280 × 720.
-- Cómo revisar para JoaquinDiazM: abrir ORBIT y ORBIT Editor y comprobar **Electromagnetismo**
-  en sus cabeceras, incluida la cola inferior completa de la «g»; revisar la captura principal
-  del README y confirmar que la mención
-  **Electromagnetismo Aplicado** se conserva únicamente cuando identifica el curso fuente o un
-  registro histórico.
-- Observaciones del usuario: El cambio pedido si se logro, pero me parece haber un bug visual minusculo. En la panel superior de la interfaz, donde dice electromagnetismo, me parece que la parte inferior de la letra "g" esta cortada, revisa que sea asi y solucionalo.
-
-### UPD-009 — Ampliar zoom y margen del mapamundi
-
-- Estado: `publicando`
-- Tipo: `feature`
-- Versión objetivo: `0.4.2`
-- Impacto sugerido: `Z`.
-- Próximo responsable: JoaquinDiazM, que debe recorrer ambos mapas y aprobar o devolver el
-  resultado con observaciones.
-
-#### Solicitud original
-
-Tanto el mapamundi de ORBIT como el de ORBIT Editor tienen dos problemas: 1) el zoom out, es
-decir, el zoom para ver una mayor cantidad de mapa, es muy limitado; y 2) el rango de mapa
-extra, fuera de los límites de las zonas o hexágonos, también es muy limitado. Ambos puntos son
-básicamente lo mismo y no merecen ser tratados en dos actualizaciones diferentes.
-
-#### Especificación elaborada por el agente
-
-- Objetivo observable: ORBIT y ORBIT Editor permiten alejar más la vista y desplazarla sobre un
-  margen exterior más amplio, sin perder el control ni la referencia del mundo.
-- Decisiones confirmadas: zoom mínimo y margen de desplazamiento forman un único cambio en ambos
-  mapamundis; la experiencia debe mantenerse análoga entre ORBIT y el Editor.
-- Criterios de aceptación: ambos mapas admiten una escala mínima menor y un margen exterior
-  claramente mayor; se puede volver al contenido desde cualquier extremo permitido; ratón,
-  teclado, nodos, zonas y herramientas editoriales mantienen su funcionamiento; las pruebas
-  automatizadas fijan los nuevos límites.
-- Fuera de alcance: lienzo infinito, cambio de geometría hexagonal, redistribución de zonas o
-  rediseño general de los controles del mapa.
-- Dependencias, invariantes o ADR: conservar navegación por teclado, coordenadas editoriales y
-  rendimiento del renderer; no requiere una dependencia ni un ADR.
-
-#### Preguntas bloqueantes
-
-- Ninguna.
-
-#### Implementación y revisión
-
-- Base revisada: `ec739aba111ee4592f7fb339d795b60fa44f3ed9` (primera candidata local de
-  la cohorte, sobre `origin/main` en `831a5ea06da750e3b27b781b1275b9d2429f494c`).
-- Rutas propias: `src/config.js`, cámaras de ORBIT y ORBIT Editor, controlador del Editor y
-  pruebas de cámara, layout, renderer y shell editorial.
-- Resultado: el zoom mínimo común bajó de `0.58` a `0.28`; el límite exterior común aumentó a
-  dos tamaños de hexágono (`460` unidades). Encuadrar oculta el inspector, devuelve el foco al
-  canvas y usa todo el ancho con insets verticales. En Editor, el mundo real actúa además como
-  ancla cuando cabe completo: la cámara puede compensar paneles abiertos dentro del margen de
-  460 unidades, alcanzar los extremos y volver al centro sin alterar el clamp de ORBIT. El hit
-  testing conserva un radio constante en pantalla.
-- Pruebas: cámara, bounds, foco editorial, fit, pan, zoom al puntero e hit testing cubiertos
-  dentro de la suite completa `226/226`; validación de contenido, revisión del repositorio y build correctos;
-  recorrido visual a 1280 × 720 en ORBIT y Editor.
-- Cómo revisar para JoaquinDiazM: usar la rueda hasta el alejamiento máximo en ORBIT; en Editor,
-  pulsar **Encuadrar**, abrir Spider o Bee y desplazar el mundo hasta dejarlo centrado en el área
-  visible junto al inspector; recorrer los cuatro límites y volver con el gesto inverso o con
-  flechas en Estudiante; acercar de nuevo y confirmar que selección, arrastre Spider y Bee siguen
-  siendo precisos en Docente.
-- Observaciones del usuario: En ORBIT Editor esta bloqueado el movimiento hacia las areas de rango extra. Lo anterior es importante, porque el usuario que esta usando el editor quiere ver el mapamundi al centro de su pantalla mientras tambien tiene abierta la vetana derecha o los menus del lado izquierdo, pero ahora mismo el movimiento del mapa esta tan restringido que esas cosas se solapan y tapan al mapamundi.
-
-### UPD-010 — Perfiles estudiante, docente y debug
-
-- Estado: `publicando`
-- Tipo: `feature`
-- Versión objetivo: `0.4.2`
-- Impacto sugerido: `Z`; el contrato local acotado prepara futuras capacidades de mayor
-  alcance sin adelantar cuentas ni autorización real.
-- Próximo responsable: JoaquinDiazM, que debe recorrer los tres perfiles y aprobar o devolver el
-  resultado con observaciones.
-
-#### Solicitud original
-
-Quiero cambiar la forma en la que llamamos al perfil normal para que pase a denominarse
-«estudiante», agregar también un perfil de «docente» y mantener el perfil de «debug»: tres en
-total. Además, para los perfiles de estudiante y docente hay que quitar el nodo de debug del
-mapamundi, incluida su interacción y visualización.
-
-#### Especificación elaborada por el agente
-
-- Objetivo observable: ORBIT reconoce tres perfiles llamados estudiante, docente y debug; el
-  perfil antes denominado normal pasa a llamarse estudiante, y el nodo de debug no se renderiza
-  ni participa en la interacción de estudiante o docente.
-- Decisiones confirmadas: se mantienen exactamente tres perfiles; debug conserva sus
-  capacidades actuales; estudiante y docente no muestran ni permiten activar el nodo de debug.
-- Criterios de aceptación: nombres coherentes en interfaz, documentación y
-  pruebas; nodo de debug ausente del render, foco, hit testing e interacción para estudiante y
-  docente; migración compatible del perfil normal; capacidades y persistencia definidas antes
-  de implementar.
-- Fuera de alcance: presentar un modo local como autenticación o seguridad real,
-  implementar el servidor de UPD-002 o decidir por anticipado los permisos del Editor de UPD-006.
-- Dependencias, invariantes o ADR: debe coordinarse explícitamente con UPD-002 para cuentas y
-  control de acceso reales, y con UPD-006 para el alcance estudiantil/docente dentro de ORBIT
-  Editor; preservar progreso versionado, estado derivado e IDs estables.
-
-#### Preguntas bloqueantes
-
-1. Además de ocultar el nodo de debug, ¿qué capacidades concretas distinguen al perfil docente
-   del perfil estudiante dentro de ORBIT?
-2. ¿Estos perfiles serán por ahora modos locales elegibles o el perfil docente debe esperar a
-   que UPD-002 pueda asignarlo y protegerlo mediante cuentas? Recomendación: comenzar como modo
-   local claramente no seguro y reservar la autorización real para UPD-002.
-3. ¿Cómo debe afectar el cambio de perfil al progreso guardado: comparten el mismo avance, usan
-   avances separados o debug conserva un estado aislado? Recomendación: migrar «normal» a
-   «estudiante» sin perder su progreso y no duplicar avances sin una necesidad confirmada.
-4. ¿Qué relación visible tendrá el perfil con ORBIT Editor y UPD-006: solo cambiará el acceso al
-   enlace o también las herramientas disponibles dentro del Editor?
-
-#### Implementación y revisión
-
-- Base revisada: `ec739aba111ee4592f7fb339d795b60fa44f3ed9` (primera candidata local de
-  la cohorte, sobre `origin/main` en `831a5ea06da750e3b27b781b1275b9d2429f494c`).
-- Rutas propias: `src/core/profile-policy.js`, persistencia/progresión, arranque e interfaz de
-  ORBIT, modelo/aplicación/interfaz del Editor, shells, estilos, documentación operativa y
-  pruebas focalizadas.
-- Resultado: el selector expone exactamente Estudiante, Docente y Debug. `normal` migra a
-  `student` sin perder avance y los tres perfiles guardan progreso por separado. Docente
-  autocompleta, sin `force` ni doble audio, solo lecciones y misiones que exigen respuesta.
-  Estudiante y Docente no renderizan ni pueden interactuar con el nodo, panel, atajos o API de
-  debug. Editor abre completo para Docente —también sin query—, en consulta para Estudiante con
-  Spider/Bee y toda mutación bloqueados por interfaz, aplicación, modelo y API, y bloquea Debug
-  antes de construir `EditorModel`. El HUD conserva el selector como única representación del
-  perfil y sustituye «Ruta interactiva» por una insignia `vX.Y.Z` derivada de `APP_CONFIG`, con
-  nombre accesible. Todo se identifica expresamente como política local, no autenticación.
-- Pruebas: política, migración, aislamiento, progresión, audio, shell, teclado y modelo editorial
-  cubiertos dentro de `226/226`; los cinco audios conservan claves y wiring; validación de
-  contenido, revisión del repositorio y build correctos. Se inspeccionaron visualmente ORBIT
-  Estudiante y Editor Docente/Estudiante/Debug a 1280 × 720.
-- Cómo revisar para JoaquinDiazM: cambiar entre los tres valores del selector y confirmar que sus
-  avances no se copian; confirmar que el HUD muestra un solo control de perfil y la versión
-  vigente; en Docente interactuar con una lección o misión evaluable y comprobar el
-  autocompletado; confirmar ausencia de Terminal/F2/API en Estudiante y Docente; abrir el Editor
-  desde cada perfil y probar, respectivamente, consulta con aviso y bloqueo de Spider/Bee,
-  edición completa, y pantalla Debug bloqueada sin mapa editorial.
-- Observaciones del usuario: Respecto a la primera pregunta, el perfil de docente tiene la habilidad de autocompletacion cuando interactua en una zona que requiera respuesta, es decir lugares de aprendizage o misiones. De momento esa sera la unica caracteristica que distinge al perfil de docente respecto al perfil de estudiante. Respecto a la segunda pregunta, en efecto, lo vamos a mantener local, pero tener definidos los perfiles nos va a ayudar mas tarde cuando vayamos a abordar la UPD-002, en ese sentido es una update intermedia de menor riesgo y volumen que nos facilitara la posterior tarea, por lo mismo la clasifique dentro del cohorte de una version tipo Z y no tipo Y. Respecto a la tercera pregunta, el progreso de cada perfil debe ser separado (Al igual que en el futuro con multiples cuentas, repitiendo tipos de perfiles, cada usuario debe mantener su avance aislado). El estado en el que esta ahora el perfil normal, proximamente perfil de estudiante, es algo que se resetea solo despues de actualizaciones de contenido o cuya naturaleza requiera un reset, lo mismo con el perfil docente y debug (Mientras tengamos bien configurado el perfil debug podremos hacer las pruebas que queramos de manera agil sin gastar tiempo en resolver/responder a las preguntas del curso). Cuando el proyecto este mas avanzado y equipos docentes lo este pidiendo para sus cursos, habran otras normativas para el reset, incluso resets paraciales, pero de moemnto nisiquiera esta activado el sistema de cuentas, asi que no intentaremos resolver algo que no es un problema ahora. Respecto a la cuarta pregunta, el esquema final sera el siguiente: 1.- Cada cuenta tendra acceso al ORBIT editor del curso, pero solo las cuentas que son perfiles docente podran tener acceso completo a todos los menus del editor. 2.- Las cuentas con perfil de estudiante solo podran realizar cambios minusculos al esquema del mapamundi, principalmente visuales y que, al volver a ORBIT, solo ellos en su cuenta puedan ver. En el update de ahora lo correcto seria darles acceso, pero bloquera spider y bee, que salte un mensaje de perfil de estudiante no permite esta accion o algo asi. 3.- El perfil de debug que no tiene razon de ser en ORBIT editor, por lo que bloquear el acceso de ese perfil al editor seria buena idea. Los tres puntos que te acabo de mensionar implican una version final cuando tengamos las cuentas verificadas, un editor maduro con menus de editor que si puedan ser accedidos por estudiantes, etc, por el momento en nuestro ambiente local solo aplica lo minimo que despues facilite la tarea de updates mas grandes. Quiero ver como queda esto una vez aprobado y despues darte un UPD mas preciso que el que ahora estoy descartando, UPD-006.
-- Observaciones del usuario (2): A nivel funcional quedo excelente, pero visualmente hay una redundancia, en el panel superior de la interfaz de ORBIT esta cuadro que dice "perfil: {perfil}" y el cuadro que muestra "{Perfil}" a secas, deja solo uno de ellos, yo recomiendo el segundo. Cerca de esa misma zona, en el cuadro que dice "ruta interactiva" mejor pongamos la version actual de ORBIT, el mensaje de ruta interactiva es totalmente intrasendente para cualquier usuario para el que este pensado ORBIT.
 
 ### UPD-011 — Menú de ajustes para herramientas auxiliares
 
@@ -666,4 +468,4 @@ junto con cada ficha y sus intercambios, en
 [`docs/UPDATES_HISTORY.md`](docs/UPDATES_HISTORY.md). `CHANGELOG.md` mantiene solo el resumen
 orientado a quienes usan ORBIT; los descartes no reciben versión ni entrada de changelog.
 
-La cohorte ORBIT 0.4.1 está publicada y archivada bajo esta metodología.
+La cohorte ORBIT 0.4.2 está publicada y archivada bajo esta metodología.
