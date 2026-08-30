@@ -34,11 +34,30 @@ test("el cliente negocia una sesión separada y solicita un apagado same-origin"
 
   assert.equal(result.state, "shutting-down");
   assert.equal(calls.length, 2);
-  assert.equal(calls[0].url, "./__orbit/local/session");
+  assert.equal(calls[0].url, "/__orbit/local/session");
   assert.equal(calls[1].url, "/__orbit/local/shutdown");
   assert.equal(calls[1].options.credentials, "same-origin");
   assert.equal(calls[1].options.headers["x-orbit-local-token"], session.token);
   assert.deepEqual(JSON.parse(calls[1].options.body), { intent: "shutdown" });
+});
+
+test("el apagado siempre renegocia la sesión y no reutiliza un token anterior", async () => {
+  const calls = [];
+  const client = new EditorLocalServiceClient({
+    fetchImpl: async (url, options) => {
+      calls.push({ url, options });
+      if (options.method === "GET") {
+        return response({ ...session, token: String(calls.length).repeat(64) });
+      }
+      return response({ ok: true, service: "development", state: "shutting-down" }, { status: 202 });
+    },
+  });
+
+  await client.connect();
+  await client.shutdown();
+
+  assert.equal(calls.filter(({ options }) => options.method === "GET").length, 2);
+  assert.equal(calls.at(-1).options.headers["x-orbit-local-token"], "2".repeat(64));
 });
 
 test("una sesión ocupada se vuelve a consultar y no envía el apagado si continúa ocupada", async () => {

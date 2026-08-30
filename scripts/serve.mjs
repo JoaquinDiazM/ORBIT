@@ -5,6 +5,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import {
+  sendEditorEntryRedirect,
   sendRuntimeEntryUnavailable,
   shouldBlockRuntimeEntry,
 } from "./repository-runtime-gate.mjs";
@@ -154,6 +155,10 @@ export function createOrbitDevRequestHandler({
       response.end("Método no permitido");
       return;
     }
+
+    if (sendEditorEntryRedirect(response, request.url, {
+      head: request.method === "HEAD",
+    })) return;
 
     if (shouldBlockRuntimeEntry(projectRoot, request.url)) {
       sendRuntimeEntryUnavailable(response);

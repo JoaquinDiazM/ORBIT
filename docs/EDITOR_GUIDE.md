@@ -233,6 +233,12 @@ Abre exactamente la URL `127.0.0.1` que imprime la terminal. Un servidor iniciad
 aplicar fuentes. Resumen identifica el modo normal y mantiene deshabilitadas tanto la
 confirmación como **Aplicar**, incluso después de una validación correcta.
 
+Después de detener `dev` e iniciar `editor:author`, la misma pestaña de Editor vuelve a comprobar
+el servicio al recuperar foco, al volver desde segundo plano y mediante reintentos mientras el
+origen no responde. El plan ya validado se conserva si el borrador no cambió; no es necesario
+repetir la validación. **Volver a comprobar servicio** fuerza un sondeo inmediato y muestra el
+origen y el código del fallo si el servicio sigue sin poder identificarse.
+
 El origen de mantenimiento es fijo: `http://127.0.0.1:4173`. No cambies `PORT` y detén primero
 `npm run dev`; usar otro puerto separaría los Web Locks y los tres progresos locales que deben
 reiniciarse. Solo puede existir un helper por checkout. Si una interrupción deja un journal,

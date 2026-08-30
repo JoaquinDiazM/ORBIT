@@ -196,6 +196,12 @@ mantenimiento y niega siempre esas entradas —Estudiante, Docente y Debug— mi
 toma un lock atómico por checkout antes de cualquier recovery, de modo que origen, Web Locks,
 almacenamiento y proceso pertenezcan a una sola sesión de mantenimiento.
 
+ORBIT Editor negocia el protocolo mediante rutas absolutas del mismo origen. Su monitor serializa
+los sondeos para que una respuesta antigua no sobrescriba otra nueva, reintenta únicamente los
+estados transitorios y despierta con `focus`, `pageshow` o al recuperar visibilidad. Así, una
+pestaña que validó en `dev` puede reconocer `editor:author` sin perder el plan ligado al digest.
+La ruta no canónica `/editor.html/` redirige a `/editor.html` antes de servir el shell.
+
 `src/core/local-service-mode.js` sondea el protocolo local desde una pestaña ORBIT iniciada en
 `dev`. Si el servicio reaparece como autoría después de una interrupción, el runtime vuelve
 inerte el shell, detiene monitor, juego, audio y preferencias, libera el bloqueo compartido y

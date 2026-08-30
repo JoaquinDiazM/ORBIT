@@ -1,4 +1,9 @@
-const SESSION_ENDPOINT = "./__orbit/author/session";
+const SESSION_ENDPOINT = "/__orbit/author/session";
+const AUTHOR_ENDPOINTS = Object.freeze({
+  apply: "/__orbit/author/apply",
+  finalize: "/__orbit/author/finalize",
+  rollback: "/__orbit/author/rollback",
+});
 
 function isRecord(value) {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -24,11 +29,13 @@ export class EditorAuthorClient {
   }
 
   async connect() {
+    this.session = null;
     let response;
     try {
       response = await this.fetch(this.sessionEndpoint, {
         method: "GET",
         cache: "no-store",
+        credentials: "same-origin",
         headers: { accept: "application/json" },
       });
     } catch (error) {
@@ -43,7 +50,13 @@ export class EditorAuthorClient {
       body.kind !== "orbit-editor-author-session"
       || body.schemaVersion !== 1
       || typeof body.token !== "string"
+      || body.token.length < 32
+      || typeof body.courseId !== "string"
+      || body.courseId.length === 0
       || !isRecord(body.endpoints)
+      || Object.entries(AUTHOR_ENDPOINTS).some(
+        ([name, endpoint]) => body.endpoints[name] !== endpoint,
+      )
     ) {
       throw new EditorAuthorClientError(
         "invalid-author-session",
@@ -69,7 +82,7 @@ export class EditorAuthorClient {
   async #post(endpointName, payload) {
     const session = this.session ?? await this.connect();
     const endpoint = session.endpoints?.[endpointName];
-    if (typeof endpoint !== "string" || !endpoint.startsWith("/__orbit/author/")) {
+    if (endpoint !== AUTHOR_ENDPOINTS[endpointName]) {
       throw new EditorAuthorClientError(
         "invalid-author-endpoint",
         "La sesión local no declara un endpoint de autoría permitido.",

@@ -1,4 +1,4 @@
-const SESSION_ENDPOINT = "./__orbit/local/session";
+const SESSION_ENDPOINT = "/__orbit/local/session";
 const SHUTDOWN_ENDPOINT = "/__orbit/local/shutdown";
 const ALLOWED_SERVICES = new Set(["development", "editor-author"]);
 
@@ -26,6 +26,7 @@ export class EditorLocalServiceClient {
   }
 
   async connect() {
+    this.session = null;
     let response;
     try {
       response = await this.fetch(this.sessionEndpoint, {
@@ -62,11 +63,7 @@ export class EditorLocalServiceClient {
   }
 
   async shutdown() {
-    let session = this.session ?? await this.connect();
-    if (session.busy) {
-      this.session = null;
-      session = await this.connect();
-    }
+    const session = await this.connect();
     if (session.busy) {
       throw new EditorLocalServiceClientError(
         "local-service-busy",
@@ -95,7 +92,9 @@ export class EditorLocalServiceClient {
         { cause: error },
       );
     }
-    return this.#readResponse(response);
+    const result = await this.#readResponse(response);
+    this.session = null;
+    return result;
   }
 
   async #readResponse(response) {

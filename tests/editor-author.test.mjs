@@ -5,8 +5,22 @@ import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import test from "node:test";
 
-import { createCourseEdition } from "../src/core/course-edition.js";
-import { createEditorDocument } from "../src/editor/editor-document.js";
+import {
+  courseEditionStorageKey,
+  createCourseEdition,
+  materializeCourseEdition,
+} from "../src/core/course-edition.js";
+import { progressStorageDescriptors } from "../src/core/course-application.js";
+import { createBowerbirdStorageKey } from "../src/core/bowerbird-preferences.js";
+import { ProgressStorage } from "../src/core/storage.js";
+import { WORLD_CONFIG } from "../src/data/world.js";
+import { CourseApplicationCoordinator } from "../src/editor/course-application-coordinator.js";
+import { EditorAuthorClient } from "../src/editor/editor-author-client.js";
+import {
+  createEditorDocument,
+  EDITOR_DOCUMENT_SCHEMA_VERSION,
+} from "../src/editor/editor-document.js";
+import { EditorModel } from "../src/editor/editor-model.js";
 import {
   EDITOR_AUTHOR_CANONICAL_PORT,
   acquireEditorAuthorLock,
@@ -80,6 +94,24 @@ function deferred() {
     resolvePromise = resolve;
   });
   return { promise, resolve: resolvePromise };
+}
+
+class FixtureBrowserStorage {
+  constructor(entries = []) {
+    this.values = new Map(entries);
+  }
+
+  getItem(key) {
+    return this.values.get(key) ?? null;
+  }
+
+  setItem(key, value) {
+    this.values.set(key, String(value));
+  }
+
+  removeItem(key) {
+    this.values.delete(key);
+  }
 }
 
 function rawHttpRequest(origin, {
@@ -175,6 +207,183 @@ test("el helper aplica a una ruta fija y exige finalize tras la fase navegador",
     rollbackToken: result.rollbackToken,
   });
   assert.equal(finalized.action, "finalized");
+});
+
+test("el recorrido editorial completo sincroniza fuente, dist y navegador con reset total", async (t) => {
+  const root = await fixture();
+  let author = null;
+  t.after(async () => {
+    await author?.close();
+    await rm(root, { recursive: true, force: true });
+  });
+  const runnerCalls = [];
+  const runner = successfulRunner(runnerCalls);
+  const initial = await applyEditionToRepository({
+    root,
+    document: createEditorDocument({ updatedAt: "2026-08-29T00:00:00.000Z" }),
+    expectedPreviousRevision: null,
+    runner,
+    requireClean: false,
+    appliedAt: "2026-08-29T00:00:00.000Z",
+  });
+  await finalizeRepositoryApplication({ root, rollbackToken: initial.rollbackToken });
+
+  author = await createEditorAuthorServer({
+    root,
+    port: 0,
+    runner,
+    requireClean: false,
+    sessionToken: "e".repeat(64),
+  });
+  const authorFetch = (input, init = {}) => {
+    const headers = new Headers(init.headers ?? {});
+    if ((init.method ?? "GET") !== "GET") headers.set("origin", author.origin);
+    return fetch(new URL(input, author.origin), { ...init, headers });
+  };
+
+  const browserStorage = new FixtureBrowserStorage();
+  const editorStorageKey =
+    `orbit-editor:v${EDITOR_DOCUMENT_SCHEMA_VERSION}:${initial.edition.courseId}`;
+  const bowerbirdStorageKey = createBowerbirdStorageKey({
+    courseId: initial.edition.courseId,
+    profile: "student",
+  });
+  const currentCourse = await materializeCourseEdition(initial.edition);
+  const documentOptions = {
+    baseAreas: currentCourse.areas,
+    baseLocations: currentCourse.locations,
+    worldConfig: WORLD_CONFIG,
+    courseId: initial.edition.courseId,
+    baseDataVersion: initial.edition.document.baseDataVersion,
+  };
+  const editor = EditorModel.create({
+    storage: new ProgressStorage(editorStorageKey, browserStorage),
+    clock: () => new Date("2026-08-30T12:00:00.000Z"),
+    ...documentOptions,
+  });
+
+  assert.equal(editor.swapArea("electrostatics", "magnetism").changed, true);
+  const vectorPlacement = editor
+    .getSnapshot()
+    .document.locations.find((location) => location.id === "vector-workshop");
+  assert.equal(
+    editor.moveLocation("vector-workshop", {
+      areaId: vectorPlacement.areaId,
+      offset: { x: vectorPlacement.offset.x + 4, y: vectorPlacement.offset.y },
+    }).changed,
+    true,
+  );
+  assert.equal(
+    editor.connectLocations("vector-workshop", "circuit-analysis-bench").changed,
+    true,
+  );
+  assert.equal(
+    editor.setAreaAppearance("electrostatics", {
+      paletteId: "polar",
+      motifId: "constellation",
+      contourId: "double",
+    }).changed,
+    true,
+  );
+  assert.equal(editor.validate().valid, true);
+
+  const teacherDraftBefore = browserStorage.getItem(editorStorageKey);
+  assert.notEqual(teacherDraftBefore, null);
+  assert.equal(
+    JSON.parse(teacherDraftBefore).schemaVersion,
+    EDITOR_DOCUMENT_SCHEMA_VERSION,
+  );
+  browserStorage.setItem(bowerbirdStorageKey, "keep-student-bowerbird");
+  const descriptors = progressStorageDescriptors();
+  for (const descriptor of descriptors) {
+    for (const key of descriptor.allKeys) {
+      browserStorage.setItem(
+        key,
+        JSON.stringify({
+          profile: descriptor.profile,
+          completedLocations: ["base-camp"],
+          concepts: ["vectors-and-fields"],
+        }),
+      );
+    }
+  }
+
+  const lockManager = {
+    request(_name, options, callback) {
+      assert.deepEqual(options, { mode: "exclusive", ifAvailable: true });
+      return Promise.resolve(callback({ name: "fixture-exclusive-lock" }));
+    },
+  };
+  const coordinator = new CourseApplicationCoordinator({
+    currentEdition: initial.edition,
+    authorClient: new EditorAuthorClient({ fetchImpl: authorFetch }),
+    storage: browserStorage,
+    lockManager,
+    documentOptions,
+    descriptors,
+  });
+  const candidate = editor.getSnapshot().document;
+  const plan = await coordinator.validate(candidate, {
+    appliedAt: "2026-08-30T13:00:00.000Z",
+  });
+
+  assert.deepEqual(plan.diff.movedAreas, ["electrostatics", "magnetism"]);
+  assert.deepEqual(plan.diff.movedLocations, ["vector-workshop"]);
+  assert.deepEqual(plan.diff.addedConnections, [
+    "vector-workshop->circuit-analysis-bench:completedLocation",
+  ]);
+  assert.deepEqual(plan.diff.changedAreaAppearances, ["electrostatics"]);
+  assert.deepEqual(plan.impact.resetProfiles, ["student", "teacher", "debug"]);
+
+  const result = await coordinator.apply(candidate);
+  const sourcePath = resolve(
+    root,
+    "public/data/courses/electromagnetism-applied.edition.json",
+  );
+  const builtPath = resolve(
+    root,
+    "dist/public/data/courses/electromagnetism-applied.edition.json",
+  );
+  const sourceText = await readFile(sourcePath, "utf8");
+  const builtText = await readFile(builtPath, "utf8");
+  const sourceEdition = JSON.parse(sourceText);
+  const buildInfo = JSON.parse(await readFile(resolve(root, "dist/build-info.json"), "utf8"));
+
+  assert.equal(sourceEdition.revision, result.edition.revision);
+  assert.equal(sourceText, builtText);
+  assert.equal(buildInfo.courseRevision, sourceEdition.revision);
+  assert.equal(buildInfo.courseDigest, sourceEdition.digest);
+  assert.equal(
+    JSON.parse(browserStorage.getItem(courseEditionStorageKey())).revision,
+    sourceEdition.revision,
+  );
+  for (const descriptor of descriptors) {
+    for (const key of descriptor.allKeys) {
+      assert.equal(browserStorage.getItem(key), null, key);
+    }
+  }
+  assert.equal(browserStorage.getItem(editorStorageKey), teacherDraftBefore);
+  assert.equal(browserStorage.getItem(bowerbirdStorageKey), "keep-student-bowerbird");
+
+  const runtimeCourse = await materializeCourseEdition(sourceEdition);
+  const previousMagnetism = currentCourse.areas.find((area) => area.id === "magnetism");
+  const appliedElectrostatics = runtimeCourse.areas.find((area) => area.id === "electrostatics");
+  assert.deepEqual(
+    { q: appliedElectrostatics.q, r: appliedElectrostatics.r },
+    { q: previousMagnetism.q, r: previousMagnetism.r },
+  );
+  assert.equal(appliedElectrostatics.appearance.paletteId, "polar");
+  assert.equal(
+    runtimeCourse.locations.find((location) => location.id === "vector-workshop").offset.x,
+    vectorPlacement.offset.x + 4,
+  );
+  assert.equal(
+    runtimeCourse.locations
+      .find((location) => location.id === "circuit-analysis-bench")
+      .requirements.completedLocations.includes("vector-workshop"),
+    true,
+  );
+  assert.equal(runnerCalls.filter((call) => call.args?.includes("check")).length, 2);
 });
 
 test("el rollback token restaura la edición fuente previa y reconstruye", async (t) => {
@@ -1170,6 +1379,29 @@ test("el helper sirve solo la aplicación estática y excluye archivos del check
     const response = await fetch(`${author.origin}${path}`);
     assert.equal(response.status, 200, path);
     assert.equal(await response.text(), expected, path);
+  }
+
+  for (const { method, path, expectedLocation } of [
+    {
+      method: "GET",
+      path: "/editor.html/?profile=teacher&panel=overview",
+      expectedLocation: "/editor.html?profile=teacher&panel=overview",
+    },
+    {
+      method: "HEAD",
+      path: "/editor.html/?profile=student",
+      expectedLocation: "/editor.html?profile=student",
+    },
+  ]) {
+    const response = await fetch(`${author.origin}${path}`, {
+      method,
+      redirect: "manual",
+    });
+    assert.equal(response.status, 307, `${method} ${path}`);
+    assert.equal(response.headers.get("location"), expectedLocation, path);
+    assert.equal(response.headers.get("cache-control"), "no-store", path);
+    if (method === "HEAD") assert.equal(await response.text(), "", path);
+    else assert.match(await response.text(), /entrada canónica de ORBIT Editor/, path);
   }
 
   for (const path of [

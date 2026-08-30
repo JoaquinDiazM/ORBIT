@@ -43,6 +43,33 @@ export function shouldBlockRuntimeEntry(root, requestUrl, {
     && (maintenance || busy || repositoryTransactionPending(root));
 }
 
+export function editorEntryRedirectTarget(requestUrl) {
+  try {
+    const url = new URL(requestUrl ?? "", "http://127.0.0.1");
+    const decodedPath = decodeURIComponent(url.pathname).replaceAll("\\", "/");
+    return decodedPath === "/editor.html/"
+      ? `/editor.html${url.search}`
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+export function sendEditorEntryRedirect(response, requestUrl, { head = false } = {}) {
+  const location = editorEntryRedirectTarget(requestUrl);
+  if (!location) return false;
+  const body = "Redirigiendo a la entrada canónica de ORBIT Editor.\n";
+  response.writeHead(307, {
+    location,
+    "content-type": "text/plain; charset=utf-8",
+    "content-length": Buffer.byteLength(body),
+    "cache-control": "no-store",
+    "x-content-type-options": "nosniff",
+  });
+  response.end(head ? null : body);
+  return true;
+}
+
 export function sendRuntimeEntryUnavailable(response, { maintenance = false } = {}) {
   const body = maintenance
     ? [

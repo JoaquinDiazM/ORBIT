@@ -83,6 +83,14 @@ export function createLocalServiceControl({
           sendJson(response, 405, { ok: false, code: "method-not-allowed" });
           return true;
         }
+        if (shutdownAccepted) {
+          sendJson(response, 503, {
+            ok: false,
+            code: "local-service-shutdown-pending",
+            message: "El servicio local se está apagando; vuelve a comprobar cuando inicie el siguiente modo.",
+          }, { close: true });
+          return true;
+        }
         const busy = Boolean(await isBusy());
         if (request.aborted || response.destroyed) return true;
         sendJson(response, 200, {

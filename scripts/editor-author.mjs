@@ -23,6 +23,7 @@ import {
   materializeCourseEdition,
 } from "../src/core/course-edition.js";
 import {
+  sendEditorEntryRedirect,
   sendRuntimeEntryUnavailable,
   shouldBlockRuntimeEntry,
 } from "./repository-runtime-gate.mjs";
@@ -1122,6 +1123,9 @@ export async function createEditorAuthorServer({
         response.end("Método no permitido");
         return;
       }
+      if (sendEditorEntryRedirect(response, request.url, {
+        head: request.method === "HEAD",
+      })) return;
       if (shouldBlockRuntimeEntry(repositoryRoot, request.url, {
         busy,
         maintenance: true,

@@ -4,6 +4,26 @@ import {
   AREA_APPEARANCE_PALETTES,
   DEFAULT_AREA_APPEARANCE,
 } from "../core/area-appearance.js";
+import { EditorServiceMonitor } from "./editor-service-monitor.js";
+
+const EDITOR_AUTHOR_ORIGIN = "http://127.0.0.1:4173";
+const SERVICE_STOPPED_ACTION_MESSAGE =
+  "Servidor detenido: aplicar permanece bloqueado hasta verificar el próximo servicio local.";
+
+export function shouldRetryEditorService({
+  origin,
+  session,
+  mode,
+  authorReady,
+  pendingResolution,
+} = {}) {
+  if (origin !== EDITOR_AUTHOR_ORIGIN) return false;
+  return !session || (
+    mode === "editor-author"
+    && !authorReady
+    && !pendingResolution
+  );
+}
 
 function query(selector, root = document) {
   const node = root.querySelector(selector);
@@ -156,6 +176,7 @@ export class EditorUIController {
     this.applicationProbeStarted = false;
     this.applicationProbeRunning = false;
     this.localServiceMode = "unknown";
+    this.localServiceDiagnostic = null;
     this.authorSessionReady = false;
     this.applicationActionMessage = null;
     this.pendingResolution = null;
@@ -186,6 +207,7 @@ export class EditorUIController {
       helperStatus: query("#editor-author-helper-status"),
       serviceModeStatus: query("#editor-service-mode-status"),
       validateApplication: query("#editor-validate-application"),
+      retryService: query("#editor-retry-service"),
       applicationStatus: query("#editor-application-status"),
       pendingApplication: query("#editor-pending-application"),
       pendingDetail: query("#editor-pending-detail"),
@@ -253,6 +275,12 @@ export class EditorUIController {
     if (this.readOnly) this.#applyReadOnlyControls();
     this.elements.courseApplication.hidden = !this.applicationCoordinator;
     this.elements.shutdownButton.hidden = true;
+    this.serviceMonitor = this.localServiceClient
+      ? new EditorServiceMonitor({
+          probe: () => this.#refreshApplicationCapability({ announceReady: false }),
+          shouldRetry: ({ result }) => Boolean(result?.transient),
+        })
+      : null;
 
     this.#bindEvents();
     this.unsubscribeModel = this.model.subscribe(() => {
@@ -265,7 +293,7 @@ export class EditorUIController {
       this.render();
     });
     this.render();
-    if (this.localServiceClient) void this.#probeLocalServiceControl();
+    if (this.serviceMonitor) void this.serviceMonitor.start();
   }
 
   destroy() {
@@ -273,6 +301,7 @@ export class EditorUIController {
     this.unsubscribeModel?.();
     this.unsubscribeBowerbird?.();
     this.unsubscribeApp?.();
+    this.serviceMonitor?.destroy();
     window.removeEventListener("keydown", this.onKeyDown);
     if (this.toastTimer !== null) window.clearTimeout(this.toastTimer);
     if (this.resetConfirmationTimer !== null) {
@@ -451,6 +480,9 @@ export class EditorUIController {
     this.elements.validateApplication.addEventListener("click", () => {
       void this.#validateCourseApplication();
     });
+    this.elements.retryService.addEventListener("click", () => {
+      void this.#retryServiceDetection();
+    });
     this.elements.confirmApplication.addEventListener("change", () => {
       this.#renderApplicationState();
     });
@@ -515,6 +547,15 @@ export class EditorUIController {
       const session = await this.localServiceClient.connect();
       if (this.destroyed) return;
       this.localServiceMode = session.service;
+      this.localServiceDiagnostic = null;
+      if (this.shutdownBusy) {
+        this.shutdownBusy = false;
+        this.#disarmLocalShutdown();
+        this.elements.shutdownButton.setAttribute("aria-busy", "false");
+      }
+      if (this.applicationActionMessage === SERVICE_STOPPED_ACTION_MESSAGE) {
+        this.applicationActionMessage = null;
+      }
       this.elements.shutdownButton.hidden = false;
       this.elements.shutdownButton.disabled = false;
       this.elements.shutdownButton.title = session.busy
@@ -526,23 +567,72 @@ export class EditorUIController {
       } else if (!this.authorSessionReady) {
         this.helperStatusText = "Mantenimiento · comprobación pendiente";
       }
-    } catch {
+      return session;
+    } catch (error) {
       if (!this.destroyed) {
         this.localServiceMode = "unknown";
+        this.localServiceDiagnostic = [
+          error?.code ?? "local-service-unavailable",
+          Number.isInteger(error?.status) ? `HTTP ${error.status}` : null,
+        ].filter(Boolean).join(" · ");
         this.authorSessionReady = false;
+        this.helperStatusText = window.location.origin === EDITOR_AUTHOR_ORIGIN
+          ? "Reconectando con el servicio local…"
+          : "No disponible en este origen";
         this.elements.shutdownButton.hidden = true;
       }
+      return null;
     } finally {
       if (!this.destroyed) this.#renderApplicationState();
     }
   }
 
   async #refreshApplicationCapability({ announceReady = true } = {}) {
-    if (!this.localServiceClient || this.destroyed) return;
-    await this.#probeLocalServiceControl();
+    if (!this.localServiceClient || this.destroyed) {
+      return { mode: "unknown", authorReady: false, transient: false };
+    }
+    const session = await this.#probeLocalServiceControl();
     if (this.localServiceMode === "editor-author") {
       await this.#probeAuthorHelper({ announceReady });
     }
+    return {
+      mode: this.localServiceMode,
+      authorReady: this.authorSessionReady,
+      transient: shouldRetryEditorService({
+        origin: window.location.origin,
+        session,
+        mode: this.localServiceMode,
+        authorReady: this.authorSessionReady,
+        pendingResolution: this.pendingResolution,
+      }),
+    };
+  }
+
+  async #retryServiceDetection() {
+    if (!this.serviceMonitor || this.applicationBusy || this.destroyed) return;
+    this.applicationActionMessage = null;
+    this.#setApplicationStatus("Comprobando de nuevo el servicio local…", "info");
+    const result = await this.serviceMonitor.refresh();
+    if (this.destroyed) return;
+    if (result?.mode === "editor-author" && result.authorReady) {
+      this.#setApplicationStatus(
+        this.applicationPlan
+          ? "Modo mantenimiento verificado. El plan validado sigue vigente; ya puedes confirmar."
+          : "Modo mantenimiento verificado. Valida la edición para calcular el plan aplicable.",
+        "success",
+      );
+    } else if (result?.mode === "development") {
+      this.#setApplicationStatus(
+        "Modo normal detectado. Puedes validar, pero aplicar requiere iniciar mantenimiento.",
+        "info",
+      );
+    } else {
+      this.#setApplicationStatus(
+        "El servicio todavía no responde. El Editor seguirá intentando mientras esta pestaña permanezca abierta.",
+        "warning",
+      );
+    }
+    this.#renderApplicationState();
   }
 
   async #requestLocalShutdown() {
@@ -577,10 +667,11 @@ export class EditorUIController {
       this.localServiceMode = "unknown";
       this.authorSessionReady = false;
       this.applicationProbeStarted = false;
-      this.applicationActionMessage = "Servidor detenido: aplicar permanece bloqueado hasta verificar el próximo servicio local.";
+      this.applicationActionMessage = SERVICE_STOPPED_ACTION_MESSAGE;
       this.elements.shutdownButton.textContent = "Servidor detenido";
       this.elements.shutdownButton.title = "El servidor local se detuvo; puedes cerrar esta pestaña.";
       this.#renderApplicationState();
+      void this.serviceMonitor?.refresh();
       this.toast(
         "Servidor local detenido. Puedes cerrar esta pestaña; reinicia el comando para volver a abrir ORBIT.",
         "success",
@@ -729,7 +820,7 @@ export class EditorUIController {
       "info",
     );
     try {
-      await this.#refreshApplicationCapability({ announceReady: false });
+      await this.serviceMonitor?.refresh();
       const plan = await this.applicationCoordinator.validate(candidate);
       if (generation !== this.applicationGeneration) {
         this.applicationCoordinator.invalidate();
@@ -771,7 +862,7 @@ export class EditorUIController {
     this.applicationActionMessage = null;
     this.#setApplicationBusy(true);
     this.#setApplicationStatus("Comprobando el modo mantenimiento antes de aplicar…", "info");
-    await this.#refreshApplicationCapability({ announceReady: false });
+    await this.serviceMonitor?.refresh();
     if (this.pendingResolution || this.reloadRequired) {
       this.#setApplicationBusy(false);
       return;
@@ -852,7 +943,7 @@ export class EditorUIController {
       }
     } finally {
       this.#setApplicationBusy(false);
-      if (!this.applicationProbeStarted) void this.#probeAuthorHelper({ announceReady: false });
+      if (!this.applicationProbeStarted) void this.serviceMonitor?.refresh();
     }
   }
 
@@ -928,7 +1019,13 @@ export class EditorUIController {
       },
       unknown: {
         level: "warning",
-        text: "Servicio local no identificado: puedes editar y validar, pero aplicar permanece bloqueado.",
+        text: `Servicio local no identificado en ${window.location.origin}${
+          this.localServiceDiagnostic ? ` (${this.localServiceDiagnostic})` : ""
+        }: puedes editar y validar, pero aplicar permanece bloqueado. ${
+          window.location.origin === EDITOR_AUTHOR_ORIGIN
+            ? "El Editor reintentará automáticamente; también puedes usar «Volver a comprobar servicio»."
+            : "Usa la URL local que imprime `npm run editor:author` o «Volver a comprobar servicio»."
+        }`,
       },
     };
     const modeDescription = modeDescriptions[this.localServiceMode] ?? modeDescriptions.unknown;
@@ -957,6 +1054,7 @@ export class EditorUIController {
     }
 
     this.elements.validateApplication.disabled = this.applicationBusy || Boolean(pending) || this.reloadRequired;
+    this.elements.retryService.disabled = this.applicationBusy || this.shutdownBusy;
     this.elements.applicationPlan.hidden = !this.applicationPlan;
     if (this.applicationPlan) {
       const { diff, impact, validation } = this.applicationPlan;
@@ -1180,10 +1278,9 @@ export class EditorUIController {
     this.render();
     if (
       view === "overview"
-      && this.applicationCoordinator
-      && !this.applicationProbeStarted
+      && this.serviceMonitor
     ) {
-      void this.#refreshApplicationCapability();
+      void this.serviceMonitor.refresh();
     }
   }
 

@@ -141,6 +141,25 @@ test("el servidor dev rechaza autoridades ajenas y no expone el checkout", async
   context.after(() => new Promise((resolve) => server.close(resolve)));
 
   assert.equal((await requestLocal(server, "/editor.html")).status, 200);
+  const editorRedirect = await requestLocal(
+    server,
+    "/editor.html/?profile=teacher&panel=overview",
+  );
+  assert.equal(editorRedirect.status, 307);
+  assert.equal(
+    editorRedirect.headers.location,
+    "/editor.html?profile=teacher&panel=overview",
+  );
+  assert.equal(editorRedirect.headers["cache-control"], "no-store");
+  assert.match(editorRedirect.body, /entrada canónica de ORBIT Editor/);
+  const editorHeadRedirect = await requestLocal(
+    server,
+    "/editor.html/?profile=student",
+    { method: "HEAD" },
+  );
+  assert.equal(editorHeadRedirect.status, 307);
+  assert.equal(editorHeadRedirect.headers.location, "/editor.html?profile=student");
+  assert.equal(editorHeadRedirect.body, "");
   assert.equal((await requestLocal(server, "/src/styles.css")).status, 200);
   assert.equal((await requestLocal(server, "/public/favicon.svg")).status, 200);
   assert.equal(
@@ -308,6 +327,10 @@ test("el servidor dev apaga solo su propia sesión local autenticada", async (co
   assert.equal(shutdownCount, 1);
   assert.equal(repeated.status, 409);
   assert.equal(JSON.parse(repeated.body).code, "local-service-shutdown-pending");
+  const pendingSession = await requestLocal(server, "/__orbit/local/session");
+  assert.equal(pendingSession.status, 503);
+  assert.equal(pendingSession.headers.connection, "close");
+  assert.equal(JSON.parse(pendingSession.body).code, "local-service-shutdown-pending");
   assert.equal(shutdownCount, 1);
 });
 

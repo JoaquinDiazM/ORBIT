@@ -220,8 +220,10 @@ comando. Mantener un solo origen es necesario para compartir Web Locks y almacen
 En este modo normal, ORBIT y Editor están disponibles; Resumen puede validar un borrador, pero
 **Aplicar** permanece deshabilitado y explica cómo entrar en mantenimiento. Para aplicar, detén
 `dev`, cierra las demás pestañas de ORBIT e inicia `npm run editor:author`. Ese comando bloquea
-ORBIT mientras esté activo. Cuando finalices, detén autoría y reinicia `npm run dev` para revisar
-la edición en los tres perfiles.
+ORBIT mientras esté activo. La pestaña de Editor vuelve a negociar la sesión automáticamente y
+conserva el plan validado mientras el borrador no cambie; **Volver a comprobar servicio** permite
+forzar la detección. Cuando finalices, detén autoría y reinicia `npm run dev` para revisar la
+edición en los tres perfiles.
 En ORBIT Editor Docente, un servidor compatible revela **Detener servidor** al final de General:
 la primera pulsación arma una confirmación y la segunda cierra de forma cooperativa únicamente el
 proceso ORBIT que sirve esa página. El control funciona con `dev` y `editor:author`, pero se niega

@@ -109,6 +109,12 @@ un fallo de sesión, permite editar/validar pero explica el bloqueo junto al con
 de aplicación se anuncian allí y mediante un aviso temporal; el éxito indica detener autoría y
 reiniciar `dev` antes de revisar los tres perfiles.
 
+La detección del Editor usa endpoints absolutos del mismo origen y un monitor serializado. Tras
+apagar `dev`, al recuperar foco, al volver desde BFCache o mientras el servicio sea transitorio,
+vuelve a negociar sin invalidar por sí misma el plan ya validado. Un control explícito permite
+reintentar y conserva un diagnóstico visible; `/editor.html/` se redirige a la entrada canónica
+para que una base URL ambigua no desplace los endpoints de sesión.
+
 Esta coordinación pertenece al mismo navegador, origen loopback y equipo. No congela sesiones
 en otro navegador o máquina y no reemplaza el mantenimiento multiusuario de UPD-002.
 

@@ -426,11 +426,18 @@ perfil.
   Un preflight `HEAD` también rechaza mantenimiento antes de construir `ProgressionModel`, incluso
   si el navegador intentara reutilizar una entrada en caché.
   Errores y éxito se anuncian junto al control y mediante toast; la evidencia final indica
-  detener mantenimiento y reiniciar `dev`.
+  detener mantenimiento y reiniciar `dev`. La tercera corrección reproduce y elimina el estado
+  obsoleto de la pestaña: las sesiones usan endpoints absolutos, un monitor serializado conserva
+  el plan y renegocia al recuperar foco/BFCache/visibilidad o durante la transición local, y el
+  botón **Volver a comprobar servicio** ofrece un sondeo explícito con diagnóstico. El retry queda
+  limitado al origen canónico; `/editor.html/` redirige a `/editor.html`. Durante un apagado, la
+  sesión vieja responde `503` y no puede cancelar la reconexión; al detectar el servicio nuevo se
+  restablecen el control de apagado y el mensaje de disponibilidad.
 - Pruebas: aplicación completa, no-op, conteos, cancelación, contratos futuros, locks y pestañas,
   crashes en cada fase, rollback/finalize, progreso resucitado, envelopes divergentes, Host y
   absolute-form, límite/alcance estático, realpath y coincidencia exacta fuente/dist/build-info.
-  Suite integral actual: 374 aprobadas, 0 fallos y 2 skips EPERM de symlink; repositorio: 120 JS
+  Suite integral previa a esta corrección: 374 aprobadas, 0 fallos y 2 skips EPERM de symlink;
+  repositorio: 120 JS
   y 40 Markdown válidos; validación de 19 zonas/20 conceptos/29 lugares y build estático
   reconstruido. El runtime de este agente no incluye el binario npm, por lo que ejecutó
   directamente y con éxito los cuatro componentes de `npm run check`: validate, `node --test`,
@@ -438,16 +445,28 @@ perfil.
   sesión `development`, sin API de autoría; mantenimiento devolvió `503 maintenance` para todas
   las entradas ORBIT y `200` para Editor/assets/API. Ambos apagados respondieron `202`, terminaron
   su terminal, liberaron 4173 y retiraron el lock de autoría sin journal residual. El inventario,
-  sidecars, licencias y cinco claves de audio se reauditaron sin cambios.
+  sidecars, licencias y cinco claves de audio se reauditaron sin cambios. Tras la tercera
+  corrección, la suite integral quedó en 384 aprobadas, 0 fallos y 2 skips EPERM de symlink;
+  validate confirmó 19 zonas/20 conceptos/29 lugares, repo-check confirmó 122 JS y 40 Markdown,
+  y el build estático se reconstruyó. Un E2E permanente intercambia dos zonas, mueve un nodo,
+  añade una conexión y cambia una apariencia mediante helper HTTP; verifica la misma edición en
+  fuente/dist/build-info/navegador, elimina todas las claves actuales y legadas de los tres
+  perfiles y preserva el borrador Docente y Bowerbird Estudiante. Una prueba real adicional sobre
+  127.0.0.1:4173 observó `development → unknown transitorio → editor-author listo` después del
+  apagado auténtico; terminó con puerto, lock y journal libres. Como este runtime no incluye npm,
+  los cuatro componentes de `npm run check` se ejecutaron directamente con Node 24.19.0.
 - Cómo revisar para JoaquinDiazM: ejecuta primero `npm run dev`, abre Editor Docente, modifica una
   zona/nodo/conexión/apariencia y valida en **Resumen**. Debe indicar **Modo normal**, mostrar el
   diff/impacto y mantener confirmación/**Aplicar** bloqueados con instrucciones. Deja una pestaña
-  ORBIT abierta, detén `dev` e inicia `npm run editor:author`: esa pestaña debe congelarse y
-  recargar al `503`, mientras Editor continúa disponible. Cierra las demás pestañas ORBIT, vuelve
-  a validar y aplica; exporta antes cualquier avance que quieras conservar. Al finalizar, detén
-  mantenimiento, inicia `npm run dev` y revisa la nueva edición en Estudiante, Docente y Debug.
-  **Detener servidor** requiere dos pulsaciones y no debe aparecer en Estudiante/Debug ni apagar
-  autoría durante una aplicación o recuperación pendiente.
+  ORBIT abierta y usa dos veces **Detener servidor**; inicia `npm run editor:author` sin cerrar la
+  pestaña del Editor. La pestaña ORBIT debe recargar al `503` y, en la misma vista Resumen, Editor
+  debe cambiar automáticamente a **Modo mantenimiento verificado** y habilitar la confirmación
+  sin exigir otra validación ni perder el plan. **Volver a comprobar servicio** permite forzar el
+  sondeo si deseas verificarlo manualmente. Cierra las demás pestañas ORBIT, marca la confirmación
+  y aplica; exporta antes cualquier avance que quieras conservar. Al finalizar, detén
+  mantenimiento, inicia `npm run dev` y revisa la nueva cartografía y el progreso reiniciado en
+  Estudiante, Docente y Debug. **Detener servidor** requiere dos pulsaciones y no debe aparecer en
+  Estudiante/Debug ni apagar autoría durante una aplicación o recuperación pendiente.
 - Observaciones del usuario: Pregunta 1: Subir/aplicar significa unar el borrador en nuestro navegador y modificar fuentes/build de manera local. Sin embargo, esta actualizacion debe estar pensada para que en el momento que abordemos UPD-002 no tengamos que pensar los detalles que ahora estamos definiendo como politica de perdida de datos/progreso, verificacion de reseteo en todos los tipos de perfiles por accion de docente en ORBIT Editor, verificacion de cambios efectuados en el mapamundi (Nodos, zonas, etc), etc. Pregunta 2: Como todavia no tenemos sistema de cuentas, es para todos los estados locales de nuestro navegador. Pregunta 3: Todo, por lo quje hay que mantener coherencia en las actualizaciones de ORBIT Editor para que no se incluyan opciones que arruinen el objetivo principal de ORBIT, aprender. Pregunta 4: Si, el primer paso es validar y el segundo confirmar, y soltar datos utiles entre medio. Manten todo ese desarrollo en la ventana de resumen sin quitar lo que ya esta, complementandolo. 5.- Mostrar ambos y declarar el reinicio total.
 - Observaciones del usuario: Parece ser que falta un boton de shutdown, preferiblemente en el
   ORBIT Editor del perfil docente, para que un usuario desarrolador como yo pueda hacer pruebas,
@@ -475,6 +494,7 @@ perfil.
   de implementarla porque en ninguna inicializacion de servidor pude ver reflejados los cambios
   que hice con ORBIT Editor en el perfil de docente, el boton simplemete no hacia nada a pesar de
   que el proceso de validacion de los cambios sale positivo.
+- Observaciones del usuario (3):  Abri el servidor en mantenimiento, pero aun asi aparece el mensaje de "Servicio local no identificado: puedes editar y validar, pero aplicar permanece bloqueado" y tambien esta bloqueada la casilla de confimacion. Ya cerre el servidor en mi terminal para que puedas hacer tus pruebas, pero recuerda tambien cerrar ese proceso en tu terminal para que pueda revisar sin problema.
 
 ### UPD-015 — Red única de aprendizaje y apertura territorial derivada
 

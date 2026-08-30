@@ -13,7 +13,7 @@ function response(body, { ok = true, status = 200 } = {}) {
 const session = {
   kind: "orbit-editor-author-session",
   schemaVersion: 1,
-  token: "session-token",
+  token: "s".repeat(64),
   courseId: "electromagnetism-applied",
   endpoints: {
     apply: "/__orbit/author/apply",
@@ -38,9 +38,11 @@ test("el cliente negocia sesión y envía revisión optimista con token same-ori
   });
   assert.equal(result.edition.revision, "sha256:nueva");
   assert.equal(calls.length, 2);
+  assert.equal(calls[0].url, "/__orbit/author/session");
+  assert.equal(calls[0].options.credentials, "same-origin");
   assert.equal(calls[1].url, "/__orbit/author/apply");
   assert.equal(calls[1].options.credentials, "same-origin");
-  assert.equal(calls[1].options.headers["x-orbit-author-token"], "session-token");
+  assert.equal(calls[1].options.headers["x-orbit-author-token"], "s".repeat(64));
   assert.deepEqual(JSON.parse(calls[1].options.body), {
     document: { kind: "orbit-editor-project" },
     expectedPreviousRevision: "sha256:anterior",
@@ -74,6 +76,21 @@ test("una URL ajena en la sesión se rechaza antes de enviar el documento", asyn
   await assert.rejects(
     client.apply({ document: {}, expectedPreviousRevision: null }),
     (error) => error instanceof EditorAuthorClientError
-      && error.code === "invalid-author-endpoint",
+      && error.code === "invalid-author-session",
   );
+});
+
+test("el cliente rechaza tokens, cursos y tablas de endpoints incompletos", async () => {
+  for (const invalid of [
+    { ...session, token: "breve" },
+    { ...session, courseId: "" },
+    { ...session, endpoints: { ...session.endpoints, finalize: "/__orbit/author/otro" } },
+  ]) {
+    const client = new EditorAuthorClient({ fetchImpl: async () => response(invalid) });
+    await assert.rejects(
+      client.connect(),
+      (error) => error instanceof EditorAuthorClientError
+        && error.code === "invalid-author-session",
+    );
+  }
 });

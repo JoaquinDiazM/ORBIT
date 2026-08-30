@@ -9,12 +9,53 @@ import {
   getEditorHistoryAction,
   getReadOnlyCameraPan,
   getReadOnlyRestrictionMessage,
+  shouldRetryEditorService,
 } from "../src/editor/editor-ui-controller.js";
 import { canUseEditorTool } from "../src/editor/editor-app.js";
 
 const EDITOR_PATH = new URL("../editor.html", import.meta.url);
 const ORBIT_PATH = new URL("../index.html", import.meta.url);
 const EDITOR_MAIN_PATH = new URL("../src/editor/editor-main.js", import.meta.url);
+
+test("la reconexión automática queda acotada al origen local canónico", () => {
+  const base = {
+    origin: "http://127.0.0.1:4173",
+    session: null,
+    mode: "unknown",
+    authorReady: false,
+    pendingResolution: null,
+  };
+  assert.equal(shouldRetryEditorService(base), true);
+  assert.equal(
+    shouldRetryEditorService({ ...base, origin: "https://example.test" }),
+    false,
+  );
+  assert.equal(
+    shouldRetryEditorService({
+      ...base,
+      session: { service: "development" },
+      mode: "development",
+    }),
+    false,
+  );
+  assert.equal(
+    shouldRetryEditorService({
+      ...base,
+      session: { service: "editor-author" },
+      mode: "editor-author",
+    }),
+    true,
+  );
+  assert.equal(
+    shouldRetryEditorService({
+      ...base,
+      session: { service: "editor-author" },
+      mode: "editor-author",
+      pendingResolution: { action: "rollback" },
+    }),
+    false,
+  );
+});
 
 test("ORBIT enlaza una entrada editorial independiente", async () => {
   const orbit = await readFile(ORBIT_PATH, "utf8");
@@ -63,6 +104,7 @@ test("el shell del editor expone Spider, Bee y Bowerbird en menús retractables"
     "editor-warning-list",
     "editor-course-application",
     "editor-validate-application",
+    "editor-retry-service",
     "editor-application-status",
     "editor-service-mode-status",
     "editor-pending-application",
@@ -295,9 +337,15 @@ test("la aplicación distingue modo normal de mantenimiento y explica cada bloqu
   assert.match(ui, /const maintenanceReady = this\.localServiceMode === "editor-author"/);
   assert.match(ui, /this\.elements\.confirmApplication\.disabled[\s\S]*\|\| !maintenanceReady/);
   assert.match(ui, /this\.elements\.applyCourse\.disabled[\s\S]*\|\| !maintenanceReady/);
-  assert.match(ui, /await this\.#refreshApplicationCapability\(\{ announceReady: false \}\)/);
+  assert.match(ui, /await this\.serviceMonitor\?\.refresh\(\)/);
   assert.match(ui, /Comprobando el modo mantenimiento antes de aplicar/);
   assert.match(ui, /Servidor detenido: aplicar permanece bloqueado/);
+  assert.match(ui, /if \(this\.shutdownBusy\) \{\s*this\.shutdownBusy = false;/);
+  assert.match(ui, /this\.applicationActionMessage === SERVICE_STOPPED_ACTION_MESSAGE/);
+  assert.match(ui, /void this\.serviceMonitor\?\.refresh\(\)/);
+  assert.match(ui, /Volver a comprobar servicio/);
+  assert.match(ui, /this\.serviceMonitor = this\.localServiceClient/);
+  assert.match(ui, /this\.serviceMonitor\?\.destroy\(\)/);
   assert.match(ui, /La edición coincide con la revisión activa; no hay cambios que aplicar/);
   assert.match(ui, /this\.toast\(message, "error", 7000\)/);
   assert.match(ui, /Detén el modo mantenimiento e inicia `npm run dev`/);
