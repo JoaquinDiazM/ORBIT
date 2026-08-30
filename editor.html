@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="ORBIT Editor: editor visual local para organizar zonas, nodos y prerrequisitos de una ruta educativa."
+      content="ORBIT Editor: editor visual local para organizar y personalizar zonas, nodos y prerrequisitos de una ruta educativa."
     />
     <meta name="theme-color" content="#08111f" />
     <link rel="icon" href="./public/favicon.svg" type="image/svg+xml" sizes="any" />
@@ -41,7 +41,7 @@
         <dl class="hud-stats editor-stats">
           <div><dt>Herramienta</dt><dd id="editor-active-tool">Spider · mover</dd></div>
           <div><dt>Zonas</dt><dd id="editor-area-count">19</dd></div>
-          <div><dt>Nodos</dt><dd id="editor-location-count">28</dd></div>
+          <div><dt>Nodos</dt><dd id="editor-location-count">29</dd></div>
           <div><dt>Estado</dt><dd id="editor-save-status" role="status">Cargando borrador…</dd></div>
         </dl>
         <div class="editor-history-controls" aria-label="Historial de edición">
@@ -122,6 +122,14 @@
           aria-controls="editor-inspector"
           aria-pressed="false"
         >Bee</button>
+        <button
+          id="editor-open-bowerbird"
+          class="dock-button editor-tool-button"
+          data-mark="BW"
+          type="button"
+          aria-controls="editor-inspector"
+          aria-pressed="false"
+        >Bowerbird</button>
       </nav>
 
       <aside
@@ -174,7 +182,7 @@
             </div>
             <div class="editor-legend" aria-label="Leyenda de conexiones">
               <p><span class="editor-line-swatch editable" aria-hidden="true"></span><strong>Spider:</strong> prerrequisito editable de lugar completado.</p>
-              <p><span class="editor-line-swatch derived" aria-hidden="true"></span><strong>Derivada:</strong> relación de concepto o recompensa; solo lectura en 0.4.0.</p>
+              <p><span class="editor-line-swatch derived" aria-hidden="true"></span><strong>Derivada:</strong> relación de concepto o recompensa; permanece en solo lectura.</p>
             </div>
             <h3>Red seleccionada</h3>
             <ul id="editor-connection-list" class="editor-connection-list"></ul>
@@ -199,12 +207,39 @@
             <p id="editor-selected-area-summary" class="callout">Selecciona una zona del anillo 1 o 2.</p>
           </section>
 
+          <section id="editor-bowerbird-panel" aria-labelledby="editor-bowerbird-heading" hidden>
+            <h3 id="editor-bowerbird-heading">Personalizar zonas</h3>
+            <p class="editor-intro">Elige presets compatibles para cambiar la paleta, el motivo y el contorno sin alterar el contenido ni la geometría.</p>
+            <p id="editor-bowerbird-disclaimer" class="callout">Puedes decorar cualquier zona. En ORBIT, la apariencia de una zona bloqueada se mostrará cuando la desbloquees; decorar no abre zonas ni concede progreso.</p>
+
+            <label class="field-label" for="editor-bowerbird-area">Zona seleccionada</label>
+            <select id="editor-bowerbird-area"></select>
+
+            <div class="editor-bowerbird-controls">
+              <label for="editor-bowerbird-palette">Paleta</label>
+              <select id="editor-bowerbird-palette"></select>
+              <p id="editor-bowerbird-palette-description" class="editor-preset-description"></p>
+
+              <label for="editor-bowerbird-motif">Motivo</label>
+              <select id="editor-bowerbird-motif"></select>
+              <p id="editor-bowerbird-motif-description" class="editor-preset-description"></p>
+
+              <label for="editor-bowerbird-contour">Contorno</label>
+              <select id="editor-bowerbird-contour"></select>
+              <p id="editor-bowerbird-contour-description" class="editor-preset-description"></p>
+            </div>
+
+            <button id="editor-bowerbird-reset" type="button">Restaurar apariencia</button>
+            <p id="editor-bowerbird-scope" class="editor-bowerbird-scope" role="status"></p>
+          </section>
+
           <section id="editor-overview-panel" hidden>
-            <h3>Base editorial de ORBIT 0.4.0</h3>
+            <h3>Base editorial de ORBIT</h3>
             <p>El borrador se guarda únicamente en este navegador y permanece separado del progreso de aprendizaje guardado por ORBIT.</p>
             <dl class="editor-summary-list">
               <div><dt>Spider</dt><dd>Ubica nodos y añade dependencias explícitas del Árbol II.</dd></div>
               <div><dt>Bee</dt><dd>Reordena zonas mediante intercambios dentro de cada anillo.</dd></div>
+              <div><dt>Bowerbird</dt><dd>Configura presets visuales por zona sin modificar geometría ni progreso.</dd></div>
               <div><dt>Publicación</dt><dd>Exporta el JSON para revisarlo e integrarlo durante el mantenimiento del sitio.</dd></div>
             </dl>
             <section id="editor-warning-summary" class="editor-warning-summary" aria-labelledby="editor-warning-heading" hidden>
@@ -212,7 +247,99 @@
               <p>Revisa estos ajustes antes de exportar o integrar el documento.</p>
               <ul id="editor-warning-list"></ul>
             </section>
-            <p class="callout">0.4.0 no escribe el repositorio ni publica cambios automáticamente.</p>
+            <section
+              id="editor-course-application"
+              class="editor-course-application"
+              aria-labelledby="editor-course-application-heading"
+              hidden
+            >
+              <h3 id="editor-course-application-heading">Aplicar al curso local</h3>
+              <p>
+                Disponible solo en el perfil Docente y durante mantenimiento. Inicia
+                <code>npm run editor:author</code> y abre la URL local indicada por el helper.
+              </p>
+              <dl class="editor-application-source">
+                <div><dt>Edición cargada</dt><dd id="editor-current-revision">—</dd></div>
+                <div><dt>Fuente activa</dt><dd id="editor-current-source">—</dd></div>
+                <div><dt>Helper local</dt><dd id="editor-author-helper-status" role="status">Sin comprobar</dd></div>
+              </dl>
+              <div class="editor-application-actions">
+                <button id="editor-validate-application" type="button">Validar edición e impacto</button>
+              </div>
+              <p id="editor-application-status" class="editor-application-status" role="status">
+                Valida el borrador antes de confirmar cualquier escritura.
+              </p>
+
+              <section
+                id="editor-pending-application"
+                class="editor-pending-application"
+                aria-labelledby="editor-pending-heading"
+                hidden
+              >
+                <h3 id="editor-pending-heading">Aplicación pendiente</h3>
+                <p id="editor-pending-detail"></p>
+                <button id="editor-recover-application" type="button">Recuperar de forma segura</button>
+              </section>
+
+              <section
+                id="editor-application-plan"
+                class="editor-application-plan"
+                aria-labelledby="editor-application-plan-heading"
+                hidden
+              >
+                <h3 id="editor-application-plan-heading">Plan validado</h3>
+                <dl class="editor-application-diff">
+                  <div><dt>Zonas movidas</dt><dd id="editor-diff-areas">0</dd></div>
+                  <div><dt>Nodos movidos</dt><dd id="editor-diff-locations">0</dd></div>
+                  <div><dt>Apariencias</dt><dd id="editor-diff-appearances">0</dd></div>
+                  <div><dt>Conexiones añadidas</dt><dd id="editor-diff-added-connections">0</dd></div>
+                  <div><dt>Conexiones retiradas</dt><dd id="editor-diff-removed-connections">0</dd></div>
+                  <div><dt>Alcanzabilidad</dt><dd id="editor-validation-reachability">—</dd></div>
+                </dl>
+                <div class="editor-impact-table-wrap">
+                  <table class="editor-impact-table">
+                    <caption>Progreso local que se eliminará por perfil</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Perfil</th>
+                        <th scope="col">Guardado</th>
+                        <th scope="col">Lugares</th>
+                        <th scope="col">Conceptos</th>
+                        <th scope="col">Lectura</th>
+                      </tr>
+                    </thead>
+                    <tbody id="editor-application-impact"></tbody>
+                  </table>
+                </div>
+                <p class="editor-reset-scope">
+                  El reinicio total elimina progreso, recompensas, posición, ajustes, transporte activo y
+                  overrides de depuración de Estudiante, Docente y Debug. Se preservan el borrador Docente
+                  y las preferencias Bowerbird personales de Estudiante.
+                </p>
+                <label class="editor-application-confirmation">
+                  <input id="editor-confirm-application" type="checkbox" />
+                  <span>Entiendo el reinicio de los tres perfiles y confirmo aplicar esta revisión local.</span>
+                </label>
+                <button id="editor-apply-course" type="button" disabled>Aplicar edición al curso</button>
+              </section>
+
+              <section
+                id="editor-application-evidence"
+                class="editor-application-evidence"
+                aria-labelledby="editor-application-evidence-heading"
+                hidden
+              >
+                <h3 id="editor-application-evidence-heading">Evidencia de aplicación</h3>
+                <dl>
+                  <div><dt>Revisión</dt><dd id="editor-applied-revision">—</dd></div>
+                  <div><dt>Digest</dt><dd id="editor-applied-digest">—</dd></div>
+                  <div><dt>Fuente y build</dt><dd id="editor-applied-build">—</dd></div>
+                  <div><dt>Perfiles reiniciados</dt><dd id="editor-applied-profiles">—</dd></div>
+                  <div><dt>Datos preservados</dt><dd id="editor-applied-preserved">—</dd></div>
+                </dl>
+              </section>
+            </section>
+            <p class="callout">La página por sí sola no escribe ni publica cambios. Solo una aplicación confirmada mediante el helper actualiza fuente y build locales; nunca muta Git ni publica un remoto.</p>
           </section>
 
           <section id="editor-help-panel" hidden>
@@ -220,6 +347,7 @@
             <dl class="controls-list">
               <div><dt>Arrastrar nodo</dt><dd>Moverlo dentro de una zona o trasladarlo a otra.</dd></div>
               <div><dt>Arrastrar zona</dt><dd>Intercambiarla con otra del mismo anillo.</dd></div>
+              <div><dt>Seleccionar zona</dt><dd>En Bowerbird, elegirla en el mapa o en la lista para previsualizar su apariencia.</dd></div>
               <div><dt>Arrastrar fondo</dt><dd>Desplazar la cámara.</dd></div>
               <div><dt>Rueda</dt><dd>Ajustar el zoom.</dd></div>
               <div><dt><kbd>←↑↓→</kbd></dt><dd>Ajustar el nodo o recorrer posiciones desde los controles del inspector.</dd></div>
@@ -233,6 +361,7 @@
 
       <section id="editor-controls-hint" class="glass-card compact-card editor-controls-hint" aria-label="Controles principales del editor">
         <span>Arrastra: mover o conectar</span>
+        <span>Bowerbird: decorar zona</span>
         <span>Fondo: desplazar mapa</span>
         <span>Rueda: zoom</span>
         <span><kbd>Ctrl</kbd> + <kbd>Z</kbd>: deshacer</span>
@@ -243,7 +372,7 @@
         <div class="loading-card">
           <div class="loading-orbit" aria-hidden="true"></div>
           <p id="loading-eyebrow" class="eyebrow">Inicializando editor</p>
-          <h2 id="loading-title">Preparando Spider y Bee…</h2>
+          <h2 id="loading-title">Preparando Spider, Bee y Bowerbird…</h2>
           <p id="loading-detail" class="startup-detail" role="alert" hidden></p>
         </div>
       </div>

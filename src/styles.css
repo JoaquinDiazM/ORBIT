@@ -920,6 +920,196 @@ code {
   font-size: 0.8rem;
 }
 
+.gadget-tool-chooser {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.2rem, 1fr));
+  margin: 0.85rem 0 0.4rem;
+  gap: 0.5rem;
+}
+
+.gadget-tool-button {
+  display: grid;
+  min-width: 0;
+  min-height: 3.3rem;
+  padding: 0.52rem 0.62rem;
+  gap: 0.2rem;
+  align-content: center;
+  border-color: rgba(155, 216, 255, 0.2);
+  background: rgba(12, 36, 55, 0.72);
+  text-align: left;
+}
+
+.gadget-tool-button small {
+  color: var(--muted);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.gadget-tool-button[aria-pressed="true"] {
+  border-color: rgba(255, 209, 102, 0.7);
+  background: rgba(71, 59, 28, 0.52);
+  box-shadow: inset 0 0 0 2px rgba(255, 209, 102, 0.1);
+}
+
+.gadget-tool-button[aria-disabled="true"] {
+  border-style: dashed;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(5, 18, 30, 0.62),
+    rgba(5, 18, 30, 0.62) 0.45rem,
+    rgba(18, 34, 47, 0.62) 0.45rem,
+    rgba(18, 34, 47, 0.62) 0.9rem
+  );
+}
+
+.gadget-tool-button[aria-disabled="true"] small {
+  color: #ffd1d5;
+}
+
+.gadget-status {
+  min-height: 1.35rem;
+  margin: 0.45rem 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.gadget-tool-panel {
+  margin-top: 0.55rem;
+}
+
+.gadget-tool {
+  padding: 0.9rem;
+  border: 1px solid rgba(120, 227, 255, 0.18);
+  border-radius: 0.85rem;
+  color: #dbeaf4;
+  background: rgba(2, 13, 23, 0.55);
+}
+
+.gadget-tool > h3,
+.smith-chart-scaffold > h3 {
+  margin: 0 0 0.4rem;
+  color: #f4faff;
+}
+
+.gadget-tool > p,
+.smith-chart-scaffold > p {
+  color: #d2e0ea;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.gadget-form {
+  display: grid;
+  margin-top: 0.75rem;
+  gap: 0.42rem;
+}
+
+.gadget-form .field-label {
+  margin-top: 0.35rem;
+}
+
+.gadget-form input {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.65rem;
+  padding: 0.62rem 0.72rem;
+  border: 1px solid rgba(120, 227, 255, 0.28);
+  border-radius: 0.7rem;
+  color: var(--text);
+  background: rgba(3, 12, 22, 0.82);
+}
+
+.gadget-form button {
+  justify-self: start;
+  margin-top: 0.35rem;
+}
+
+.field-help {
+  margin: 0.15rem 0 0;
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.calculator-result-label {
+  display: block;
+  margin-top: 0.85rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.calculator-result {
+  display: block;
+  margin-top: 0.28rem;
+  padding: 0.7rem 0.78rem;
+  overflow-x: auto;
+  border: 1px solid rgba(124, 230, 173, 0.34);
+  border-radius: 0.7rem;
+  color: #dffff0;
+  background: rgba(14, 55, 38, 0.42);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.vector-field-explorer-mount {
+  max-width: 30rem;
+  margin: 0.75rem auto 0;
+}
+
+.smith-chart-scaffold {
+  margin: 0;
+  padding: 0.9rem;
+  border: 1px solid rgba(255, 209, 102, 0.24);
+  border-radius: 0.85rem;
+  background: rgba(32, 29, 17, 0.42);
+}
+
+.smith-chart-scaffold svg {
+  display: block;
+  width: min(100%, 28rem);
+  margin: 0.75rem auto;
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 209, 102, 0.2);
+  border-radius: 50%;
+  color: #80dcfa;
+  background: rgba(1, 9, 17, 0.8);
+}
+
+.smith-chart-grid circle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 0.75;
+  opacity: 0.46;
+}
+
+.smith-chart-boundary,
+.smith-chart-axis {
+  fill: none;
+  stroke: #e8f8ff;
+  stroke-width: 1.2;
+  opacity: 0.86;
+}
+
+.smith-chart-match {
+  fill: var(--gold);
+  stroke: #fff5cf;
+  stroke-width: 0.8;
+}
+
+.smith-chart-scaffold figcaption {
+  color: #f4df9d;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
 .point-charge-field {
   margin: 0;
   padding: 0.72rem;

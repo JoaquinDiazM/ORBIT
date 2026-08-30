@@ -2,7 +2,10 @@
 
 ## Objetivo técnico
 
-Mantener dos aplicaciones web estáticas, comprensibles y modificables sin un motor de juego: **ORBIT** para aprendizaje y **ORBIT Editor** para autoría cartográfica local. La arquitectura separa datos curriculares, reglas de progreso, geometría, borradores editoriales, ejecución del juego y presentación.
+Mantener dos aplicaciones web estáticas, comprensibles y modificables sin un motor de juego:
+**ORBIT** para aprendizaje y **ORBIT Editor** para autoría cartográfica y visual local. La
+arquitectura separa datos académicos canónicos, edición publicada, reglas de progreso, geometría,
+documento Docente, preferencias Estudiante, ejecución del juego y presentación.
 
 ORBIT significa **Open Roadmap for Building Intuition and Theory**. La arquitectura descrita
 aquí implementa por ahora una sola ruta, Electromagnetismo. La conexión futura entre
@@ -17,7 +20,7 @@ src/data/
         │
         ▼
 src/core/
-    geometría, requisitos, progreso, guardado y validación
+    geometría, requisitos, edición, progreso, guardado y validación
         │
         ├──────────────┬────────────────┐
         ▼              ▼                ▼
@@ -83,7 +86,12 @@ Define simbología, constantes, fórmulas y glosario. Cada entrada tiene requisi
 declara las capacidades de depuración y Editor y decide qué lugares participan en cada perfil.
 Es una política de interfaz y ejecución local, no una identidad autenticada.
 
-`src/core/knowledge-graph.js` deriva las guías del Árbol II desde `completedLocations`, `concepts` y `rewards`. Resuelve conceptos y recompensas al lugar que los concede, agrupa requisitos repetidos por pareja y conserva una única dirección semántica: prerrequisito → destino. Los requisitos de área no crean estas aristas. El dataset vigente produce 13 parejas únicas; cuatro relaciones `completedLocations` están declaradas explícitamente y pueden coincidir con causas conceptuales en una misma pareja.
+`src/core/knowledge-graph.js` deriva las guías del Árbol II desde `completedLocations`,
+`concepts` y `rewards`. Resuelve conceptos y recompensas al lugar que los concede, agrupa
+requisitos repetidos por pareja y conserva una única dirección semántica: prerrequisito →
+destino. Los requisitos de área no crean estas aristas. El dataset vigente produce 14 parejas
+únicas; cinco relaciones `completedLocations` están declaradas explícitamente y pueden coincidir
+con causas conceptuales en una misma pareja.
 
 Primero se clasifica cada extremo visible como `completed`, `completable` o `blocked`. Una conexión `completed → completed/completable` usa apariencia `bright`; una conexión `completable → blocked` usa apariencia `muted`. Las demás combinaciones y cualquier extremo oculto quedan fuera. El renderer expresa además esa distinción mediante trazo sólido luminoso frente a trazo tenue discontinuo, de modo que no dependa solo del color.
 
@@ -115,20 +123,81 @@ interactuar una lección o misión todavía incompleta que contenga una respuest
 `choice`, `numeric`, `expression` o `sequence`; los encuentros no evaluativos siguen el flujo
 ordinario.
 
-`src/core/progress-migrations.js` transforma perfiles publicados antes del saneamiento. El paso `v1 → v2` conserva logros y traslada posiciones y overrides asociados a las antiguas zonas de Inducción y Aplicaciones. El paso `v2 → v3` sustituye la preferencia booleana y el volumen maestro históricos por `ambienceVolume` y `effectsVolume`; si el perfil estaba silenciado, ambas categorías migran a cero. Ese paso inicializa además `treeTwoVisualizationMode` en `hidden`, equivalente a **Oculta**.
+`src/core/progress-migrations.js` transforma perfiles publicados antes del saneamiento. El paso
+`v1 → v2` conserva logros y traslada posiciones y overrides asociados a las antiguas zonas de
+Inducción y Aplicaciones. El paso `v2 → v3` divide el volumen histórico e inicializa
+`treeTwoVisualizationMode`. El paso `v3 → v4` añade `courseId` y `courseRevision`: solo conserva
+avance no versionado cuando la edición activa declara compatibilidad con la revisión inicial. Una
+edición aplicada exige un perfil nuevo, de modo que un guardado de otra revisión no se reactiva.
 
 ### Persistencia
 
-`src/core/storage.js` encapsula el progreso de ORBIT en `localStorage`. El formato vigente es
-`v3` y está versionado por `APP_CONFIG.progressSchemaVersion`. Cada uno de los tres perfiles
-usa una clave propia bajo `orbit-progress:v3:<profile>`, por lo que Estudiante, Docente y Debug
-no comparten logros ni preferencias. Al resolver Estudiante, el arranque consulta además la
-clave `orbit-progress:v3:normal`; para cualquier migración compatible también recorre versiones
-anteriores y el prefijo histórico `aea-progress`. Después sanea el contenido como `student` y
-lo guarda bajo la clave canónica sin incrementar el esquema, porque la forma del estado sigue
-siendo `v3`.
+`src/core/storage.js` encapsula los accesos a `localStorage` y ofrece una transacción recuperable
+para el reset específico. El progreso vigente es `v4`, versionado por
+`APP_CONFIG.progressSchemaVersion`; Estudiante, Docente y Debug usan
+`orbit-progress:v4:<profile>` y no comparten logros. La resolución de claves históricas, incluido
+`normal` para Estudiante y el prefijo `aea-progress`, queda subordinada a la compatibilidad de la
+edición activa.
 
-El estado de Editor usa otro contrato y otra clave: `orbit-editor:v1:electromagnetism-applied`. El esquema editorial `v1` no es una versión del progreso, no participa en sus migraciones y nunca debe almacenarse bajo `orbit-progress`.
+Los demás contratos persistidos permanecen separados:
+
+- documento Docente: `orbit-editor:v2:electromagnetism-applied`;
+- preferencias visuales Estudiante: `orbit-bowerbird:v1:electromagnetism-applied:student`;
+- edición instalada en el navegador: `orbit-course-edition:v1:electromagnetism-applied`;
+- edición canónica publicada: `public/data/courses/electromagnetism-applied.edition.json`.
+
+Cada contrato tiene esquema y migraciones propios. Ninguno se almacena bajo una clave de otro
+alcance, y el reset de curso no usa `localStorage.clear()`.
+
+Las mutaciones de progreso se consideran confirmadas solo después de releer el valor escrito.
+Si el navegador rechaza o altera una escritura, el modelo restaura el último estado verificable,
+no emite el evento de éxito y la UI devuelve el control a ese valor con un aviso accesible único.
+El guardado periódico de posición limita sus reintentos y nunca detiene el frame siguiente; la
+liberación del bloqueo compartido permanece en un `finally` incluso si falla el cierre del juego.
+Un progreso con `schemaVersion` futura se usa solo como señal de incompatibilidad: la sesión abre
+limpia, pero conserva intacto el registro crudo y una importación lo rechaza antes de mutar o
+emitir; el bloqueo se reporta como error de persistencia para que el loop continúe sin reintentos
+destructivos. Las preferencias Bowerbird con esquema o catálogo desconocido también conservan
+el registro crudo y bloquean set, reset e importación. Un borrador Docente ilegible o futuro abre
+una copia canónica de consulta, pero bloquea las mutaciones ordinarias hasta que Docente elige
+explícitamente **Restaurar** o importa un documento válido. La misma reversión visual se aplica a
+los selects Bowerbird cuando una escritura compatible falla.
+
+### Edición de curso y aplicación
+
+`src/core/course-edition.js` define `orbit-course-edition` `v1`. El artefacto contiene el
+documento Docente `v2`, revisión anterior, revisión nueva, política de reset, fecha y digest
+SHA-256. Al arrancar, ORBIT y Editor validan la fuente publicada, materializan sobre los módulos
+canónicos únicamente coordenadas/apariencias de zonas, `areaId + offset` de lugares y requisitos
+directos `completedLocations`, y rechazan una edición local que no descienda de la publicada.
+Contenido, conceptos, recompensas, IDs y anillos siguen en los datos canónicos.
+
+`src/core/course-application.js` calcula el diff y el impacto legible de los tres perfiles,
+construye un plan ligado al digest y ejecuta la transacción del navegador. El reset elimina solo
+las claves de progreso canónicas y legadas de Estudiante, Docente y Debug; conserva documento
+Docente, preferencias Bowerbird y datos ajenos. Antes de recuperar, journal y respaldo deben
+coincidir en ID, metadatos, revisión y conjunto exacto de claves —edición más todos los progresos
+del curso—; cualquier clave duplicada, ajena o mal tipada hace fallar la recuperación sin mutar
+almacenamiento.
+
+`src/core/course-lock.js` mantiene un bloqueo Web Locks compartido mientras ORBIT está abierto y
+exige uno exclusivo al aplicar. Sin soporte o con otra pestaña activa, la operación se rechaza
+antes de modificar progreso. `src/editor/course-application-coordinator.js` coordina esa sección
+crítica con el helper loopback: fuente/build se preparan primero, el navegador instala y reinicia,
+y recién entonces se finaliza el journal. Un fallo activa rollback o deja una recuperación
+explícita, nunca una aplicación silenciosamente parcial.
+
+La recuperación se ejecuta antes de construir `ProgressionModel` y bajo la misma exclusión: una
+segunda pestaña no puede interpretar un journal `prepared` como abandonado durante una
+aplicación activa. Los servidores de desarrollo y autoría niegan las entradas del runtime con
+`503` mientras exista el journal del repositorio, pero mantienen `editor.html` accesible. El
+`npm run dev` y el helper real fijan `127.0.0.1:4173`, sin override ni fallback. El helper toma
+un lock atómico por checkout antes de cualquier recovery, de modo que origen, Web Locks,
+almacenamiento y proceso pertenezcan a una sola sesión de mantenimiento.
+Ambos servidores rechazan una autoridad HTTP distinta de `127.0.0.1:4173` antes de exponer
+sesiones o estáticos y sirven únicamente el shell, `src/`, `public/` y la distribución necesaria
+de KaTeX; la whitelist se repite sobre el destino real de cualquier enlace simbólico.
+Documentación operativa, paquetes, tests, scripts y metadatos Git no son recursos web.
 
 ### Validación
 
@@ -141,6 +210,12 @@ El estado de Editor usa otro contrato y otra clave: `orbit-editor:v1:electromagn
 Los modos iniciales son `numeric-equivalent`, `expression-equivalent` y `gradient-equivalent`, con gradientes cartesianos y cilíndricos, tolerancias y puntos de prueba fijos. Las constantes aditivas se tratan como constantes respecto de las coordenadas. No se usan `eval`, `Function`, diferencias finitas ni ejecución dinámica de código. La equivalencia se acepta por coincidencia determinista en los puntos declarados: no constituye una prueba simbólica global y puede admitir un falso positivo construido deliberadamente para esa muestra.
 
 `src/core/exercise-sequence.js` administra el avance efímero por intervenciones. Una secuencia solo se considera aprobada después de validar todos sus items en orden; este estado no se escribe en `localStorage`.
+
+`src/core/scientific-expression.js` reutiliza el parser restringido con una política opt-in para
+la calculadora y el Explorador de campos. Añade constantes y funciones científicas declaradas,
+normaliza `π`, coma decimal y notación científica y conserva límites de longitud, costo y
+profundidad. No usa `eval`, `Function` ni modifica la política matemática por defecto de los
+ejercicios.
 
 ## ORBIT: juego
 
@@ -162,7 +237,7 @@ Dibuja el mundo en Canvas 2D:
 - lugares;
 - guías direccionales derivadas del Árbol II;
 - overlays de depuración;
-- gadgets visuales;
+- apariencia Bowerbird resuelta para zonas abiertas;
 - personaje.
 
 No contiene reglas de progreso.
@@ -186,8 +261,8 @@ emite una sola señal de finalización; no superpone el cue ordinario de interac
 
 `src/ui/ui-controller.js` controla la barra de estado, el selector de perfiles locales, la
 ventana principal del lugar, un único panel secundario, etapas, secuencias, ejercicios,
-árboles, visualización, referencias, sonido, ayuda, avisos y debugger. La ventana principal y
-la secundaria pueden coexistir en escritorio. El dock ofrece **Árboles**, **Símbolos**,
+árboles, Gadgets, visualización, referencias, sonido, ayuda, avisos y debugger. La ventana principal y
+la secundaria pueden coexistir en escritorio. El dock ofrece **Árboles**, **Gadgets**, **Símbolos**,
 **Constantes**, **Formulario**, **Glosario** y el disclosure nativo **Ajustes**. Este último
 revela los accesos a **Visual**, **Sonido** y **Ayuda** sin convertirse en otro panel ni estado
 persistido; abrir una de esas vistas sustituye al panel secundario anterior. **Árboles** lista
@@ -204,41 +279,68 @@ los eventos de `ProgressionModel`; no añade estado persistente ni se recalcula 
 
 `src/ui/vector-field-2d.js` dibuja campos 2D con SVG y DOM nativos. Separa normalización, muestreo, trazado de curvas integrales simples y escala fija del renderer accesible. Las dos figuras de una comparación comparten dominio, densidad y escala; los deslizadores actualizan parámetros locales sin animación, persistencia ni pérdida de la respuesta. `prefers-reduced-motion` queda satisfecho porque no se inician interpolaciones ni partículas automáticas. Este módulo no implementa render 3D, álgebra simbólica ni un lenguaje general de gráficos.
 
+`src/ui/gadget-hub.js` compone tres herramientas aisladas del loop del mapa. La calculadora
+científica está siempre disponible; `vector-field-explorer.js` aparece con
+`gadgets:field-lens`, y `smith-chart.js` con `gadgets:smith-chart`. Sus entradas y parámetros son
+estado efímero del panel. El esqueleto de Carta de Smith es deliberadamente estático y no promete
+cálculo RF completo.
+
 `src/ui/point-charge-field-2d.js` implementa `PointChargeField2D` para la segunda etapa de Coulomb. Normaliza un dominio cuadrado, exactamente tres cargas y sus valores en `[-1,1]`; permite moverlas mediante puntero o teclado, calcula contribuciones y suma con funciones puras, y anuncia la singularidad en el punto de observación sin suavizarla. Sus posiciones y valores son efímeros.
 
 `src/ui/math-renderer.js` entrega a KaTeX únicamente expresiones editoriales TeX y conserva un fallback textual; el build sirve KaTeX localmente y nunca desde CDN.
 
+`src/core/area-appearance.js` mantiene el catálogo versionado de paletas, motivos y contornos.
+`src/core/bowerbird-preferences.js` sanea únicamente overrides personales Estudiante. El renderer
+resuelve **personal → publicada → canónica** para una zona abierta; una bloqueada ignora esas
+capas y conserva el estilo neutral. Los motivos marcados como animados consultan
+`prefers-reduced-motion` y no cambian geometría ni hit testing.
+
 ## ORBIT Editor
 
 `editor.html` es una entrada independiente. Interpreta `profile` solo para aplicar la política
-local de acceso; no crea `ProgressionModel`, no concede conceptos, no lee claves de progreso y
-no publica `window.OrbitDebug`. Sin query usa Docente y crea el Editor completo sobre copias
-controladas de `AREAS` y `LOCATIONS`. Con `?profile=student` crea un modelo de solo lectura:
-permite recorrer, encuadrar, consultar y exportar, pero bloquea Spider, Bee, historial,
-restauración e importación con un mensaje visible. Con `?profile=debug` muestra el bloqueo y no
-crea el modelo editorial.
+local de acceso; no crea `ProgressionModel`, no concede conceptos y no publica
+`window.OrbitDebug`. Solo el flujo Docente explícito de aplicación inspecciona y reinicia claves
+de progreso tras cuantificar el impacto. Sin query crea el Editor completo sobre la edición
+materializada. Con `?profile=student` crea Spider/Bee de solo lectura y una sesión Bowerbird
+personal mutable; permite recorrer, encuadrar, consultar y exportar. Con `?profile=debug` muestra
+el bloqueo y no crea el modelo editorial.
 
-El documento editorial `orbit-editor-project` usa esquema `v1` y contiene:
+El documento editorial `orbit-editor-project` usa esquema `v2` y contiene:
 
-- coordenadas axiales de las 19 zonas;
-- `areaId + offset` de los 28 lugares;
-- las cuatro conexiones explícitas canónicas de tipo `completedLocation`;
-- curso, versión de datos base y fecha de actualización.
+- coordenadas axiales y apariencias de las 19 zonas;
+- `areaId + offset` de los 29 lugares;
+- las cinco conexiones explícitas canónicas de tipo `completedLocation`;
+- curso, versión de datos base, versión del catálogo y fecha de actualización.
 
 No incluye respuestas, conceptos adquiridos, recompensas ni posición de un estudiante. Se sanea antes de importarse, guardarse o materializarse y se valida nuevamente contra los contratos del mundo y la progresión. Una importación inválida no reemplaza el último borrador válido.
+Si el valor ya persistido es ilegible o pertenece a un esquema futuro, ninguna mutación implícita
+lo sobrescribe: Restaurar o importar un documento válido son las dos fronteras explícitas de
+recuperación del borrador Docente.
 
 **Spider** opera sobre nodos y requisitos directos. Convierte coordenadas de pantalla a mundo, permite cambiar `areaId + offset`, mantiene el marcador dentro del margen seguro del hexágono y materializa una flecha `A → B` como `A` dentro de `B.requirements.completedLocations`. Conceptos y recompensas siguen produciendo relaciones derivadas de solo lectura. Requisitos propios, duplicados o cíclicos se rechazan antes de modificar el borrador.
 
 **Bee** opera sobre zonas. Como las posiciones de los anillos están completas, un gesto válido intercambia `(q,r)` entre dos zonas del mismo `tier`; no crea huecos. `origin` permanece en `(0,0)`, las zonas teóricas mantienen distancia axial 1 y las aplicaciones distancia 2. El intercambio conserva IDs, contenido, `tier`, `order` y los offsets locales de sus lugares.
 
+**Bowerbird** opera sobre el triple `paletteId + motifId + contourId`. En Docente modifica el
+documento común y participa en historial/exportación/aplicación; en Estudiante modifica solo el
+documento de preferencias. La migración de un borrador `v1` añade apariencia canónica y restaura
+entidades nuevas desde la edición base sin reactivar conexiones que el autor retiró
+deliberadamente entre IDs existentes.
+
 En acceso Docente, el menú **General** y el menú **Editor** son docks retractables
 independientes. Pointer Events proporcionan arrastre y cancelación; listas, campos, botones y
 ajustes con flechas ofrecen una alternativa de teclado. El historial permite deshacer y rehacer
 operaciones completas y cada transición válida se autoguarda. El modo Estudiante conserva la
-navegación del mapa, pero el modelo y la API pública rechazan cualquier mutación; no existe aún
-un borrador personalizado por estudiante.
+navegación del mapa y su Bowerbird personal, pero el modelo y la API pública rechazan cualquier
+mutación Spider/Bee o del documento Docente.
 
-Importar y exportar intercambia JSON editorial. Exportar no modifica `src/data/`, no construye el sitio y no despliega. La aplicación del borrador al repositorio, la revisión y la publicación pertenecen a un flujo manual descrito en la [Guía de ORBIT Editor](EDITOR_GUIDE.md) y decidido en [ADR 0007](decisions/0007-static-local-editor.md).
+Importar y exportar intercambia JSON editorial Docente; las preferencias Estudiante nunca se
+incluyen. **Resumen** valida y materializa un plan ligado al digest, muestra diff e impacto y
+coordina la aplicación con `npm run editor:author`. El helper solo opera en loopback y no se
+incluye en `dist`; ejecuta comprobaciones y build, pero no muta Git ni despliega. La frontera está
+descrita en la [Guía de ORBIT Editor](EDITOR_GUIDE.md) y decidida por [ADR
+0007](decisions/0007-static-local-editor.md) y [ADR
+0008](decisions/0008-scoped-appearance-and-local-course-application.md).
 
 ## Audio
 
@@ -250,15 +352,15 @@ Cada OGG tiene un sidecar homónimo, entrada de manifiesto, atribución y botón
 
 `src/main.js`:
 
-1. resuelve el perfil local exacto y sus claves compatibles;
-2. valida los datos;
-3. crea progreso, UI y juego;
-4. publica `window.OrbitDebug` solo para Debug;
-5. inicia el loop.
+1. resuelve el perfil local exacto;
+2. carga y valida la edición publicada o su descendiente local;
+3. adquiere el bloqueo compartido de curso;
+4. crea progreso `v4`, preferencias Bowerbird Estudiante, UI y juego sobre el curso materializado;
+5. publica `window.OrbitDebug` solo para Debug e inicia el loop.
 
 Ese flujo corresponde a `index.html`, la entrada de ORBIT. `editor.html` usa su propio
-bootstrap: resuelve primero el acceso local, no inicializa ningún modelo en Debug y valida el
-borrador antes de iniciar el renderer editorial en Docente o Estudiante. La guardia de arranque
+bootstrap: resuelve primero el acceso local, no inicializa ningún modelo en Debug, carga la
+edición y valida documento/preferencias antes de iniciar el renderer editorial. La guardia de arranque
 evita una espera infinita en ambas entradas. El build estático copia las dos páginas y sus
 módulos sin añadir bundle ni dependencia.
 
@@ -269,6 +371,8 @@ Persistido:
 ```text
 schemaVersion
 profile
+courseId
+courseRevision
 completedLocations[]
 concepts[]
 rewards[]
@@ -309,16 +413,30 @@ Persistido por Editor, de forma completamente separada:
 
 ```text
 kind: orbit-editor-project
-schemaVersion: 1
+schemaVersion: 2
+appearanceCatalogVersion: 1
 courseId
 baseDataVersion
-areas[]: id + q + r
+areas[]: id + q + r + appearance
 locations[]: id + areaId + offset
 treeTwoConnections[]: sourceId + targetId + completedLocation
 updatedAt
 ```
 
-El autoguardado editorial no cambia el estado persistido ni derivado de ORBIT. Solo una revisión y aplicación posterior al repositorio puede cambiar la cartografía publicada.
+Persistido como preferencia Estudiante separada:
+
+```text
+kind: orbit-bowerbird-preferences
+schemaVersion: 1
+appearanceCatalogVersion: 1
+courseId
+areas[]: id + appearance
+updatedAt
+```
+
+El autoguardado editorial no cambia por sí solo el estado de ORBIT. Solo una aplicación validada
+crea otra `orbit-course-edition`, reinicia el progreso de los tres perfiles e instala esa revisión
+en el navegador; exportar JSON sigue siendo una operación sin efecto sobre el curso.
 
 ## Frontera de seguridad del debugger
 
@@ -346,7 +464,9 @@ La arquitectura admite, sin exigirlos todavía:
 - migraciones de progreso;
 - pruebas de integración en navegador.
 
-La base de Editor 0.4.0 no implica todavía edición de contenido académico, creación de entidades, colaboración, autenticación, varias rutas ni publicación automática.
+La ampliación de Editor 0.5.0 no implica todavía edición de contenido académico, creación de
+entidades, colaboración, autenticación, varias rutas ni publicación remota. El helper local es un
+puente de mantenimiento para una ruta y un archivo fijo, no un backend.
 
 Cada incorporación que requiera dependencias debe documentarse mediante ADR.
 

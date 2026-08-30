@@ -1,9 +1,15 @@
 import { axialDistance, pointInHex } from "../core/hex.js";
 import { ProgressStorage } from "../core/storage.js";
+import {
+  DEFAULT_AREA_APPEARANCE,
+  sameAreaAppearance,
+  sanitizeAreaAppearance,
+} from "../core/area-appearance.js";
 import { LOCATIONS } from "../data/locations.js";
 import { AREAS, WORLD_CONFIG } from "../data/world.js";
 import {
   EDITOR_LOCATION_SAFE_MARGIN,
+  EDITOR_DOCUMENT_SCHEMA_VERSION,
   applyEditorDocument,
   createEditorDocument,
   deriveEditorTreeTwoTopology,
@@ -100,12 +106,14 @@ export class EditorModel {
     this.history = [];
     this.future = [];
     this.warnings = [];
+    this.persistenceBlocked = false;
 
     const loadResult = typeof this.storage.loadResult === "function"
       ? this.storage.loadResult()
       : null;
     const loaded = loadResult ? loadResult.value : this.storage.load();
     if (loadResult?.error || (loadResult?.found && loaded === null)) {
+      this.persistenceBlocked = true;
       this.document = createEditorDocument({
         ...this.documentOptions,
         updatedAt: this.#timestamp(),
@@ -125,7 +133,10 @@ export class EditorModel {
         updatedAt: this.#timestamp(),
       });
       this.#refreshCourse();
-      if (!this.readOnly) this.storage.save(this.document);
+      if (!this.readOnly) {
+        const persistenceIssue = this.#persist(this.document);
+        if (persistenceIssue) this.warnings = mergeIssues(this.warnings, [persistenceIssue]);
+      }
       return;
     }
 
@@ -134,6 +145,16 @@ export class EditorModel {
       this.document = imported.document;
       this.warnings = imported.warnings;
       this.#refreshCourse();
+      const loadedFromLegacyKey = Boolean(
+        loadResult?.key
+        && this.storage?.key
+        && loadResult.key !== this.storage.key,
+      );
+      const migratedSchema = loaded?.schemaVersion !== EDITOR_DOCUMENT_SCHEMA_VERSION;
+      if (!this.readOnly && (loadedFromLegacyKey || migratedSchema)) {
+        const persistenceIssue = this.#persist(this.document);
+        if (persistenceIssue) this.warnings = mergeIssues(this.warnings, [persistenceIssue]);
+      }
       return;
     }
 
@@ -149,6 +170,7 @@ export class EditorModel {
       ...imported.errors,
       ...imported.warnings,
     ];
+    this.persistenceBlocked = true;
     this.#refreshCourse();
   }
 
@@ -189,6 +211,34 @@ export class EditorModel {
     };
   }
 
+  #persist(document, { allowRecovery = false } = {}) {
+    if (this.persistenceBlocked && !allowRecovery) {
+      return localIssue(
+        "stored-document-incompatible",
+        "El borrador persistido pertenece a un formato incompatible. Las mutaciones quedan bloqueadas para conservarlo; usa Restaurar o importa explícitamente un borrador válido para recuperarte.",
+      );
+    }
+    try {
+      this.storage.save(document);
+      if (allowRecovery) this.persistenceBlocked = false;
+      return null;
+    } catch {
+      return localIssue(
+        "storage-write-failed",
+        "No fue posible guardar el borrador en este navegador. El cambio no se aplicó; revisa el espacio disponible y los permisos del almacenamiento local.",
+      );
+    }
+  }
+
+  #persistenceFailure(persistenceIssue, warnings = []) {
+    return mutationFailure(
+      this,
+      persistenceIssue.code,
+      [persistenceIssue],
+      warnings,
+    );
+  }
+
   #pushHistory(document) {
     this.history.push(structuredClone(document));
     if (this.history.length > this.historyLimit) this.history.shift();
@@ -216,12 +266,13 @@ export class EditorModel {
       return this.#success(false, detail);
     }
 
+    const persistenceIssue = this.#persist(result.document);
+    if (persistenceIssue) return this.#persistenceFailure(persistenceIssue, result.warnings);
     this.#pushHistory(this.document);
     this.future = [];
     this.document = result.document;
     this.warnings = result.warnings;
     this.#refreshCourse();
-    this.storage.save(this.document);
     this.#emit(type, detail);
     return this.#success(true, detail);
   }
@@ -244,6 +295,7 @@ export class EditorModel {
       canUndo: this.history.length > 0,
       canRedo: this.future.length > 0,
       readOnly: this.readOnly,
+      persistenceBlocked: this.persistenceBlocked,
     };
   }
 
@@ -354,6 +406,54 @@ export class EditorModel {
     [candidateFirst.q, candidateSecond.q] = [candidateSecond.q, candidateFirst.q];
     [candidateFirst.r, candidateSecond.r] = [candidateSecond.r, candidateFirst.r];
     return this.#commit(candidate, "areas-swapped", { firstAreaId, secondAreaId });
+  }
+
+  setAreaAppearance(areaId, candidateAppearance) {
+    if (this.readOnly) {
+      return mutationFailure(
+        this,
+        "profile-read-only",
+        [
+          localIssue(
+            "profile-read-only",
+            "El perfil estudiante no puede modificar la apariencia del borrador Docente.",
+          ),
+        ],
+      );
+    }
+    const current = this.document.areas.find((area) => area.id === areaId);
+    if (!current || !this.baseAreaById.has(areaId)) {
+      return mutationFailure(
+        this,
+        "unknown-area",
+        [localIssue("unknown-area", `No existe la zona ${String(areaId)}.`)],
+      );
+    }
+    const appearance = sanitizeAreaAppearance(candidateAppearance, {
+      path: `areas.${areaId}.appearance`,
+    });
+    if (!appearance.ok) {
+      return mutationFailure(
+        this,
+        appearance.errors[0]?.code ?? "invalid-area-appearance",
+        appearance.errors,
+      );
+    }
+    if (sameAreaAppearance(current.appearance, appearance.appearance)) {
+      return this.#success(false, { areaId, appearance: appearance.appearance });
+    }
+
+    const candidate = structuredClone(this.document);
+    const target = candidate.areas.find((area) => area.id === areaId);
+    target.appearance = appearance.appearance;
+    return this.#commit(candidate, "area-appearance-updated", {
+      areaId,
+      appearance: appearance.appearance,
+    });
+  }
+
+  resetAreaAppearance(areaId) {
+    return this.setAreaAppearance(areaId, DEFAULT_AREA_APPEARANCE);
   }
 
   moveLocation(locationId, placement) {
@@ -496,12 +596,13 @@ export class EditorModel {
       );
     }
 
+    const persistenceIssue = this.#persist(result.document);
+    if (persistenceIssue) return this.#persistenceFailure(persistenceIssue, result.warnings);
     this.history.pop();
     this.future.push(structuredClone(this.document));
     this.document = result.document;
     this.warnings = result.warnings;
     this.#refreshCourse();
-    this.storage.save(this.document);
     this.#emit("editor-undo");
     return this.#success(true);
   }
@@ -534,12 +635,13 @@ export class EditorModel {
       );
     }
 
+    const persistenceIssue = this.#persist(result.document);
+    if (persistenceIssue) return this.#persistenceFailure(persistenceIssue, result.warnings);
     this.future.pop();
     this.#pushHistory(this.document);
     this.document = result.document;
     this.warnings = result.warnings;
     this.#refreshCourse();
-    this.storage.save(this.document);
     this.#emit("editor-redo");
     return this.#success(true);
   }
@@ -557,12 +659,13 @@ export class EditorModel {
       updatedAt: this.#timestamp(),
     });
     const changed = semanticDocument(canonical) !== semanticDocument(this.document);
+    const persistenceIssue = this.#persist(canonical, { allowRecovery: true });
+    if (persistenceIssue) return this.#persistenceFailure(persistenceIssue);
     this.document = canonical;
     this.history = [];
     this.future = [];
     this.warnings = [];
     this.#refreshCourse();
-    this.storage.save(this.document);
     this.#emit("editor-reset", { changed });
     return this.#success(changed, { reset: true });
   }
@@ -591,12 +694,13 @@ export class EditorModel {
     const imported = structuredClone(result.document);
     imported.updatedAt = this.#timestamp();
     const changed = semanticDocument(imported) !== semanticDocument(this.document);
+    const persistenceIssue = this.#persist(imported, { allowRecovery: true });
+    if (persistenceIssue) return this.#persistenceFailure(persistenceIssue, result.warnings);
     this.document = imported;
     this.history = [];
     this.future = [];
     this.warnings = result.warnings;
     this.#refreshCourse();
-    this.storage.save(this.document);
     this.#emit("editor-document-imported", { changed });
     return this.#success(changed, { imported: true });
   }

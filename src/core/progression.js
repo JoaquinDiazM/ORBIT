@@ -6,7 +6,7 @@ import { TREE_TWO_VISUALIZATION_MODES } from "./knowledge-graph.js";
 import { isLocationAllowedForProfile } from "./profile-policy.js";
 import { meetsRequirements } from "./requirements.js";
 import { migrateProgressState } from "./progress-migrations.js";
-import { ProgressStorage } from "./storage.js";
+import { ProgressStorage, StoragePersistenceError } from "./storage.js";
 import {
   createWorldIndex,
   deriveUnlockedAreaIds,
@@ -22,7 +22,7 @@ function allKnownRewardKeys() {
   );
 }
 
-function createInitialState(profile, worldIndex) {
+function createInitialState(profile, worldIndex, { courseId, courseRevision }) {
   const spawnArea = worldIndex.byId.get(WORLD_CONFIG.spawnAreaId);
   const center = getAreaCenter(spawnArea, WORLD_CONFIG.hexSize);
   const initialTransport = REWARDS.transports.find((transport) => transport.initial)?.id ?? "walk";
@@ -30,13 +30,14 @@ function createInitialState(profile, worldIndex) {
   return {
     schemaVersion: APP_CONFIG.progressSchemaVersion,
     profile,
+    courseId,
+    courseRevision,
     completedLocations: [],
     concepts: [],
     rewards: [rewardKey("transports", initialTransport)],
     debugUnlockedAreas: [],
     activeTransport: initialTransport,
     settings: {
-      fieldLensEnabled: false,
       ambienceVolume: 1,
       effectsVolume: 1,
       treeTwoVisualizationMode: "hidden",
@@ -54,24 +55,87 @@ function uniqueKnown(values, knownValues) {
   return [...new Set(values.filter((value) => knownValues.has(value)))];
 }
 
+function hasUnsupportedProgressSchema(candidate) {
+  return Boolean(
+    candidate
+    && typeof candidate === "object"
+    && Number.isInteger(candidate.schemaVersion)
+    && candidate.schemaVersion > APP_CONFIG.progressSchemaVersion,
+  );
+}
+
+export class ProgressSchemaError extends StoragePersistenceError {
+  constructor(candidateVersion) {
+    super(
+      "unsupported-progress-schema",
+      `El progreso usa el esquema futuro v${candidateVersion}; esta versión de ORBIT solo admite hasta v${APP_CONFIG.progressSchemaVersion}.`,
+    );
+    this.name = "ProgressSchemaError";
+    this.candidateVersion = candidateVersion;
+  }
+}
+
+export class ProgressCompatibilityError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "ProgressCompatibilityError";
+    this.code = "incompatible-progress-edition";
+  }
+}
+
 export class ProgressionModel {
-  constructor({ profile, storage }) {
+  constructor({
+    profile,
+    storage,
+    areas = AREAS,
+    locations = LOCATIONS,
+    courseId = APP_CONFIG.activeCourseId,
+    courseRevision = APP_CONFIG.legacyCourseRevision,
+    acceptsUnversionedProgress = true,
+  }) {
     this.profile = profile;
-    this.areas = AREAS;
-    this.locations = LOCATIONS;
+    this.courseId = courseId;
+    this.courseRevision = courseRevision;
+    this.acceptsUnversionedProgress = Boolean(acceptsUnversionedProgress);
+    this.areas = areas;
+    this.locations = locations;
     this.concepts = CONCEPTS;
     this.rewards = REWARDS;
     this.worldIndex = createWorldIndex(this.areas);
     this.storage = storage;
     this.listeners = new Set();
-    this.state = this.#sanitizeState(this.storage.load());
-    this.#save();
+    const stored = this.storage.load();
+    this.persistenceBlocker = hasUnsupportedProgressSchema(stored)
+      ? new ProgressSchemaError(stored.schemaVersion)
+      : null;
+    this.state = this.#sanitizeState(stored);
+    if (this.persistenceBlocker) {
+      console.warn(
+        "El progreso persistido pertenece a una versión futura y se conservó sin sobrescribir.",
+      );
+    } else {
+      this.#save();
+    }
   }
 
-  static create({ profile, storageKey, legacyStorageKeys = [] }) {
+  static create({
+    profile,
+    storageKey,
+    legacyStorageKeys = [],
+    areas = AREAS,
+    locations = LOCATIONS,
+    courseId = APP_CONFIG.activeCourseId,
+    courseRevision = APP_CONFIG.legacyCourseRevision,
+    acceptsUnversionedProgress = true,
+  }) {
     return new ProgressionModel({
       profile,
       storage: new ProgressStorage(storageKey, globalThis.localStorage, legacyStorageKeys),
+      areas,
+      locations,
+      courseId,
+      courseRevision,
+      acceptsUnversionedProgress,
     });
   }
 
@@ -86,9 +150,31 @@ export class ProgressionModel {
   }
 
   #sanitizeState(candidate) {
-    const initial = createInitialState(this.profile, this.worldIndex);
+    const initial = createInitialState(this.profile, this.worldIndex, {
+      courseId: this.courseId,
+      courseRevision: this.courseRevision,
+    });
     if (!candidate || typeof candidate !== "object") return initial;
-    const migrated = migrateProgressState(candidate);
+    const candidateVersion = Number.isInteger(candidate.schemaVersion)
+      ? candidate.schemaVersion
+      : 1;
+    if (candidateVersion > APP_CONFIG.progressSchemaVersion) {
+      return initial;
+    }
+    if (candidateVersion >= 4) {
+      if (
+        candidate.courseId !== this.courseId
+        || candidate.courseRevision !== this.courseRevision
+      ) {
+        return initial;
+      }
+    } else if (!this.acceptsUnversionedProgress) {
+      return initial;
+    }
+    const migrated = migrateProgressState(candidate, {
+      courseId: this.courseId,
+      courseRevision: this.courseRevision,
+    });
 
     const knownConcepts = new Set(this.concepts.map((concept) => concept.id));
     const knownLocations = new Set(this.locations.map((location) => location.id));
@@ -100,6 +186,8 @@ export class ProgressionModel {
       ...migrated,
       schemaVersion: APP_CONFIG.progressSchemaVersion,
       profile: this.profile,
+      courseId: this.courseId,
+      courseRevision: this.courseRevision,
       completedLocations: uniqueKnown(migrated.completedLocations, knownLocations),
       concepts: uniqueKnown(migrated.concepts, knownConcepts),
       rewards: uniqueKnown(migrated.rewards, knownRewards),
@@ -119,7 +207,6 @@ export class ProgressionModel {
     if (!ownedTransportIds.includes(state.activeTransport)) state.activeTransport = "walk";
     const migratedSettings =
       migrated.settings && typeof migrated.settings === "object" ? migrated.settings : {};
-    state.settings.fieldLensEnabled = Boolean(migratedSettings.fieldLensEnabled);
     state.settings.ambienceVolume = Math.min(
       1,
       Math.max(
@@ -145,9 +232,17 @@ export class ProgressionModel {
     return state;
   }
 
-  #save() {
+  #save(previousState = null, options = undefined) {
+    const previousUpdatedAt = this.state.updatedAt;
     this.state.updatedAt = new Date().toISOString();
-    this.storage.save(this.state);
+    try {
+      if (this.persistenceBlocker) throw this.persistenceBlocker;
+      this.storage.save(this.state, options);
+    } catch (error) {
+      if (previousState) this.state = previousState;
+      else this.state.updatedAt = previousUpdatedAt;
+      throw error;
+    }
   }
 
   #ownedTransportIdsFromRewards(rewardKeys) {
@@ -253,6 +348,7 @@ export class ProgressionModel {
       };
     }
 
+    const previousState = structuredClone(this.state);
     const previouslyUnlockedAreaIds = this.getUnlockedAreaIds();
     const previouslyAccessibleLocationIds = this.#accessibleLocationIds(
       previouslyUnlockedAreaIds,
@@ -275,7 +371,7 @@ export class ProgressionModel {
       }
     }
 
-    this.#save();
+    this.#save(previousState);
 
     const unlockedAreaIds = this.getUnlockedAreaIds();
     const accessibleLocationIds = this.#accessibleLocationIds(unlockedAreaIds);
@@ -307,8 +403,9 @@ export class ProgressionModel {
   grantConcept(conceptId) {
     if (!this.concepts.some((concept) => concept.id === conceptId)) return false;
     if (this.state.concepts.includes(conceptId)) return false;
+    const previousState = structuredClone(this.state);
     this.state.concepts.push(conceptId);
-    this.#save();
+    this.#save(previousState);
     this.#emit("concept-granted", { conceptId });
     return true;
   }
@@ -323,12 +420,14 @@ export class ProgressionModel {
   }
 
   unlockAllAreasForDebug() {
+    const previousState = structuredClone(this.state);
     this.state.debugUnlockedAreas = this.areas.map((area) => area.id);
-    this.#save();
+    this.#save(previousState);
     this.#emit("debug-areas-unlocked");
   }
 
   completeAllForDebug() {
+    const previousState = structuredClone(this.state);
     this.state.concepts = this.concepts.map((concept) => concept.id);
     this.state.completedLocations = this.locations
       .filter((location) => location.kind !== "debug" && location.kind !== "base")
@@ -341,7 +440,7 @@ export class ProgressionModel {
       ),
     ];
     this.state.debugUnlockedAreas = this.areas.map((area) => area.id);
-    this.#save();
+    this.#save(previousState);
     this.#emit("debug-complete-all");
   }
 
@@ -365,8 +464,9 @@ export class ProgressionModel {
       owned.findIndex((transport) => transport.id === this.state.activeTransport),
     );
     const next = owned[(currentIndex + 1) % owned.length];
+    const previousState = structuredClone(this.state);
     this.state.activeTransport = next.id;
-    this.#save();
+    this.#save(previousState);
     this.#emit("transport-changed", { transportId: next.id });
     return next;
   }
@@ -375,22 +475,13 @@ export class ProgressionModel {
     return this.state.rewards.includes(key);
   }
 
-  toggleFieldLens() {
-    if (!this.ownsReward(rewardKey("gadgets", "field-lens"))) {
-      return { ok: false, enabled: false };
-    }
-    this.state.settings.fieldLensEnabled = !this.state.settings.fieldLensEnabled;
-    this.#save();
-    this.#emit("field-lens-toggled", { enabled: this.state.settings.fieldLensEnabled });
-    return { ok: true, enabled: this.state.settings.fieldLensEnabled };
-  }
-
   #setAudioCategoryVolume(category, volume) {
     const numeric = Number(volume);
     const setting = category === "ambience" ? "ambienceVolume" : "effectsVolume";
     if (!Number.isFinite(numeric)) return this.state.settings[setting];
+    const previousState = structuredClone(this.state);
     this.state.settings[setting] = Math.min(1, Math.max(0, numeric));
-    this.#save();
+    this.#save(previousState);
     this.#emit(`${category}-volume-changed`, {
       category,
       volume: this.state.settings[setting],
@@ -411,16 +502,18 @@ export class ProgressionModel {
       return this.state.settings.treeTwoVisualizationMode;
     }
     if (mode === this.state.settings.treeTwoVisualizationMode) return mode;
+    const previousState = structuredClone(this.state);
     this.state.settings.treeTwoVisualizationMode = mode;
-    this.#save();
+    this.#save(previousState);
     this.#emit("tree-two-visualization-mode-changed", { mode });
     return mode;
   }
 
   setPlayerPosition(x, y, { save = true } = {}) {
     if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+    const previousState = save ? structuredClone(this.state) : null;
     this.state.player = { x, y };
-    if (save) this.#save();
+    if (save) this.#save(previousState);
   }
 
   teleportToArea(areaId) {
@@ -433,15 +526,41 @@ export class ProgressionModel {
   }
 
   reset() {
-    this.storage.clear();
-    this.state = createInitialState(this.profile, this.worldIndex);
-    this.#save();
+    const previousState = structuredClone(this.state);
+    this.state = createInitialState(this.profile, this.worldIndex, {
+      courseId: this.courseId,
+      courseRevision: this.courseRevision,
+    });
+    this.#save(previousState, { clearLegacyKeys: true });
     this.#emit("reset");
   }
 
   importState(candidate) {
+    if (hasUnsupportedProgressSchema(candidate)) {
+      throw new ProgressSchemaError(candidate.schemaVersion);
+    }
+    const candidateVersion = Number.isInteger(candidate?.schemaVersion)
+      ? candidate.schemaVersion
+      : 1;
+    if (
+      candidateVersion >= 4
+      && (
+        candidate?.courseId !== this.courseId
+        || candidate?.courseRevision !== this.courseRevision
+      )
+    ) {
+      throw new ProgressCompatibilityError(
+        "El progreso importado pertenece a otro curso o a otra revisión de la edición activa.",
+      );
+    }
+    if (candidateVersion < 4 && !this.acceptsUnversionedProgress) {
+      throw new ProgressCompatibilityError(
+        "La edición activa no admite importar progreso sin revisión de curso.",
+      );
+    }
+    const previousState = structuredClone(this.state);
     this.state = this.#sanitizeState(candidate);
-    this.#save();
+    this.#save(previousState);
     this.#emit("state-imported");
     return this.getSnapshot();
   }

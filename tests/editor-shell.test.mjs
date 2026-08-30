@@ -5,9 +5,11 @@ import test from "node:test";
 import { APP_CONFIG } from "../src/config.js";
 import {
   fitEditorWorld,
+  getEditorMutationNotice,
   getEditorHistoryAction,
   getReadOnlyCameraPan,
 } from "../src/editor/editor-ui-controller.js";
+import { canUseEditorTool } from "../src/editor/editor-app.js";
 
 const EDITOR_PATH = new URL("../editor.html", import.meta.url);
 const ORBIT_PATH = new URL("../index.html", import.meta.url);
@@ -33,7 +35,7 @@ test("ORBIT enlaza una entrada editorial independiente", async () => {
   assert.doesNotMatch(orbit, /ORBIT\s+Estudiante/i);
 });
 
-test("el shell del editor expone dos menús retractables y separa Spider de Bee", async () => {
+test("el shell del editor expone Spider, Bee y Bowerbird en menús retractables", async () => {
   const editor = await readFile(EDITOR_PATH, "utf8");
   const requiredIds = [
     "editor-general-dock",
@@ -42,8 +44,14 @@ test("el shell del editor expone dos menús retractables y separa Spider de Bee"
     "editor-tools-collapse",
     "editor-open-spider",
     "editor-open-bee",
+    "editor-open-bowerbird",
     "editor-spider-panel",
     "editor-bee-panel",
+    "editor-bowerbird-panel",
+    "editor-bowerbird-area",
+    "editor-bowerbird-palette",
+    "editor-bowerbird-motif",
+    "editor-bowerbird-contour",
     "editor-ring-one-list",
     "editor-ring-two-list",
     "editor-export",
@@ -52,6 +60,21 @@ test("el shell del editor expone dos menús retractables y separa Spider de Bee"
     "editor-redo",
     "editor-warning-summary",
     "editor-warning-list",
+    "editor-course-application",
+    "editor-validate-application",
+    "editor-application-status",
+    "editor-pending-application",
+    "editor-recover-application",
+    "editor-application-plan",
+    "editor-application-impact",
+    "editor-confirm-application",
+    "editor-apply-course",
+    "editor-application-evidence",
+    "editor-applied-revision",
+    "editor-applied-digest",
+    "editor-applied-build",
+    "editor-applied-profiles",
+    "editor-applied-preserved",
     "editor-access-notice",
   ];
 
@@ -69,6 +92,10 @@ test("el shell del editor expone dos menús retractables y separa Spider de Bee"
   assert.match(editor, /Anillo 1 · fundamentos teóricos/);
   assert.match(editor, /Anillo 2 · aplicaciones/);
   assert.match(editor, /src\/editor\/editor-bootstrap\.js/);
+  assert.match(
+    editor,
+    /Puedes decorar cualquier zona\. En ORBIT, la apariencia de una zona bloqueada se mostrará cuando la desbloquees; decorar no abre zonas ni concede progreso\./,
+  );
   assert.doesNotMatch(editor, /node_modules\//);
 });
 
@@ -99,6 +126,36 @@ test("los atajos editoriales respetan el historial nativo de los campos", () => 
   );
 });
 
+test("la UI convierte un fallo de persistencia en error y nunca anuncia guardado", () => {
+  assert.deepEqual(
+    getEditorMutationNotice(
+      {
+        ok: false,
+        changed: false,
+        reason: "storage-write-failed",
+        errors: [{ message: "No fue posible guardar el borrador." }],
+      },
+      "Borrador guardado.",
+    ),
+    {
+      accepted: false,
+      message: "No fue posible guardar el borrador.",
+      level: "error",
+    },
+  );
+});
+
+test("la UI vuelve a renderizar controles desde el snapshot tras una mutación rechazada", async () => {
+  const source = await readFile(
+    new URL("../src/editor/editor-ui-controller.js", import.meta.url),
+    "utf8",
+  );
+  assert.match(
+    source,
+    /#report\(result,[\s\S]+if \(!notice\.accepted\) this\.render\(\);[\s\S]+return notice\.accepted;/,
+  );
+});
+
 test("las flechas recorren el mapa de solo lectura en la dirección anunciada", () => {
   assert.deepEqual(getReadOnlyCameraPan({ code: "ArrowLeft" }), { dx: 32, dy: 0 });
   assert.deepEqual(getReadOnlyCameraPan({ code: "ArrowRight" }), { dx: -32, dy: 0 });
@@ -108,6 +165,14 @@ test("las flechas recorren el mapa de solo lectura en la dirección anunciada", 
   });
   assert.deepEqual(getReadOnlyCameraPan({ code: "ArrowDown" }), { dx: 0, dy: -32 });
   assert.equal(getReadOnlyCameraPan({ code: "KeyA" }), null);
+});
+
+test("Estudiante puede usar solo Bowerbird entre las herramientas editoriales", () => {
+  assert.equal(canUseEditorTool("bowerbird", { readOnly: true }), true);
+  assert.equal(canUseEditorTool("spider", { readOnly: true }), false);
+  assert.equal(canUseEditorTool("bee", { readOnly: true }), false);
+  assert.equal(canUseEditorTool("spider", { readOnly: false }), true);
+  assert.equal(canUseEditorTool("unknown", { readOnly: false }), false);
 });
 
 test("Encuadrar despeja el inspector y devuelve el foco antes de ajustar el mundo", () => {
@@ -142,8 +207,39 @@ test("el ciclo de vida conserva el editor cuando pagehide entra en BFCache", asy
   assert.doesNotMatch(main, /pagehide[\s\S]{0,240}\{ once: true \}/);
 });
 
-test("el editor explica que el borrador no publica ni toca el progreso de ORBIT", async () => {
+test("el editor carga la edición activa y reserva aplicación/exportación para Docente", async () => {
+  const main = await readFile(EDITOR_MAIN_PATH, "utf8");
+  assert.match(main, /inspectCourseApplicationTransaction\(/);
+  assert.match(
+    main,
+    /startupTransaction\.pending\s*\? await withExclusiveCourseLock\([\s\S]*recoverCourseApplication\(/,
+  );
+  assert.match(main, /await loadCourseEdition\(\)/);
+  assert.ok(
+    main.indexOf("withExclusiveCourseLock(") < main.indexOf("await loadCourseEdition()"),
+    "la recuperación local debe quedar serializada antes de cargar la edición",
+  );
+  assert.match(main, /validateProjectData\(\{\s*areas: course\.areas,\s*locations: course\.locations/s);
+  assert.match(main, /baseAreas: course\.areas/);
+  assert.match(main, /baseLocations: course\.locations/);
+  assert.match(main, /applicationCoordinator = editorAccess === "full"/);
+  const safeApiStart = main.indexOf("const safeApi = {");
+  const installedApiStart = main.indexOf("window.OrbitEditor =", safeApiStart);
+  assert.ok(safeApiStart > 0 && installedApiStart > safeApiStart);
+  assert.doesNotMatch(main.slice(safeApiStart, installedApiStart), /exportDocument:/);
+  assert.match(main.slice(installedApiStart), /exportDocument: \(\) => model\.exportDocument\(\)/);
+  const ui = await readFile(new URL("../src/editor/editor-ui-controller.js", import.meta.url), "utf8");
+  assert.match(ui, /this\.elements\.exportButton\.disabled = true/);
+});
+
+test("el Resumen explica el alcance local, el reset y los datos preservados", async () => {
   const editor = await readFile(EDITOR_PATH, "utf8");
   assert.match(editor, /separado del progreso de aprendizaje guardado por ORBIT/i);
-  assert.match(editor, /no escribe el repositorio ni publica cambios automáticamente/i);
+  assert.match(editor, /la página por sí sola no escribe ni publica cambios/i);
+  assert.match(editor, /helper actualiza fuente y build locales/i);
+  assert.match(editor, /nunca muta Git ni publica un remoto/i);
+  assert.match(editor, /Se preservan el borrador Docente\s+y las preferencias Bowerbird personales de Estudiante/i);
+  assert.doesNotMatch(editor, /onclick=/i);
+  const ui = await readFile(new URL("../src/editor/editor-ui-controller.js", import.meta.url), "utf8");
+  assert.doesNotMatch(ui, /window\.confirm/);
 });

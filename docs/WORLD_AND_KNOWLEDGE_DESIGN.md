@@ -102,7 +102,11 @@ altera la definición del Árbol I o II.
 prerrequisito ─────────▶ destino
 ```
 
-Si el mismo lugar satisface más de una declaración —por ejemplo, estar completado y conceder el concepto exigido—, ambas se agregan en una sola pareja. Los requisitos de `areas` siguen participando en el acceso, pero no generan guías del Árbol II. Con los datos canónicos de 0.4.0 existen exactamente 13 parejas únicas: cuatro proceden de requisitos directos explícitos `completedLocations` y las restantes se derivan de conceptos o recompensas.
+Si el mismo lugar satisface más de una declaración —por ejemplo, estar completado y conceder el
+concepto exigido—, ambas se agregan en una sola pareja. Los requisitos de `areas` siguen
+participando en el acceso, pero no generan guías del Árbol II. Con los datos vigentes existen 14
+parejas únicas: cinco proceden de requisitos directos explícitos `completedLocations` y las
+restantes se derivan de conceptos o recompensas.
 
 Las aristas elegibles se clasifican por el estado de sus extremos visibles:
 
@@ -120,12 +124,13 @@ Si un destino acaba de volverse accesible, únicamente la arista desde el lugar 
 
 ## Autoría cartográfica en ORBIT Editor
 
-ORBIT Editor abre en `editor.html` y trabaja sobre una copia editorial de la cartografía. No
+ORBIT Editor abre en `editor.html` y trabaja sobre una copia editorial del curso publicado. No
 sustituye los perfiles Estudiante, Docente o Debug de ORBIT en `index.html` ni comparte su
 progreso. Sin query concede capacidad Docente completa; `?profile=student` conserva el mapa en
-consulta con Spider, Bee y las mutaciones bloqueadas; `?profile=debug` se detiene antes de crear el
-modelo. El borrador editorial único usa el esquema `v1` y la clave
-`orbit-editor:v1:electromagnetism-applied`, separada de los tres avances `v3`.
+consulta con Spider y Bee bloqueados, pero habilita Bowerbird personal; `?profile=debug` se
+detiene antes de crear el modelo. El documento Docente usa esquema `v2` y la clave
+`orbit-editor:v2:electromagnetism-applied`; las preferencias Estudiante usan un documento
+`orbit-bowerbird` `v1`, ambos separados de los tres avances `v4` ligados a revisión.
 
 Con capacidad Docente, la herramienta **Spider** opera sobre los lugares y el Árbol II:
 
@@ -140,15 +145,24 @@ mismo `tier` o anillo, mantiene fijo el origen y desplaza cada zona junto con lo
 contiene. De esta manera, el anillo uno de fundamentos teóricos nunca se mezcla con el anillo
 dos de aplicaciones.
 
-Los docks **General** y **Editor** son retractables. El mapa admite selección y manipulación con ratón, alternativas de teclado, cancelación y un historial local de deshacer/rehacer. Estas operaciones solo actualizan el borrador editorial y su guardado automático.
+**Bowerbird** configura una paleta, un motivo y un contorno por zona sin cambiar el mundo o los
+grafos. En Docente forma parte del documento publicable; en Estudiante es una preferencia privada
+que nunca entra a ese JSON. ORBIT aplica la precedencia personal → publicada → canónica solo a
+zonas abiertas. Una zona bloqueada conserva apariencia neutral y todo motivo animado respeta
+`prefers-reduced-motion`.
 
-Importar valida el documento completo antes de reemplazarlo; exportar produce JSON para
-revisión. Estudiante solo puede exportar y recorrer; no existe aún un borrador personalizado.
-Ninguna acción modifica `orbit-progress:*` ni aplica automáticamente el borrador al estudiante.
-Publicar exige integrar manualmente el JSON revisado en los datos fuente, ejecutar la
-validación y el build, y desplegar una nueva versión. Las capacidades locales se eligen por URL
-y no son autenticación; ORBIT Editor sigue sin backend, cuentas, colaboración multiusuario ni
-dependencias nuevas de ejecución.
+Los docks **General** y **Editor** son retractables. El mapa admite selección y manipulación con
+ratón, alternativas de teclado, cancelación y un historial local de deshacer/rehacer. Estas
+operaciones actualizan únicamente el documento del alcance correspondiente y su autoguardado.
+
+Importar valida el documento completo antes de reemplazarlo; exportar produce JSON Docente para
+revisión y nunca incluye preferencias Estudiante. **Resumen** puede validar, mostrar el diff y
+cuantificar los tres avances antes de aplicar mediante el helper local `npm run editor:author`.
+La operación exige confirmación ligada al digest, un bloqueo exclusivo y un reinicio total de
+los progresos, pero conserva documento y preferencias. El helper escribe solo el artefacto de
+edición, ejecuta comprobaciones/build y ofrece rollback; no muta Git ni despliega. Las
+capacidades locales se eligen por URL y no son autenticación; ORBIT Editor sigue sin backend
+público, cuentas, colaboración multiusuario ni dependencias nuevas de ejecución.
 
 ## Clases de lugar actuales
 
@@ -185,9 +199,14 @@ abre Altiplano Electrostático (Árbol I)
 
 Un elemento lateral debe enriquecer, no bloquear, salvo que sea explícitamente parte de una ruta especializada. Transportes, personajes y gadgets demostrativos no deben ser llaves ocultas para avanzar por el tronco principal.
 
+La **Estación de la Carta de Smith** aplica esta regla: requiere el Banco de Líneas de
+Transmisión, concede `gadgets:smith-chart` y permanece opcional. Su incorporación eleva el
+dataset a 29 lugares sin añadir una condición al recorrido principal.
+
 ## Expansión del mapa
 
-ORBIT Editor 0.4.0 reorganiza elementos existentes, pero todavía no crea ni elimina zonas o lugares. Para ampliar el dataset fuente:
+ORBIT Editor reorganiza y decora elementos existentes, pero todavía no crea ni elimina zonas o
+lugares. Para ampliar el dataset fuente:
 
 Al agregar zonas:
 

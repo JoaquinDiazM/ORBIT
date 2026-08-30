@@ -27,11 +27,12 @@ function errorCodes(result) {
   return new Set(result.errors.map((entry) => entry.code));
 }
 
-test("el documento canónico publica solo layout y cuatro dependencias explícitas", () => {
+test("el documento canónico publica layout, apariencia y dependencias explícitas", () => {
   const candidate = document();
 
   assert.equal(candidate.kind, EDITOR_DOCUMENT_KIND);
   assert.equal(candidate.schemaVersion, EDITOR_DOCUMENT_SCHEMA_VERSION);
+  assert.equal(candidate.appearanceCatalogVersion, 1);
   assert.equal(candidate.courseId, EDITOR_COURSE_ID);
   assert.equal(candidate.baseDataVersion, EDITOR_BASE_DATA_VERSION);
   assert.equal(candidate.areas.length, AREAS.length);
@@ -57,8 +58,18 @@ test("el documento canónico publica solo layout y cuatro dependencias explícit
       targetId: "radio-skiff-hangar",
       kind: "completedLocation",
     },
+    {
+      sourceId: "transmission-line-bench",
+      targetId: "smith-chart-station",
+      kind: "completedLocation",
+    },
   ]);
-  assert.deepEqual(Object.keys(candidate.areas[0]), ["id", "q", "r"]);
+  assert.deepEqual(Object.keys(candidate.areas[0]), ["id", "q", "r", "appearance"]);
+  assert.deepEqual(candidate.areas[0].appearance, {
+    paletteId: "canonical",
+    motifId: "canonical",
+    contourId: "canonical",
+  });
   assert.deepEqual(Object.keys(candidate.locations[0]), ["id", "areaId", "offset"]);
   assert.equal("concepts" in candidate, false);
   assert.equal("player" in candidate, false);
@@ -112,7 +123,7 @@ test("la topología del editor agrega bases y distingue relaciones editables", (
     (connection) => connection.id === "coulomb-observatory->gauss-guide-post",
   );
 
-  assert.equal(topology.length, 13);
+  assert.equal(topology.length, 14);
   assert.deepEqual(gauss.requirementKinds, ["completedLocations", "concepts"]);
   assert.equal(
     topology.some((connection) => connection.requirementKinds.includes("rewards")),
@@ -181,8 +192,42 @@ test("la versión base distinta se rebasa con advertencia", () => {
   const result = sanitizeEditorDocument(candidate);
 
   assert.equal(result.ok, true);
-  assert.equal(result.document.baseDataVersion, "0.4.0");
+  assert.equal(result.document.baseDataVersion, EDITOR_BASE_DATA_VERSION);
   assert.equal(result.warnings.some((entry) => entry.code === "base-version-rebased"), true);
+});
+
+test("un borrador v1 de 0.4.0 migra a v2 y restaura el nodo y conexión Smith", () => {
+  const legacy = document();
+  legacy.schemaVersion = 1;
+  legacy.baseDataVersion = "0.4.0";
+  delete legacy.appearanceCatalogVersion;
+  legacy.areas = legacy.areas.map(({ id, q, r }) => ({ id, q, r }));
+  legacy.locations = legacy.locations.filter(({ id }) => id !== "smith-chart-station");
+  legacy.treeTwoConnections = legacy.treeTwoConnections.filter(
+    ({ targetId }) => targetId !== "smith-chart-station",
+  );
+
+  const result = sanitizeEditorDocument(legacy);
+
+  assert.equal(result.ok, true);
+  assert.equal(result.document.schemaVersion, 2);
+  assert.equal(result.document.appearanceCatalogVersion, 1);
+  assert.equal(result.document.locations.length, LOCATIONS.length);
+  assert.equal(
+    result.document.treeTwoConnections.some(
+      ({ sourceId, targetId }) =>
+        sourceId === "transmission-line-bench" && targetId === "smith-chart-station",
+    ),
+    true,
+  );
+  assert.equal(
+    result.document.areas.every(
+      ({ appearance }) => appearance.paletteId === "canonical",
+    ),
+    true,
+  );
+  assert.equal(result.warnings.some(({ code }) => code === "editor-schema-migrated"), true);
+  assert.equal(result.warnings.some(({ code }) => code === "connections-rebased"), true);
 });
 
 test("rechaza coordenadas no finitas, ocupación duplicada y mezcla de anillos", () => {

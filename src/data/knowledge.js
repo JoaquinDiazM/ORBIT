@@ -145,9 +145,15 @@ export const REWARDS = Object.freeze({
   gadgets: [
     {
       id: "field-lens",
-      title: "Lente de campo",
-      description: "Superpone una visualización vectorial prototipo alrededor del Observatorio de Coulomb.",
-      control: "G",
+      title: "Explorador de campos 2D",
+      description: "Representa campos cartesianos ingresados por el usuario mediante flechas y líneas de flujo cualitativas.",
+      control: "Menú Gadgets",
+    },
+    {
+      id: "smith-chart",
+      title: "Carta de Smith",
+      description: "Habilita el esqueleto estático de una futura herramienta para líneas de transmisión.",
+      control: "Menú Gadgets",
     },
   ],
   transports: [

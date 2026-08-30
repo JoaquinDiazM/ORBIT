@@ -2,9 +2,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { axialToPixel } from "../src/core/hex.js";
 import { migrateProgressState } from "../src/core/progress-migrations.js";
-import { ProgressionModel } from "../src/core/progression.js";
+import {
+  ProgressCompatibilityError,
+  ProgressionModel,
+  ProgressSchemaError,
+} from "../src/core/progression.js";
 import {
   ProgressStorage,
+  StoragePersistenceError,
   createLegacyProgressKeys,
 } from "../src/core/storage.js";
 import { WORLD_CONFIG } from "../src/data/world.js";
@@ -68,7 +73,9 @@ test("la migración v1 conserva logros y traslada Inducción a Maxwell", () => {
   });
   const state = progression.getSnapshot().state;
 
-  assert.equal(state.schemaVersion, 3);
+  assert.equal(state.schemaVersion, 4);
+  assert.equal(state.courseId, "electromagnetism-applied");
+  assert.equal(state.courseRevision, "electromagnetism-applied:legacy");
   assert.deepEqual(new Set(state.debugUnlockedAreas), new Set(["maxwell", "applications"]));
   assert.equal(state.completedLocations.includes("faraday-station"), true);
   assert.equal(state.concepts.includes("faraday-induction"), true);
@@ -93,9 +100,10 @@ test("la migración traslada la antigua Aplicaciones a Radioastronomía", () => 
 
 test("la migración v2 convierte mute y volumen maestro en dos categorías", () => {
   const audible = migrateProgressState(v2State({ muted: false, volume: 0.42 }));
-  assert.equal(audible.schemaVersion, 3);
+  assert.equal(audible.schemaVersion, 4);
+  assert.equal(audible.courseId, "electromagnetism-applied");
+  assert.equal(audible.courseRevision, "electromagnetism-applied:legacy");
   assert.deepEqual(audible.settings, {
-    fieldLensEnabled: false,
     ambienceVolume: 0.42,
     effectsVolume: 0.42,
     treeTwoVisualizationMode: "hidden",
@@ -127,7 +135,6 @@ test("el saneamiento v3 conserva categorías independientes y descarta campos ob
   const settings = progression.getSnapshot().state.settings;
 
   assert.deepEqual(settings, {
-    fieldLensEnabled: true,
     ambienceVolume: 0.25,
     effectsVolume: 0.8,
     treeTwoVisualizationMode: "hidden",
@@ -136,6 +143,129 @@ test("el saneamiento v3 conserva categorías independientes y descarta campos ob
   progression.setEffectsVolume(4);
   assert.equal(progression.getSnapshot().state.settings.ambienceVolume, 0);
   assert.equal(progression.getSnapshot().state.settings.effectsVolume, 1);
+});
+
+test("v4 vincula el progreso a una revisión del curso y descarta otra revisión", () => {
+  const storage = new MemoryStorage({
+    ...v2State(),
+    schemaVersion: 3,
+    completedLocations: ["vector-workshop"],
+    concepts: ["vectors-and-fields"],
+  });
+  const first = new ProgressionModel({
+    profile: "student",
+    storage,
+    courseRevision: "revision-a",
+  });
+  assert.deepEqual(first.getSnapshot().state.completedLocations, ["vector-workshop"]);
+  assert.equal(first.getSnapshot().state.courseRevision, "revision-a");
+
+  const next = new ProgressionModel({
+    profile: "student",
+    storage,
+    courseRevision: "revision-b",
+  });
+  assert.deepEqual(next.getSnapshot().state.completedLocations, []);
+  assert.deepEqual(next.getSnapshot().state.concepts, []);
+  assert.equal(next.getSnapshot().state.courseRevision, "revision-b");
+});
+
+test("una edición aplicada puede prohibir la adopción de progreso sin revisión", () => {
+  const storage = new MemoryStorage({
+    ...v2State(),
+    schemaVersion: 3,
+    completedLocations: ["vector-workshop"],
+    concepts: ["vectors-and-fields"],
+  });
+  const progression = new ProgressionModel({
+    profile: "student",
+    storage,
+    courseRevision: "revision-aplicada",
+    acceptsUnversionedProgress: false,
+  });
+
+  assert.deepEqual(progression.getSnapshot().state.completedLocations, []);
+  assert.deepEqual(progression.getSnapshot().state.concepts, []);
+  assert.equal(progression.getSnapshot().state.courseRevision, "revision-aplicada");
+});
+
+test("un esquema de progreso futuro se conserva crudo y una importación falla cerrada", () => {
+  const future = {
+    ...v2State(),
+    schemaVersion: 99,
+    courseId: "electromagnetism-applied",
+    courseRevision: "revision-activa",
+    completedLocations: ["vector-workshop"],
+    concepts: ["vectors-and-fields"],
+  };
+  assert.equal(migrateProgressState(future).schemaVersion, 99);
+  const storage = new MemoryStorage(future);
+  const originalWarn = console.warn;
+  console.warn = () => {};
+  try {
+    const progression = new ProgressionModel({
+      profile: "student",
+      storage,
+      courseRevision: "revision-activa",
+    });
+    assert.equal(progression.getSnapshot().state.schemaVersion, 4);
+    assert.deepEqual(progression.getSnapshot().state.completedLocations, []);
+    assert.deepEqual(progression.getSnapshot().state.concepts, []);
+    assert.deepEqual(storage.value, future, "la carga no debe sobrescribir el registro futuro");
+    assert.throws(
+      () => progression.setPlayerPosition(12, 34),
+      (error) => error instanceof ProgressSchemaError
+        && error.code === "unsupported-progress-schema",
+    );
+    assert.deepEqual(storage.value, future, "una mutación posterior tampoco pisa el registro futuro");
+  } finally {
+    console.warn = originalWarn;
+  }
+
+  const activeStorage = new MemoryStorage(v2State());
+  const active = new ProgressionModel({ profile: "student", storage: activeStorage });
+  const stateBefore = active.getSnapshot().state;
+  const persistedBefore = structuredClone(activeStorage.value);
+  const events = [];
+  active.subscribe((event) => events.push(event));
+  assert.throws(
+    () => active.importState(future),
+    (error) => error instanceof ProgressSchemaError
+      && error.code === "unsupported-progress-schema"
+      && error.candidateVersion === 99,
+  );
+  assert.deepEqual(active.getSnapshot().state, stateBefore);
+  assert.deepEqual(activeStorage.value, persistedBefore);
+  assert.deepEqual(events, []);
+});
+
+test("importar progreso de otro curso o revisión conserva el estado vigente", () => {
+  const storage = new MemoryStorage(v2State());
+  const progression = new ProgressionModel({
+    profile: "student",
+    storage,
+    courseId: "electromagnetism-applied",
+    courseRevision: "revision-activa",
+  });
+  progression.grantConcept("vectors-and-fields");
+  const stateBefore = progression.getSnapshot().state;
+  const persistedBefore = structuredClone(storage.value);
+  const events = [];
+  progression.subscribe((event) => events.push(event));
+
+  for (const candidate of [
+    { ...stateBefore, courseId: "otro-curso" },
+    { ...stateBefore, courseRevision: "otra-revision" },
+  ]) {
+    assert.throws(
+      () => progression.importState(candidate),
+      (error) => error instanceof ProgressCompatibilityError
+        && error.code === "incompatible-progress-edition",
+    );
+  }
+  assert.deepEqual(progression.getSnapshot().state, stateBefore);
+  assert.deepEqual(storage.value, persistedBefore);
+  assert.deepEqual(events, []);
 });
 
 test("el modo visual del Árbol II se sanea, persiste y notifica", () => {
@@ -248,6 +378,130 @@ test("ProgressStorage lee la clave histórica de ATLAS y guarda en ORBIT v3", ()
   assert.deepEqual(JSON.parse(values.get("orbit-progress:v3:legacy")), { schemaVersion: 3 });
   storage.clear();
   assert.equal(values.size, 0);
+});
+
+test("ProgressStorage señala un setItem fallido y conserva el último valor verificable", () => {
+  const key = "orbit-progress:v4:student";
+  const values = new Map();
+  let rejectWrites = false;
+  const storage = new ProgressStorage(key, {
+    getItem: (candidateKey) => values.get(candidateKey) ?? null,
+    setItem: (candidateKey, value) => {
+      if (rejectWrites) throw new Error("quota-exceeded");
+      values.set(candidateKey, value);
+    },
+    removeItem: (candidateKey) => values.delete(candidateKey),
+  });
+  storage.save({ schemaVersion: 4, marker: "verified" });
+  const verified = values.get(key);
+
+  rejectWrites = true;
+  assert.throws(
+    () => storage.save({ schemaVersion: 4, marker: "false-success" }),
+    (error) =>
+      error instanceof StoragePersistenceError
+      && error.code === "storage-write-failed"
+      && error.cause?.message === "quota-exceeded",
+  );
+  assert.equal(values.get(key), verified);
+  assert.deepEqual(storage.load(), { schemaVersion: 4, marker: "verified" });
+});
+
+test("una mutación de progreso revierte memoria y no emite éxito si setItem falla", () => {
+  const key = "orbit-progress:v4:student";
+  const values = new Map();
+  let rejectWrites = false;
+  const storage = new ProgressStorage(key, {
+    getItem: (candidateKey) => values.get(candidateKey) ?? null,
+    setItem: (candidateKey, value) => {
+      if (rejectWrites) throw new Error("quota-exceeded");
+      values.set(candidateKey, value);
+    },
+    removeItem: (candidateKey) => values.delete(candidateKey),
+  });
+  const progression = new ProgressionModel({ profile: "student", storage });
+  const before = progression.getSnapshot().state;
+  const persistedBefore = values.get(key);
+  const events = [];
+  progression.subscribe((event) => events.push(event));
+
+  rejectWrites = true;
+  assert.throws(
+    () => progression.grantConcept("vectors-and-fields"),
+    (error) => error instanceof StoragePersistenceError && error.code === "storage-write-failed",
+  );
+  assert.deepEqual(progression.getSnapshot().state, before);
+  assert.equal(values.get(key), persistedBefore);
+  assert.deepEqual(events, []);
+});
+
+test("reset conserva la clave v4 y elimina solamente las claves heredadas", () => {
+  const currentKey = "orbit-progress:v4:student";
+  const legacyKeys = ["orbit-progress:v3:student", "aea-progress:v2:student"];
+  const unrelatedKey = "orbit-bowerbird:v1:electromagnetism-applied:student";
+  const values = new Map([
+    [legacyKeys[0], JSON.stringify(v2State())],
+    [legacyKeys[1], JSON.stringify(v1State({ x: 0, y: 0 }))],
+    [unrelatedKey, JSON.stringify({ marker: "preserved" })],
+  ]);
+  const removed = [];
+  const storage = new ProgressStorage(currentKey, {
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, value),
+    removeItem: (key) => {
+      removed.push(key);
+      values.delete(key);
+    },
+  }, legacyKeys);
+  const progression = new ProgressionModel({ profile: "student", storage });
+  progression.grantConcept("vectors-and-fields");
+
+  progression.reset();
+
+  assert.deepEqual(removed, legacyKeys);
+  assert.equal(values.has(currentKey), true);
+  assert.deepEqual(JSON.parse(values.get(currentKey)).concepts, []);
+  assert.equal(values.has(legacyKeys[0]), false);
+  assert.equal(values.has(legacyKeys[1]), false);
+  assert.deepEqual(JSON.parse(values.get(unrelatedKey)), { marker: "preserved" });
+});
+
+test("reset revierte estado y claves si no puede verificar la limpieza heredada", () => {
+  const currentKey = "orbit-progress:v4:student";
+  const legacyKeys = ["orbit-progress:v3:student", "aea-progress:v2:student"];
+  const values = new Map([
+    [legacyKeys[0], JSON.stringify(v2State())],
+    [legacyKeys[1], JSON.stringify(v1State({ x: 0, y: 0 }))],
+  ]);
+  const removed = [];
+  let rejectSecondRemoval = false;
+  const storage = new ProgressStorage(currentKey, {
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, value),
+    removeItem: (key) => {
+      removed.push(key);
+      if (rejectSecondRemoval && key === legacyKeys[1]) return;
+      values.delete(key);
+    },
+  }, legacyKeys);
+  const progression = new ProgressionModel({ profile: "student", storage });
+  progression.grantConcept("vectors-and-fields");
+  const stateBefore = progression.getSnapshot().state;
+  const valuesBefore = new Map(values);
+  const events = [];
+  progression.subscribe((event) => events.push(event));
+  removed.length = 0;
+  rejectSecondRemoval = true;
+
+  assert.throws(
+    () => progression.reset(),
+    (error) => error instanceof StoragePersistenceError && error.code === "storage-write-failed",
+  );
+  assert.deepEqual(progression.getSnapshot().state, stateBefore);
+  for (const [key, value] of valuesBefore) assert.equal(values.get(key), value);
+  assert.equal(values.size, valuesBefore.size);
+  assert.deepEqual(removed, legacyKeys);
+  assert.deepEqual(events, []);
 });
 
 test("las claves históricas priorizan el esquema más reciente entre prefijos", () => {

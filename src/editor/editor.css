@@ -89,7 +89,7 @@
   height: calc(100vh - var(--hud-height) - 5.65rem);
 }
 
-.editor-shell[data-access="read-only"] .editor-tools-dock .dock-button,
+.editor-shell[data-access="read-only"] .editor-tools-dock .dock-button[aria-disabled="true"],
 .editor-shell[data-access="read-only"] .editor-file-button.is-disabled {
   opacity: 0.5;
 }
@@ -205,6 +205,26 @@
   border-left-color: var(--gold);
   background: rgba(48, 67, 74, 0.92);
   box-shadow: inset 0 0 0 1px rgba(255, 209, 102, 0.18);
+}
+
+.editor-tool-button[aria-pressed="false"] {
+  border-style: solid;
+}
+
+.editor-tool-button[aria-pressed="false"]::before {
+  content: attr(data-mark);
+  border-style: solid;
+  color: var(--accent);
+}
+
+.editor-tool-button[aria-disabled="true"] {
+  border-style: dashed;
+}
+
+.editor-tool-button[aria-disabled="true"]::before {
+  content: "×";
+  border-style: dashed;
+  color: #ffd8dc;
 }
 
 .editor-inspector {
@@ -432,6 +452,46 @@
   gap: 0.5rem;
 }
 
+.editor-bowerbird-controls {
+  display: grid;
+  margin: 0.7rem 0 0.85rem;
+  padding: 0.75rem;
+  gap: 0.34rem;
+  border: 1px solid rgba(155, 216, 255, 0.16);
+  border-radius: 0.8rem;
+  background: rgba(7, 21, 35, 0.56);
+}
+
+.editor-bowerbird-controls label {
+  margin-top: 0.34rem;
+  color: var(--text);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+#editor-bowerbird-area,
+.editor-bowerbird-controls select {
+  width: 100%;
+  min-height: 2.55rem;
+  padding: 0.48rem 0.58rem;
+}
+
+.editor-preset-description {
+  min-height: 2.15rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
+.editor-bowerbird-scope {
+  margin: 0.65rem 0;
+  color: #c6f4ff;
+  font-size: 0.69rem;
+  font-weight: 720;
+  line-height: 1.45;
+}
+
 .editor-summary-list {
   display: grid;
   margin: 0;
@@ -485,6 +545,195 @@
   color: var(--gold);
 }
 
+.editor-course-application {
+  margin-top: 1rem;
+  padding: 0.9rem;
+  border: 1px solid rgba(120, 227, 255, 0.28);
+  border-radius: 0.82rem;
+  background: rgba(5, 18, 31, 0.74);
+}
+
+.editor-course-application[hidden],
+.editor-application-plan[hidden],
+.editor-pending-application[hidden],
+.editor-application-evidence[hidden] {
+  display: none;
+}
+
+.editor-course-application > h3,
+.editor-application-plan > h3,
+.editor-pending-application > h3,
+.editor-application-evidence > h3 {
+  margin-bottom: 0.45rem;
+  color: #e7faff;
+  font-size: 0.82rem;
+}
+
+.editor-course-application > p,
+.editor-pending-application p,
+.editor-reset-scope {
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.editor-course-application code {
+  color: var(--gold);
+  font-size: 0.68rem;
+}
+
+.editor-application-source,
+.editor-application-diff,
+.editor-application-evidence dl {
+  display: grid;
+  margin: 0.75rem 0;
+  gap: 0.45rem;
+}
+
+.editor-application-source div,
+.editor-application-diff div,
+.editor-application-evidence dl div {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 0.42fr) minmax(0, 1fr);
+  padding: 0.48rem 0.56rem;
+  gap: 0.55rem;
+  border: 1px solid rgba(155, 216, 255, 0.12);
+  border-radius: 0.6rem;
+  background: rgba(12, 34, 51, 0.62);
+}
+
+.editor-application-source dt,
+.editor-application-diff dt,
+.editor-application-evidence dt {
+  color: #c8eaf4;
+  font-size: 0.65rem;
+  font-weight: 820;
+}
+
+.editor-application-source dd,
+.editor-application-diff dd,
+.editor-application-evidence dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.62rem;
+  line-height: 1.45;
+}
+
+.editor-application-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.editor-application-status {
+  min-height: 2.3rem;
+  margin: 0.6rem 0;
+  padding: 0.58rem 0.65rem;
+  border-left: 3px solid rgba(120, 227, 255, 0.62);
+  border-radius: 0.45rem;
+  background: rgba(16, 45, 66, 0.62);
+}
+
+.editor-application-status[data-level="success"] {
+  border-left-color: #7ce5b3;
+  color: #d7ffe9;
+}
+
+.editor-application-status[data-level="warning"] {
+  border-left-color: var(--gold);
+  color: #ffe9b0;
+}
+
+.editor-application-status[data-level="error"] {
+  border-left-color: #ff8f9b;
+  color: #ffdce0;
+}
+
+.editor-pending-application,
+.editor-application-plan,
+.editor-application-evidence {
+  margin-top: 0.8rem;
+  padding: 0.75rem;
+  border: 1px solid rgba(155, 216, 255, 0.18);
+  border-radius: 0.72rem;
+  background: rgba(8, 25, 40, 0.65);
+}
+
+.editor-pending-application {
+  border-color: rgba(255, 209, 102, 0.46);
+  background: rgba(64, 48, 17, 0.38);
+}
+
+.editor-impact-table-wrap {
+  margin: 0.75rem 0;
+  overflow-x: auto;
+}
+
+.editor-impact-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--muted);
+  font-size: 0.63rem;
+}
+
+.editor-impact-table caption {
+  margin-bottom: 0.45rem;
+  color: #dff7ff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-align: left;
+}
+
+.editor-impact-table th,
+.editor-impact-table td {
+  padding: 0.42rem 0.36rem;
+  border: 1px solid rgba(155, 216, 255, 0.14);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.editor-impact-table th {
+  color: #dff7ff;
+  background: rgba(29, 59, 78, 0.72);
+}
+
+.editor-reset-scope {
+  padding: 0.65rem;
+  border: 1px solid rgba(255, 209, 102, 0.26);
+  border-radius: 0.6rem;
+  background: rgba(61, 48, 22, 0.38);
+}
+
+.editor-application-confirmation {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  margin: 0.7rem 0;
+  padding: 0.65rem;
+  gap: 0.55rem;
+  align-items: start;
+  border: 1px solid rgba(255, 209, 102, 0.42);
+  border-radius: 0.62rem;
+  color: #fff0bd;
+  background: rgba(71, 53, 20, 0.46);
+  font-size: 0.7rem;
+  font-weight: 720;
+  line-height: 1.45;
+}
+
+.editor-application-confirmation input {
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-top: 0.08rem;
+}
+
+.editor-application-evidence {
+  border-color: rgba(124, 229, 179, 0.42);
+  background: rgba(17, 59, 45, 0.34);
+}
+
 .editor-controls-hint {
   left: 50%;
   right: auto;
@@ -501,6 +750,10 @@
 
 .editor-shell[data-tool="bee"] #world-canvas {
   cursor: grab;
+}
+
+.editor-shell[data-tool="bowerbird"] #world-canvas {
+  cursor: pointer;
 }
 
 @media (max-width: 1120px) {

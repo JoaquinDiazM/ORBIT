@@ -1,6 +1,22 @@
+import { readFile } from "node:fs/promises";
+
+import { materializeCourseEdition } from "../src/core/course-edition.js";
 import { validateProjectData } from "../src/core/validator.js";
 
-const result = validateProjectData();
+const editionCandidate = JSON.parse(
+  await readFile(
+    new URL(
+      "../public/data/courses/electromagnetism-applied.edition.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+);
+const edition = await materializeCourseEdition(editionCandidate);
+const result = validateProjectData({
+  areas: edition.areas,
+  locations: edition.locations,
+});
 
 for (const warning of result.warnings) {
   console.warn(`ADVERTENCIA: ${warning}`);
@@ -11,6 +27,7 @@ if (result.errors.length > 0) {
   process.exitCode = 1;
 } else {
   console.log("Validación de mundo y progresión: OK");
+  console.log(`Edición del curso: ${edition.edition.revision}`);
   console.log(
     `Simulación completa: ${result.simulation.unlockedAreas.size} zonas, ${result.simulation.concepts.size} conceptos y ${result.simulation.completedLocations.size} lugares alcanzables.`,
   );

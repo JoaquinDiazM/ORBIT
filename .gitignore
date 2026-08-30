@@ -4,6 +4,9 @@ node_modules/
 .pnpm-store/
 dist/
 coverage/
+.orbit-editor/
+.orbit-editor-tombstone/
+.orbit-editor-helper-lock*/
 *.log
 .vscode/
 .idea/

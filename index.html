@@ -71,6 +71,14 @@
           aria-expanded="false"
         >Árboles <kbd>K</kbd></button>
         <button
+          id="open-gadgets"
+          class="dock-button"
+          data-mark="⌁"
+          type="button"
+          aria-controls="gadgets-panel"
+          aria-expanded="false"
+        >Gadgets</button>
+        <button
           id="open-symbols"
           class="dock-button"
           data-mark="∑"
@@ -151,7 +159,6 @@
       <section id="controls-hint" class="glass-card compact-card" aria-label="Controles principales">
         <span><kbd>WASD</kbd> / flechas: mover</span>
         <span><kbd>E</kbd>: interactuar</span>
-        <span><kbd>G</kbd>: gadget</span>
         <span><kbd>T</kbd>: transporte</span>
         <span data-debug-only hidden><kbd>F2</kbd>: debugger</span>
       </section>
@@ -187,6 +194,23 @@
           <button class="icon-button" data-close-panel="knowledge-panel" type="button" aria-label="Cerrar">×</button>
         </header>
         <div id="knowledge-body" class="panel-body"></div>
+      </aside>
+
+      <aside
+        id="gadgets-panel"
+        class="side-panel secondary-panel wide-panel"
+        role="dialog"
+        aria-labelledby="gadgets-title"
+        hidden
+      >
+        <header class="panel-header">
+          <div>
+            <p class="eyebrow">Herramientas reutilizables</p>
+            <h2 id="gadgets-title">Gadgets</h2>
+          </div>
+          <button class="icon-button" data-close-panel="gadgets-panel" type="button" aria-label="Cerrar">×</button>
+        </header>
+        <div id="gadgets-body" class="panel-body"></div>
       </aside>
 
       <aside id="visual-panel" class="side-panel secondary-panel" role="dialog" aria-labelledby="visual-title" hidden>
@@ -269,10 +293,10 @@
           <dl class="controls-list">
             <div><dt><kbd>WASD</kbd> o flechas</dt><dd>Movimiento libre.</dd></div>
             <div><dt><kbd>E</kbd></dt><dd>Interactuar con el lugar más cercano.</dd></div>
-            <div><dt><kbd>G</kbd></dt><dd>Activar o desactivar el lente de campo cuando lo adquieras.</dd></div>
             <div><dt><kbd>T</kbd></dt><dd>Cambiar entre transportes adquiridos.</dd></div>
             <div><dt>Rueda del ratón</dt><dd>Ajustar el zoom.</dd></div>
             <div><dt><kbd>K</kbd></dt><dd>Abrir los dos árboles de progresión.</dd></div>
+            <div><dt>Gadgets</dt><dd>Abrir la calculadora y las herramientas adquiridas desde cualquier zona.</dd></div>
             <div><dt>Ajustes</dt><dd>Abrir Visual, Sonido o esta ayuda desde el menú lateral.</dd></div>
             <div data-debug-only hidden><dt><kbd>F2</kbd></dt><dd>Abrir el debugger para pruebas.</dd></div>
             <div><dt><kbd>Esc</kbd></dt><dd>Cerrar paneles.</dd></div>

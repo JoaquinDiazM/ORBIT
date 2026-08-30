@@ -1,6 +1,8 @@
 import { access, cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
+import { materializeCourseEdition } from "../src/core/course-edition.js";
+
 const root = resolve(process.cwd());
 const dist = resolve(root, "dist");
 const katexRoot = resolve(root, "node_modules", "katex");
@@ -8,6 +10,17 @@ const katexDist = resolve(katexRoot, "dist");
 const katexVendor = resolve(dist, "vendor", "katex");
 const developmentKatexBase = "./node_modules/katex/dist/";
 const productionKatexBase = "./vendor/katex/";
+const courseEditionSource = resolve(
+  root,
+  "public",
+  "data",
+  "courses",
+  "electromagnetism-applied.edition.json",
+);
+
+const courseEdition = await materializeCourseEdition(
+  JSON.parse(await readFile(courseEditionSource, "utf8")),
+);
 
 try {
   await access(katexDist);
@@ -60,6 +73,15 @@ await Promise.all([
   access(resolve(katexVendor, "katex.mjs")),
   access(resolve(katexVendor, "katex.min.css")),
   access(resolve(katexVendor, "fonts")),
+  access(
+    resolve(
+      dist,
+      "public",
+      "data",
+      "courses",
+      "electromagnetism-applied.edition.json",
+    ),
+  ),
 ]);
 
 await writeFile(
@@ -69,6 +91,9 @@ await writeFile(
       project: "orbit-open-roadmap",
       generatedAt: new Date().toISOString(),
       buildType: "static-no-bundle",
+      courseId: courseEdition.edition.courseId,
+      courseRevision: courseEdition.edition.revision,
+      courseDigest: courseEdition.edition.digest,
     },
     null,
     2,

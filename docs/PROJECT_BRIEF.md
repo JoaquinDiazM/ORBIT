@@ -41,29 +41,48 @@ La experiencia combina dos modos que deberán coexistir en una versión futura:
 - **Modo Expedición:** progresión narrativa y desbloqueos espaciales.
 - **Modo consulta temática:** acceso académico directo por tema, útil para repasar antes de una evaluación.
 
-La versión `0.4.3` conserva sin reducción la Expedición publicada en 0.3.2: 19 zonas, 20 conceptos, 28 lugares y 13 parejas derivadas del Árbol II, de las cuales cuatro tienen un requisito `completedLocations` explícito canónico. El Taller Vectorial sirve como primer nodo desarrollado con mayor profundidad: reúne elementos diferenciales, una comparación visual de campos en SVG, un ejemplo cartesiano guiado y una evaluación cilíndrica independiente. El modo de consulta temática con acceso directo, la profundidad curricular completa y la conexión entre cursos siguen siendo hitos posteriores.
+La cohorte candidata `0.5.0` conserva las 19 zonas y 20 conceptos y amplía el dataset a 29
+lugares, 14 parejas derivadas del Árbol II y cinco requisitos `completedLocations` explícitos. El
+nuevo lugar es una estación opcional que desbloquea el esqueleto de Carta de Smith; no bloquea el
+tronco. El Taller Vectorial sigue siendo el primer nodo desarrollado con mayor profundidad:
+reúne elementos diferenciales, una comparación visual de campos en SVG, un ejemplo cartesiano
+guiado y una evaluación cilíndrica independiente. El modo de consulta temática con acceso
+directo, la profundidad curricular completa y la conexión entre cursos siguen siendo hitos
+posteriores.
 
-La entrada es `index.html` y ofrece exactamente tres modos locales con progreso `v3` separado:
-Estudiante, Docente y Debug. El antiguo `normal` migra a Estudiante sin perder el avance
-compatible. Docente se distingue por autocompletar al interactuar lecciones y misiones que
+El panel **Gadgets** separa herramientas de consulta del mapa: la calculadora científica está
+siempre disponible; el Explorador cartesiano de campos 2D y la Carta de Smith requieren sus
+recompensas. La gramática matemática es restringida y ninguna herramienta ejecuta código del
+usuario ni concede progreso por sí sola.
+
+La entrada es `index.html` y ofrece exactamente tres modos locales con progreso `v4` separado y
+ligado a la revisión de curso: Estudiante, Docente y Debug. El antiguo `normal` migra a
+Estudiante solo cuando la edición declara compatible ese avance. Docente se distingue por
+autocompletar al interactuar lecciones y misiones que
 exigen respuesta; Debug conserva herramientas de inspección y avance forzado. El nodo, `F2` y
 `window.OrbitDebug` no existen para Estudiante ni Docente. Esta matriz no son cuentas ni
 autenticación.
 
 ### ORBIT Editor
 
-La entrada `editor.html` sienta una base de autoría cartográfica local. Sin query usa Docente
-completo; Estudiante entra en consulta con Spider, Bee y todas las mutaciones bloqueadas; Debug
+La entrada `editor.html` ofrece autoría cartográfica y visual local. Sin query usa Docente
+completo; Estudiante entra con Spider/Bee en consulta y Bowerbird personal; Debug
 queda bloqueado antes de crear el modelo. Mantiene una interfaz análoga, pero no ejecuta una
 sesión de aprendizaje ni concede progreso.
 
-Dos docks retractables separan operaciones generales y herramientas editoriales. **Spider** mueve lugares y edita únicamente dependencias directas `completedLocations`; conceptos y recompensas continúan como causas derivadas de solo lectura. **Bee** intercambia zonas dentro de su mismo anillo, sin mover la Base ni mezclar fundamentos de `tier 1` con aplicaciones de `tier 2`.
+Dos docks retractables separan operaciones generales y herramientas editoriales. **Spider**
+mueve lugares y edita únicamente dependencias directas `completedLocations`; conceptos y
+recompensas continúan como causas derivadas de solo lectura. **Bee** intercambia zonas dentro de
+su mismo anillo, sin mover la Base ni mezclar fundamentos de `tier 1` con aplicaciones de
+`tier 2`. **Bowerbird** selecciona paletas, motivos y contornos versionados sin alterar geometría
+o progreso.
 
-El borrador usa esquema editorial `v1`, autoguardado local, importación/exportación JSON e
-historial. Es único e independiente de los tres avances `v3`: seleccionar un perfil no crea un
-borrador propio. No se aplica automáticamente a ORBIT. Un docente o mantenedor debe revisar el
-archivo exportado, integrarlo al repositorio, validar, construir y desplegar durante el
-procedimiento operativo correspondiente.
+El documento Docente usa esquema editorial `v2`, autoguardado local, importación/exportación JSON
+e historial. Es independiente de los tres avances `v4`; las apariencias personales Estudiante
+usan otro contrato y no se exportan. **Resumen** puede validar, mostrar el diff y el impacto, y
+aplicar la edición mediante un helper exclusivo de loopback con respaldo y recuperación. Esa
+operación reinicia los tres progresos, conserva documento/preferencias y construye `dist/`, pero
+no muta Git ni despliega.
 
 ## Dos grafos de conocimiento
 
@@ -161,17 +180,23 @@ El proyecto debe privilegiar contenido y ejercicios sobre producción audiovisua
 - assets costosos;
 - animaciones largas.
 
-La versión `0.4.3` no añade backend, autenticación, gráficos 3D, telemetría ni dependencias. El avance dentro de etapas, los parámetros de figuras y las respuestas parciales siguen siendo estado local de sesión. El progreso de ORBIT permanece en `v3`; el documento Editor comienza en `v1` bajo otra clave y otro contrato. Cambiar cualquiera de ellos requiere versionar y sanear el esquema correspondiente, sin confundir ambos espacios.
+La cohorte `0.5.0` no añade backend público, autenticación, gráficos 3D, telemetría ni
+dependencias. El avance dentro de etapas, los parámetros de figuras y las respuestas parciales
+siguen siendo estado de sesión. Progreso `v4`, documento Editor `v2`, preferencias Bowerbird `v1`
+y edición de curso `v1` usan claves y migraciones distintas.
 
-La entrada Editor no escribe archivos fuente, Git ni el servidor. Sus bloqueos por query no
-constituyen control de acceso; la publicación sigue siendo manual y cualquier restricción real
-para estudiantes o docentes debe proporcionarla la infraestructura externa.
+La entrada Editor estática no puede escribir el repositorio. Solo el helper local iniciado
+explícitamente puede escribir la ruta canónica de la edición y construir; inspecciona Git para
+exigir un checkout limpio, pero no lo muta. Los bloqueos por query no constituyen control de
+acceso; la publicación sigue siendo externa y cualquier restricción real debe proporcionarla la
+infraestructura.
 
 La interfaz debe verse suficientemente clara para probar la experiencia, pero la excelencia del proyecto se medirá por rigor, progresión, calidad de ejercicios, trazabilidad y utilidad para estudiantes.
 
 ## Definición del producto
 
-**Recurso educativo abierto e interactivo, con una experiencia de aprendizaje basada en dos grafos de conocimiento y una base local de autoría cartográfica.**
+**Recurso educativo abierto e interactivo, con una experiencia de aprendizaje basada en dos
+grafos de conocimiento y una base local de autoría cartográfica y visual.**
 
 No se presenta todavía como MOOC, videojuego completo, LMS ni plataforma multicurso operativa. Técnicamente son dos entradas web estáticas sobre la misma primera ruta: ORBIT y ORBIT Editor. El segundo no es aún un editor completo de contenido ni un sistema de publicación.
 

@@ -5,10 +5,11 @@ Esta herramienta pertenece a `index.html`. Sirve para inspeccionar o forzar una 
 ## Perfil recomendado
 
 ```text
-http://127.0.0.1:<puerto>/?debug=1&profile=debug
+http://127.0.0.1:4173/?debug=1&profile=debug
 ```
 
-Sustituye `<puerto>` por el número que imprimió la ejecución actual de `npm run dev`.
+`npm run dev` usa siempre ese origen; si está ocupado, detén el proceso anterior en vez de
+iniciar otro puerto.
 
 Debug es uno de los tres perfiles locales canónicos y mantiene un único avance separado de
 Estudiante y Docente. Los nombres arbitrarios ya no crean sesiones de prueba. `?debug=1` abre
@@ -91,14 +92,6 @@ OrbitDebug.setNoclip(false);
 
 Al desactivar noclip fuera de una zona abierta, el juego devuelve al personaje al spawn.
 
-### Gadget
-
-```js
-OrbitDebug.toggleFieldLens();
-```
-
-Solo tiene efecto normal cuando la recompensa correspondiente pertenece al perfil.
-
 ### Audio
 
 ```js
@@ -121,14 +114,17 @@ OrbitDebug.reset();
 ORBIT Editor se abre de forma independiente. Sin query, la entrada usa Docente completo:
 
 ```text
-http://127.0.0.1:<puerto>/editor.html
+http://127.0.0.1:4173/editor.html
 ```
 
 Editor sí interpreta `profile` para una limitación local: `?profile=student` abre consulta con
-Spider y Bee bloqueados, y `?profile=debug` muestra un bloqueo sin crear el modelo. `?debug=1`
-no concede privilegios editoriales. Ningún modo del Editor carga `window.OrbitDebug` o progreso;
-su autoguardado único reside en `orbit-editor:v1:electromagnetism-applied`, mientras Debug
-conserva su progreso `v3` bajo `orbit-progress:v3:debug`. La query no constituye autenticación.
+Spider y Bee bloqueados, pero permite preferencias Bowerbird personales; `?profile=debug` muestra
+un bloqueo sin crear el modelo. `?debug=1` no concede privilegios editoriales. Ningún modo del
+Editor carga `window.OrbitDebug` o crea un `ProgressionModel`; solo la aplicación Docente
+explícita inspecciona y reinicia progreso. El documento Docente reside en
+`orbit-editor:v2:electromagnetism-applied`, las preferencias Estudiante en una clave
+`orbit-bowerbird:v1:` separada y Debug conserva progreso `v4` ligado a la revisión activa. La
+query no constituye autenticación.
 
 Para comprobar la frontera entre ambos:
 
@@ -138,7 +134,10 @@ Para comprobar la frontera entre ambos:
 4. exporta el borrador editorial y comprueba que no contiene conceptos adquiridos, respuestas ni posición del jugador;
 5. exporta el progreso debug y confirma que no contiene zonas, offsets ni conexiones editoriales.
 
-Spider y Bee tienen validación, historial e importación/exportación propios descritos en la [Guía de ORBIT Editor](EDITOR_GUIDE.md). El archivo editorial exportado no se aplica automáticamente a ORBIT y no sustituye `npm run check`, revisión, build ni despliegue manual.
+Spider, Bee y Bowerbird tienen validación y alcances propios descritos en la [Guía de ORBIT
+Editor](EDITOR_GUIDE.md). Aplicar el archivo mediante el helper local ejecuta comprobaciones y
+build, pero no crea commits, no hace push ni sustituye la revisión de los tres perfiles o el
+despliegue manual.
 
 ## Casos de prueba recomendados
 
@@ -166,11 +165,13 @@ Spider y Bee tienen validación, historial e importación/exportación propios d
 4. Exporta.
 5. Reinicia.
 6. Importa.
-7. Confirma esquema `v3`, conceptos, recompensas, posición, transporte y ambos volúmenes.
+7. Confirma esquema `v4`, `courseId`, `courseRevision`, conceptos, recompensas, posición,
+   transporte y ambos volúmenes.
 
-Para compatibilidad, prueba además `orbit-progress:v3:normal` y un estado antiguo bajo
-`aea-progress`: ambos deben sanearse como Estudiante, conservar logros compatibles y guardarse
-bajo `orbit-progress:v3:student`. Confirma también que Docente y Debug permanecen aislados.
+Para compatibilidad, prueba además un perfil `normal` y un estado antiguo bajo `aea-progress`:
+solo deben conservar logros si la edición activa acepta progreso no versionado. Confirma que el
+resultado se guarda bajo `orbit-progress:v4:student`, que Docente y Debug permanecen aislados y
+que una revisión distinta reinicia el perfil en vez de reactivar logros incompatibles.
 
 ### Grafo II
 
@@ -185,7 +186,23 @@ bajo `orbit-progress:v3:student`. Confirma también que Docente y Debug permanec
 9. Confirma que un extremo oculto no produzca aristas y que cambiar el nivel no modifique requisitos ni progreso.
 10. Revisa que **Árboles** se limite al listado de zonas, lugares y recompensas; la configuración y la leyenda permanecen en **Ajustes → Visual**.
 
-El dataset completo deriva 13 parejas únicas después de agrupar requisitos duplicados; cuatro relaciones `completedLocations` se declaran explícitamente. `newlyAccessibleLocationIds` y el lugar fuente de la transición son estado efímero del evento y no deben aparecer en el JSON exportado. En un destino con varios prerrequisitos, solo la arista desde la última finalización causal lleva **NUEVO**. `treeTwoVisualizationMode`, en cambio, es una preferencia saneada y sí debe sobrevivir a recarga, exportación e importación.
+El dataset completo deriva 14 parejas únicas después de agrupar requisitos duplicados; cinco
+relaciones `completedLocations` se declaran explícitamente. `newlyAccessibleLocationIds` y el
+lugar fuente de la transición son estado efímero del evento y no deben aparecer en el JSON
+exportado. En un destino con varios prerrequisitos, solo la arista desde la última finalización
+causal lleva **NUEVO**. `treeTwoVisualizationMode`, en cambio, es una preferencia saneada y sí
+debe sobrevivir a recarga, exportación e importación.
+
+### Gadgets
+
+1. Abre **Gadgets** en un perfil nuevo y confirma que la calculadora funciona sin recompensa,
+   acepta coma decimal y notación científica y rechaza funciones o símbolos no permitidos.
+2. Verifica que el Explorador de campos 2D y la Carta de Smith informen sus condiciones de
+   desbloqueo, sin atajo global de teclado ni overlay persistente sobre el mapa.
+3. Completa `field-lens-cache` y confirma que aparece el explorador bajo la recompensa estable
+   `gadgets:field-lens`; prueba expresiones cartesianas válidas e inválidas.
+4. Completa `transmission-line-bench`, luego el lugar opcional `smith-chart-station`, y comprueba
+   que se habilita `gadgets:smith-chart` sin alterar la ruta principal.
 
 ### Coulomb y tres cargas
 

@@ -4,8 +4,9 @@ import assert from "node:assert/strict";
 import { ProgressStorage } from "../src/core/storage.js";
 import { createEditorDocument } from "../src/editor/editor-document.js";
 import { EditorModel } from "../src/editor/editor-model.js";
+import { LOCATIONS } from "../src/data/locations.js";
 
-const EDITOR_KEY = "orbit-editor:v1:electromagnetism-applied";
+const EDITOR_KEY = "orbit-editor:v2:electromagnetism-applied";
 
 class MemoryStorage {
   constructor(candidate = null) {
@@ -24,6 +25,18 @@ class MemoryStorage {
 
   clear() {
     this.value = null;
+  }
+}
+
+class RejectingStorage extends MemoryStorage {
+  constructor(candidate = null) {
+    super(candidate);
+    this.rejectWrites = false;
+  }
+
+  save(value) {
+    if (this.rejectWrites) throw new Error("quota-exceeded");
+    super.save(value);
   }
 }
 
@@ -53,8 +66,8 @@ test("inicializa, persiste y entrega snapshots independientes", () => {
 
   assert.equal(storage.saveCount, 1);
   assert.equal(first.document.areas.length, 19);
-  assert.equal(first.document.locations.length, 28);
-  assert.equal(first.treeTwoTopology.length, 13);
+  assert.equal(first.document.locations.length, LOCATIONS.length);
+  assert.equal(first.treeTwoTopology.length, 14);
   assert.equal(first.canUndo, false);
   assert.equal(first.canRedo, false);
 
@@ -85,6 +98,12 @@ test("el perfil estudiante consulta el borrador sin persistir ni mutar", () => {
     }),
     editor.connectLocations("vector-workshop", "circuit-analysis-bench"),
     editor.moveArea("electrostatics", { q: 0, r: -1 }),
+    editor.setAreaAppearance("origin", {
+      paletteId: "polar",
+      motifId: "waves",
+      contourId: "double",
+    }),
+    editor.resetAreaAppearance("origin"),
     editor.undo(),
     editor.redo(),
     editor.resetDraft(),
@@ -118,11 +137,21 @@ test("Bee intercambia zonas del mismo anillo de forma atómica", () => {
     id: "electrostatics",
     q: magnetism.q,
     r: magnetism.r,
+    appearance: {
+      paletteId: "canonical",
+      motifId: "canonical",
+      contourId: "canonical",
+    },
   });
   assert.deepEqual(area(after, "magnetism"), {
     id: "magnetism",
     q: electrostatics.q,
     r: electrostatics.r,
+    appearance: {
+      paletteId: "canonical",
+      motifId: "canonical",
+      contourId: "canonical",
+    },
   });
   assert.equal(new Set(after.document.areas.map((entry) => `${entry.q},${entry.r}`)).size, 19);
   assert.equal(events.length, 1);
@@ -196,14 +225,16 @@ test("mover una llave detrás de su propia zona se rechaza sin persistir", () =>
 
 test("Spider añade y elimina solo dependencias completedLocation", () => {
   const editor = model();
+  const canonicalConnectionCount = createEditorDocument().treeTwoConnections.length;
+  const canonicalTopologyCount = editor.getSnapshot().treeTwoTopology.length;
   const connected = editor.connectLocations(
     "vector-workshop",
     "circuit-analysis-bench",
   );
 
   assert.equal(connected.ok, true);
-  assert.equal(editor.getSnapshot().document.treeTwoConnections.length, 5);
-  assert.equal(editor.getSnapshot().treeTwoTopology.length, 14);
+  assert.equal(editor.getSnapshot().document.treeTwoConnections.length, canonicalConnectionCount + 1);
+  assert.equal(editor.getSnapshot().treeTwoTopology.length, canonicalTopologyCount + 1);
   assert.deepEqual(
     editor
       .getSnapshot()
@@ -226,8 +257,53 @@ test("Spider añade y elimina solo dependencias completedLocation", () => {
     "circuit-analysis-bench",
   );
   assert.equal(disconnected.ok, true);
-  assert.equal(editor.getSnapshot().document.treeTwoConnections.length, 4);
-  assert.equal(editor.getSnapshot().treeTwoTopology.length, 13);
+  assert.equal(editor.getSnapshot().document.treeTwoConnections.length, canonicalConnectionCount);
+  assert.equal(editor.getSnapshot().treeTwoTopology.length, canonicalTopologyCount);
+});
+
+test("Bowerbird Docente persiste apariencia y participa en undo/redo", () => {
+  const storage = new MemoryStorage();
+  const editor = model(storage);
+  const original = area(editor.getSnapshot(), "origin").appearance;
+  const changed = editor.setAreaAppearance("origin", {
+    paletteId: "aurora",
+    motifId: "waves",
+    contourId: "double",
+  });
+
+  assert.equal(changed.ok, true);
+  assert.equal(changed.changed, true);
+  assert.deepEqual(area(editor.getSnapshot(), "origin").appearance, {
+    paletteId: "aurora",
+    motifId: "waves",
+    contourId: "double",
+  });
+  assert.equal(JSON.parse(editor.exportDocument()).areas[0].appearance.paletteId, "aurora");
+  assert.equal(editor.undo().ok, true);
+  assert.deepEqual(area(editor.getSnapshot(), "origin").appearance, original);
+  assert.equal(editor.redo().ok, true);
+  assert.equal(area(editor.getSnapshot(), "origin").appearance.motifId, "waves");
+});
+
+test("Docente persiste como v2 un borrador v1 válido sin alterar su cartografía", () => {
+  const legacy = createEditorDocument({ updatedAt: "2026-08-28T00:00:00.000Z" });
+  legacy.schemaVersion = 1;
+  legacy.baseDataVersion = "0.4.0";
+  delete legacy.appearanceCatalogVersion;
+  legacy.areas = legacy.areas.map(({ id, q, r }) => ({ id, q, r }));
+  legacy.locations = legacy.locations.filter(({ id }) => id !== "smith-chart-station");
+  legacy.treeTwoConnections = legacy.treeTwoConnections.filter(
+    ({ targetId }) => targetId !== "smith-chart-station",
+  );
+  const storage = new MemoryStorage(legacy);
+
+  const editor = new EditorModel({ storage, clock: tickingClock() });
+
+  assert.equal(storage.saveCount, 1);
+  assert.equal(storage.value.schemaVersion, 2);
+  assert.equal(storage.value.appearanceCatalogVersion, 1);
+  assert.equal(storage.value.locations.length, LOCATIONS.length);
+  assert.equal(editor.validate().valid, true);
 });
 
 test("Spider rechaza autorreferencia, desconocidos y ciclos sobre toda la topología", () => {
@@ -278,6 +354,46 @@ test("undo y redo restauran documentos validados y notifican", () => {
     location(JSON.parse(edited), "field-lens-cache"),
   );
   assert.deepEqual(events, ["location-moved", "editor-undo", "editor-redo"]);
+});
+
+test("las mutaciones editoriales preservan documento e historial si guardar falla", () => {
+  const storage = new RejectingStorage();
+  const editor = model(storage);
+  assert.equal(
+    editor.moveLocation("field-lens-cache", {
+      areaId: "electrostatics",
+      offset: { x: 0, y: 0 },
+    }).ok,
+    true,
+  );
+  const before = editor.exportDocument();
+  const historyBefore = editor.getSnapshot();
+  const persistedBefore = structuredClone(storage.value);
+  const events = [];
+  editor.subscribe((event) => events.push(event));
+  storage.rejectWrites = true;
+
+  const results = [
+    editor.moveLocation("field-lens-cache", {
+      areaId: "electrostatics",
+      offset: { x: 5, y: 0 },
+    }),
+    editor.undo(),
+    editor.resetDraft(),
+    editor.importDocument(createEditorDocument()),
+  ];
+
+  for (const result of results) {
+    assert.equal(result.ok, false);
+    assert.equal(result.changed, false);
+    assert.equal(result.reason, "storage-write-failed");
+    assert.equal(result.errors[0].code, "storage-write-failed");
+  }
+  assert.equal(editor.exportDocument(), before);
+  assert.equal(editor.getSnapshot().canUndo, historyBefore.canUndo);
+  assert.equal(editor.getSnapshot().canRedo, historyBefore.canRedo);
+  assert.deepEqual(storage.value, persistedBefore);
+  assert.deepEqual(events, []);
 });
 
 test("import es atómico, rebasa desconocidos y crea un límite de historial", () => {
@@ -382,6 +498,52 @@ test("un borrador persistido inválido no se sobrescribe al construir el modelo"
     true,
   );
   assert.equal(editor.getSnapshot().document.kind, "orbit-editor-project");
+  assert.equal(editor.getSnapshot().persistenceBlocked, true);
+
+  const blocked = editor.moveLocation("field-lens-cache", {
+    areaId: "electrostatics",
+    offset: { x: 0, y: 0 },
+  });
+  assert.equal(blocked.ok, false);
+  assert.equal(blocked.reason, "stored-document-incompatible");
+  assert.deepEqual(storage.value, corrupt);
+  assert.equal(storage.saveCount, 0);
+
+  const recovered = editor.importDocument(createEditorDocument());
+  assert.equal(recovered.ok, true);
+  assert.equal(editor.getSnapshot().persistenceBlocked, false);
+  assert.equal(storage.saveCount, 1);
+});
+
+test("un borrador de esquema futuro exige una recuperación editorial explícita", () => {
+  const future = createEditorDocument();
+  future.schemaVersion = 99;
+  const storage = new MemoryStorage(future);
+  const editor = model(storage);
+
+  const blocked = editor.moveLocation("field-lens-cache", {
+    areaId: "electrostatics",
+    offset: { x: 0, y: 0 },
+  });
+  assert.equal(blocked.ok, false);
+  assert.equal(blocked.reason, "stored-document-incompatible");
+  assert.deepEqual(storage.value, future);
+  assert.equal(storage.saveCount, 0);
+
+  const recovery = editor.resetDraft();
+  assert.equal(recovery.ok, true);
+  assert.equal(editor.getSnapshot().persistenceBlocked, false);
+  assert.equal(storage.value.schemaVersion, 2);
+  assert.equal(storage.saveCount, 1);
+
+  assert.equal(
+    editor.moveLocation("field-lens-cache", {
+      areaId: "electrostatics",
+      offset: { x: 0, y: 0 },
+    }).ok,
+    true,
+  );
+  assert.equal(storage.saveCount, 2);
 });
 
 test("un JSON editorial malformado abre una copia segura sin sobrescribir el valor crudo", () => {

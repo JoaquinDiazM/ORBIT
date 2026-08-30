@@ -198,12 +198,11 @@ Sin propuestas pendientes de clasificar.
 
 ### UPD-001 — Hub de gadgets y explorador de campos vectoriales
 
-- Estado: `en-implementacion`
+- Estado: `en-revision`
 - Tipo: `épica`
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y` cuando se defina una primera capacidad completa.
-- Próximo responsable: agente de desarrollo, que implementa y verifica el MVP coordinado de
-  Gadgets para la cohorte 0.5.0.
+- Próximo responsable: JoaquinDiazM, que revisa el MVP coordinado de Gadgets.
 
 #### Solicitud original
 
@@ -246,21 +245,29 @@ ser utilizables en otros lugares de aprendizaje.
 - Rutas propias: datos de lugares, política matemática, campos 2D, panel Gadgets, entrada,
   renderizado, progresión y sus pruebas; el esquema editorial compartido se coordina con
   UPD-013 y UPD-014.
-- Resultado: preflight completado sin bloqueos; implementación en curso.
-- Pruebas previstas: expresiones y rechazo de código, campos radial/rotacional/nulo/singular,
-  desbloqueos históricos y nuevos, rebase 0.4.x, teclado/foco/`Esc`, responsive y los tres
-  perfiles.
+- Resultado: implementado el panel lateral Gadgets con calculadora científica disponible desde
+  el inicio, evaluador AST sin ejecución dinámica, Explorador 2D desbloqueable y esqueleto de
+  Carta de Smith. El antiguo Lente/overlay y el atajo `G` desaparecieron; sus IDs históricos
+  conservan compatibilidad. Se añadió `smith-chart-station`, su dependencia opcional, recompensa
+  y rebase editorial sin convertirlo en requisito del tronco.
+- Pruebas: expresiones válidas y hostiles, campos radial/rotacional/nulo/singular, malla/escala,
+  desbloqueos y rebase, teclado/foco/`Esc`, perfiles y render accesible. Suite integral: 357
+  aprobadas, 0 fallos y 2 omitidas exclusivamente porque Windows negó crear symlinks; validador:
+  19 zonas, 20 conceptos y 29 lugares alcanzables. Revisión visual en Estudiante compacto y
+  amplio, Debug completo y Smith, sin diagnósticos de consola.
+- Cómo revisar para JoaquinDiazM: ejecutar `npm run dev`; abrir Gadgets como Estudiante y probar
+  `cos(0)+sqrt(16)` (resultado `5`). En Debug usar `window.OrbitDebug.completeAll()`, abrir Campos
+  2D y Carta de Smith y comprobar que `G` no realiza ninguna acción.
 - Observaciones del usuario: Para la primera pregunta bloquente centrate en ese y en una calculadora cientifica (Esta no es desbloqueable, todos la deben tener desde el inicio). Puedes dejar el esqueleto del gadget de la carta smith, creando el nodo+conexion tambien, pero no gastaremos recursos en una primera version de los nuevos gadgets solo para construir una carta smith completamete operativa, funcional y util para resolver ejercicios. En definitiva hay que quitar la superposicion actual del lente de campo y lo del boton G, ahora sera un menu al que se accede en la barra lateral izquierda con un click
 
 ### UPD-013 — Bowerbird: personalización visual de zonas
 
-- Estado: `en-implementacion`
+- Estado: `en-revision`
 - Tipo: `feature`
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y`; el objetivo provisional debe coordinarse con los demás puntos de 0.5.0
   antes de cerrar esa cohorte.
-- Próximo responsable: agente de desarrollo, que implementa el contrato visual y editorial `v2`
-  coordinado con UPD-014.
+- Próximo responsable: JoaquinDiazM, que revisa el contrato visual y editorial `v2`.
 
 #### Solicitud original
 
@@ -300,23 +307,29 @@ opciones de colores, dibujos estáticos o móviles y contornos.
 - Base revisada: `3e0a6f6` (`0.4.3` publicada y cohorte 0.5.0 abierta).
 - Rutas propias: catálogo/aplicación visual, preferencias personales, documento y modelo Editor,
   renderers, control Bowerbird, ADR, documentación y pruebas.
-- Resultado: preflight completado sin bloqueos; implementación en curso.
-- Pruebas previstas: catálogo/saneamiento/resolución/reduced-motion, aislamiento y corrupción de
-  preferencias, migración `v1→v2`, historial Docente, política Estudiante/Debug, exportación sin
-  preferencias y paridad visual.
-- Cómo revisar para JoaquinDiazM: decorar una zona como Docente y otra como Estudiante, comprobar
-  que una zona bloqueada sigue neutral, reiniciar y verificar que cada alcance persiste aislado.
+- Resultado: implementado Bowerbird con catálogo `v1` de paletas, motivos y contornos sobre una
+  receta Canvas compartida por Editor y ORBIT. Docente edita el documento común `v2` con
+  historial/autoguardado; Estudiante persiste solo overrides personales con precedencia
+  `personal → publicada → canónica`; las zonas cerradas permanecen neutrales y Debug no entra al
+  Editor. Contratos futuros fallan cerrados sin sobrescribir el raw.
+- Pruebas: catálogo, saneamiento, paridad de renderers, animación y movimiento reducido,
+  migración `v1→v2`, aislamiento de claves, fallos de almacenamiento, preferencias futuras,
+  historial/exportación y los tres perfiles. Incluidas en la suite integral de 357 aprobadas;
+  revisión visual Docente/Estudiante amplia y compacta, sin diagnósticos de consola.
+- Cómo revisar para JoaquinDiazM: en `editor.html` decorar una zona como Docente; luego abrir
+  `editor.html?profile=student`, decorar otra y recargar. Confirmar que Spider/Bee siguen
+  bloqueados para Estudiante, que cada alcance persiste por separado y que una zona aún cerrada
+  continúa neutral en ORBIT hasta desbloquearla.
 - Observaciones del usuario: Pregunta 1: Esa es justo la politica adecuada, aceptu tu recomentacion. Pregunta 2: Si, mantengamos el producto minimo viable en opciones pre-construidas. Pregunta 3: Si, estudiante y docente pueden decorar las zonas que quiera, pero hay que añadir un disclaimer de que los cambios a zonas todavia no desbloqueadas en ORBIT no se veran de inmediato. Pregunta 4: Sí.
 
 ### UPD-014 — Aplicar una edición del curso
 
-- Estado: `en-implementacion`
+- Estado: `en-revision`
 - Tipo: `infraestructura`
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y` si se limita a una aplicación local; una publicación remota depende de
   UPD-002 y puede requerir otro alcance de versión.
-- Próximo responsable: agente de desarrollo, que implementa el adaptador, la transacción local y
-  el helper de autoría sobre el documento Editor `v2`.
+- Próximo responsable: JoaquinDiazM, que revisa el flujo local de aplicación y recuperación.
 
 #### Solicitud original
 
@@ -358,13 +371,22 @@ perfil.
 - Base revisada: `3e0a6f6` (`0.4.3` publicada y cohorte 0.5.0 abierta).
 - Rutas propias: edición desplegable y adaptador, revisión de progreso, transacción de
   almacenamiento, Resumen, helper Node, build/validación, ADR, documentación y pruebas.
-- Resultado: preflight completado sin bloqueos; implementación híbrida local en curso.
-- Pruebas previstas: aplicación v2 completa, rechazo de contratos futuros, conteos, cancelación,
-  rollback e interrupciones inyectadas, revisión de progreso, preservación de borrador y
-  preferencias personales, seguridad del helper y coincidencia fuente/dist/build-info.
-- Cómo revisar para JoaquinDiazM: modificar una zona, un nodo, una conexión y una apariencia;
-  validar el plan en Resumen, aplicar con el helper local y comprobar el nuevo mapa y el progreso
-  vacío de los tres perfiles.
+- Resultado: implementados `orbit-course-edition` v1, materialización runtime, Resumen con
+  diff/impacto/confirmación y helper de autoría en `127.0.0.1:4173`. La aplicación usa locks,
+  revisión optimista, journal y respaldo verificables; reinicia únicamente progreso actual y
+  legado de los tres perfiles, preserva borrador/preferencias y recupera interrupciones de forma
+  idempotente. Fuente, `dist` y `build-info` quedaron en la revisión
+  `sha256:74c5b6f717a1605a07588b9b7192c4869f98029e9db4c5162832e41477cae05d`.
+- Pruebas: aplicación completa, no-op, conteos, cancelación, contratos futuros, locks y pestañas,
+  crashes en cada fase, rollback/finalize, progreso resucitado, envelopes divergentes, Host y
+  absolute-form, límite/alcance estático, realpath y coincidencia exacta fuente/dist/build-info.
+  Suite integral: 357 aprobadas, 0 fallos y 2 skips EPERM de symlink; repositorio: 115 JS y 40
+  Markdown válidos; build estático reconstruido y helper excluido de `dist`. Auditoría final sin
+  hallazgos P0/P1/P2.
+- Cómo revisar para JoaquinDiazM: desde un checkout limpio ejecutar `npm run editor:author`, abrir
+  la URL indicada, modificar una zona, nodo, conexión y apariencia, y usar **Resumen** para
+  validar el diff/impacto antes de confirmar. La confirmación reinicia el progreso local de
+  Estudiante, Docente y Debug; exportar antes cualquier avance que se quiera conservar.
 - Observaciones del usuario: Pregunta 1: Subir/aplicar significa unar el borrador en nuestro navegador y modificar fuentes/build de manera local. Sin embargo, esta actualizacion debe estar pensada para que en el momento que abordemos UPD-002 no tengamos que pensar los detalles que ahora estamos definiendo como politica de perdida de datos/progreso, verificacion de reseteo en todos los tipos de perfiles por accion de docente en ORBIT Editor, verificacion de cambios efectuados en el mapamundi (Nodos, zonas, etc), etc. Pregunta 2: Como todavia no tenemos sistema de cuentas, es para todos los estados locales de nuestro navegador. Pregunta 3: Todo, por lo quje hay que mantener coherencia en las actualizaciones de ORBIT Editor para que no se incluyan opciones que arruinen el objetivo principal de ORBIT, aprender. Pregunta 4: Si, el primer paso es validar y el segundo confirmar, y soltar datos utiles entre medio. Manten todo ese desarrollo en la ventana de resumen sin quitar lo que ya esta, complementandolo. 5.- Mostrar ambos y declarar el reinicio total
 
 ### UPD-002 — Sistema de servidor online

@@ -18,27 +18,32 @@ El autor sitúa el origen pedagógico de esta primera ruta en su experiencia doc
 
 La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra lineal y física clásica, especialmente quienes consideran estudiar Ingeniería Eléctrica o comienzan los primeros semestres de la especialidad.
 
-> **Estado:** base técnica y pedagógica `0.4.3`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
+> **Estado:** base publicada `0.4.3`; la cohorte candidata `0.5.0` está en revisión local. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
 
 ## Qué demuestra esta versión
 
 - Movimiento continuo en 2D con teclado; el personaje no está restringido a nodos ni caminos.
 - Mundo de 19 hexágonos: Campamento Base, seis fundamentos y doce áreas de aplicación.
 - **Árbol del conocimiento I:** abre zonas completas.
-- **Árbol del conocimiento II:** revela lugares, gadgets, transportes, personajes y misiones dentro de zonas ya accesibles; sus requisitos declarativos producen 13 parejas únicas de guía visual, cuatro de ellas declaradas directamente mediante `completedLocations`.
+- **Árbol del conocimiento II:** revela lugares, gadgets, transportes, personajes y misiones
+  dentro de zonas ya accesibles; sus requisitos declarativos producen 14 parejas únicas de guía
+  visual, cinco de ellas declaradas directamente mediante `completedLocations`.
 - Regla de fronteras: cuando se abre un hexágono, quedan transitables todas sus aristas compartidas con hexágonos previamente abiertos.
-- Veinte conceptos y 28 lugares alcanzables, incluida una misión integradora Tierra–Luna.
+- Veinte conceptos y 29 lugares alcanzables, incluida una misión integradora Tierra–Luna y una estación opcional para la Carta de Smith.
 - Ejercicios de alternativa, respuesta numérica con tolerancia, expresiones equivalentes, secuencias guiadas y actividades de confirmación.
 - Lugares extensos divididos en etapas desbloqueables dentro de la ventana principal; el Taller Vectorial desarrolla ahora seis etapas con andamiaje decreciente.
-- Visor de campos vectoriales 2D en SVG nativo, con muestreo y escala comparables, parámetros efímeros y descripción accesible sin animación automática.
+- Menú **Gadgets** disponible desde cualquier zona: la calculadora científica segura está siempre activa; el Explorador de campos 2D y la Carta de Smith aparecen al obtener sus recompensas.
+- Explorador cartesiano de campos 2D en SVG nativo, con parámetros efímeros, descripción accesible y evaluación restringida sin ejecutar JavaScript ingresado por el usuario.
+- Esqueleto estático de Carta de Smith, desbloqueado por la estación opcional que sucede al Banco de Líneas de Transmisión; todavía no calcula adaptaciones ni sustituye una herramienta RF completa.
 - Política matemática segura para equivalencia numérica, funcional y por gradiente, con parser restringido y evaluación determinista sin ejecutar JavaScript ingresado por el usuario.
-- Menú secundario con accesos primarios a **Árboles**, **Símbolos**, **Constantes**, **Formulario**, **Glosario** y **Ajustes**; este último reúne **Visual**, **Sonido** y **Ayuda** sin quitar ninguna capacidad.
+- Menú secundario con accesos primarios a **Árboles**, **Gadgets**, **Símbolos**, **Constantes**, **Formulario**, **Glosario** y **Ajustes**; este último reúne **Visual**, **Sonido** y **Ayuda** sin quitar ninguna capacidad.
 - HUD con una barra nativa de **Progreso** conceptual: muestra un porcentaje entero derivado del
   perfil activo y conserva «X de Y conceptos adquiridos» como equivalente accesible.
 - Las colecciones de referencia conservan sus paneles de consulta; lo que se omite son los cuadros bibliográficos repetidos. Cada procedencia pertinente se anuncia una sola vez al producirse su desbloqueo.
 - Selector local con exactamente tres perfiles —**Estudiante**, **Docente** y **Debug**— y
-  progreso separado para cada uno. El avance `v3` del antiguo perfil `normal` migra a
-  `student` sin perderse.
+  progreso separado para cada uno. El avance usa esquema `v4` y queda ligado al ID y a la
+  revisión de la edición activa del curso; los guardados compatibles anteriores migran de forma
+  explícita y una revisión aplicada comienza sin progreso heredado.
 - El perfil Docente autocompleta al interactuar las lecciones y misiones que exigen respuesta;
   las lecturas, NPC y demás encuentros no evaluativos conservan su interacción ordinaria.
 - Debugger visual, nodo de depuración, atajos `F2`/`` ` `` y API de consola disponibles solo
@@ -46,21 +51,54 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
 - Mezclador con volúmenes independientes para **Ambiente** e **Interfaz y efectos**; cero silencia solo la categoría correspondiente.
 - Cinco audios versionados y verificables: ambiente global, transición de hexágono, confirmación de interacción, clic de interfaz y desbloqueo de zona.
 - Ecuaciones TeX renderizadas localmente con KaTeX y salida visual + MathML.
-- Progreso `v3`, con migración automática desde `v1`/`v2`; si coexisten claves históricas `aea-progress`, se prioriza el esquema más reciente antes de guardar bajo `orbit-progress`.
+- Progreso `v4`, con `courseId` y `courseRevision`, migraciones controladas desde esquemas anteriores y rechazo seguro de un avance perteneciente a otra revisión.
 - Observatorio de Coulomb en cinco etapas, incluida una figura reutilizable `PointChargeField2D` con tres cargas operable mediante puntero y teclado.
 - Estación de Superconductividad con el encuentro histórico no evaluativo de Heike Kamerlingh Onnes y un Laboratorio de Transición Superconductora independiente.
 - Validación automática contra bloqueos lógicos de progresión.
 - Build estático y despliegue preparado para GitHub Pages.
 - Dos entradas estáticas: **ORBIT** en `index.html`, con perfiles Estudiante, Docente y Debug,
   y **ORBIT Editor** en `editor.html`.
-- Editor cartográfico local con dos docks retractables: el perfil Docente usa por completo
-  **Spider** para nodos y dependencias directas del Árbol II y **Bee** para intercambiar zonas
-  dentro de su anillo; Estudiante entra en consulta con ambas herramientas bloqueadas y Debug
-  queda bloqueado antes de crear el modelo editorial.
-- Borrador editorial `v1` con autoguardado local, historial, importación y exportación JSON; nunca modifica el progreso `v3` ni publica automáticamente.
+- Editor local con dos docks retractables: Docente usa **Spider** para nodos y dependencias
+  directas, **Bee** para intercambiar zonas dentro de su anillo y **Bowerbird** para preparar la
+  apariencia publicada. Estudiante mantiene Spider y Bee en solo lectura, pero dispone de su
+  propio Bowerbird personal; Debug queda bloqueado antes de crear el modelo editorial.
+- Documento Docente `v2` con autoguardado, historial, importación y exportación JSON. Incluye
+  cartografía, conexiones directas y apariencias, pero nunca incorpora progreso ni las
+  preferencias Bowerbird privadas de Estudiante.
+- Catálogo visual versionado de paletas, motivos y contornos. Las zonas bloqueadas conservan una
+  apariencia neutral y los motivos animados respetan `prefers-reduced-motion`.
+- Edición publicada validable bajo `public/data/courses/`, con revisión y digest SHA-256. El
+  flujo local **Validar → revisar impacto → confirmar → aplicar** usa respaldo y recuperación,
+  exige cerrar otras pestañas de ORBIT y reinicia únicamente los progresos Estudiante, Docente y
+  Debug; conserva el documento Docente y las preferencias Bowerbird Estudiante.
 - Los perfiles y bloqueos son modos locales elegibles, no cuentas, autenticación ni control de
   acceso real.
-- Una dependencia npm fijada y documentada: KaTeX 0.18.1; `0.4.3` no añade paquetes, backend, autenticación, render 3D ni CDN.
+- Una dependencia npm fijada y documentada: KaTeX 0.18.1; la cohorte `0.5.0` no añade paquetes,
+  backend público, autenticación, render 3D ni CDN.
+
+### Cambios centrales de 0.5.0 (candidata)
+
+**Gadgets** deja de ser un estado superpuesto al mapa y pasa a un panel explícito. La
+calculadora científica está siempre disponible y usa una gramática de lista blanca; el
+Explorador de campos 2D conserva la recompensa estable `gadgets:field-lens`, y la nueva Carta de
+Smith se obtiene mediante el lugar opcional `smith-chart-station` después del Banco de Líneas de
+Transmisión. Ninguna de estas herramientas concede progreso por sí sola.
+
+ORBIT Editor incorpora **Bowerbird**. Docente guarda la apariencia que formará parte del
+documento editorial `v2`; Estudiante guarda únicamente overrides personales en
+`orbit-bowerbird:v1:electromagnetism-applied:student`. La resolución visual respeta la
+precedencia personal → publicada → canónica, pero una zona bloqueada siempre permanece neutral.
+
+El curso desplegable se materializa desde un artefacto `orbit-course-edition` con revisión y
+digest. Con el helper exclusivo de loopback `npm run editor:author`, fijado al origen de
+mantenimiento `http://127.0.0.1:4173`, Resumen puede validar el
+documento, mostrar el diff y cuantificar el avance local de los tres perfiles antes de solicitar
+una confirmación en línea. Aplicar escribe solo la ruta canónica, ejecuta las comprobaciones y el
+build, instala la edición en el navegador y realiza un reinicio total y específico del progreso;
+un journal y un respaldo permiten recuperar o revertir una interrupción. Mientras esa
+transacción esté pendiente, los servidores locales bloquean la entrada Estudiante y conservan
+Editor disponible para finalizar o revertir. El helper reserva un único proceso por checkout e
+inspecciona que esté limpio, pero no crea commits, no prepara el índice y no hace push.
 
 ### Cambios centrales de 0.4.3
 
@@ -154,7 +192,7 @@ http://127.0.0.1:4173/                         # ORBIT · Estudiante por defecto
 http://127.0.0.1:4173/?profile=teacher         # ORBIT · Docente
 http://127.0.0.1:4173/?debug=1&profile=debug   # ORBIT · Debug, panel abierto al iniciar
 http://127.0.0.1:4173/editor.html              # Editor · Docente completo por defecto
-http://127.0.0.1:4173/editor.html?profile=student # Editor · Estudiante, solo lectura
+http://127.0.0.1:4173/editor.html?profile=student # Editor · Spider/Bee lectura, Bowerbird personal
 ```
 
 `npm install` prepara el render matemático local. Los estudiantes que reciben el contenido ya construido no necesitan instalar nada.
@@ -168,20 +206,16 @@ Get-ExecutionPolicy -List
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 ```
 
-Como alternativa puntual, `npm.cmd` evita el wrapper de PowerShell. Si el puerto 4173 está ocupado, `npm run dev` prueba automáticamente los puertos siguientes y muestra con claridad la URL del servidor nuevo. Abre esa URL, no una pestaña antigua que conserve otro puerto.
+Como alternativa puntual, `npm.cmd` evita el wrapper de PowerShell. `npm run dev` usa únicamente
+`http://127.0.0.1:4173`: no acepta `PORT`, argumentos de puerto ni busca un fallback. Si el
+origen está ocupado, detén con `Ctrl+C` el servidor o helper anterior y vuelve a iniciar el
+comando. Mantener un solo origen es necesario para compartir Web Locks y almacenamiento local.
 
-Después de actualizar el repositorio, detén cualquier servidor anterior con `Ctrl+C` y vuelve a iniciarlo. Para exigir un puerto específico:
-
-```powershell
-$env:PORT = 4200
-npm run dev
-```
-
-Para una sesión de depuración separada de los avances Estudiante y Docente, usa el puerto
-indicado por la terminal:
+Después de actualizar el repositorio, detén cualquier servidor anterior con `Ctrl+C` y vuelve a
+iniciarlo. Para una sesión de depuración separada de los avances Estudiante y Docente, usa:
 
 ```text
-http://127.0.0.1:<puerto>/?debug=1&profile=debug
+http://127.0.0.1:4173/?debug=1&profile=debug
 ```
 
 ORBIT acepta únicamente `student`, `teacher` y `debug`; `normal` es un alias de migración hacia
@@ -196,9 +230,9 @@ local, pero conserva el borrador en una clave editorial separada y no carga prog
 | `WASD` o flechas | Movimiento libre |
 | `E` o espacio | Interactuar con el lugar cercano |
 | Rueda del ratón | Zoom |
-| `G` | Activar o desactivar el Lente de campo, una vez adquirido |
 | `T` | Alternar transportes adquiridos |
 | `K` | Ver los dos árboles de progresión |
+| Botón **Gadgets** | Abrir la calculadora y las herramientas adquiridas |
 | Botón **Ajustes** | Mostrar los accesos a Visual, Sonido y Ayuda |
 | `F2` o `` ` `` | Abrir/cerrar el debugger, solo en el perfil Debug |
 | `Esc` | Cerrar el último panel abierto |
@@ -209,7 +243,8 @@ Los controles de arrastre, teclado, conexión, intercambio de zonas y deshacer/r
 ## Comandos del repositorio
 
 ```bash
-npm run dev       # servidor local; parte en 4173 y evita puertos ocupados
+npm run dev       # servidor local; origen fijo 127.0.0.1:4173, sin fallback
+npm run editor:author # helper de autoría; origen fijo 127.0.0.1:4173, sin fallback
 npm run validate  # referencias, coordenadas y alcanzabilidad del contenido
 npm test          # pruebas con node:test
 npm run build     # crea dist/
@@ -239,11 +274,16 @@ lugares dentro de la zona ─ Árbol II ─ prerrequisitos y recompensas
 
 El estado persistido contiene logros y preferencias. Las zonas y lugares disponibles se **derivan** desde ese estado; no se guardan como una segunda verdad que pueda quedar inconsistente.
 
-Cada perfil de ORBIT opera sobre un progreso `v3` independiente. Estudiante recupera además la
-clave `normal` publicada previamente; Docente y Debug comienzan y continúan en sus propias
-claves. Cambiar el selector recarga el modo elegido, no copia logros entre perfiles.
+Cada perfil de ORBIT opera sobre un progreso `v4` independiente y ligado a la revisión de curso
+activa. Estudiante recupera claves históricas solo cuando la edición declara esa compatibilidad;
+Docente y Debug continúan en sus propias claves. Cambiar el selector recarga el modo elegido, no
+copia logros entre perfiles.
 
-ORBIT Editor opera sobre otra rama de estado: un borrador cartográfico local. Ese documento conserva ubicaciones, coordenadas y las cuatro dependencias `completedLocations` canónicas, pero no respuestas ni logros. Exportarlo no lo aplica a los datos de ORBIT, y el perfil elegido no crea una copia distinta del borrador.
+ORBIT Editor opera sobre ramas de estado separadas: un documento Docente `v2`, las preferencias
+visuales personales de Estudiante y la edición publicada `v1`. El documento Docente conserva
+ubicaciones, coordenadas, dependencias directas y apariencias, pero no respuestas ni logros. El
+flujo de aplicación local consume ese documento completo, muestra el impacto y reinicia el
+progreso de los tres perfiles; no mezcla ni elimina el borrador o las preferencias personales.
 
 Más detalles:
 
@@ -312,8 +352,8 @@ OrbitDebug.setNoclip(true);
 Consulta [docs/DEBUGGING.md](docs/DEBUGGING.md) para la referencia completa.
 
 El debugger no es el Editor y no comparte su estado. El acceso directo a `editor.html` abre el
-modo Docente completo; `?profile=student` deja el mapa en consulta y bloquea Spider/Bee, mientras
-`?profile=debug` muestra el bloqueo sin iniciar el modelo. Estas restricciones locales no
+modo Docente completo; `?profile=student` deja Spider/Bee en consulta y habilita Bowerbird
+personal, mientras `?profile=debug` muestra el bloqueo sin iniciar el modelo. Estas restricciones locales no
 reemplazan autenticación. Consulta la [guía editorial](docs/EDITOR_GUIDE.md).
 
 ## Publicación en GitHub Pages
@@ -329,11 +369,12 @@ No definas esa variable mientras quieras conservar el proyecto únicamente como 
 
 Todas las rutas del prototipo son relativas, por lo que funciona tanto en `usuario.github.io` como en `usuario.github.io/nombre-del-repositorio/`.
 
-El build incluye las entradas ORBIT y ORBIT Editor, pero no aplica un borrador editorial
-exportado ni protege `editor.html`. El selector y los bloqueos por perfil son conveniencias de
-interfaz que cualquiera puede cambiar en la URL; la incorporación del JSON al curso, la
-revisión y el control de acceso real durante mantenimiento son pasos manuales o
-responsabilidades de la infraestructura externa.
+El build incluye ORBIT, ORBIT Editor y la edición canónica del curso, pero no aplica por sí solo
+un JSON exportado ni protege `editor.html`. El helper `npm run editor:author` permite aplicar
+localmente un documento validado y reconstruir `dist/`; no se incluye en el sitio, no muta Git y
+no despliega. El selector y los bloqueos por perfil son conveniencias de interfaz que cualquiera
+puede cambiar en la URL; la revisión, publicación y el control de acceso real durante
+mantenimiento siguen siendo responsabilidades operativas externas.
 
 ## Contribuciones y uso de agentes
 

@@ -4,9 +4,23 @@ import {
   getProfileLabel,
   resolveEditorProfile,
 } from "../core/profile-policy.js";
+import { ProgressStorage } from "../core/storage.js";
+import {
+  BowerbirdPreferencesModel,
+  createBowerbirdStorageKey,
+} from "../core/bowerbird-preferences.js";
+import {
+  inspectCourseApplicationTransaction,
+  recoverCourseApplication,
+} from "../core/course-application.js";
+import { loadCourseEdition } from "../core/course-edition.js";
+import { withExclusiveCourseLock } from "../core/course-lock.js";
 import { validateProjectData } from "../core/validator.js";
-import { EDITOR_COURSE_ID, EDITOR_DOCUMENT_SCHEMA_VERSION } from "./editor-document.js";
+import { CourseApplicationCoordinator } from "./course-application-coordinator.js";
+import { EditorAuthorClient } from "./editor-author-client.js";
+import { EDITOR_DOCUMENT_SCHEMA_VERSION } from "./editor-document.js";
 import { EditorApp } from "./editor-app.js";
+import { EditorBowerbirdSession } from "./bowerbird-session.js";
 import { EditorModel } from "./editor-model.js";
 import { EditorRenderer } from "./editor-renderer.js";
 import { EditorUIController } from "./editor-ui-controller.js";
@@ -40,15 +54,15 @@ function configureProfileShell(profile, editorAccess) {
 
   if (editorAccess === "read-only") {
     if (draftBadge) {
-      draftBadge.textContent = "solo lectura";
-      draftBadge.title = "Consulta local sin permisos de edición.";
+      draftBadge.textContent = "apariencia personal";
+      draftBadge.title = "Bowerbird guarda una apariencia local separada del curso.";
     }
     notice.hidden = false;
-    noticeTitle.textContent = "Perfil estudiante · solo lectura";
-    noticeDetail.textContent = "Spider y Bee están bloqueados. Puedes consultar, encuadrar y recorrer el mapa; esta limitación local no es autenticación.";
+    noticeTitle.textContent = "Perfil estudiante · Bowerbird personal";
+    noticeDetail.textContent = "Spider y Bee están bloqueados. Bowerbird solo modifica tu apariencia local; esta limitación local no es autenticación.";
     canvas?.setAttribute(
       "aria-label",
-      "Mapa de ORBIT Editor en consulta. Usa arrastre, rueda o flechas para recorrerlo; Spider y Bee están bloqueados.",
+      "Mapa de ORBIT Editor con Bowerbird personal. Selecciona zonas para decorarlas; Spider y Bee están bloqueados.",
     );
   } else if (editorAccess === "blocked") {
     if (draftBadge) {
@@ -85,13 +99,30 @@ if (editorAccess === "blocked") {
     "color:#a9bfd0",
   );
 } else {
-  const validation = validateProjectData();
+  const startupTransaction = inspectCourseApplicationTransaction({
+    courseId: APP_CONFIG.activeCourseId,
+  });
+  const browserRecovery = startupTransaction.pending
+    ? await withExclusiveCourseLock(
+        () => recoverCourseApplication({ courseId: APP_CONFIG.activeCourseId }),
+        { courseId: APP_CONFIG.activeCourseId },
+      )
+    : { ok: true, recovered: false, action: "none" };
+  if (browserRecovery.recovered) {
+    console.info(`Se recuperó el journal local del curso: ${browserRecovery.action}.`);
+  }
+  const course = await loadCourseEdition();
+  const validation = validateProjectData({
+    areas: course.areas,
+    locations: course.locations,
+  });
   if (validation.errors.length > 0) {
-    console.error("La definición canónica del curso contiene errores:", validation.errors);
+    console.error("La edición activa del curso contiene errores:", validation.errors);
     throw new Error("ORBIT Editor no puede abrir un curso cuya cartografía es inválida.");
   }
-  if (validation.warnings.length > 0) {
-    console.warn("Advertencias de la cartografía canónica:", validation.warnings);
+  const courseWarnings = [...course.warnings];
+  if (courseWarnings.length > 0) {
+    console.warn("Advertencias de la edición activa:", courseWarnings);
   }
 
   const canvas = document.querySelector("#world-canvas");
@@ -99,10 +130,22 @@ if (editorAccess === "blocked") {
     throw new Error("No se encontró el canvas principal de ORBIT Editor.");
   }
 
-  const storageKey = `orbit-editor:v${EDITOR_DOCUMENT_SCHEMA_VERSION}:${EDITOR_COURSE_ID}`;
-  const model = EditorModel.create({
+  const storageKey = `orbit-editor:v${EDITOR_DOCUMENT_SCHEMA_VERSION}:${course.courseId}`;
+  const editorStorage = new ProgressStorage(
     storageKey,
+    undefined,
+    [`orbit-editor:v1:${course.courseId}`],
+  );
+  const documentOptions = {
+    baseAreas: course.areas,
+    baseLocations: course.locations,
+    courseId: course.courseId,
+    baseDataVersion: course.edition.document.baseDataVersion,
+  };
+  const model = EditorModel.create({
+    storage: editorStorage,
     readOnly: editorAccess === "read-only",
+    ...documentOptions,
   });
   const modelValidation = model.validate();
   if (!modelValidation.valid) {
@@ -110,9 +153,35 @@ if (editorAccess === "blocked") {
     throw new Error("El borrador editorial no pudo materializarse de forma segura.");
   }
 
+  const personalPreferences = editorAccess === "read-only"
+    ? new BowerbirdPreferencesModel({
+        storageKey: createBowerbirdStorageKey({ courseId: course.courseId, profile }),
+        baseAreas: course.areas,
+        courseId: course.courseId,
+      })
+    : null;
+  const applicationCoordinator = editorAccess === "full"
+    ? new CourseApplicationCoordinator({
+        currentEdition: course.edition,
+        authorClient: new EditorAuthorClient(),
+        documentOptions,
+      })
+    : null;
+  const bowerbird = new EditorBowerbirdSession({
+    editorModel: model,
+    personalPreferences,
+    publishedAreas: course.areas,
+  });
   const renderer = new EditorRenderer(canvas);
-  const app = new EditorApp({ canvas, model, renderer });
-  const ui = new EditorUIController({ model, app });
+  const app = new EditorApp({ canvas, model, renderer, bowerbird });
+  const ui = new EditorUIController({
+    model,
+    app,
+    bowerbird,
+    applicationCoordinator,
+    courseEdition: course,
+    courseWarnings,
+  });
   app.start();
   finishStartup();
 
@@ -124,11 +193,16 @@ if (editorAccess === "blocked") {
         profile,
         access: editorAccess,
         storageKey,
+        courseId: course.courseId,
+        courseRevision: course.courseRevision,
+        courseSource: course.source,
         methods: editorAccess === "full"
           ? [
               "snapshot()",
               "validate()",
-              "selectTool('spider' | 'bee')",
+              "selectTool('spider' | 'bee' | 'bowerbird')",
+              "setAreaAppearance(areaId, appearance)",
+              "resetAreaAppearance(areaId)",
               "moveLocation(id, placement)",
               "swapAreas(firstId, secondId)",
               "connect(sourceId, targetId)",
@@ -138,13 +212,37 @@ if (editorAccess === "blocked") {
               "reset()",
               "exportDocument()",
               "importDocument(object)",
+              "courseEdition()",
             ]
-          : ["snapshot()", "validate()", "exportDocument()"],
+          : [
+              "snapshot()",
+              "validate()",
+              "appearanceSnapshot()",
+              "selectBowerbird()",
+              "setAreaAppearance(areaId, appearance)",
+              "resetAreaAppearance(areaId)",
+              "exportPersonalPreferences()",
+              "courseEdition()",
+            ],
       };
     },
-    snapshot: () => ({ editor: app.getState(), course: model.getSnapshot() }),
+    snapshot: () => ({
+      editor: app.getState(),
+      course: model.getSnapshot(),
+      bowerbird: bowerbird.getSnapshot(),
+    }),
     validate: () => model.validate(),
-    exportDocument: () => model.exportDocument(),
+    courseEdition: () => ({
+      courseId: course.courseId,
+      revision: applicationCoordinator?.getSnapshot().currentEdition.revision
+        ?? course.courseRevision,
+      source: course.source,
+    }),
+    appearanceSnapshot: () => bowerbird.getSnapshot(),
+    selectBowerbird: () => app.setActiveTool("bowerbird"),
+    setAreaAppearance: (areaId, appearance) => bowerbird.setAreaAppearance(areaId, appearance),
+    resetAreaAppearance: (areaId) => bowerbird.resetAreaAppearance(areaId),
+    exportPersonalPreferences: () => bowerbird.exportPersonalPreferences(),
   };
   window.OrbitEditor = Object.freeze(
     editorAccess === "full"
@@ -158,13 +256,14 @@ if (editorAccess === "blocked") {
           undo: () => model.undo(),
           redo: () => model.redo(),
           reset: () => model.reset(),
+          exportDocument: () => model.exportDocument(),
           importDocument: (candidate) => model.importDocument(candidate),
         }
       : safeApi,
   );
 
   console.info(
-    `%c${APP_CONFIG.appName} Editor ${APP_CONFIG.version}%c\nPerfil local: ${getProfileLabel(profile)} · acceso ${editorAccess}.`,
+    `%c${APP_CONFIG.appName} Editor ${APP_CONFIG.version}%c\nPerfil local: ${getProfileLabel(profile)} · acceso ${editorAccess} · edición ${course.courseRevision} (${course.source}).`,
     "color:#78e3ff;font-weight:700;font-size:14px",
     "color:#a9bfd0",
   );
@@ -175,6 +274,7 @@ if (editorAccess === "blocked") {
     editorDestroyed = true;
     ui.destroy();
     app.destroy();
+    bowerbird.destroy();
     model.destroy();
   });
 }

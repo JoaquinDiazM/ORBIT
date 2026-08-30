@@ -85,7 +85,22 @@ El sistema de contenido escalable que antes ocupaba este hito permanece pendient
 - validar metadatos pedagógicos;
 - crear vista imprimible.
 
-## 0.5 — Curso mínimo utilizable
+## 0.5 — Herramientas y edición versionada
+
+Estado: cohorte candidata `0.5.0` en revisión local.
+
+- Incorporar **Gadgets** con calculadora siempre disponible, Explorador de campos 2D
+  desbloqueable y Carta de Smith opcional.
+- Ampliar ORBIT Editor con **Bowerbird**, separando apariencia Docente publicable y preferencias
+  Estudiante personales mediante un catálogo versionado.
+- Migrar el documento Docente a `v2` y el progreso a `v4` ligado a la revisión del curso.
+- Materializar una edición publicada con digest y ofrecer Validar → impacto → confirmar → aplicar
+  mediante un helper exclusivo de loopback, con bloqueo, respaldo, rollback y reset específico.
+- Conservar el sitio construido estático, sin backend público, cuentas, mutación de Git ni
+  despliegue automático.
+- Conservar 19 zonas y ampliar a 29 lugares, 14 parejas derivadas y cinco requisitos directos.
+
+## 0.6 — Curso mínimo utilizable
 
 - Cinco regiones principales completas.
 - Al menos treinta problemas originales revisados.
@@ -94,7 +109,7 @@ El sistema de contenido escalable que antes ocupaba este hito permanece pendient
 - Prueba piloto reducida con estudiantes.
 - Registro de errores y mejoras.
 
-## 0.6 — Instrumentación y aplicaciones
+## 0.7 — Instrumentación y aplicaciones
 
 - Líneas de transmisión.
 - Ondas y energía electromagnética.
@@ -119,9 +134,9 @@ El sistema de contenido escalable que antes ocupaba este hito permanece pendient
 - Rutas de cursos adicionales con contratos explícitos de prerrequisitos, equivalencias y conexiones transversales.
 - Sincronización opcional entre dispositivos.
 - Paquetes de contenido de terceros.
-- Edición visual de contenido, creación de entidades y publicación asistida sobre la base de Editor 0.4.0.
-- Cuentas autenticadas, asignación protegida de roles y borradores visuales personalizados para
-  estudiantes; la matriz local vigente no adelanta esa seguridad.
+- Edición visual de contenido académico y creación de entidades sobre la base de Editor.
+- Publicación remota, cuentas autenticadas y asignación protegida de roles; la matriz local y el
+  helper loopback vigentes no adelantan esa seguridad.
 - Idioma inglés.
 - Integración con LMS mediante un estándar abierto.
 - Simulaciones interactivas propias.

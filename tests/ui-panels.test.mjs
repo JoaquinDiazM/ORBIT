@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { APP_CONFIG } from "../src/config.js";
+import { StoragePersistenceError } from "../src/core/storage.js";
 import { CONCEPTS } from "../src/data/knowledge.js";
+import { LOCATIONS } from "../src/data/locations.js";
+import { AREAS } from "../src/data/world.js";
 import { UIController } from "../src/ui/ui-controller.js";
 
 function makeNode(id, documentHarness) {
@@ -73,6 +76,7 @@ function makeHarness() {
   const panelIds = [
     "lesson-panel",
     "knowledge-panel",
+    "gadgets-panel",
     "visual-panel",
     "reference-panel",
     "sound-panel",
@@ -94,6 +98,7 @@ function makeHarness() {
 
   const controls = [
     ["open-knowledge", "knowledge-panel"],
+    ["open-gadgets", "gadgets-panel"],
     ["open-visual", "visual-panel"],
     ["open-symbols", "reference-panel", "symbols"],
     ["open-constants", "reference-panel", "constants"],
@@ -113,7 +118,7 @@ function makeHarness() {
   controls.push(settingsButton);
   const settingsTools = getNode("settings-tools");
   settingsTools.hidden = true;
-  settingsTools.append(controls[1], controls[6], controls[7]);
+  settingsTools.append(getNode("open-visual"), getNode("open-sound"), getNode("open-help"));
 
   const visualInputs = ["hidden", "direct", "total"].map((mode) => {
     const input = getNode(`tree-two-${mode}`);
@@ -163,13 +168,14 @@ function makeHarness() {
   };
   const subscribers = new Set();
   const acquiredConceptIds = new Set();
+  const rewards = new Set();
   const volumeChanges = [];
   const visualModeChanges = [];
   const snapshot = () => ({
     state: { settings: { ...settings } },
     concepts: new Set(acquiredConceptIds),
     completedLocationIds: new Set(),
-    rewards: new Set(),
+    rewards: new Set(rewards),
     unlockedAreaIds: new Set(["origin"]),
     visibleLocationIds: new Set(),
     accessibleLocationIds: new Set(),
@@ -184,6 +190,8 @@ function makeHarness() {
   };
   const progression = {
     profile: "test",
+    areas: AREAS,
+    locations: LOCATIONS,
     getSnapshot() {
       return snapshot();
     },
@@ -222,6 +230,7 @@ function makeHarness() {
     emit,
     getNode,
     progression,
+    rewards,
     settings,
     visualInputs,
     visualModeChanges,
@@ -295,31 +304,69 @@ test("la lección coexiste con menús secundarios, que siguen siendo exclusivos"
     assert.equal(getNode("lesson-panel").hidden, false);
     assert.equal(getNode("knowledge-panel").hidden, false);
 
-    document.activeElement = controls[2];
+    document.activeElement = controls[3];
     controller.openPanel("reference-panel");
     assert.equal(getNode("lesson-panel").hidden, false);
     assert.equal(getNode("knowledge-panel").hidden, true);
     assert.equal(getNode("reference-panel").hidden, false);
-    assert.equal(controls[2].getAttribute("aria-expanded"), "true");
-    assert.equal(controls[2].getAttribute("aria-current"), "true");
+    assert.equal(controls[3].getAttribute("aria-expanded"), "true");
+    assert.equal(controls[3].getAttribute("aria-current"), "true");
 
     controller.activeReferenceView = "constants";
     controller.openPanel("reference-panel");
     assert.equal(getNode("reference-panel").hidden, false);
-    assert.equal(controls[2].getAttribute("aria-expanded"), "false");
-    assert.equal(controls[2].getAttribute("aria-current"), "false");
-    assert.equal(controls[3].getAttribute("aria-expanded"), "true");
-    assert.equal(controls[3].getAttribute("aria-current"), "true");
+    assert.equal(controls[3].getAttribute("aria-expanded"), "false");
+    assert.equal(controls[3].getAttribute("aria-current"), "false");
+    assert.equal(controls[4].getAttribute("aria-expanded"), "true");
+    assert.equal(controls[4].getAttribute("aria-current"), "true");
 
-    document.activeElement = controls[1];
+    document.activeElement = controls[2];
     controller.openPanel("visual-panel");
     assert.equal(getNode("reference-panel").hidden, true);
     assert.equal(getNode("visual-panel").hidden, false);
 
-    document.activeElement = controls[7];
+    document.activeElement = controls[8];
     controller.openPanel("help-panel");
     assert.equal(getNode("visual-panel").hidden, true);
     assert.equal(getNode("help-panel").hidden, false);
+  });
+});
+
+test("Gadgets es un panel secundario accesible y devuelve el foco a su botón", () => {
+  withController((controller, { document, getNode }) => {
+    const button = getNode("open-gadgets");
+    const panel = getNode("gadgets-panel");
+    document.activeElement = button;
+    button.dispatch("click");
+    assert.equal(panel.hidden, false);
+    assert.equal(button.getAttribute("aria-expanded"), "true");
+    assert.equal(document.activeElement, panel.closeButton);
+
+    controller.closeTopPanel();
+    assert.equal(panel.hidden, true);
+    assert.equal(button.getAttribute("aria-expanded"), "false");
+    assert.equal(document.activeElement, button);
+  });
+});
+
+test("Gadgets refleja de forma reactiva los desbloqueos del progreso", () => {
+  withController((controller, { emit, rewards }) => {
+    const explorer = controller.gadgetHub.elements.buttons.get("vector-field");
+    const smith = controller.gadgetHub.elements.buttons.get("smith-chart");
+    assert.equal(explorer.button.getAttribute("aria-disabled"), "true");
+    assert.equal(explorer.state.textContent, "Bloqueado");
+    assert.equal(smith.button.getAttribute("aria-disabled"), "true");
+
+    rewards.add("gadgets:field-lens");
+    emit("location-completed");
+    assert.equal(explorer.button.getAttribute("aria-disabled"), "false");
+    assert.equal(explorer.state.textContent, "Disponible");
+    assert.equal(smith.button.getAttribute("aria-disabled"), "true");
+
+    rewards.add("gadgets:smith-chart");
+    emit("location-completed");
+    assert.equal(smith.button.getAttribute("aria-disabled"), "false");
+    assert.equal(smith.state.textContent, "Disponible");
   });
 });
 
@@ -407,14 +454,14 @@ test("la pila restaura el foco incluso al sustituir Sonido desde su interior", (
     const canvas = getNode("world-canvas");
     document.activeElement = canvas;
     controller.openPanel("lesson-panel");
-    document.activeElement = controls[6];
+    document.activeElement = controls[7];
     controller.openPanel("sound-panel");
 
     document.activeElement = getNode("sound-panel").closeButton;
     controller.openPanel("help-panel");
     assert.equal(getNode("sound-panel").hidden, true);
     controller.closeTopPanel();
-    assert.equal(document.activeElement, controls[6]);
+    assert.equal(document.activeElement, controls[7]);
     assert.equal(getNode("lesson-panel").hidden, false);
 
     controller.closeTopPanel();
@@ -429,7 +476,7 @@ test("la vista compacta mantiene el foco en el panel Sonido superior", () => {
     withController((controller, { controls, document, documentListeners, getNode }) => {
       document.activeElement = getNode("world-canvas");
       controller.openPanel("lesson-panel");
-      document.activeElement = controls[6];
+      document.activeElement = controls[7];
       controller.openPanel("sound-panel");
 
       document.activeElement = getNode("world-canvas");
@@ -459,7 +506,7 @@ test("la pila compacta coloca sobre el debugger el panel abierto después", () =
     withController((controller, { controls, document, getNode }) => {
       document.activeElement = getNode("world-canvas");
       controller.openPanel("debug-panel");
-      document.activeElement = controls[7];
+      document.activeElement = controls[8];
       controller.openPanel("help-panel");
 
       assert.equal(getNode("debug-panel").getAttribute("data-compact-top"), "false");
@@ -534,5 +581,53 @@ test("Visual refleja y persiste los tres niveles de la red del Árbol II", () =>
     assert.equal(settings.treeTwoVisualizationMode, "total");
     assert.equal(total.checked, true);
     assert.deepEqual(visualModeChanges, ["direct", "total"]);
+  });
+});
+
+test("un fallo de persistencia revierte controles y muestra un solo aviso accesible", () => {
+  withController((controller, {
+    getNode,
+    progression,
+    visualInputs,
+  }) => {
+    const warnings = [];
+    const originalConsoleError = console.error;
+    console.error = () => {};
+    controller.toast = (message, type) => warnings.push({ message, type });
+    const failure = () => {
+      throw new StoragePersistenceError(
+        "storage-write-failed",
+        "fallo de almacenamiento inyectado",
+      );
+    };
+    progression.setTreeTwoVisualizationMode = failure;
+    progression.setAmbienceVolume = failure;
+    progression.setEffectsVolume = failure;
+
+    try {
+      const direct = visualInputs.find((input) => input.value === "direct");
+      direct.checked = true;
+      direct.dispatch("change");
+      assert.equal(direct.checked, false);
+      assert.equal(visualInputs.find((input) => input.value === "hidden").checked, true);
+
+      const ambience = getNode("sound-ambience");
+      ambience.value = "12";
+      ambience.dispatch("input");
+      assert.equal(ambience.value, "35");
+      assert.equal(getNode("sound-ambience-output").textContent, "35%");
+
+      const effects = getNode("sound-effects");
+      effects.value = "0";
+      effects.dispatch("input");
+      assert.equal(effects.value, "80");
+      assert.equal(getNode("sound-effects-output").textContent, "80%");
+
+      assert.equal(warnings.length, 1);
+      assert.equal(warnings[0].type, "warning");
+      assert.match(warnings[0].message, /último estado confirmado/i);
+    } finally {
+      console.error = originalConsoleError;
+    }
   });
 });

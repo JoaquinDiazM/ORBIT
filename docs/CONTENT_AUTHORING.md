@@ -130,7 +130,11 @@ requirements: {
 
 Todos los elementos de una categoría y todas las categorías declaradas son obligatorios.
 
-Las guías visuales del Árbol II se derivan automáticamente de `completedLocations`, `concepts` y `rewards`; no declares una segunda lista manual de aristas. Conceptos y recompensas se resuelven al lugar que los concede y los requisitos repetidos por pareja se agrupan. `areas` controla acceso, pero no crea estas guías. Si un cambio altera las 13 parejas únicas actuales, actualiza la prueba del derivador y verifica que la nueva topología sea intencional.
+Las guías visuales del Árbol II se derivan automáticamente de `completedLocations`, `concepts` y
+`rewards`; no declares una segunda lista manual de aristas. Conceptos y recompensas se resuelven
+al lugar que los concede y los requisitos repetidos por pareja se agrupan. `areas` controla
+acceso, pero no crea estas guías. Si un cambio altera las 14 parejas únicas actuales, actualiza
+la prueba del derivador y verifica que la nueva topología sea intencional.
 
 ## Concesiones
 

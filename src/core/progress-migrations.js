@@ -31,11 +31,15 @@ function translatePlayerBetweenAreas(player, source, target) {
   };
 }
 
-export function migrateProgressState(candidate) {
+export function migrateProgressState(candidate, {
+  courseId = APP_CONFIG.activeCourseId,
+  courseRevision = APP_CONFIG.legacyCourseRevision,
+} = {}) {
   if (!candidate || typeof candidate !== "object") return candidate;
 
   let state = structuredClone(candidate);
   let version = Number.isInteger(state.schemaVersion) ? state.schemaVersion : 1;
+  if (version > APP_CONFIG.progressSchemaVersion) return state;
 
   if (version < 2) {
     const debugUnlockedAreas = Array.isArray(state.debugUnlockedAreas)
@@ -94,6 +98,21 @@ export function migrateProgressState(candidate) {
       },
     };
     version = 3;
+  }
+
+  if (version < 4) {
+    const {
+      fieldLensEnabled: _obsoleteFieldLensEnabled,
+      ...settings
+    } = state.settings && typeof state.settings === "object" ? state.settings : {};
+    state = {
+      ...state,
+      schemaVersion: 4,
+      courseId,
+      courseRevision,
+      settings,
+    };
+    version = 4;
   }
 
   if (version !== APP_CONFIG.progressSchemaVersion) {

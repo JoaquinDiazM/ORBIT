@@ -1,6 +1,12 @@
 import { APP_CONFIG } from "../config.js";
-import { LOCATIONS } from "../data/locations.js";
-import { AREAS, WORLD_CONFIG } from "../data/world.js";
+import { WORLD_CONFIG } from "../data/world.js";
+import { drawAreaAppearanceCanvas } from "../core/area-appearance-canvas.js";
+import {
+  DEFAULT_AREA_APPEARANCE,
+  getAreaAppearanceAnimationTime,
+  resolveAreaAppearance,
+  sanitizeAreaAppearance,
+} from "../core/area-appearance.js";
 import { axialToPixel, hexCorners, hexEdge } from "../core/hex.js";
 import { deriveKnowledgeGraphEdges } from "../core/knowledge-graph.js";
 import {
@@ -89,6 +95,35 @@ function drawRoundedRect(context, x, y, width, height, radius) {
   context.closePath();
 }
 
+const LOCKED_AREA_APPEARANCE = Object.freeze({
+  paletteId: "locked",
+  motifId: "none",
+  contourId: "locked",
+  color: "#111d2a",
+  accent: "#8294a3",
+});
+
+/**
+ * Resolve the runtime precedence without leaking a student's personal
+ * Bowerbird choice into a locked area.
+ */
+export function resolveRuntimeAreaAppearance(
+  area,
+  { personalAppearance = null, unlocked = true } = {},
+) {
+  if (!unlocked) return { ...LOCKED_AREA_APPEARANCE };
+  const personal = personalAppearance === null || personalAppearance === undefined
+    ? null
+    : sanitizeAreaAppearance(personalAppearance);
+  const published = sanitizeAreaAppearance(area?.appearance ?? DEFAULT_AREA_APPEARANCE);
+  const candidate = personal?.ok
+    ? personal.appearance
+    : published.ok
+      ? published.appearance
+      : DEFAULT_AREA_APPEARANCE;
+  return resolveAreaAppearance(area, candidate);
+}
+
 // World coordinates grow right/down; upper-left light therefore casts toward +x/+y.
 const SHADOW_DIRECTION_COMPONENT = Math.SQRT1_2;
 const PLAYER_SHADOW_PROFILES = Object.freeze({
@@ -136,16 +171,28 @@ export function getPlayerShadowGeometry(heading, transportId = "walk") {
 }
 
 export class CanvasRenderer {
-  constructor(canvas) {
+  constructor(canvas, {
+    areas,
+    locations,
+    getPersonalAreaAppearance = null,
+  } = {}) {
+    if (!Array.isArray(areas) || !Array.isArray(locations)) {
+      throw new TypeError("CanvasRenderer requiere la cartografía materializada del curso.");
+    }
     this.canvas = canvas;
     this.context = canvas.getContext("2d", { alpha: false });
     if (!this.context) throw new Error("Canvas 2D no está disponible en este navegador.");
 
+    this.areas = areas;
+    this.locations = locations;
+    this.getPersonalAreaAppearance = typeof getPersonalAreaAppearance === "function"
+      ? getPersonalAreaAppearance
+      : () => null;
     this.width = 0;
     this.height = 0;
     this.pixelRatio = 1;
-    this.worldIndex = createWorldIndex(AREAS);
-    this.locationById = new Map(LOCATIONS.map((location) => [location.id, location]));
+    this.worldIndex = createWorldIndex(this.areas);
+    this.locationById = new Map(this.locations.map((location) => [location.id, location]));
     this.stars = this.#createStars(WORLD_CONFIG.backgroundStars);
     this.resize();
   }
@@ -184,22 +231,24 @@ export class CanvasRenderer {
     nearestLocation,
     debugState,
     timeSeconds,
+    reducedMotion = false,
     newlyAccessibleLocationIds = [],
     unlockSourceLocationId = null,
   }) {
     this.resize();
     const context = this.context;
+    const animationTime = getAreaAppearanceAnimationTime(timeSeconds, { reducedMotion });
     context.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
     context.clearRect(0, 0, this.width, this.height);
 
-    this.#drawBackground(camera, timeSeconds);
+    this.#drawBackground(camera, animationTime);
 
     context.save();
     context.translate(this.width / 2, this.height / 2);
     context.scale(camera.zoom, camera.zoom);
     context.translate(-camera.x, -camera.y);
 
-    this.#drawAreas(snapshot, camera.zoom, timeSeconds, debugState);
+    this.#drawAreas(snapshot, camera.zoom, animationTime, debugState, reducedMotion);
     if (debugState.showGraph) this.#drawKnowledgeGraphs(snapshot, camera.zoom);
     this.#drawTreeTwoGuides(
       snapshot,
@@ -207,12 +256,9 @@ export class CanvasRenderer {
       newlyAccessibleLocationIds,
       unlockSourceLocationId,
     );
-    if (snapshot.state.settings.fieldLensEnabled) {
-      this.#drawFieldLens(snapshot, camera.zoom, timeSeconds);
-    }
-    this.#drawAreaEdges(snapshot, camera.zoom, timeSeconds);
-    this.#drawLocations(snapshot, nearestLocation, camera.zoom, timeSeconds, debugState);
-    this.#drawPlayer(player, snapshot.activeTransport, camera.zoom, timeSeconds);
+    this.#drawAreaEdges(snapshot, camera.zoom, animationTime);
+    this.#drawLocations(snapshot, nearestLocation, camera.zoom, animationTime, debugState);
+    this.#drawPlayer(player, snapshot.activeTransport, camera.zoom, animationTime);
 
     context.restore();
     this.#drawVignette();
@@ -266,48 +312,56 @@ export class CanvasRenderer {
     context.restore();
   }
 
-  #drawAreas(snapshot, zoom, timeSeconds, debugState) {
+  #drawAreas(snapshot, zoom, timeSeconds, debugState, reducedMotion) {
     const context = this.context;
     const lineScale = 1 / zoom;
 
-    for (const area of AREAS) {
+    for (const area of this.areas) {
       const center = axialToPixel(area.q, area.r, WORLD_CONFIG.hexSize);
       const corners = hexCorners(center.x, center.y, WORLD_CONFIG.hexSize - 4);
       const unlocked = snapshot.unlockedAreaIds.has(area.id);
+      const appearance = resolveRuntimeAreaAppearance(area, {
+        personalAppearance: unlocked ? this.getPersonalAreaAppearance(area.id) : null,
+        unlocked,
+      });
 
-      context.save();
-      polygonPath(context, corners);
-      const fill = context.createRadialGradient(
-        center.x - 50,
-        center.y - 70,
-        20,
-        center.x,
-        center.y,
-        WORLD_CONFIG.hexSize * 1.15,
-      );
       if (unlocked) {
-        fill.addColorStop(0, withAlpha(area.accent, 0.32));
-        fill.addColorStop(0.52, withAlpha(area.color, 0.75));
-        fill.addColorStop(1, withAlpha(area.color, 0.42));
+        drawAreaAppearanceCanvas(context, {
+          area,
+          appearance,
+          center,
+          zoom,
+          timeSeconds: getAreaAppearanceAnimationTime(timeSeconds, { reducedMotion }),
+          hexSize: WORLD_CONFIG.hexSize,
+        });
       } else {
+        context.save();
+        polygonPath(context, corners);
+        const fill = context.createRadialGradient(
+          center.x - 50,
+          center.y - 70,
+          20,
+          center.x,
+          center.y,
+          WORLD_CONFIG.hexSize * 1.15,
+        );
         fill.addColorStop(0, "rgba(24, 38, 54, 0.78)");
         fill.addColorStop(1, "rgba(8, 17, 29, 0.9)");
+        context.fillStyle = fill;
+        context.fill();
+        polygonPath(context, corners);
+        context.clip();
+        this.#drawLockedHatching(center, zoom);
+        context.restore();
+
+        context.save();
+        context.strokeStyle = "rgba(120, 149, 170, 0.17)";
+        context.lineWidth = 1.2 * lineScale;
+        context.setLineDash([]);
+        polygonPath(context, corners);
+        context.stroke();
+        context.restore();
       }
-      context.fillStyle = fill;
-      context.fill();
-
-      polygonPath(context, corners);
-      context.clip();
-      this.#drawTerrainPattern(area, center, unlocked, zoom, timeSeconds);
-      if (!unlocked) this.#drawLockedHatching(center, zoom);
-      context.restore();
-
-      context.save();
-      polygonPath(context, corners);
-      context.strokeStyle = unlocked ? withAlpha(area.accent, 0.48) : "rgba(120, 149, 170, 0.17)";
-      context.lineWidth = (unlocked ? 2.2 : 1.2) * lineScale;
-      context.stroke();
-      context.restore();
 
       context.save();
       context.textAlign = "center";
@@ -316,7 +370,9 @@ export class CanvasRenderer {
       context.font = `700 ${17 * lineScale}px system-ui, sans-serif`;
       context.fillText(area.shortTitle, center.x, center.y - WORLD_CONFIG.hexSize * 0.71);
       context.font = `600 ${9.5 * lineScale}px system-ui, sans-serif`;
-      context.fillStyle = unlocked ? withAlpha(area.accent, 0.78) : "rgba(150, 169, 184, 0.43)";
+      context.fillStyle = unlocked
+        ? withAlpha(appearance.accent, 0.78)
+        : "rgba(150, 169, 184, 0.43)";
       context.fillText(
         unlocked ? "ZONA ABIERTA" : "ARISTAS BLOQUEADAS",
         center.x,
@@ -330,119 +386,6 @@ export class CanvasRenderer {
       }
       context.restore();
     }
-  }
-
-  #drawTerrainPattern(area, center, unlocked, zoom, timeSeconds) {
-    const context = this.context;
-    const scale = 1 / zoom;
-    context.save();
-    context.globalAlpha = unlocked ? 0.22 : 0.09;
-    context.strokeStyle = area.accent;
-    context.fillStyle = area.accent;
-    context.lineWidth = 1.2 * scale;
-
-    switch (area.id) {
-      case "origin": {
-        for (let radius = 46; radius <= 166; radius += 40) {
-          context.beginPath();
-          context.arc(center.x, center.y, radius, 0, Math.PI * 2);
-          context.stroke();
-        }
-        break;
-      }
-      case "electrostatics": {
-        const signs = [
-          [-118, -10, "+"],
-          [96, 76, "−"],
-          [82, -92, "+"],
-          [-65, 108, "−"],
-        ];
-        context.font = `700 ${20 * scale}px Georgia, serif`;
-        context.textAlign = "center";
-        for (const [x, y, sign] of signs) context.fillText(sign, center.x + x, center.y + y);
-        break;
-      }
-      case "magnetism": {
-        for (let radius = 40; radius <= 170; radius += 33) {
-          context.beginPath();
-          context.arc(center.x, center.y, radius, -Math.PI * 0.78, Math.PI * 0.76);
-          context.stroke();
-        }
-        break;
-      }
-      case "differential-equations": {
-        for (let x = -140; x <= 140; x += 56) {
-          for (let y = -120; y <= 120; y += 48) {
-            const slope = Math.sin((x + y) * 0.018) * 13;
-            context.beginPath();
-            context.moveTo(center.x + x - 12, center.y + y + slope);
-            context.lineTo(center.x + x + 12, center.y + y - slope);
-            context.stroke();
-          }
-        }
-        break;
-      }
-      case "maxwell": {
-        for (let offset = -170; offset <= 170; offset += 38) {
-          context.beginPath();
-          context.moveTo(center.x - 180, center.y + offset);
-          context.lineTo(center.x + 180, center.y + offset);
-          context.stroke();
-          context.beginPath();
-          context.moveTo(center.x + offset, center.y - 180);
-          context.lineTo(center.x + offset, center.y + 180);
-          context.stroke();
-        }
-        break;
-      }
-      case "waves": {
-        for (let row = -120; row <= 120; row += 42) {
-          context.beginPath();
-          for (let x = -180; x <= 180; x += 8) {
-            const y = row + Math.sin(x * 0.045 + timeSeconds) * 12;
-            if (x === -180) context.moveTo(center.x + x, center.y + y);
-            else context.lineTo(center.x + x, center.y + y);
-          }
-          context.stroke();
-        }
-        break;
-      }
-      case "circuits": {
-        for (let row = -100; row <= 100; row += 50) {
-          context.beginPath();
-          context.moveTo(center.x - 150, center.y + row);
-          context.lineTo(center.x - 45, center.y + row);
-          context.lineTo(center.x - 25, center.y + row - 18);
-          context.lineTo(center.x + 15, center.y + row + 18);
-          context.lineTo(center.x + 35, center.y + row);
-          context.lineTo(center.x + 150, center.y + row);
-          context.stroke();
-        }
-        break;
-      }
-      case "applications": {
-        for (let index = -2; index <= 2; index += 1) {
-          const x = center.x + index * 66;
-          context.beginPath();
-          context.moveTo(x, center.y + 95);
-          context.lineTo(x, center.y - 62);
-          context.stroke();
-          context.beginPath();
-          context.arc(x, center.y - 62, 30, Math.PI * 0.05, Math.PI * 0.95);
-          context.stroke();
-        }
-        break;
-      }
-      default:
-        for (let radius = 44; radius <= 154; radius += 36) {
-          const phase = (area.order % 6) * (Math.PI / 3) + timeSeconds * 0.04;
-          context.beginPath();
-          context.arc(center.x, center.y, radius, phase, phase + Math.PI * 1.35);
-          context.stroke();
-        }
-        break;
-    }
-    context.restore();
   }
 
   #drawLockedHatching(center, zoom) {
@@ -464,7 +407,7 @@ export class CanvasRenderer {
     const context = this.context;
     const lineScale = 1 / zoom;
 
-    for (const area of AREAS) {
+    for (const area of this.areas) {
       if (!snapshot.unlockedAreaIds.has(area.id)) continue;
       const center = axialToPixel(area.q, area.r, WORLD_CONFIG.hexSize);
 
@@ -520,7 +463,7 @@ export class CanvasRenderer {
     const context = this.context;
     const lineScale = 1 / zoom;
     const conceptSourceLocation = new Map();
-    for (const location of LOCATIONS) {
+    for (const location of this.locations) {
       for (const conceptId of location.grants?.concepts ?? []) {
         conceptSourceLocation.set(conceptId, location);
       }
@@ -530,7 +473,7 @@ export class CanvasRenderer {
     context.setLineDash([10 * lineScale, 7 * lineScale]);
     context.lineWidth = 1.6 * lineScale;
 
-    for (const area of AREAS) {
+    for (const area of this.areas) {
       for (const conceptId of area.requirements?.concepts ?? []) {
         const sourceLocation = conceptSourceLocation.get(conceptId);
         if (!sourceLocation) continue;
@@ -555,8 +498,8 @@ export class CanvasRenderer {
     unlockSourceLocationId,
   ) {
     const edges = deriveKnowledgeGraphEdges({
-      locations: LOCATIONS,
-      areas: AREAS,
+      locations: this.locations,
+      areas: this.areas,
       snapshot,
       visualizationMode: snapshot.state?.settings?.treeTwoVisualizationMode,
       newlyAccessibleLocationIds,
@@ -644,36 +587,11 @@ export class CanvasRenderer {
     }
   }
 
-  #drawFieldLens(snapshot, zoom, timeSeconds) {
-    const sourceLocation = this.locationById.get("coulomb-observatory");
-    if (!sourceLocation || !snapshot.unlockedAreaIds.has(sourceLocation.areaId)) return;
-    const source = getLocationWorldPosition(sourceLocation, this.worldIndex, WORLD_CONFIG.hexSize);
-    const context = this.context;
-    const lineScale = 1 / zoom;
-
-    context.save();
-    context.globalCompositeOperation = "lighter";
-    for (let x = -230; x <= 230; x += 46) {
-      for (let y = -184; y <= 184; y += 46) {
-        const px = source.x + x;
-        const py = source.y + y;
-        const distance = Math.hypot(x, y);
-        if (distance < 32 || distance > 245) continue;
-        const magnitude = Math.min(24, 720 / Math.max(32, distance));
-        const wobble = 1 + 0.05 * Math.sin(timeSeconds * 1.5 + distance * 0.03);
-        const dx = (x / distance) * magnitude * wobble;
-        const dy = (y / distance) * magnitude * wobble;
-        drawArrow(context, px - dx * 0.5, py - dy * 0.5, dx, dy, "rgba(115, 226, 255, 0.46)", 1.25 * lineScale);
-      }
-    }
-    context.restore();
-  }
-
   #drawLocations(snapshot, nearestLocation, zoom, timeSeconds, debugState) {
     const context = this.context;
     const lineScale = 1 / zoom;
 
-    for (const location of LOCATIONS) {
+    for (const location of this.locations) {
       if (!snapshot.visibleLocationIds.has(location.id)) continue;
       const position = getLocationWorldPosition(location, this.worldIndex, WORLD_CONFIG.hexSize);
       const accessible = snapshot.accessibleLocationIds.has(location.id);

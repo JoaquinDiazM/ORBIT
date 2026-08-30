@@ -1,6 +1,7 @@
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 const VIEWBOX_SIZE = 100;
 const PLOT_PADDING = 9;
+const VECTOR_FIELD_SCALE_MODES = new Set(["fixed", "fit"]);
 
 function finiteNumber(value, label) {
   const number = Number(value);
@@ -177,6 +178,10 @@ export function normalizeVectorFieldConfig(options = {}) {
   if (!/^[A-Za-z][A-Za-z0-9_-]*$/.test(id)) {
     throw new RangeError("id debe ser un identificador HTML estable sin espacios.");
   }
+  const scaleMode = options.scaleMode ?? "fixed";
+  if (!VECTOR_FIELD_SCALE_MODES.has(scaleMode)) {
+    throw new RangeError(`Modo de escala vectorial desconocido: ${scaleMode}.`);
+  }
   return Object.freeze({
     id,
     title: nonEmptyText(options.title, "title"),
@@ -186,6 +191,8 @@ export function normalizeVectorFieldConfig(options = {}) {
     domain,
     samples,
     scale: positiveNumber(options.scale ?? VECTOR_FIELD_SHARED_VIEW.scale, "scale"),
+    scaleMode,
+    maxArrowLength: positiveNumber(options.maxArrowLength ?? 6.4, "maxArrowLength"),
     parameters,
     params: normalizeParameterValues(parameters, options.params),
     integralCurves: normalizeIntegralCurves(options.integralCurves, domain),
@@ -298,6 +305,16 @@ export function createArrowGeometry(sample, { domain, scale }) {
     x2: center.x + dx / 2,
     y2: center.y + dy / 2,
   });
+}
+
+export function fitVectorFieldScale(samples, maxArrowLength = 6.4) {
+  if (!Array.isArray(samples)) throw new TypeError("samples debe ser un arreglo.");
+  const safeMaximumLength = positiveNumber(maxArrowLength, "maxArrowLength");
+  const maximumMagnitude = samples.reduce((maximum, sample) => {
+    const magnitude = finiteNumber(sample?.magnitude, "sample.magnitude");
+    return Math.max(maximum, magnitude);
+  }, 0);
+  return maximumMagnitude < 1e-10 ? 1 : safeMaximumLength / maximumMagnitude;
 }
 
 export function createFieldAConfig(overrides = {}) {
@@ -604,6 +621,10 @@ export class VectorField2D {
   }
 
   #appendArrows(group, samples) {
+    const scale = this.config.scaleMode === "fit"
+      ? fitVectorFieldScale(samples, this.config.maxArrowLength)
+      : this.config.scale;
+    this.effectiveScale = scale;
     for (const sample of samples) {
       const center = mapPointToVectorFieldView(sample, this.config.domain);
       if (sample.magnitude < 1e-10) {
@@ -616,7 +637,7 @@ export class VectorField2D {
         }));
         continue;
       }
-      const arrow = createArrowGeometry(sample, this.config);
+      const arrow = createArrowGeometry(sample, { ...this.config, scale });
       group.append(svgElement(this.document, "line", {
         class: "vector-field-arrow",
         x1: arrow.x1,
@@ -703,6 +724,7 @@ export class VectorField2D {
       params: this.config.params,
       reducedMotion: Boolean(this.reducedMotion),
       animationsEnabled: false,
+      effectiveScale: this.effectiveScale ?? this.config.scale,
       samples: this.samples ?? Object.freeze([]),
     });
   }

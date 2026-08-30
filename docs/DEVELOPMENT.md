@@ -3,7 +3,8 @@
 ## Requisitos
 
 - Node.js 24 LTS o posterior.
-- Navegador moderno con módulos ES, Canvas 2D y `localStorage`.
+- Navegador moderno con módulos ES, Canvas 2D, `localStorage`, Web Crypto y Web Locks para la
+  aplicación exclusiva de una edición.
 
 Ejecuta `npm install` una vez por clon. KaTeX 0.18.1 es la única dependencia npm y se usa localmente para render matemático; no hay CDN, framework ni backend.
 
@@ -27,6 +28,7 @@ Abre una terminal nueva después del cambio. `npm.cmd` es una alternativa puntua
 ```bash
 npm install
 npm run dev
+npm run editor:author
 npm run validate
 npm test
 npm run build
@@ -36,22 +38,28 @@ npm run check
 
 ### `npm run dev`
 
-Sirve el directorio del proyecto sin transformar los módulos; el navegador carga el código fuente directamente. Intenta usar `http://127.0.0.1:4173/` y, si ese puerto está ocupado, avanza hasta encontrar uno libre. Siempre abre la URL exacta que imprime la ejecución actual.
+Sirve el directorio del proyecto sin transformar los módulos; el navegador carga el código
+fuente directamente. Usa exclusivamente `http://127.0.0.1:4173/`: no acepta `PORT`, argumentos
+de puerto ni busca un fallback, porque otro origen tendría Web Locks y `localStorage` distintos.
 
 Las dos entradas son:
 
 ```text
-http://127.0.0.1:<puerto>/                         # ORBIT · Estudiante
-http://127.0.0.1:<puerto>/?profile=teacher         # ORBIT · Docente
-http://127.0.0.1:<puerto>/?debug=1&profile=debug   # ORBIT · Debug
-http://127.0.0.1:<puerto>/editor.html              # Editor · Docente completo
+http://127.0.0.1:4173/                         # ORBIT · Estudiante
+http://127.0.0.1:4173/?profile=teacher         # ORBIT · Docente
+http://127.0.0.1:4173/?debug=1&profile=debug   # ORBIT · Debug
+http://127.0.0.1:4173/editor.html              # Editor · Docente completo
 ```
 
 ORBIT admite únicamente `student`, `teacher` y `debug`; `normal` es un alias de migración hacia
 Estudiante. Editor interpreta `profile` solo para escoger acceso local —Docente completo,
-Estudiante en lectura y Debug bloqueado— y siempre usa un borrador independiente del progreso.
+Estudiante con Spider/Bee en lectura y Bowerbird personal, y Debug bloqueado— y mantiene
+documento, preferencias y progreso en contratos separados.
 
-No reutilices un servidor iniciado antes de actualizar el repositorio: su lógica puede no corresponder al código actual. Detén su terminal con `Ctrl+C` y vuelve a ejecutar `npm run dev`. Para exigir un puerto concreto, define por ejemplo `$env:PORT = 4200`; un puerto explícito ocupado produce un error breve en vez de seleccionar otro.
+No reutilices un servidor iniciado antes de actualizar el repositorio: su lógica puede no
+corresponder al código actual. Detén su terminal con `Ctrl+C` y vuelve a ejecutar `npm run dev`.
+Si 4173 está ocupado, el comando termina con un error accionable; detén el proceso anterior en
+vez de abrir ORBIT en otro puerto.
 
 En desarrollo, el navegador obtiene KaTeX desde `node_modules/katex/dist/`. El build reemplaza esas dos referencias por `vendor/katex/` y copia únicamente el runtime publicable; ninguna ruta a `node_modules` llega a `dist/`.
 
@@ -59,19 +67,48 @@ En desarrollo, el navegador obtiene KaTeX desde `node_modules/katex/dist/`. El b
 
 Comprueba IDs, referencias, coordenadas, recompensas, requisitos y alcanzabilidad global. Simula completar todo el contenido accesible hasta alcanzar un punto fijo.
 
+### `npm run editor:author`
+
+Sirve las mismas entradas desde `127.0.0.1` y añade una API de sesión same-origin para aplicar
+una edición desde **Resumen**. Es una herramienta de mantenimiento local: usa un token aleatorio,
+un límite de cuerpo y rutas fijas, y no se incluye en `dist/`.
+
+La ejecución real usa el mismo origen canónico de `npm run dev`,
+`http://127.0.0.1:4173`: no acepta otro `PORT` ni busca un puerto alternativo, porque Web Locks y
+`localStorage` están aislados por origen. Detén antes `npm run dev` y cualquier otro helper que
+ocupe ese puerto. El helper reserva además el checkout
+con un lock de proceso verificable antes de recuperar o escribir; una segunda instancia no toca
+la fuente ni el journal.
+
+Antes de aplicar exige un checkout limpio mediante una inspección de `git status` y compara la
+revisión anterior con el plan validado. Escribe atómicamente solo
+`public/data/courses/electromagnetism-applied.edition.json`, ejecuta `npm run check` y conserva
+journal y respaldo hasta que el navegador complete el reset. Si falla, restaura la fuente y el
+build. Mientras el journal del repositorio exista, tanto `npm run dev` como el helper responden
+en modo mantenimiento para `index.html`; `editor.html` sigue disponible para recuperar. El
+arranque de ORBIT también recupera o bloquea cualquier journal del navegador antes de crear
+progreso. El helper no muta Git: no crea commits, no prepara el índice y no hace push.
+
 ### `npm test`
 
 Ejecuta las pruebas de `tests/` mediante `node:test`.
 
 ### `npm run build`
 
-Copia los recursos publicables a `dist/`, incluidas `index.html` y `editor.html`, reescribe las rutas de desarrollo que corresponden, añade la distribución local de KaTeX y genera `build-info.json`. El build falla si queda una ruta a `node_modules` o si falta un recurso matemático. Es intencionalmente transparente: no minifica ni empaqueta el código del proyecto.
+Copia los recursos publicables a `dist/`, incluidas `index.html`, `editor.html` y la edición
+canónica bajo `public/data/courses/`; reescribe las rutas de desarrollo que corresponden, añade
+la distribución local de KaTeX y genera `build-info.json` con la misma revisión y digest. El
+build falla si queda una ruta a `node_modules`, si falta un recurso matemático o si fuente,
+artefacto construido y metadatos discrepan. Es intencionalmente transparente: no minifica ni
+empaqueta el código del proyecto.
 
-El build no consume ni aplica automáticamente un JSON exportado por Editor. Integrar el borrador a los datos publicados es un paso previo, manual y revisable.
+El build por sí solo no consume un JSON exportado por Editor. El helper de autoría es quien
+convierte el documento validado en la edición canónica antes de ejecutar comprobaciones y build.
 
 ### `npm run check`
 
-Ejecuta validación, pruebas y build. Es el control mínimo antes de commit o pull request.
+Ejecuta validación, pruebas, revisión del repositorio y build. Es el control mínimo antes de
+commit o pull request.
 
 ## Flujo recomendado
 
@@ -116,8 +153,9 @@ ORBIT dispone exactamente de estas sesiones locales:
 
 Cada perfil conserva un avance separado. Estudiante migra la clave `normal` compatible; no
 uses sufijos arbitrarios para crear sesiones nuevas. Editor usa el perfil solo como política de
-capacidad y mantiene una única clave estable `orbit-editor:v1:electromagnetism-applied`; exporta
-una copia antes de restaurar o importar durante pruebas destructivas.
+capacidad. Docente mantiene `orbit-editor:v2:electromagnetism-applied`; Estudiante usa además
+`orbit-bowerbird:v1:electromagnetism-applied:student` para sus apariencias personales. Exporta
+una copia antes de restaurar, importar o aplicar durante pruebas destructivas.
 
 ## Convenciones
 
@@ -136,7 +174,10 @@ una copia antes de restaurar o importar durante pruebas destructivas.
 - `ProgressStorage` es el único acceso directo a las claves de progreso en `localStorage`.
 - `profile-policy.js` resuelve los tres perfiles y su matriz de capacidades; no representa
   autenticación.
-- El modelo/almacenamiento editorial encapsula únicamente `orbit-editor:v1:electromagnetism-applied`; nunca accede a `orbit-progress`.
+- El documento editorial `v2`, las preferencias Bowerbird `v1`, la edición de curso `v1` y el
+  progreso `v4` tienen claves y ciclos de migración distintos.
+- El progreso identifica `courseId + courseRevision`; una revisión diferente no reutiliza logros.
+- El helper solo inspecciona Git para exigir limpieza y nunca lo muta.
 - El renderer lee snapshots; no concede conceptos ni recompensas.
 - La UI solicita acciones al modelo; no modifica arrays persistidos directamente.
 - Zonas abiertas, fronteras y lugares visibles son datos derivados.
@@ -148,16 +189,19 @@ Prefiere pruebas pequeñas sobre funciones puras. Para cambios de contenido, agr
 
 Para Editor, prueba por separado:
 
-- saneamiento y round-trip del documento `v1`;
+- saneamiento, migración `v1 → v2` y round-trip del documento `v2`;
 - movimiento de nodos y margen seguro;
 - conexiones directas, duplicados, self-edge y ciclos;
 - intercambio Bee dentro del anillo y rechazo cruzado;
+- catálogo y precedencia Bowerbird, aislamiento Estudiante/Docente y reducción de movimiento;
+- artefacto de edición, digest/revisión, diff e impacto por los tres perfiles;
+- transacción local, bloqueo compartido/exclusivo, rollback y recuperación pendiente;
 - undo/redo, autoguardado e importación atómica;
 - Pointer Events, teclado y estado de ambos docks;
 - resolución exacta de perfiles, migración `normal → student` y aislamiento de avances;
 - autocompletado docente solo para lecciones/misiones evaluables;
 - ausencia del nodo, `F2` y `window.OrbitDebug` fuera de Debug;
-- acceso Docente, solo lectura Estudiante y bloqueo Debug del Editor;
+- acceso Docente, Spider/Bee de solo lectura y Bowerbird personal en Estudiante, y bloqueo Debug;
 - presencia de ambas entradas en el build y no regresión de los tres perfiles.
 
 Ejemplo:
@@ -187,13 +231,20 @@ test("la nueva regla conserva la propiedad esperada", () => {
 - Estudiante y Docente sin Terminal de Cartografía, atajos ni API de depuración.
 - Docente autocompleta al interactuar una lección o misión evaluable, sin completar NPC ni
   lecturas de confirmación.
-- Entrada Editor sin query con ambos docks retractables, Spider y Bee operativos para Docente.
-- Entrada Editor Estudiante navegable y exportable, con mutaciones, Spider y Bee bloqueados.
+- Entrada Editor sin query con ambos docks retractables, Spider, Bee y Bowerbird operativos para
+  Docente.
+- Entrada Editor Estudiante navegable, sin importación/exportación del curso, con Spider/Bee
+  bloqueados y Bowerbird personal operativo.
 - Entrada Editor Debug bloqueada sin crear el modelo editorial.
 - Movimiento de nodo por puntero y teclado, incluida transferencia de zona válida.
 - Conexión directa y relación derivada de solo lectura.
 - Intercambio Bee dentro del mismo anillo y rechazo entre anillos.
+- Apariencia Docente en historial/exportación y apariencia Estudiante fuera de ambos.
 - Deshacer/rehacer, recarga, exportación e importación inválida sin pérdida del borrador válido.
-- Confirmación de que el borrador no cambia la cartografía publicada en ORBIT.
+- Resumen con validación, diff, impacto legible, confirmación ligada al digest y plan invalidado
+  tras una edición.
+- Aplicación desde `npm run editor:author` con las demás pestañas cerradas; comprobar el reset de
+  los tres avances, la conservación de borrador/preferencias, el artefacto fuente y
+  `dist/build-info.json` concordantes.
 
 Consulta `docs/QA_CHECKLIST.md` para una revisión más completa.

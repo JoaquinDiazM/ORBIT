@@ -2,6 +2,7 @@
 
 - Estado: aceptado
 - Fecha: 2026-08-28
+- Ampliado por: [ADR 0008](0008-scoped-appearance-and-local-course-application.md)
 
 ## Contexto
 
@@ -146,3 +147,7 @@ Revisar esta decisión antes de incorporar cualquiera de los siguientes cambios:
 - cambio del formato editorial `v1` o de su almacenamiento primario.
 
 La operación cotidiana se describe en la [Guía de ORBIT Editor](../EDITOR_GUIDE.md). La separación entre grafos continúa regida por [ADR 0002](0002-dual-knowledge-graphs.md) y el estado del estudiante por [ADR 0003](0003-derived-progress-state.md).
+
+ADR 0008 amplía esta frontera para el documento editorial `v2`, las preferencias visuales
+personales y una aplicación local recuperable mediante un helper exclusivo de loopback. No
+introduce publicación remota ni convierte al Editor en un backend.

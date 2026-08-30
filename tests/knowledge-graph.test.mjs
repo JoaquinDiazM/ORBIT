@@ -227,8 +227,11 @@ test("el dataset actual no deriva parejas duplicadas", () => {
     visualizationMode: "total",
   });
 
-  assert.equal(edges.length, 13);
+  assert.equal(edges.length, 14);
   assert.equal(new Set(edges.map((edge) => edge.id)).size, edges.length);
+  assert.ok(
+    edges.some((edge) => edge.id === "transmission-line-bench->smith-chart-station"),
+  );
   assert.ok(
     edges.every(
       (edge) =>
@@ -260,5 +263,8 @@ test("el dataset actual no deriva parejas duplicadas", () => {
     }),
     visualizationMode: "direct",
   });
-  assert.equal(directEdges.length, 7);
+  assert.equal(directEdges.length, 8);
+  assert.ok(
+    directEdges.some((edge) => edge.id === "transmission-line-bench->smith-chart-station"),
+  );
 });

@@ -1,4 +1,5 @@
 import { APP_CONFIG } from "../config.js";
+import { isAreaAppearanceCanvasAnimated } from "../core/area-appearance-canvas.js";
 import { WORLD_CONFIG } from "../data/world.js";
 import { axialToPixel, getWorldBounds, pointInHex } from "../core/hex.js";
 import { createWorldIndex, getLocationWorldPosition } from "../core/world-graph.js";
@@ -9,6 +10,11 @@ const POINTER_NODE_RADIUS_PX = 27;
 const EDITOR_FIT_PADDING = 120;
 const EDITOR_FIT_MAX_ZOOM = 0.9;
 const EDITOR_NAVIGATION_PADDING = WORLD_CONFIG.hexSize * 2;
+
+export function canUseEditorTool(tool, { readOnly = false } = {}) {
+  if (!["spider", "bee", "bowerbird"].includes(tool)) return false;
+  return !readOnly || tool === "bowerbird";
+}
 
 export function calculateEditorFitZoom(bounds, viewportWidth, viewportHeight) {
   const width = Math.max(1, bounds.maxX - bounds.minX);
@@ -48,13 +54,14 @@ function failureMessage(result) {
 }
 
 export class EditorApp {
-  constructor({ canvas, model, renderer }) {
+  constructor({ canvas, model, renderer, bowerbird = null }) {
     this.canvas = canvas;
     this.model = model;
     this.renderer = renderer;
+    this.bowerbird = bowerbird;
     this.readOnly = Boolean(model.getSnapshot().readOnly);
     this.listeners = new Set();
-    this.activeTool = "spider";
+    this.activeTool = this.readOnly ? "bowerbird" : "spider";
     this.spiderMode = "move";
     this.selectedLocationId = null;
     this.selectedAreaId = null;
@@ -64,7 +71,7 @@ export class EditorApp {
     this.frameRequest = null;
     this.destroyed = false;
 
-    const snapshot = this.model.getSnapshot();
+    const snapshot = this.#snapshot();
     this.selectedLocationId =
       snapshot.locations.find((location) => location.id === "vector-workshop")?.id ??
       snapshot.locations[0]?.id ??
@@ -109,6 +116,14 @@ export class EditorApp {
       if (this.gesture) this.cancelGesture();
     };
     this.onContextMenu = (event) => event.preventDefault();
+    this.motionQuery = typeof window.matchMedia === "function"
+      ? window.matchMedia("(prefers-reduced-motion: reduce)")
+      : null;
+    this.reducedMotion = Boolean(this.motionQuery?.matches);
+    this.onMotionPreferenceChanged = (event) => {
+      this.reducedMotion = Boolean(event.matches);
+      this.requestRender();
+    };
 
     window.addEventListener("resize", this.onResize);
     this.canvas.addEventListener("wheel", this.onWheel, { passive: false });
@@ -119,6 +134,8 @@ export class EditorApp {
     this.canvas.addEventListener("lostpointercapture", this.onLostPointerCapture);
     this.canvas.addEventListener("contextmenu", this.onContextMenu);
     this.unsubscribeModel = this.model.subscribe(() => this.requestRender());
+    this.unsubscribeBowerbird = this.bowerbird?.subscribe(() => this.requestRender());
+    this.motionQuery?.addEventListener?.("change", this.onMotionPreferenceChanged);
   }
 
   start() {
@@ -131,6 +148,8 @@ export class EditorApp {
     this.destroyed = true;
     if (this.frameRequest !== null) cancelAnimationFrame(this.frameRequest);
     this.unsubscribeModel?.();
+    this.unsubscribeBowerbird?.();
+    this.motionQuery?.removeEventListener?.("change", this.onMotionPreferenceChanged);
     window.removeEventListener("resize", this.onResize);
     this.canvas.removeEventListener("wheel", this.onWheel);
     this.canvas.removeEventListener("pointerdown", this.onPointerDown);
@@ -152,7 +171,7 @@ export class EditorApp {
   }
 
   getState() {
-    const snapshot = this.model.getSnapshot();
+    const snapshot = this.#snapshot();
     return {
       activeTool: this.activeTool,
       spiderMode: this.spiderMode,
@@ -163,16 +182,17 @@ export class EditorApp {
       gesture: this.gesture?.type ?? null,
       edges: structuredClone(snapshot.treeTwoTopology ?? []),
       readOnly: this.readOnly,
+      appearanceScope: this.bowerbird?.getSnapshot().scope ?? "course",
     };
   }
 
   setActiveTool(tool) {
-    if (this.readOnly) return false;
-    if (!["spider", "bee"].includes(tool) || tool === this.activeTool) return;
+    if (!canUseEditorTool(tool, { readOnly: this.readOnly }) || tool === this.activeTool) return false;
     this.cancelGesture();
     this.activeTool = tool;
     this.#emit("tool-changed");
     this.requestRender();
+    return true;
   }
 
   setSpiderMode(mode) {
@@ -196,7 +216,7 @@ export class EditorApp {
   }
 
   selectArea(areaId) {
-    const exists = this.model.getSnapshot().areas.some((area) => area.id === areaId);
+    const exists = this.#snapshot().areas.some((area) => area.id === areaId);
     if (!exists || areaId === this.selectedAreaId) return false;
     this.selectedAreaId = areaId;
     this.#emit("area-selected");
@@ -205,7 +225,7 @@ export class EditorApp {
   }
 
   fitWorld({ announce = true } = {}) {
-    const snapshot = this.model.getSnapshot();
+    const snapshot = this.#snapshot();
     const bounds = getWorldBounds(snapshot.areas, WORLD_CONFIG.hexSize, EDITOR_FIT_PADDING);
     const zoom = calculateEditorFitZoom(bounds, this.renderer.width, this.renderer.height);
     this.camera.setZoom(zoom);
@@ -234,14 +254,14 @@ export class EditorApp {
 
   requestRender() {
     if (this.destroyed || this.frameRequest !== null) return;
-    this.frameRequest = requestAnimationFrame(() => {
+    this.frameRequest = requestAnimationFrame((timestamp) => {
       this.frameRequest = null;
-      this.#render();
+      this.#render(timestamp);
     });
   }
 
-  #render() {
-    const snapshot = this.model.getSnapshot();
+  #render(timestamp = 0) {
+    const snapshot = this.#snapshot();
     this.renderer.render({
       camera: this.camera,
       areas: snapshot.areas,
@@ -252,6 +272,8 @@ export class EditorApp {
       selectedAreaId: this.selectedAreaId,
       hoveredLocationId: this.hoveredLocationId,
       hoveredAreaId: this.hoveredAreaId,
+      timeSeconds: this.reducedMotion ? 0 : timestamp / 1000,
+      reducedMotion: this.reducedMotion,
       dragPreview: this.gesture?.type === "location" ? this.gesture.preview : null,
       connectionPreview: this.gesture?.type === "connection"
         ? {
@@ -264,9 +286,24 @@ export class EditorApp {
       beeTargetAreaId: this.gesture?.type === "area" ? this.gesture.targetId : null,
       beeTargetValid: this.gesture?.type === "area" ? this.gesture.targetValid : false,
     });
+    if (
+      this.activeTool === "bowerbird"
+      && !this.reducedMotion
+      && snapshot.areas.some((area) =>
+        isAreaAppearanceCanvasAnimated(area, area.appearance))
+    ) {
+      this.requestRender();
+    }
   }
 
-  #scene(snapshot = this.model.getSnapshot()) {
+  #snapshot() {
+    const snapshot = this.model.getSnapshot();
+    const appearanceSnapshot = this.bowerbird?.getSnapshot();
+    if (appearanceSnapshot) snapshot.areas = appearanceSnapshot.areas;
+    return snapshot;
+  }
+
+  #scene(snapshot = this.#snapshot()) {
     const worldIndex = createWorldIndex(snapshot.areas);
     const positions = new Map(
       snapshot.locations.map((location) => [
@@ -318,7 +355,19 @@ export class EditorApp {
     this.canvas.focus({ preventScroll: true });
     const { screen, world } = this.#worldPoint(event);
     const scene = this.#scene();
-    const forcePan = this.readOnly || event.button === 1;
+    const forcePan = (this.readOnly && this.activeTool !== "bowerbird") || event.button === 1;
+
+    if (!forcePan && this.activeTool === "bowerbird") {
+      const area = this.#areaAt(world, scene.snapshot);
+      if (area) {
+        this.selectArea(area.id);
+        this.#emit("bowerbird-area-selected", {
+          message: `Bowerbird seleccionó ${area.shortTitle ?? area.title}.`,
+          level: "info",
+        });
+        return;
+      }
+    }
 
     if (!forcePan && this.activeTool === "spider") {
       const location = this.#locationAt(world, scene, {
@@ -389,7 +438,9 @@ export class EditorApp {
     const hoveredLocation = this.activeTool === "spider"
       ? this.#locationAt(world, scene, { connectableOnly: this.spiderMode === "connect" })
       : null;
-    const hoveredArea = this.activeTool === "bee" ? this.#areaAt(world, scene.snapshot) : null;
+    const hoveredArea = ["bee", "bowerbird"].includes(this.activeTool)
+      ? this.#areaAt(world, scene.snapshot)
+      : null;
     const hoverChanged =
       hoveredLocation?.id !== this.hoveredLocationId || hoveredArea?.id !== this.hoveredAreaId;
     this.hoveredLocationId = hoveredLocation?.id ?? null;

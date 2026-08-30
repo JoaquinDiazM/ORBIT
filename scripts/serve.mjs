@@ -1,16 +1,19 @@
-import { createReadStream, existsSync, statSync } from "node:fs";
+import { createReadStream, existsSync, realpathSync, statSync } from "node:fs";
 import { createServer } from "node:http";
-import { extname, join, normalize, resolve } from "node:path";
+import { extname, isAbsolute, relative, resolve, sep } from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
+
+import {
+  sendRuntimeEntryUnavailable,
+  shouldBlockRuntimeEntry,
+} from "./repository-runtime-gate.mjs";
+
+export const ORBIT_DEV_CANONICAL_PORT = 4173;
+export const ORBIT_DEV_CANONICAL_ORIGIN =
+  `http://127.0.0.1:${ORBIT_DEV_CANONICAL_PORT}`;
 
 const root = resolve(process.cwd());
-const requestedPort = Number(process.env.PORT ?? process.argv[2] ?? 4173);
-const port =
-  Number.isInteger(requestedPort) && requestedPort > 0 && requestedPort <= 65_535
-    ? requestedPort
-    : 4173;
-const hasExplicitPort = process.env.PORT !== undefined || process.argv[2] !== undefined;
-const fallbackAttempts = hasExplicitPort ? 0 : 10;
 
 const mimeTypes = new Map([
   [".html", "text/html; charset=utf-8"],
@@ -32,61 +35,152 @@ const mimeTypes = new Map([
   [".ttf", "font/ttf"],
 ]);
 
-function safeFilePath(requestUrl) {
-  const parsed = new URL(requestUrl, "http://localhost");
-  const decodedPath = decodeURIComponent(parsed.pathname);
-  const relative = normalize(decodedPath).replace(/^([/\\])+/, "");
-  const candidate = resolve(join(root, relative || "index.html"));
-  if (!candidate.startsWith(root)) return null;
-  if (existsSync(candidate) && statSync(candidate).isDirectory()) {
-    return join(candidate, "index.html");
+function isAllowedDevResource(relativePath) {
+  if (["index.html", "editor.html"].includes(relativePath)) return true;
+  if (/^src\/.+\.(?:css|js|json)$/i.test(relativePath)) return true;
+  if (/^public\/.+\.(?:json|ogg|png|jpe?g|svg|webp|webmanifest|woff2?|ttf)$/i.test(relativePath)) {
+    return true;
   }
-  return candidate;
+  return /^node_modules\/katex\/dist\/.+\.(?:css|js|mjs|woff2?|ttf)$/i.test(relativePath);
 }
 
-function handleRequest(request, response) {
-  if (!request.url || !["GET", "HEAD"].includes(request.method ?? "")) {
-    response.writeHead(405, { "content-type": "text/plain; charset=utf-8" });
-    response.end("Método no permitido");
-    return;
+export function resolveOrbitDevStaticPath(requestUrl, { projectRoot = root } = {}) {
+  let parsed;
+  try {
+    parsed = new URL(requestUrl, ORBIT_DEV_CANONICAL_ORIGIN);
+  } catch {
+    return null;
   }
+  let decodedPath;
+  try {
+    decodedPath = decodeURIComponent(parsed.pathname).replaceAll("\\", "/");
+  } catch {
+    return null;
+  }
+  const requested = decodedPath.replace(/^\/+/, "") || "index.html";
+  const lexicalRoot = resolve(projectRoot);
+  const candidate = resolve(lexicalRoot, requested);
+  const containment = relative(lexicalRoot, candidate);
+  if (
+    !containment
+    || containment === ".."
+    || containment.startsWith(`..${sep}`)
+    || isAbsolute(containment)
+  ) {
+    return null;
+  }
+  const portable = containment.split(sep).join("/");
+  if (!isAllowedDevResource(portable)) return null;
+  if (!existsSync(candidate) || !statSync(candidate).isFile()) return null;
+  let canonicalRoot;
+  let canonicalCandidate;
+  try {
+    canonicalRoot = realpathSync(lexicalRoot);
+    canonicalCandidate = realpathSync(candidate);
+  } catch {
+    return null;
+  }
+  const realContainment = relative(canonicalRoot, canonicalCandidate);
+  if (
+    !realContainment
+    || realContainment === ".."
+    || realContainment.startsWith(`..${sep}`)
+    || isAbsolute(realContainment)
+    || !isAllowedDevResource(realContainment.split(sep).join("/"))
+  ) {
+    return null;
+  }
+  return canonicalCandidate;
+}
 
-  const filePath = safeFilePath(request.url);
-  if (!filePath || !existsSync(filePath) || !statSync(filePath).isFile()) {
-    response.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
-    response.end("Recurso no encontrado");
-    return;
+export function isCanonicalOrbitDevRequest(request, {
+  canonicalOrigin = ORBIT_DEV_CANONICAL_ORIGIN,
+} = {}) {
+  const canonical = new URL(canonicalOrigin);
+  if (request.headers?.host !== canonical.host) return false;
+  try {
+    const requestTarget = request.url ?? "";
+    const parsed = new URL(requestTarget, canonical);
+    const absoluteForm = /^[a-z][a-z0-9+.-]*:\/\//i.test(requestTarget);
+    if (absoluteForm) {
+      return parsed.origin === canonical.origin && !parsed.username && !parsed.password;
+    }
+    if (!requestTarget.startsWith("/") || requestTarget.startsWith("//")) return false;
+    return !decodeURIComponent(parsed.pathname).replaceAll("\\", "/").startsWith("//");
+  } catch {
+    return false;
   }
+}
 
-  const extension = extname(filePath).toLowerCase();
-  response.writeHead(200, {
-    "content-type": mimeTypes.get(extension) ?? "application/octet-stream",
-    "cache-control": "no-store",
-    "x-content-type-options": "nosniff",
-  });
-  if (request.method === "HEAD") {
-    response.end();
-    return;
+export function createOrbitDevRequestHandler({ projectRoot = root } = {}) {
+  return function handleRequest(request, response) {
+    if (!isCanonicalOrbitDevRequest(request)) {
+      response.writeHead(421, {
+        "content-type": "text/plain; charset=utf-8",
+        "cache-control": "no-store",
+      });
+      response.end("Autoridad local no permitida");
+      return;
+    }
+    if (!request.url || !["GET", "HEAD"].includes(request.method ?? "")) {
+      response.writeHead(405, { "content-type": "text/plain; charset=utf-8" });
+      response.end("Método no permitido");
+      return;
+    }
+
+    if (shouldBlockRuntimeEntry(projectRoot, request.url)) {
+      sendRuntimeEntryUnavailable(response);
+      return;
+    }
+
+    const filePath = resolveOrbitDevStaticPath(request.url, { projectRoot });
+    if (!filePath || !existsSync(filePath) || !statSync(filePath).isFile()) {
+      response.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
+      response.end("Recurso no encontrado");
+      return;
+    }
+
+    const extension = extname(filePath).toLowerCase();
+    response.writeHead(200, {
+      "content-type": mimeTypes.get(extension) ?? "application/octet-stream",
+      "cache-control": "no-store",
+      "x-content-type-options": "nosniff",
+    });
+    if (request.method === "HEAD") {
+      response.end();
+      return;
+    }
+    createReadStream(filePath).pipe(response);
+  };
+}
+
+export function resolveOrbitDevCliPort({
+  environment = process.env,
+  argv = process.argv,
+} = {}) {
+  const explicit = environment?.PORT ?? argv?.[2];
+  if (
+    explicit !== undefined
+    && String(explicit).trim() !== String(ORBIT_DEV_CANONICAL_PORT)
+  ) {
+    throw new Error(
+      `No se admite cambiar el origen local de ORBIT: usa ${ORBIT_DEV_CANONICAL_ORIGIN}. Web Locks y localStorage no se comparten entre puertos.`,
+    );
   }
-  createReadStream(filePath).pipe(response);
+  return ORBIT_DEV_CANONICAL_PORT;
 }
 
 let activeServer = null;
 
-function listen(candidatePort, attemptsRemaining) {
-  const candidateServer = createServer(handleRequest);
+function listen(candidatePort) {
+  const candidateServer = createServer(createOrbitDevRequestHandler());
 
   candidateServer.once("error", (error) => {
-    if (error.code === "EADDRINUSE" && attemptsRemaining > 0 && candidatePort < 65_535) {
-      console.warn(`ATENCIÓN: el puerto ${candidatePort} está ocupado por otro proceso.`);
-      console.warn(`El servidor nuevo se abrirá en ${candidatePort + 1}; usa la URL que aparecerá abajo.`);
-      listen(candidatePort + 1, attemptsRemaining - 1);
-      return;
-    }
-
     if (error.code === "EADDRINUSE") {
-      console.error(`No se pudo iniciar ORBIT: el puerto ${candidatePort} ya está ocupado.`);
-      console.error("Detén el servidor anterior con Ctrl+C o elige otro puerto con $env:PORT.");
+      console.error(`No se pudo iniciar ORBIT: ${ORBIT_DEV_CANONICAL_ORIGIN} ya está ocupado.`);
+      console.error(
+        "Detén con Ctrl+C el npm run dev/editor:author anterior; no abras otro puerto porque separaría locks y progreso.",
+      );
     } else {
       console.error("No se pudo iniciar el servidor local de ORBIT.", error);
     }
@@ -105,8 +199,6 @@ function listen(candidatePort, attemptsRemaining) {
   });
 }
 
-listen(port, fallbackAttempts);
-
 function shutdown() {
   if (!activeServer?.listening) {
     process.exit(0);
@@ -115,5 +207,15 @@ function shutdown() {
   activeServer.close(() => process.exit(0));
 }
 
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
+const invokedDirectly = process.argv[1]
+  && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url));
+if (invokedDirectly) {
+  try {
+    listen(resolveOrbitDevCliPort());
+    process.on("SIGINT", shutdown);
+    process.on("SIGTERM", shutdown);
+  } catch (error) {
+    console.error(error?.message ?? String(error));
+    process.exitCode = 1;
+  }
+}

@@ -67,11 +67,14 @@ test("el shell expone todos los menús secundarios de ORBIT", async () => {
     "orbit-menu",
     "lesson-panel",
     "knowledge-panel",
+    "gadgets-panel",
+    "gadgets-body",
     "visual-panel",
     "reference-panel",
     "sound-panel",
     "help-panel",
     "open-knowledge",
+    "open-gadgets",
     "open-settings",
     "settings-tools",
     "open-visual",
@@ -121,6 +124,8 @@ test("el shell expone todos los menús secundarios de ORBIT", async () => {
     assert.match(settingsGroup, new RegExp(`id=["']${childId}["']`));
   }
   assert.doesNotMatch(index, /<kbd>[HM]<\/kbd>/);
+  assert.doesNotMatch(index, /<kbd>G<\/kbd>/);
+  assert.doesNotMatch(index, /Lente de campo/i);
 });
 
 test("la guardia convierte un fallo de módulo en un diagnóstico visible", async () => {

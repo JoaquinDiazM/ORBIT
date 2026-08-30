@@ -13,7 +13,9 @@ npm install
 npm run dev
 ```
 
-Abre la URL exacta que imprime la terminal. Normalmente es `http://127.0.0.1:4173/`; si ese puerto ya está ocupado, el servidor selecciona el siguiente disponible. No añadas `editor.html` si deseas recorrer el curso.
+Abre `http://127.0.0.1:4173/`. `npm run dev` usa exclusivamente ese origen y no busca otro
+puerto: si está ocupado, detén el proceso anterior y vuelve a iniciar el comando. No añadas
+`editor.html` si deseas recorrer el curso.
 
 `npm install` se ejecuta una vez para disponer del render matemático local.
 
@@ -27,6 +29,9 @@ pueden interactuarse en los otros dos perfiles. Son modos locales, no cuentas au
 ## Objetivo de la demostración
 
 Recorre el mundo, interactúa con lugares académicos y adquiere conceptos. Cada concepto principal abre una región vecina; las recompensas opcionales revelan transportes, gadgets y personajes dentro de regiones ya abiertas.
+
+La edición vigente materializa 19 zonas y 29 lugares. La Estación de la Carta de Smith es
+opcional y no cambia el camino necesario para completar la demostración.
 
 El contenido actual es una demostración de mecánicas y estructura. No constituye todavía un curso completo.
 
@@ -81,6 +86,7 @@ Las flechas siempre apuntan desde el lugar que aporta el prerrequisito hacia el 
 Al interactuar con un lugar, su ventana principal aparece a la derecha. El menú izquierdo puede mantener abierta a la vez una única ventana secundaria:
 
 - **Árboles**;
+- **Gadgets**;
 - **Símbolos**;
 - **Constantes**;
 - **Formulario**;
@@ -95,10 +101,19 @@ Las lecciones extensas se dividen en etapas. Una lectura habilita **Continuar**;
 
 ## Gadgets y transportes
 
-- `G`: activa o desactiva la Lente de campo después de adquirirla.
-- `T`: alterna entre los transportes disponibles.
+- Abre **Gadgets** desde el menú lateral para usar la calculadora científica, disponible desde el
+  inicio, y las herramientas que hayas adquirido.
+- Completar el **Depósito del Explorador de Campos** habilita un explorador cartesiano 2D en ese
+  panel. Puedes escribir las componentes `Fx(x,y)` y `Fy(x,y)` y ajustar el dominio sin ejecutar
+  JavaScript; los parámetros son efímeros y no modifican tu progreso.
+- Completar la **Estación de la Carta de Smith**, un lugar opcional posterior al Banco de Líneas
+  de Transmisión, revela el esqueleto estático de la carta. Esta primera versión sirve como apoyo
+  visual y no calcula todavía adaptaciones de impedancia.
+- `T` alterna entre los transportes disponibles.
 
-Los transportes cambian la velocidad de exploración, no los prerrequisitos académicos.
+Los transportes cambian la velocidad de exploración, no los prerrequisitos académicos. La
+calculadora no necesita recompensa; las otras herramientas muestran su condición de desbloqueo
+en el mismo panel y nunca son la única señal de una concesión.
 
 ## Audio y ecuaciones
 
@@ -123,22 +138,22 @@ El progreso se guarda automáticamente y por separado para cada perfil.
 Estudiante, Docente y Debug:
 
 ```text
-http://127.0.0.1:<puerto>/?profile=student
-http://127.0.0.1:<puerto>/?profile=teacher
-http://127.0.0.1:<puerto>/?debug=1&profile=debug
+http://127.0.0.1:4173/?profile=student
+http://127.0.0.1:4173/?profile=teacher
+http://127.0.0.1:4173/?debug=1&profile=debug
 ```
 
-Usa en los tres casos el puerto indicado por la ejecución actual de `npm run dev`.
+Usa en los tres casos el mismo origen canónico de `npm run dev`.
 
 Cambiar el selector recarga el perfil elegido, pero no copia logros ni preferencias. Cualquier
 nombre desconocido vuelve a Estudiante; no se crean perfiles arbitrarios. El progreso de un
 navegador no se sincroniza automáticamente con otro equipo.
 
-El formato vigente sigue siendo `v3`. Al abrir Estudiante, ORBIT consulta el antiguo perfil
-`normal`, lo sanea como `student` y lo guarda bajo `orbit-progress:v3:student` sin perder
-logros compatibles. Las migraciones `v1`/`v2` y las claves históricas `aea-progress` siguen
-admitidas; transforman los ajustes antiguos en dos volúmenes independientes e inician la
-visualización del Árbol II en **Oculta**.
+El formato vigente es `v4`. Cada guardado identifica el curso y la revisión exacta que lo
+produjo, además del perfil. Al abrir Estudiante, ORBIT puede consultar el antiguo perfil `normal`
+y las claves `aea-progress`, pero solo conserva esos logros cuando la edición activa declara que
+son compatibles. Una edición aplicada con reinicio total crea avances nuevos para Estudiante,
+Docente y Debug; un progreso de otra revisión no se reactiva de forma silenciosa.
 
 ## Exportar e importar progreso
 
@@ -149,27 +164,41 @@ Cambia a Debug, abre el debugger con `F2` y usa:
 
 Conserva copias antes de probar cambios incompatibles en el contenido.
 
-Este JSON pertenece al progreso `v3` de ORBIT. No es compatible ni intercambiable con un documento `orbit-editor-project` `v1`: el primero contiene logros y preferencias; el segundo contiene cartografía y conexiones directas.
+Este JSON pertenece al progreso `v4` de ORBIT. No es compatible ni intercambiable con un
+documento `orbit-editor-project` `v2`: el primero contiene logros y preferencias del perfil; el
+segundo contiene cartografía, conexiones directas y apariencias publicables.
 
 ## Relación con ORBIT Editor
 
 ORBIT Editor se abre en:
 
 ```text
-http://127.0.0.1:<puerto>/editor.html
+http://127.0.0.1:4173/editor.html
 ```
 
-Sin query, su propósito es que Docente prepare posiciones de nodos, dependencias directas y
-ordenamiento de zonas con **Spider** y **Bee**. Con `?profile=student` permite consultar,
-recorrer, encuadrar y exportar el mapa, pero bloquea ambas herramientas y cualquier mutación con
-un mensaje. Con `?profile=debug` bloquea la entrada antes de crear el modelo editorial.
+Sin query, Docente prepara posiciones de nodos, dependencias directas, ordenamiento de zonas y
+apariencias con **Spider**, **Bee** y **Bowerbird**. Con `?profile=student` permite consultar,
+recorrer, encuadrar, exportar y guardar preferencias Bowerbird personales, pero mantiene Spider,
+Bee y el documento Docente en solo lectura. Con `?profile=debug` bloquea la entrada antes de crear
+el modelo editorial.
 
-El borrador editorial se autoguarda bajo `orbit-editor:v1:electromagnetism-applied`. Es uno solo:
-el perfil no crea borradores propios ni mezcla este documento con los tres avances de ORBIT.
-Exportarlo no cambia este mapa ni el progreso de ningún estudiante. Para que una edición llegue
-a ORBIT debe revisarse, aplicarse manualmente al repositorio, superar validación y pruebas,
-construirse y desplegarse. Como la query se puede editar, `editor.html` no ofrece autenticación
-ni control de acceso real.
+El documento Docente se autoguarda bajo `orbit-editor:v2:electromagnetism-applied`; las
+preferencias Bowerbird Estudiante usan
+`orbit-bowerbird:v1:electromagnetism-applied:student`. Ninguna rama se mezcla con los tres
+avances. En ORBIT, una preferencia personal tiene prioridad sobre la apariencia publicada, pero
+una zona bloqueada continúa neutral hasta que se abre y los motivos animados respetan la
+reducción de movimiento del sistema.
+
+Exportar no cambia el curso. El perfil Docente puede iniciar el helper local con
+`npm run editor:author` y usar **Resumen** para validar, revisar el diff y el avance que se
+reiniciará, confirmar y aplicar. El reinicio elimina progreso, posición y ajustes de los tres
+perfiles, pero conserva tanto el documento Docente como las preferencias Bowerbird Estudiante.
+Antes de iniciar el helper, detén el servidor de desarrollo: el mantenimiento usa siempre
+`http://127.0.0.1:4173` para compartir el mismo almacenamiento y los mismos bloqueos. Si una
+interrupción deja una aplicación pendiente, ORBIT Estudiante se bloquea hasta resolverla desde
+Editor.
+Aplicar localmente construye `dist/`; no crea commits, no hace push y no despliega el sitio. Como
+la query se puede editar, `editor.html` no ofrece autenticación ni control de acceso real.
 
 ## Accesibilidad básica
 

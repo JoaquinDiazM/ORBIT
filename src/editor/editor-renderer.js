@@ -1,9 +1,13 @@
 import { axialToPixel, hexCorners, pointInHex } from "../core/hex.js";
+import { drawAreaAppearanceCanvas } from "../core/area-appearance-canvas.js";
+import {
+  getAreaAppearanceAnimationTime,
+  resolveAreaAppearance,
+} from "../core/area-appearance.js";
 import { WORLD_CONFIG } from "../data/world.js";
 
 const TWO_PI = Math.PI * 2;
 const DEFAULT_LOCATION_HIT_RADIUS_PX = 28;
-const AREA_GAP = 4;
 const LOCATION_RADIUS_PX = 18;
 const EDITABLE_EDGE_COLOR = "rgba(255, 215, 112, 0.96)";
 const DERIVED_EDGE_COLOR = "rgba(107, 222, 255, 0.82)";
@@ -235,10 +239,13 @@ export class EditorRenderer {
     selectedLocationId = null,
     selectedAreaId = null,
     hoveredLocationId = null,
+    hoveredAreaId = null,
     dragPreview = null,
     connectionPreview = null,
     beeTargetAreaId = null,
     beeTargetValid = false,
+    timeSeconds = 0,
+    reducedMotion = false,
   } = {}) {
     this.resize();
     const context = this.context;
@@ -272,7 +279,14 @@ export class EditorRenderer {
     context.scale(zoom, zoom);
     context.translate(-finite(camera.x), -finite(camera.y));
 
-    this.#drawAreas(safeAreas, centerByAreaId, zoom, activeTool);
+    this.#drawAreas(
+      safeAreas,
+      centerByAreaId,
+      zoom,
+      activeTool,
+      finite(timeSeconds),
+      Boolean(reducedMotion),
+    );
     this.#drawRingFrames(safeAreas, centerByAreaId, zoom);
     this.#drawEdges(safeEdges, positionByLocationId, zoom);
 
@@ -283,6 +297,15 @@ export class EditorRenderer {
         beeTargetAreaId,
         beeTargetValid,
         dragPreview,
+        zoom,
+      });
+    }
+
+    if (String(activeTool).toLowerCase() === "bowerbird") {
+      this.#drawBowerbirdOverlay({
+        centerByAreaId,
+        selectedAreaId,
+        hoveredAreaId,
         zoom,
       });
     }
@@ -423,7 +446,7 @@ export class EditorRenderer {
     context.restore();
   }
 
-  #drawAreas(areas, centerByAreaId, zoom, activeTool) {
+  #drawAreas(areas, centerByAreaId, zoom, activeTool, timeSeconds, reducedMotion) {
     const context = this.context;
     const lineScale = 1 / zoom;
     const showCoordinates = String(activeTool).toLowerCase() === "bee";
@@ -431,41 +454,18 @@ export class EditorRenderer {
     for (const area of areas) {
       const center = centerByAreaId.get(area.id);
       if (!center) continue;
-      const corners = hexCorners(center.x, center.y, WORLD_CONFIG.hexSize - AREA_GAP);
+      const appearance = resolveAreaAppearance(area, area.appearance);
+
+      drawAreaAppearanceCanvas(context, {
+        area,
+        appearance,
+        center,
+        zoom,
+        timeSeconds: getAreaAppearanceAnimationTime(timeSeconds, { reducedMotion }),
+        hexSize: WORLD_CONFIG.hexSize,
+      });
 
       context.save();
-      polygonPath(context, corners);
-      const fill = context.createRadialGradient(
-        center.x - 55,
-        center.y - 68,
-        18,
-        center.x,
-        center.y,
-        WORLD_CONFIG.hexSize * 1.06,
-      );
-      fill.addColorStop(0, withAlpha(area.accent, 0.3));
-      fill.addColorStop(0.5, withAlpha(area.color, 0.76));
-      fill.addColorStop(1, withAlpha(area.color, 0.45));
-      context.fillStyle = fill;
-      context.fill();
-      context.clip();
-
-      context.strokeStyle = withAlpha(area.accent, 0.12);
-      context.lineWidth = 1.2 * lineScale;
-      for (let offset = -340; offset <= 340; offset += 54) {
-        context.beginPath();
-        context.moveTo(center.x - 300 + offset, center.y - 260);
-        context.lineTo(center.x + 300 + offset, center.y + 260);
-        context.stroke();
-      }
-      context.restore();
-
-      context.save();
-      polygonPath(context, corners);
-      context.strokeStyle = withAlpha(area.accent, 0.62);
-      context.lineWidth = 2.1 * lineScale;
-      context.stroke();
-
       context.textAlign = "center";
       context.textBaseline = "middle";
       context.fillStyle = "rgba(240, 250, 255, 0.88)";
@@ -484,6 +484,25 @@ export class EditorRenderer {
           center.y + WORLD_CONFIG.hexSize * 0.69,
         );
       }
+      context.restore();
+    }
+  }
+
+  #drawBowerbirdOverlay({ centerByAreaId, selectedAreaId, hoveredAreaId, zoom }) {
+    const context = this.context;
+    const lineScale = 1 / zoom;
+    for (const [areaId, alpha, inset] of [
+      [hoveredAreaId, 0.62, 17],
+      [selectedAreaId, 0.98, 10],
+    ]) {
+      const center = centerByAreaId.get(areaId);
+      if (!center) continue;
+      context.save();
+      polygonPath(context, hexCorners(center.x, center.y, WORLD_CONFIG.hexSize - inset));
+      context.strokeStyle = `rgba(255, 231, 150, ${alpha})`;
+      context.lineWidth = (areaId === selectedAreaId ? 3.2 : 1.8) * lineScale;
+      context.setLineDash(areaId === selectedAreaId ? [] : [8 * lineScale, 6 * lineScale]);
+      context.stroke();
       context.restore();
     }
   }

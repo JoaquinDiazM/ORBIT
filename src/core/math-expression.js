@@ -32,7 +32,25 @@ const DEFAULT_CARTESIAN_TEST_POINTS = Object.freeze([
   Object.freeze({ x: -2, y: 1.8, z: 0.4 }),
 ]);
 
-const SUPPORTED_FUNCTIONS = new Set(["sin", "cos", "sqrt"]);
+const DEFAULT_SUPPORTED_FUNCTIONS = new Set(["sin", "cos", "sqrt"]);
+export const SCIENTIFIC_MATH_FUNCTIONS = Object.freeze([
+  "sin",
+  "cos",
+  "tan",
+  "asin",
+  "acos",
+  "atan",
+  "sqrt",
+  "abs",
+  "ln",
+  "log",
+  "exp",
+]);
+export const SCIENTIFIC_MATH_CONSTANTS = Object.freeze({
+  pi: Math.PI,
+  e: Math.E,
+});
+const IMPLEMENTED_FUNCTIONS = new Set(SCIENTIFIC_MATH_FUNCTIONS);
 const POLICY_KINDS = new Set([
   "numeric-equivalent",
   "expression-equivalent",
@@ -117,12 +135,12 @@ function readParseOptions(options = {}) {
   );
   const functions = readNameList(
     options.functions ?? options.allowedFunctions,
-    SUPPORTED_FUNCTIONS,
+    DEFAULT_SUPPORTED_FUNCTIONS,
     "functions",
   );
 
   for (const functionName of functions) {
-    if (!SUPPORTED_FUNCTIONS.has(functionName)) {
+    if (!IMPLEMENTED_FUNCTIONS.has(functionName)) {
       throw new TypeError(`La función ${functionName} no está implementada por la política v1.`);
     }
   }
@@ -202,6 +220,7 @@ export function normalizeMathExpression(input, options = {}) {
     .replaceAll("\\varphi", "phi")
     .replaceAll("\\phi", "phi")
     .replace(/[φϕ]/g, "phi")
+    .replaceAll("π", "pi")
     .replace(/(\d),(\d)/g, "$1.$2");
   normalized = normalizeLimitedSqrt(normalized, limits);
 
@@ -295,7 +314,7 @@ function resolveIdentifiers(tokens, parseOptions) {
       resolved.push({ ...token, type: "function" });
       continue;
     }
-    if (SUPPORTED_FUNCTIONS.has(token.value)) {
+    if (IMPLEMENTED_FUNCTIONS.has(token.value)) {
       fail("function-not-allowed", `La función ${token.value} no está autorizada.`, token.position);
     }
     if (symbols.has(token.value)) {
@@ -583,6 +602,72 @@ function evaluateDual(node, scope, variableIndex, dimension, budget) {
         for (let index = 0; index < dimension; index += 1) {
           derivatives[index] = argument.derivatives[index] / (2 * value);
         }
+      }
+      return dual(value, derivatives);
+    }
+    if (node.name === "tan") {
+      const cosine = Math.cos(argument.value);
+      if (Math.abs(cosine) < 1e-12) {
+        fail("invalid-domain", "La tangente no está definida en este punto.");
+      }
+      const factor = 1 / (cosine * cosine);
+      for (let index = 0; index < dimension; index += 1) {
+        derivatives[index] = factor * argument.derivatives[index];
+      }
+      return dual(Math.tan(argument.value), derivatives);
+    }
+    if (node.name === "asin" || node.name === "acos") {
+      if (
+        argument.value < -1
+        || argument.value > 1
+        || (dimension > 0 && Math.abs(argument.value) === 1)
+      ) {
+        fail("invalid-domain", `La función ${node.name} no está definida en este punto.`);
+      }
+      const sign = node.name === "asin" ? 1 : -1;
+      const factor = sign / Math.sqrt(1 - argument.value * argument.value);
+      for (let index = 0; index < dimension; index += 1) {
+        derivatives[index] = factor * argument.derivatives[index];
+      }
+      return dual(
+        node.name === "asin" ? Math.asin(argument.value) : Math.acos(argument.value),
+        derivatives,
+      );
+    }
+    if (node.name === "atan") {
+      const factor = 1 / (1 + argument.value * argument.value);
+      for (let index = 0; index < dimension; index += 1) {
+        derivatives[index] = factor * argument.derivatives[index];
+      }
+      return dual(Math.atan(argument.value), derivatives);
+    }
+    if (node.name === "abs") {
+      if (dimension > 0 && argument.value === 0) {
+        fail("invalid-domain", "El valor absoluto no es diferenciable en cero.");
+      }
+      const factor = Math.sign(argument.value);
+      for (let index = 0; index < dimension; index += 1) {
+        derivatives[index] = factor * argument.derivatives[index];
+      }
+      return dual(Math.abs(argument.value), derivatives);
+    }
+    if (node.name === "ln" || node.name === "log") {
+      if (argument.value <= 0) {
+        fail("invalid-domain", `La función ${node.name} requiere un argumento positivo.`);
+      }
+      const divisor = node.name === "ln" ? argument.value : argument.value * Math.LN10;
+      for (let index = 0; index < dimension; index += 1) {
+        derivatives[index] = argument.derivatives[index] / divisor;
+      }
+      return dual(
+        node.name === "ln" ? Math.log(argument.value) : Math.log10(argument.value),
+        derivatives,
+      );
+    }
+    if (node.name === "exp") {
+      const value = Math.exp(argument.value);
+      for (let index = 0; index < dimension; index += 1) {
+        derivatives[index] = value * argument.derivatives[index];
       }
       return dual(value, derivatives);
     }

@@ -188,6 +188,23 @@ test("EditorRenderer acepta la escena y todos los overlays de la API pública", 
     beeTargetValid: false,
     dragPreview: { type: "area", world: { x: 100, y: 40 } },
   }));
+  assert.doesNotThrow(() => renderer.render({
+    camera: { x: 0, y: 0, zoom: 0.8 },
+    areas: sceneAreas.map((area) => ({
+      ...area,
+      appearance: {
+        paletteId: "aurora",
+        motifId: "waves",
+        contourId: "double",
+      },
+    })),
+    locations,
+    activeTool: "bowerbird",
+    selectedAreaId: "origin",
+    hoveredAreaId: "east",
+    timeSeconds: 8,
+    reducedMotion: true,
+  }));
   assert.equal(canvas.width, 960);
   assert.equal(canvas.height, 640);
 });

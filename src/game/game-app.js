@@ -1,8 +1,8 @@
 import { APP_CONFIG, DEBUG_DEFAULTS } from "../config.js";
-import { LOCATIONS } from "../data/locations.js";
-import { AREAS, WORLD_CONFIG } from "../data/world.js";
+import { WORLD_CONFIG } from "../data/world.js";
 import { getWorldBounds } from "../core/hex.js";
 import { getProfileCapabilities } from "../core/profile-policy.js";
+import { StoragePersistenceError } from "../core/storage.js";
 import {
   createWorldIndex,
   getAreaAtWorldPosition,
@@ -50,14 +50,32 @@ export function openLocationWithInteractionCue(location, audio, ui) {
 }
 
 export class GameApp {
-  constructor({ canvas, progression, ui, audio, debugInitiallyEnabled = false }) {
+  constructor({
+    canvas,
+    progression,
+    ui,
+    audio,
+    areas = progression?.areas,
+    locations = progression?.locations,
+    getPersonalAreaAppearance = null,
+    debugInitiallyEnabled = false,
+  }) {
+    if (!Array.isArray(areas) || !Array.isArray(locations)) {
+      throw new TypeError("GameApp requiere la cartografía materializada del curso.");
+    }
     this.canvas = canvas;
     this.progression = progression;
     this.ui = ui;
     this.audio = audio;
+    this.areas = areas;
+    this.locations = locations;
     this.profileCapabilities = getProfileCapabilities(progression.profile);
-    this.worldIndex = createWorldIndex(AREAS);
-    this.renderer = new CanvasRenderer(canvas);
+    this.worldIndex = createWorldIndex(this.areas);
+    this.renderer = new CanvasRenderer(canvas, {
+      areas: this.areas,
+      locations: this.locations,
+      getPersonalAreaAppearance,
+    });
     this.input = new InputController(canvas);
     this.debugState = this.profileCapabilities.canUseDebugger
       ? { ...DEBUG_DEFAULTS, enabled: debugInitiallyEnabled }
@@ -80,7 +98,7 @@ export class GameApp {
     this.camera = new Camera2D({
       x: this.player.x,
       y: this.player.y,
-      bounds: getWorldBounds(AREAS, WORLD_CONFIG.hexSize, WORLD_CONFIG.hexSize * 2),
+      bounds: getWorldBounds(this.areas, WORLD_CONFIG.hexSize, WORLD_CONFIG.hexSize * 2),
     });
     this.nearestLocation = null;
     this.currentArea = null;
@@ -92,6 +110,13 @@ export class GameApp {
     this.unlockSourceLocationId = null;
     this.running = false;
     this.frameRequest = null;
+    this.motionQuery = typeof window.matchMedia === "function"
+      ? window.matchMedia("(prefers-reduced-motion: reduce)")
+      : null;
+    this.reducedMotion = Boolean(this.motionQuery?.matches);
+    this.onMotionPreferenceChanged = (event) => {
+      this.reducedMotion = Boolean(event.matches);
+    };
 
     this.onResize = () => {
       this.renderer.resize();
@@ -106,7 +131,7 @@ export class GameApp {
     window.addEventListener("resize", this.onResize);
     this.canvas.addEventListener("wheel", this.onWheel, { passive: false });
     this.canvas.addEventListener("pointerdown", this.onPointerDown);
-    this.progression.subscribe((event) => {
+    this.unsubscribeProgression = this.progression.subscribe((event) => {
       if (["reset", "state-imported", "player-teleported"].includes(event.type)) {
         this.syncPlayerFromProgress();
       }
@@ -120,6 +145,7 @@ export class GameApp {
       this.newlyAccessibleLocationIds = latestUnlock.newlyAccessibleLocationIds;
       this.unlockSourceLocationId = latestUnlock.unlockSourceLocationId;
     });
+    this.motionQuery?.addEventListener?.("change", this.onMotionPreferenceChanged);
 
     this.camera.resize(this.renderer.width, this.renderer.height);
   }
@@ -135,15 +161,28 @@ export class GameApp {
     this.running = false;
     if (this.frameRequest !== null) cancelAnimationFrame(this.frameRequest);
     this.frameRequest = null;
-    this.progression.setPlayerPosition(this.player.x, this.player.y);
+    this.#persistPlayerPosition(this.player.x, this.player.y);
   }
 
   destroy() {
-    this.stop();
-    this.input.destroy();
-    window.removeEventListener("resize", this.onResize);
-    this.canvas.removeEventListener("wheel", this.onWheel);
-    this.canvas.removeEventListener("pointerdown", this.onPointerDown);
+    try {
+      this.stop();
+    } finally {
+      for (const cleanup of [
+        () => this.input.destroy(),
+        () => this.unsubscribeProgression?.(),
+        () => this.motionQuery?.removeEventListener?.("change", this.onMotionPreferenceChanged),
+        () => window.removeEventListener("resize", this.onResize),
+        () => this.canvas.removeEventListener("wheel", this.onWheel),
+        () => this.canvas.removeEventListener("pointerdown", this.onPointerDown),
+      ]) {
+        try {
+          cleanup();
+        } catch (error) {
+          console.error("No fue posible liberar un recurso del mapa.", error);
+        }
+      }
+    }
   }
 
   #frame(timestamp) {
@@ -192,13 +231,14 @@ export class GameApp {
       snapshot,
       nearestLocation: this.nearestLocation,
       debugState: this.debugState,
-      timeSeconds: timestamp / 1000,
+      timeSeconds: this.reducedMotion ? 0 : timestamp / 1000,
+      reducedMotion: this.reducedMotion,
       newlyAccessibleLocationIds: this.newlyAccessibleLocationIds,
       unlockSourceLocationId: this.unlockSourceLocationId,
     });
 
     if (timestamp - this.lastPositionSave >= APP_CONFIG.positionSaveIntervalMs) {
-      this.progression.setPlayerPosition(this.player.x, this.player.y);
+      this.#persistPlayerPosition(this.player.x, this.player.y);
       this.lastPositionSave = timestamp;
     }
     if (this.profileCapabilities.canUseDebugger && timestamp - this.lastDebugUpdate >= 240) {
@@ -225,20 +265,15 @@ export class GameApp {
       this.ui.toggleKnowledgePanel();
       void this.audio?.playInteractionCue?.();
     }
-    if (this.input.consume("gadget") && !this.ui.isBlockingModalOpen()) {
-      const result = this.progression.toggleFieldLens();
-      this.ui.toast(
-        result.ok
-          ? `Lente de campo ${result.enabled ? "activado" : "desactivado"}.`
-          : "Todavía no has adquirido el Lente de campo.",
-        result.ok ? "success" : "warning",
-      );
-      if (result.ok) void this.audio?.playInteractionCue?.();
-    }
-
     if (this.input.consume("transport") && !this.ui.isBlockingModalOpen()) {
       const before = this.progression.getActiveTransport();
-      const after = this.progression.cycleTransport();
+      let after;
+      try {
+        after = this.progression.cycleTransport();
+      } catch (error) {
+        if (!this.#reportPersistenceError(error)) throw error;
+        return;
+      }
       this.ui.toast(
         before.id === after.id
           ? "Todavía no has adquirido otro transporte."
@@ -297,7 +332,7 @@ export class GameApp {
     let nearest = null;
     let nearestDistance = Number.POSITIVE_INFINITY;
 
-    for (const location of LOCATIONS) {
+    for (const location of this.locations) {
       if (!snapshot.accessibleLocationIds.has(location.id)) continue;
       const position = getLocationWorldPosition(location, this.worldIndex, WORLD_CONFIG.hexSize);
       const distance = Math.hypot(this.player.x - position.x, this.player.y - position.y);
@@ -325,7 +360,10 @@ export class GameApp {
     }
     this.player.x = world.x;
     this.player.y = world.y;
-    this.progression.setPlayerPosition(world.x, world.y);
+    if (!this.#persistPlayerPosition(world.x, world.y)) {
+      this.syncPlayerFromProgress();
+      return;
+    }
     this.ui.toast(`Teletransporte de depuración: ${area.title}.`, "success");
   }
 
@@ -354,7 +392,13 @@ export class GameApp {
   }
 
   teleportToArea(areaId) {
-    const position = this.progression.teleportToArea(areaId);
+    let position;
+    try {
+      position = this.progression.teleportToArea(areaId);
+    } catch (error) {
+      if (!this.#reportPersistenceError(error)) throw error;
+      return false;
+    }
     if (!position) return false;
     this.player.x = position.x;
     this.player.y = position.y;
@@ -366,9 +410,14 @@ export class GameApp {
   teleportToWorld(x, y) {
     const area = getAreaAtWorldPosition(x, y, WORLD_CONFIG.hexSize, this.worldIndex);
     if (!area) return false;
+    const previous = { x: this.player.x, y: this.player.y };
     this.player.x = x;
     this.player.y = y;
-    this.progression.setPlayerPosition(x, y);
+    if (!this.#persistPlayerPosition(x, y)) {
+      this.player.x = previous.x;
+      this.player.y = previous.y;
+      return false;
+    }
     return true;
   }
 
@@ -384,7 +433,7 @@ export class GameApp {
 
   completeNearby() {
     const snapshot = this.progression.getSnapshot();
-    const candidates = LOCATIONS.filter((location) => {
+    const candidates = this.locations.filter((location) => {
       const hasProgressionEffect =
         (location.grants?.concepts?.length ?? 0) > 0 ||
         (location.grants?.rewards?.length ?? 0) > 0;
@@ -406,7 +455,17 @@ export class GameApp {
 
     const candidate = candidates.find((entry) => entry.distance <= 170);
     if (!candidate) return { ok: false, message: "No hay un lugar progresivo incompleto a menos de 170 unidades." };
-    const result = this.progression.completeLocation(candidate.location.id, { force: true });
+    let result;
+    try {
+      result = this.progression.completeLocation(candidate.location.id, { force: true });
+    } catch (error) {
+      if (!this.#reportPersistenceError(error)) throw error;
+      return {
+        ok: false,
+        reason: "storage-write-failed",
+        message: "No fue posible guardar el progreso; el lugar no se completó.",
+      };
+    }
     return {
       ok: result.ok,
       message: result.ok
@@ -442,11 +501,26 @@ export class GameApp {
         visibleLocations: [...snapshot.visibleLocationIds],
         rewards: [...snapshot.rewards],
         activeTransport: snapshot.activeTransport.id,
-        fieldLensEnabled: snapshot.state.settings.fieldLensEnabled,
         ambienceVolume: snapshot.state.settings.ambienceVolume,
         effectsVolume: snapshot.state.settings.effectsVolume,
         treeTwoVisualizationMode: snapshot.state.settings.treeTwoVisualizationMode,
       },
     };
+  }
+
+  #persistPlayerPosition(x, y) {
+    try {
+      this.progression.setPlayerPosition(x, y);
+      return true;
+    } catch (error) {
+      if (!this.#reportPersistenceError(error)) throw error;
+      return false;
+    }
+  }
+
+  #reportPersistenceError(error) {
+    if (!(error instanceof StoragePersistenceError)) return false;
+    this.ui.reportPersistenceError?.(error);
+    return true;
   }
 }

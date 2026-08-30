@@ -9,7 +9,6 @@ const ACTION_KEYS = Object.freeze({
   interact: ["KeyE", "Space"],
   debug: ["F2", "Backquote"],
   knowledge: ["KeyK"],
-  gadget: ["KeyG"],
   transport: ["KeyT"],
   escape: ["Escape"],
 });

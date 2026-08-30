@@ -1,6 +1,5 @@
 import { APP_CONFIG } from "../config.js";
 import { CONCEPTS, REWARDS, getConcept, getReward, parseRewardKey } from "../data/knowledge.js";
-import { LOCATIONS } from "../data/locations.js";
 import {
   CONSTANTS,
   FORMULAS,
@@ -9,7 +8,6 @@ import {
   REFERENCE_VIEWS,
   SYMBOLS,
 } from "../data/reference/index.js";
-import { AREAS } from "../data/world.js";
 import { evaluateExercise } from "../core/exercises.js";
 import {
   createExerciseSequenceState,
@@ -29,8 +27,10 @@ import {
   shouldAutoCompleteLocationOnInteraction,
 } from "../core/profile-policy.js";
 import { describeMissingRequirements, meetsRequirements } from "../core/requirements.js";
+import { StoragePersistenceError } from "../core/storage.js";
 import { createEquationFigure, renderMath } from "./math-renderer.js";
 import { playLocationCompletionCue } from "./audio-policy.js";
+import { GadgetHub } from "./gadget-hub.js";
 import { PointChargeField2D } from "./point-charge-field-2d.js";
 import {
   VectorField2D,
@@ -68,9 +68,19 @@ function locationKindLabel(kind) {
 }
 
 export class UIController {
-  constructor({ progression, audio }) {
+  constructor({
+    progression,
+    audio,
+    areas = progression?.areas,
+    locations = progression?.locations,
+  }) {
+    if (!Array.isArray(areas) || !Array.isArray(locations)) {
+      throw new TypeError("UIController requiere la cartografía materializada del curso.");
+    }
     this.progression = progression;
     this.audio = audio;
+    this.areas = areas;
+    this.locations = locations;
     this.profileCapabilities = getProfileCapabilities(progression.profile);
     this.gameApi = null;
     this.openPanels = [];
@@ -78,10 +88,12 @@ export class UIController {
     this.locationStepStates = new Map();
     this.exerciseStates = new Map();
     this.activeInteractiveFigures = [];
+    this.persistenceFailureReported = false;
     this.activeReferenceView = "symbols";
     this.settingsPanelIds = ["visual-panel", "sound-panel", "help-panel"];
     this.secondaryPanelIds = [
       "knowledge-panel",
+      "gadgets-panel",
       "visual-panel",
       "reference-panel",
       "sound-panel",
@@ -107,6 +119,8 @@ export class UIController {
       lessonBody: document.querySelector("#lesson-body"),
       knowledgePanel: document.querySelector("#knowledge-panel"),
       knowledgeBody: document.querySelector("#knowledge-body"),
+      gadgetsPanel: document.querySelector("#gadgets-panel"),
+      gadgetsBody: document.querySelector("#gadgets-body"),
       visualPanel: document.querySelector("#visual-panel"),
       visualModeInputs: [...document.querySelectorAll(
         'input[name="tree-two-visualization"]',
@@ -157,11 +171,16 @@ export class UIController {
     }
     this.#populateDebugAreaSelect();
     this.#bindStaticControls();
+    this.gadgetHub = new GadgetHub({
+      container: this.elements.gadgetsBody,
+      progression: this.progression,
+    });
     this.#updateVisualControls();
     this.#updateSoundControls();
     this.#updateConceptProgress(this.progression.getSnapshot());
     this.progression.subscribe((event) => {
       this.#updateConceptProgress(event.snapshot);
+      this.gadgetHub.refresh(event.snapshot);
       this.updateKnowledgePanel();
       this.updateReferencePanel();
       this.#updateVisualControls();
@@ -190,6 +209,9 @@ export class UIController {
     document.querySelector("#open-knowledge").addEventListener("click", () => {
       this.toggleKnowledgePanel();
     });
+    document.querySelector("#open-gadgets").addEventListener("click", () => {
+      this.toggleGadgetsPanel();
+    });
     this.elements.settingsButton.addEventListener("click", () => {
       this.toggleSettingsMenu();
     });
@@ -209,14 +231,21 @@ export class UIController {
     });
     for (const input of this.elements.visualModeInputs) {
       input.addEventListener("change", () => {
-        if (input.checked) this.progression.setTreeTwoVisualizationMode(input.value);
+        if (!input.checked) return;
+        const result = this.#runPersistenceAction(() =>
+          this.progression.setTreeTwoVisualizationMode(input.value));
+        if (!result.ok) this.#updateVisualControls();
       });
     }
     this.elements.soundAmbience.addEventListener("input", () => {
-      this.progression.setAmbienceVolume(Number(this.elements.soundAmbience.value) / 100);
+      const result = this.#runPersistenceAction(() =>
+        this.progression.setAmbienceVolume(Number(this.elements.soundAmbience.value) / 100));
+      if (!result.ok) this.#updateSoundControls();
     });
     this.elements.soundEffects.addEventListener("input", () => {
-      this.progression.setEffectsVolume(Number(this.elements.soundEffects.value) / 100);
+      const result = this.#runPersistenceAction(() =>
+        this.progression.setEffectsVolume(Number(this.elements.soundEffects.value) / 100));
+      if (!result.ok) this.#updateSoundControls();
     });
 
     const audioPreviews = [
@@ -288,25 +317,30 @@ export class UIController {
       this.toast(result?.message ?? "No hay un lugar progresivo cercano.", result?.ok ? "success" : "warning");
     });
     document.querySelector("#debug-unlock-next").addEventListener("click", () => {
-      const concept = this.progression.grantNextConcept();
+      const action = this.#runPersistenceAction(() => this.progression.grantNextConcept());
+      if (!action.ok) return;
+      const concept = action.value;
       this.toast(
         concept ? `Concepto concedido: ${concept.title}.` : "Todos los conceptos ya están concedidos.",
         concept ? "success" : "warning",
       );
     });
     document.querySelector("#debug-unlock-areas").addEventListener("click", () => {
-      this.progression.unlockAllAreasForDebug();
+      const action = this.#runPersistenceAction(() => this.progression.unlockAllAreasForDebug());
+      if (!action.ok) return;
       this.toast("Todas las zonas quedaron abiertas mediante override de depuración.", "success");
     });
     document.querySelector("#debug-complete-all").addEventListener("click", () => {
-      this.progression.completeAllForDebug();
+      const action = this.#runPersistenceAction(() => this.progression.completeAllForDebug());
+      if (!action.ok) return;
       this.toast("Progresión completa concedida al perfil actual.", "success");
     });
     document.querySelector("#debug-reset").addEventListener("click", () => {
       const accepted = window.confirm(`¿Reiniciar por completo el perfil “${this.progression.profile}”?`);
       if (!accepted) return;
+      const action = this.#runPersistenceAction(() => this.progression.reset());
+      if (!action.ok) return;
       this.#clearTransientLocationState();
-      this.progression.reset();
       this.gameApi?.syncPlayerFromProgress();
       this.toast("Perfil reiniciado.", "warning");
     });
@@ -323,8 +357,12 @@ export class UIController {
         this.gameApi?.syncPlayerFromProgress();
         this.toast("Progreso importado y saneado correctamente.", "success");
       } catch (error) {
-        console.error(error);
-        this.toast("No fue posible importar el archivo JSON.", "warning");
+        if (!(error instanceof StoragePersistenceError)) {
+          console.error(error);
+          this.toast("No fue posible importar el archivo JSON.", "warning");
+        } else {
+          this.reportPersistenceError(error);
+        }
       } finally {
         this.elements.debugImport.value = "";
       }
@@ -333,7 +371,7 @@ export class UIController {
 
   #populateDebugAreaSelect() {
     this.elements.debugAreaSelect.replaceChildren();
-    for (const area of [...AREAS].sort((a, b) => a.order - b.order)) {
+    for (const area of [...this.areas].sort((a, b) => a.order - b.order)) {
       const option = element("option", { text: `${area.shortTitle} [${area.id}]` });
       option.value = area.id;
       this.elements.debugAreaSelect.append(option);
@@ -414,7 +452,7 @@ export class UIController {
         completionMessage: "Perfil docente: actividad autocompletada al interactuar.",
       });
       completionCueHandled = result.ok;
-      if (!result.ok) {
+      if (!result.ok && result.reason !== "storage-write-failed") {
         this.toast("La actividad ya no cumple sus condiciones de acceso.", "warning");
       }
     }
@@ -1141,7 +1179,10 @@ export class UIController {
 
   #completeLocationProgress(location, exercise, { completionMessage } = {}) {
     const before = this.progression.getSnapshot();
-    const result = this.progression.completeLocation(location.id);
+    const action = this.#runPersistenceAction(() =>
+      this.progression.completeLocation(location.id));
+    if (!action.ok) return { ok: false, reason: "storage-write-failed" };
+    const result = action.value;
     if (!result.ok) return result;
     const after = this.progression.getSnapshot();
     const newlyOpenedAreas = result.newlyUnlockedAreaIds ?? [];
@@ -1156,7 +1197,7 @@ export class UIController {
     ];
     if (newlyOpenedAreas.length) {
       const names = newlyOpenedAreas
-        .map((areaId) => AREAS.find((area) => area.id === areaId)?.title ?? areaId)
+        .map((areaId) => this.areas.find((area) => area.id === areaId)?.title ?? areaId)
         .join(", ");
       messageParts.push(`Nueva zona abierta: ${names}.`);
     }
@@ -1174,7 +1215,9 @@ export class UIController {
     const result = this.#completeLocationProgress(location, exercise);
     if (!result.ok) {
       feedback.className = "exercise-feedback error";
-      feedback.textContent = "El lugar ya no cumple sus condiciones de acceso.";
+      feedback.textContent = result.reason === "storage-write-failed"
+        ? "No fue posible guardar el progreso. El lugar no se completó; libera espacio o habilita el almacenamiento y vuelve a intentarlo."
+        : "El lugar ya no cumple sus condiciones de acceso.";
       this.#playInteractionCue();
       return;
     }
@@ -1249,6 +1292,11 @@ export class UIController {
     this.updateKnowledgePanel();
   }
 
+  toggleGadgetsPanel() {
+    if (!this.elements.gadgetsPanel.hidden) this.closePanel("gadgets-panel");
+    else this.openPanel("gadgets-panel");
+  }
+
   toggleSettingsMenu() {
     if (this.elements.settingsTools.hidden) {
       this.elements.settingsTools.hidden = false;
@@ -1286,7 +1334,7 @@ export class UIController {
     const columns = element("div", { className: "knowledge-columns" });
     const areaColumn = element("section", { className: "knowledge-column" });
     areaColumn.append(element("h3", { text: "Árbol I · Zonas" }));
-    for (const area of [...AREAS].sort((a, b) => a.order - b.order)) {
+    for (const area of [...this.areas].sort((a, b) => a.order - b.order)) {
       const unlocked = snapshot.unlockedAreaIds.has(area.id);
       const card = element("article", {
         className: `knowledge-card ${unlocked ? "unlocked" : "locked"}`,
@@ -1305,7 +1353,7 @@ export class UIController {
 
     const contentColumn = element("section", { className: "knowledge-column" });
     contentColumn.append(element("h3", { text: "Árbol II · Lugares y recompensas" }));
-    for (const location of LOCATIONS.filter((entry) => entry.kind !== "base" && entry.kind !== "debug")) {
+    for (const location of this.locations.filter((entry) => entry.kind !== "base" && entry.kind !== "debug")) {
       const visible = snapshot.visibleLocationIds.has(location.id);
       const accessible = snapshot.accessibleLocationIds.has(location.id);
       const completed = snapshot.completedLocationIds.has(location.id);
@@ -1555,10 +1603,10 @@ export class UIController {
     );
     const labels = [
       ...missing.completedLocations.map(
-        (id) => LOCATIONS.find((location) => location.id === id)?.title ?? id,
+        (id) => this.locations.find((location) => location.id === id)?.title ?? id,
       ),
       ...missing.concepts.map((id) => getConcept(id)?.title ?? id),
-      ...missing.areas.map((id) => AREAS.find((area) => area.id === id)?.title ?? id),
+      ...missing.areas.map((id) => this.areas.find((area) => area.id === id)?.title ?? id),
       ...missing.rewards.map((id) => {
         const reward = parseRewardKey(id);
         return getReward(reward.type, reward.id)?.title ?? id;
@@ -1741,6 +1789,29 @@ export class UIController {
   updateDebugState(debugSnapshot) {
     if (this.elements.debugPanel.hidden) return;
     this.elements.debugState.textContent = JSON.stringify(debugSnapshot, null, 2);
+  }
+
+  #runPersistenceAction(action) {
+    try {
+      return { ok: true, value: action() };
+    } catch (error) {
+      if (!(error instanceof StoragePersistenceError)) throw error;
+      this.reportPersistenceError(error);
+      return { ok: false, error };
+    }
+  }
+
+  reportPersistenceError(error) {
+    if (!(error instanceof StoragePersistenceError)) throw error;
+    if (this.persistenceFailureReported) return false;
+    this.persistenceFailureReported = true;
+    console.error("ORBIT no pudo persistir el estado local.", error);
+    this.toast(
+      "No fue posible guardar los cambios. ORBIT mantuvo el último estado confirmado; libera espacio o habilita el almacenamiento antes de volver a intentarlo.",
+      "warning",
+      8000,
+    );
+    return true;
   }
 
   toast(message, type = "info", durationMs = 3600) {

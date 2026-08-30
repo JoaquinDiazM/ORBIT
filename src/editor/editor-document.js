@@ -2,13 +2,18 @@ import { deriveKnowledgeGraphEdges } from "../core/knowledge-graph.js";
 import { axialDistance, axialKey, pointInHex } from "../core/hex.js";
 import { normalizeRequirements } from "../core/requirements.js";
 import { validateProjectData } from "../core/validator.js";
+import {
+  AREA_APPEARANCE_CATALOG_VERSION,
+  DEFAULT_AREA_APPEARANCE,
+  sanitizeAreaAppearance,
+} from "../core/area-appearance.js";
 import { LOCATIONS } from "../data/locations.js";
 import { AREAS, WORLD_CONFIG } from "../data/world.js";
 
 export const EDITOR_DOCUMENT_KIND = "orbit-editor-project";
-export const EDITOR_DOCUMENT_SCHEMA_VERSION = 1;
+export const EDITOR_DOCUMENT_SCHEMA_VERSION = 2;
 export const EDITOR_COURSE_ID = "electromagnetism-applied";
-export const EDITOR_BASE_DATA_VERSION = "0.4.0";
+export const EDITOR_BASE_DATA_VERSION = "0.5.0";
 export const EDITOR_LOCATION_SAFE_MARGIN = 28;
 
 function issue(code, message, path = null) {
@@ -60,6 +65,11 @@ function compareConnections(first, second) {
   );
 }
 
+function canonicalAreaAppearance(area) {
+  const result = sanitizeAreaAppearance(area?.appearance ?? DEFAULT_AREA_APPEARANCE);
+  return structuredClone(result.ok ? result.appearance : DEFAULT_AREA_APPEARANCE);
+}
+
 function canonicalConnections(baseLocations) {
   return baseLocations
     .flatMap((location) =>
@@ -79,12 +89,14 @@ export function createEditorDocument(options = {}) {
   return {
     kind: EDITOR_DOCUMENT_KIND,
     schemaVersion: EDITOR_DOCUMENT_SCHEMA_VERSION,
+    appearanceCatalogVersion: AREA_APPEARANCE_CATALOG_VERSION,
     courseId: context.courseId,
     baseDataVersion: context.baseDataVersion,
     areas: context.baseAreas.map((area) => ({
       id: area.id,
       q: normalizeZero(area.q),
       r: normalizeZero(area.r),
+      appearance: canonicalAreaAppearance(area),
     })),
     locations: context.baseLocations.map((location) => ({
       id: location.id,
@@ -116,11 +128,22 @@ function parseCandidate(candidate) {
   }
 }
 
-function rebaseAreas(candidateAreas, context, errors, warnings) {
+function rebaseAreas(
+  candidateAreas,
+  context,
+  errors,
+  warnings,
+  { sourceSchemaVersion = EDITOR_DOCUMENT_SCHEMA_VERSION } = {},
+) {
   const canonical = new Map(
     context.baseAreas.map((area) => [
       area.id,
-      { id: area.id, q: normalizeZero(area.q), r: normalizeZero(area.r) },
+      {
+        id: area.id,
+        q: normalizeZero(area.q),
+        r: normalizeZero(area.r),
+        appearance: canonicalAreaAppearance(area),
+      },
     ]),
   );
   if (!Array.isArray(candidateAreas)) {
@@ -162,10 +185,16 @@ function rebaseAreas(candidateAreas, context, errors, warnings) {
       );
       continue;
     }
+    const appearance = sourceSchemaVersion === 1
+      ? { ok: true, appearance: canonicalAreaAppearance(context.areaById.get(entry.id)), errors: [] }
+      : sanitizeAreaAppearance(entry.appearance, { path: `${path}.appearance` });
+    errors.push(...appearance.errors);
+    if (!appearance.ok) continue;
     canonical.set(entry.id, {
       id: entry.id,
       q: normalizeZero(entry.q),
       r: normalizeZero(entry.r),
+      appearance: appearance.appearance,
     });
   }
 
@@ -276,7 +305,13 @@ function rebaseLocations(candidateLocations, context, errors, warnings) {
   return context.baseLocations.map((location) => canonical.get(location.id));
 }
 
-function rebaseConnections(candidateConnections, context, errors, warnings) {
+function rebaseConnections(
+  candidateConnections,
+  context,
+  errors,
+  warnings,
+  { restoredLocationIds = new Set() } = {},
+) {
   if (candidateConnections === undefined) {
     warnings.push(
       issue(
@@ -359,6 +394,28 @@ function rebaseConnections(candidateConnections, context, errors, warnings) {
       kind: "completedLocation",
     });
   }
+  const restoredConnections = canonicalConnections(context.baseLocations).filter(
+    (connection) =>
+      restoredLocationIds.has(connection.sourceId)
+      || restoredLocationIds.has(connection.targetId),
+  );
+  let restoredCount = 0;
+  for (const connection of restoredConnections) {
+    const key = `${connection.sourceId}->${connection.targetId}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    connections.push(connection);
+    restoredCount += 1;
+  }
+  if (restoredCount > 0) {
+    warnings.push(
+      issue(
+        "connections-rebased",
+        `Se restauraron ${restoredCount} dependencias canónicas asociadas a nodos nuevos.`,
+        "treeTwoConnections",
+      ),
+    );
+  }
   return connections.sort(compareConnections);
 }
 
@@ -376,7 +433,14 @@ function materializeEditorDocument(document, context) {
 
   const areas = structuredClone(context.baseAreas).map((area) => {
     const placement = areaPlacement.get(area.id);
-    return placement ? { ...area, q: placement.q, r: placement.r } : area;
+    return placement
+      ? {
+          ...area,
+          q: placement.q,
+          r: placement.r,
+          appearance: structuredClone(placement.appearance),
+        }
+      : { ...area, appearance: canonicalAreaAppearance(area) };
   });
   const locations = structuredClone(context.baseLocations).map((location) => {
     const placement = locationPlacement.get(location.id);
@@ -563,12 +627,25 @@ export function sanitizeEditorDocument(candidate, options = {}) {
       ),
     );
   }
-  if (source.schemaVersion !== EDITOR_DOCUMENT_SCHEMA_VERSION) {
+  const sourceSchemaVersion = source.schemaVersion;
+  if (![1, EDITOR_DOCUMENT_SCHEMA_VERSION].includes(sourceSchemaVersion)) {
     errors.push(
       issue(
         "unsupported-editor-schema",
-        `Se esperaba schemaVersion ${EDITOR_DOCUMENT_SCHEMA_VERSION}.`,
+        `Se esperaba schemaVersion 1 o ${EDITOR_DOCUMENT_SCHEMA_VERSION}.`,
         "schemaVersion",
+      ),
+    );
+  }
+  if (
+    sourceSchemaVersion === EDITOR_DOCUMENT_SCHEMA_VERSION
+    && source.appearanceCatalogVersion !== AREA_APPEARANCE_CATALOG_VERSION
+  ) {
+    errors.push(
+      issue(
+        "unsupported-appearance-catalog",
+        `Se esperaba appearanceCatalogVersion ${AREA_APPEARANCE_CATALOG_VERSION}.`,
+        "appearanceCatalogVersion",
       ),
     );
   }
@@ -593,20 +670,41 @@ export function sanitizeEditorDocument(candidate, options = {}) {
   if (errors.length > 0) {
     return { ok: false, document: null, errors, warnings };
   }
+  if (sourceSchemaVersion === 1) {
+    warnings.push(
+      issue(
+        "editor-schema-migrated",
+        `El documento editorial v1 se migró a v${EDITOR_DOCUMENT_SCHEMA_VERSION} con apariencias canónicas.`,
+        "schemaVersion",
+      ),
+    );
+  }
 
   const fallbackTimestamp = new Date().toISOString();
+  const declaredLocationIds = new Set(
+    (Array.isArray(source.locations) ? source.locations : [])
+      .filter((entry) => isRecord(entry) && typeof entry.id === "string")
+      .map((entry) => entry.id),
+  );
+  const restoredLocationIds = new Set(
+    context.baseLocations
+      .map((location) => location.id)
+      .filter((locationId) => !declaredLocationIds.has(locationId)),
+  );
   const document = {
     kind: EDITOR_DOCUMENT_KIND,
     schemaVersion: EDITOR_DOCUMENT_SCHEMA_VERSION,
+    appearanceCatalogVersion: AREA_APPEARANCE_CATALOG_VERSION,
     courseId: context.courseId,
     baseDataVersion: context.baseDataVersion,
-    areas: rebaseAreas(source.areas, context, errors, warnings),
+    areas: rebaseAreas(source.areas, context, errors, warnings, { sourceSchemaVersion }),
     locations: rebaseLocations(source.locations, context, errors, warnings),
     treeTwoConnections: rebaseConnections(
       source.treeTwoConnections,
       context,
       errors,
       warnings,
+      { restoredLocationIds },
     ),
     updatedAt: dateString(source.updatedAt, fallbackTimestamp),
   };

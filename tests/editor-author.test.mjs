@@ -1,0 +1,1147 @@
+import assert from "node:assert/strict";
+import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { request as httpRequest } from "node:http";
+import { tmpdir } from "node:os";
+import { resolve } from "node:path";
+import test from "node:test";
+
+import { createCourseEdition } from "../src/core/course-edition.js";
+import { createEditorDocument } from "../src/editor/editor-document.js";
+import {
+  EDITOR_AUTHOR_CANONICAL_PORT,
+  acquireEditorAuthorLock,
+  applyEditionToRepository,
+  createEditorAuthorServer,
+  finalizeRepositoryApplication,
+  recoverRepositoryApplication,
+  resolveEditorAuthorCliPort,
+  rollbackRepositoryApplication,
+} from "../scripts/editor-author.mjs";
+
+async function fixture() {
+  const root = await mkdtemp(resolve(tmpdir(), "orbit-editor-author-"));
+  await writeFile(
+    resolve(root, "package.json"),
+    `${JSON.stringify({ name: "orbit-open-roadmap" }, null, 2)}\n`,
+    "utf8",
+  );
+  await writeFile(resolve(root, "index.html"), "ORBIT Estudiante\n", "utf8");
+  await writeFile(resolve(root, "editor.html"), "ORBIT Editor\n", "utf8");
+  return root;
+}
+
+async function materializeFixtureBuild(root) {
+  const sourcePath = resolve(
+    root,
+    "public/data/courses/electromagnetism-applied.edition.json",
+  );
+  const dist = resolve(root, "dist");
+  const builtPath = resolve(
+    dist,
+    "public/data/courses/electromagnetism-applied.edition.json",
+  );
+  await rm(dist, { recursive: true, force: true });
+  let serialized;
+  try {
+    serialized = await readFile(sourcePath, "utf8");
+  } catch (error) {
+    if (error?.code === "ENOENT") return;
+    throw error;
+  }
+  const edition = JSON.parse(serialized);
+  await mkdir(resolve(builtPath, ".."), { recursive: true });
+  await writeFile(builtPath, serialized, "utf8");
+  await writeFile(
+    resolve(dist, "build-info.json"),
+    `${JSON.stringify({
+      project: "orbit-open-roadmap",
+      buildType: "static-no-bundle",
+      courseId: edition.courseId,
+      courseRevision: edition.revision,
+      courseDigest: edition.digest,
+    }, null, 2)}\n`,
+    "utf8",
+  );
+}
+
+function successfulRunner(calls = []) {
+  return async (request) => {
+    calls.push(request);
+    if (request.args?.some((argument) => ["check", "build"].includes(argument))) {
+      await materializeFixtureBuild(request.cwd);
+    }
+    return { code: 0, stdout: "ok", stderr: "" };
+  };
+}
+
+function deferred() {
+  let resolvePromise;
+  const promise = new Promise((resolve) => {
+    resolvePromise = resolve;
+  });
+  return { promise, resolve: resolvePromise };
+}
+
+function rawHttpRequest(origin, {
+  path = "/",
+  method = "GET",
+  host = new URL(origin).host,
+  headers = {},
+  body = null,
+} = {}) {
+  const target = new URL(origin);
+  return new Promise((resolveResponse, rejectResponse) => {
+    const request = httpRequest({
+      hostname: target.hostname,
+      port: target.port,
+      method,
+      path,
+      headers: { host, ...headers },
+    }, (response) => {
+      const chunks = [];
+      response.on("data", (chunk) => chunks.push(chunk));
+      response.on("end", () => {
+        const text = Buffer.concat(chunks).toString("utf8");
+        resolveResponse({
+          status: response.statusCode,
+          headers: response.headers,
+          text,
+          json: () => JSON.parse(text),
+        });
+      });
+    });
+    request.once("error", rejectResponse);
+    if (body !== null) request.write(body);
+    request.end();
+  });
+}
+
+async function createPendingReplacement(root, runner = successfulRunner()) {
+  const first = await applyEditionToRepository({
+    root,
+    document: createEditorDocument(),
+    expectedPreviousRevision: null,
+    runner,
+    requireClean: false,
+    appliedAt: "2026-08-30T00:00:00.000Z",
+  });
+  await finalizeRepositoryApplication({ root, rollbackToken: first.rollbackToken });
+  const target = resolve(
+    root,
+    "public/data/courses/electromagnetism-applied.edition.json",
+  );
+  const previousSource = await readFile(target, "utf8");
+  const changed = createEditorDocument();
+  changed.areas.find((entry) => entry.id === "electrostatics").appearance.paletteId = "aurora";
+  const second = await applyEditionToRepository({
+    root,
+    document: changed,
+    expectedPreviousRevision: first.edition.revision,
+    runner,
+    requireClean: false,
+    appliedAt: "2026-08-31T00:00:00.000Z",
+  });
+  return { first, second, target, previousSource };
+}
+
+test("el helper aplica a una ruta fija y exige finalize tras la fase navegador", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const calls = [];
+  const result = await applyEditionToRepository({
+    root,
+    document: createEditorDocument(),
+    expectedPreviousRevision: null,
+    runner: successfulRunner(calls),
+    requireClean: false,
+    appliedAt: "2026-08-30T00:00:00.000Z",
+  });
+  const target = resolve(
+    root,
+    "public/data/courses/electromagnetism-applied.edition.json",
+  );
+
+  assert.equal(result.ok, true);
+  assert.equal(result.protocol.next, "apply-browser-transaction");
+  assert.equal(JSON.parse(await readFile(target, "utf8")).revision, result.edition.revision);
+  assert.equal(calls.some((call) => call.args?.includes("check")), true);
+  const journal = JSON.parse(
+    await readFile(resolve(root, ".orbit-editor", "repository-transaction.json"), "utf8"),
+  );
+  assert.equal(journal.previousSourceHash, null);
+  assert.match(journal.targetSourceHash, /^sha256:[a-f0-9]{64}$/);
+  const finalized = await finalizeRepositoryApplication({
+    root,
+    rollbackToken: result.rollbackToken,
+  });
+  assert.equal(finalized.action, "finalized");
+});
+
+test("el rollback token restaura la edición fuente previa y reconstruye", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const runner = successfulRunner();
+  const target = resolve(
+    root,
+    "public/data/courses/electromagnetism-applied.edition.json",
+  );
+  await mkdir(resolve(target, ".."), { recursive: true });
+  const first = await applyEditionToRepository({
+    root,
+    document: createEditorDocument(),
+    expectedPreviousRevision: null,
+    runner,
+    requireClean: false,
+    appliedAt: "2026-08-30T00:00:00.000Z",
+  });
+  await finalizeRepositoryApplication({ root, rollbackToken: first.rollbackToken });
+  const before = await readFile(target, "utf8");
+
+  const changed = createEditorDocument();
+  changed.areas.find((entry) => entry.id === "electrostatics").appearance.paletteId = "aurora";
+  const second = await applyEditionToRepository({
+    root,
+    document: changed,
+    expectedPreviousRevision: first.edition.revision,
+    runner,
+    requireClean: false,
+    appliedAt: "2026-08-31T00:00:00.000Z",
+  });
+  const rollback = await rollbackRepositoryApplication({
+    root,
+    rollbackToken: second.rollbackToken,
+    runner,
+  });
+
+  assert.equal(rollback.action, "rolled-back");
+  assert.equal(await readFile(target, "utf8"), before);
+});
+
+test("si check falla, el helper revierte la fuente antes de responder", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const runner = async ({ args }) => ({
+    code: args?.includes("check") ? 1 : 0,
+    stdout: "",
+    stderr: args?.includes("check") ? "check failed" : "",
+  });
+  const target = resolve(
+    root,
+    "public/data/courses/electromagnetism-applied.edition.json",
+  );
+
+  await assert.rejects(
+    applyEditionToRepository({
+      root,
+      document: createEditorDocument(),
+      expectedPreviousRevision: null,
+      runner,
+      requireClean: false,
+    }),
+    (error) => error.code === "repository-check-failed",
+  );
+  await assert.rejects(readFile(target, "utf8"), /ENOENT/);
+});
+
+test("el control optimista rechaza una revisión fuente distinta del plan", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const runner = successfulRunner();
+  const first = await applyEditionToRepository({
+    root,
+    document: createEditorDocument(),
+    expectedPreviousRevision: null,
+    runner,
+    requireClean: false,
+  });
+  await finalizeRepositoryApplication({ root, rollbackToken: first.rollbackToken });
+  const target = resolve(
+    root,
+    "public/data/courses/electromagnetism-applied.edition.json",
+  );
+  const before = await readFile(target, "utf8");
+
+  await assert.rejects(
+    applyEditionToRepository({
+      root,
+      document: createEditorDocument(),
+      expectedPreviousRevision: "sha256:stale",
+      runner,
+      requireClean: false,
+    }),
+    (error) => error.code === "revision-conflict",
+  );
+  assert.equal(await readFile(target, "utf8"), before);
+});
+
+test("un crash tras aplicar el navegador conserva la fuente pendiente de finalize", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const runner = successfulRunner();
+  const result = await applyEditionToRepository({
+    root,
+    document: createEditorDocument(),
+    expectedPreviousRevision: null,
+    runner,
+    requireClean: false,
+    appliedAt: "2026-08-30T00:00:00.000Z",
+  });
+  const target = resolve(
+    root,
+    "public/data/courses/electromagnetism-applied.edition.json",
+  );
+  const installed = await readFile(target, "utf8");
+
+  const recovery = await recoverRepositoryApplication(root, { runner });
+  assert.equal(recovery.pending, true);
+  assert.equal(recovery.action, "awaiting-browser");
+  assert.equal(recovery.transaction.targetRevision, result.edition.revision);
+  assert.equal(await readFile(target, "utf8"), installed);
+  await assert.rejects(
+    applyEditionToRepository({
+      root,
+      document: createEditorDocument(),
+      expectedPreviousRevision: result.edition.revision,
+      runner,
+      requireClean: false,
+    }),
+    (error) => error.code === "pending-browser-finalization",
+  );
+
+  const author = await createEditorAuthorServer({
+    root,
+    port: 0,
+    runner,
+    requireClean: false,
+    sessionToken: "restart-session",
+  });
+  t.after(() => author.close());
+  const session = await fetch(`${author.origin}/__orbit/author/session`).then((response) => response.json());
+  assert.equal(session.pending.targetRevision, result.edition.revision);
+  assert.deepEqual(session.pending.edition, result.edition);
+  assert.equal(session.pending.rollbackToken, result.rollbackToken);
+  await finalizeRepositoryApplication({ root, rollbackToken: result.rollbackToken });
+});
+
+test("un journal awaiting-browser malformado se rechaza sin tocar fuente ni journal", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const directory = resolve(root, ".orbit-editor");
+  const journalPath = resolve(directory, "repository-transaction.json");
+  const target = resolve(
+    root,
+    "public/data/courses/electromagnetism-applied.edition.json",
+  );
+  await mkdir(resolve(target, ".."), { recursive: true });
+  await mkdir(directory, { recursive: true });
+  await writeFile(target, "fuente-intacta\n", "utf8");
+  const malformed = {
+    kind: "other-transaction",
+    schemaVersion: 1,
+    status: "awaiting-browser",
+    rollbackToken: "0123456789abcdef",
+    target: "public/data/courses/electromagnetism-applied.edition.json",
+    previousExisted: false,
+    previousRevision: null,
+    targetRevision: `sha256:${"a".repeat(64)}`,
+    createdAt: "2026-08-30T00:00:00.000Z",
+  };
+  const serialized = `${JSON.stringify(malformed, null, 2)}\n`;
+  await writeFile(journalPath, serialized, "utf8");
+
+  await assert.rejects(
+    recoverRepositoryApplication(root, { runner: successfulRunner() }),
+    (error) => error.code === "invalid-author-journal",
+  );
+  await assert.rejects(
+    finalizeRepositoryApplication({ root, rollbackToken: malformed.rollbackToken }),
+    (error) => error.code === "invalid-author-journal",
+  );
+  assert.equal(await readFile(journalPath, "utf8"), serialized);
+  assert.equal(await readFile(target, "utf8"), "fuente-intacta\n");
+});
+
+test("el journal exige coherencia entre existencia y revisión anterior antes de tocar la fuente", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const directory = resolve(root, ".orbit-editor");
+  const journalPath = resolve(directory, "repository-transaction.json");
+  const target = resolve(
+    root,
+    "public/data/courses/electromagnetism-applied.edition.json",
+  );
+  await mkdir(resolve(target, ".."), { recursive: true });
+  await mkdir(directory, { recursive: true });
+  await writeFile(target, "fuente-no-tocada\n", "utf8");
+
+  for (const contradiction of [
+    {
+      previousExisted: false,
+      previousRevision: `sha256:${"a".repeat(64)}`,
+      previousSourceHash: null,
+    },
+    {
+      previousExisted: true,
+      previousRevision: null,
+      previousSourceHash: `sha256:${"c".repeat(64)}`,
+    },
+  ]) {
+    const journal = {
+      kind: "orbit-editor-author-transaction",
+      schemaVersion: 1,
+      status: "prepared",
+      courseId: "electromagnetism-applied",
+      rollbackToken: "journal-contract-0000000000000000",
+      target: "public/data/courses/electromagnetism-applied.edition.json",
+      ...contradiction,
+      targetRevision: `sha256:${"b".repeat(64)}`,
+      targetSourceHash: `sha256:${"d".repeat(64)}`,
+      createdAt: "2026-08-30T00:00:00.000Z",
+    };
+    const serialized = `${JSON.stringify(journal, null, 2)}\n`;
+    await writeFile(journalPath, serialized, "utf8");
+
+    await assert.rejects(
+      recoverRepositoryApplication(root, { runner: successfulRunner() }),
+      (error) => error.code === "invalid-author-journal",
+    );
+    assert.equal(await readFile(target, "utf8"), "fuente-no-tocada\n");
+    assert.equal(await readFile(journalPath, "utf8"), serialized);
+  }
+});
+
+test("rollback rechaza un backup válido de otra revisión y conserva toda la evidencia", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const runner = successfulRunner();
+  const target = resolve(
+    root,
+    "public/data/courses/electromagnetism-applied.edition.json",
+  );
+  const first = await applyEditionToRepository({
+    root,
+    document: createEditorDocument(),
+    expectedPreviousRevision: null,
+    runner,
+    requireClean: false,
+    appliedAt: "2026-08-30T00:00:00.000Z",
+  });
+  await finalizeRepositoryApplication({ root, rollbackToken: first.rollbackToken });
+
+  const changed = createEditorDocument();
+  changed.areas.find((entry) => entry.id === "electrostatics").appearance.paletteId = "aurora";
+  const second = await applyEditionToRepository({
+    root,
+    document: changed,
+    expectedPreviousRevision: first.edition.revision,
+    runner,
+    requireClean: false,
+    appliedAt: "2026-08-31T00:00:00.000Z",
+  });
+  const journalPath = resolve(root, ".orbit-editor", "repository-transaction.json");
+  const backupPath = resolve(root, ".orbit-editor", "published-edition.backup.json");
+  const targetBefore = await readFile(target, "utf8");
+  const journalBefore = await readFile(journalPath, "utf8");
+  await writeFile(
+    backupPath,
+    targetBefore,
+    "utf8",
+  );
+
+  await assert.rejects(
+    rollbackRepositoryApplication({
+      root,
+      rollbackToken: second.rollbackToken,
+      runner,
+    }),
+    (error) => error.code === "author-backup-evidence-mismatch",
+  );
+  assert.equal(await readFile(target, "utf8"), targetBefore);
+  assert.equal(await readFile(journalPath, "utf8"), journalBefore);
+  assert.equal(await readFile(backupPath, "utf8"), targetBefore);
+});
+
+test("prepared acepta source target tras crash y completa un rollback verificable", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const runner = successfulRunner();
+  const { target, previousSource } = await createPendingReplacement(root, runner);
+  const journalPath = resolve(root, ".orbit-editor", "repository-transaction.json");
+  const journal = JSON.parse(await readFile(journalPath, "utf8"));
+  journal.status = "prepared";
+  await writeFile(journalPath, `${JSON.stringify(journal, null, 2)}\n`, "utf8");
+
+  const recovery = await recoverRepositoryApplication(root, { runner });
+  assert.equal(recovery.recovered, true);
+  assert.equal(recovery.action, "rolled-back");
+  assert.equal(await readFile(target, "utf8"), previousSource);
+  await assert.rejects(readFile(journalPath, "utf8"), /ENOENT/);
+  assert.equal(
+    await readFile(
+      resolve(root, "dist/public/data/courses/electromagnetism-applied.edition.json"),
+      "utf8",
+    ),
+    previousSource,
+  );
+});
+
+test("source-installed con una tercera edición falla cerrado sin tocar evidencia", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const runner = successfulRunner();
+  const { second, target } = await createPendingReplacement(root, runner);
+  const journalPath = resolve(root, ".orbit-editor", "repository-transaction.json");
+  const journal = JSON.parse(await readFile(journalPath, "utf8"));
+  journal.status = "source-installed";
+  const journalBefore = `${JSON.stringify(journal, null, 2)}\n`;
+  await writeFile(journalPath, journalBefore, "utf8");
+
+  const thirdDocument = createEditorDocument();
+  thirdDocument.areas.find((entry) => entry.id === "electrostatics").appearance.paletteId = "violet";
+  const third = await createCourseEdition(thirdDocument, {
+    previousRevision: second.edition.revision,
+    acceptsUnversionedProgress: false,
+    appliedAt: "2026-09-01T00:00:00.000Z",
+  });
+  const thirdSource = `${JSON.stringify(third, null, 2)}\n`;
+  await writeFile(target, thirdSource, "utf8");
+  const builtPath = resolve(
+    root,
+    "dist/public/data/courses/electromagnetism-applied.edition.json",
+  );
+  const builtBefore = await readFile(builtPath, "utf8");
+  let runnerCalls = 0;
+
+  await assert.rejects(
+    recoverRepositoryApplication(root, {
+      runner: async () => {
+        runnerCalls += 1;
+        return { code: 0, stdout: "", stderr: "" };
+      },
+    }),
+    (error) => error.code === "author-source-diverged",
+  );
+  assert.equal(runnerCalls, 0);
+  assert.equal(await readFile(target, "utf8"), thirdSource);
+  assert.equal(await readFile(builtPath, "utf8"), builtBefore);
+  assert.equal(await readFile(journalPath, "utf8"), journalBefore);
+});
+
+test("restoring reanuda crashes tras restaurar source y tras construir antes de cleanup", async (t) => {
+  for (const phase of ["source-restored", "build-complete"]) {
+    const root = await fixture();
+    t.after(() => rm(root, { recursive: true, force: true }));
+    const { second, target, previousSource } = await createPendingReplacement(root);
+    const journalPath = resolve(root, ".orbit-editor", "repository-transaction.json");
+    const interruptedRunner = async ({ args, cwd }) => {
+      if (args?.includes("build") && phase === "build-complete") {
+        await materializeFixtureBuild(cwd);
+      }
+      throw new Error(`crash-${phase}`);
+    };
+
+    await assert.rejects(
+      rollbackRepositoryApplication({
+        root,
+        rollbackToken: second.rollbackToken,
+        runner: interruptedRunner,
+      }),
+      new RegExp(`crash-${phase}`),
+    );
+    assert.equal(await readFile(target, "utf8"), previousSource, phase);
+    assert.equal(JSON.parse(await readFile(journalPath, "utf8")).status, "restoring", phase);
+
+    const recovery = await recoverRepositoryApplication(root, { runner: successfulRunner() });
+    assert.equal(recovery.recovered, true, phase);
+    assert.equal(recovery.action, "rolled-back", phase);
+    assert.equal(await readFile(target, "utf8"), previousSource, phase);
+    await assert.rejects(readFile(journalPath, "utf8"), /ENOENT/);
+  }
+});
+
+test("rollback detecta una mutación concurrente durante build y conserva el journal restoring", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const { second, target } = await createPendingReplacement(root);
+  const targetEdition = await readFile(target, "utf8");
+  const journalPath = resolve(root, ".orbit-editor", "repository-transaction.json");
+  const backupPath = resolve(root, ".orbit-editor", "published-edition.backup.json");
+  const backupBefore = await readFile(backupPath, "utf8");
+  const mutatingRunner = async ({ args, cwd }) => {
+    if (args?.includes("build")) {
+      await materializeFixtureBuild(cwd);
+      await writeFile(target, targetEdition, "utf8");
+    }
+    return { code: 0, stdout: "ok", stderr: "" };
+  };
+
+  await assert.rejects(
+    rollbackRepositoryApplication({
+      root,
+      rollbackToken: second.rollbackToken,
+      runner: mutatingRunner,
+    }),
+    (error) => error.code === "author-source-diverged",
+  );
+  assert.equal(await readFile(target, "utf8"), targetEdition);
+  assert.equal(await readFile(backupPath, "utf8"), backupBefore);
+  assert.equal(JSON.parse(await readFile(journalPath, "utf8")).status, "restoring");
+});
+
+test("recovery limpia un tombstone retirado sin confundirlo con una transacción activa", async (t) => {
+  assert.match(
+    await readFile(new URL("../.gitignore", import.meta.url), "utf8"),
+    /^\.orbit-editor-tombstone\/$/m,
+  );
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const tombstone = resolve(root, ".orbit-editor-tombstone");
+  await mkdir(tombstone);
+  await writeFile(resolve(tombstone, "repository-transaction.json"), "evidencia retirada\n", "utf8");
+
+  const recovery = await recoverRepositoryApplication(root, { runner: successfulRunner() });
+  assert.equal(recovery.recovered, false);
+  assert.equal(recovery.action, "none");
+  await assert.rejects(readFile(resolve(tombstone, "repository-transaction.json"), "utf8"), /ENOENT/);
+});
+
+test("finalize conserva la transacción si la fuente ya no coincide con targetRevision", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const result = await applyEditionToRepository({
+    root,
+    document: createEditorDocument(),
+    expectedPreviousRevision: null,
+    runner: successfulRunner(),
+    requireClean: false,
+  });
+  const target = resolve(
+    root,
+    "public/data/courses/electromagnetism-applied.edition.json",
+  );
+  const journalPath = resolve(root, ".orbit-editor", "repository-transaction.json");
+  const journalBefore = await readFile(journalPath, "utf8");
+  const altered = JSON.parse(await readFile(target, "utf8"));
+  altered.document.areas[0].q = 99;
+  await writeFile(target, `${JSON.stringify(altered, null, 2)}\n`, "utf8");
+
+  await assert.rejects(
+    finalizeRepositoryApplication({ root, rollbackToken: result.rollbackToken }),
+    (error) => error.code === "author-source-diverged",
+  );
+  assert.equal(await readFile(journalPath, "utf8"), journalBefore);
+  assert.equal(JSON.parse(await readFile(target, "utf8")).document.areas[0].q, 99);
+});
+
+test("finalize rechaza build-info existente que no corresponde a la fuente", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const result = await applyEditionToRepository({
+    root,
+    document: createEditorDocument(),
+    expectedPreviousRevision: null,
+    runner: successfulRunner(),
+    requireClean: false,
+  });
+  const journalPath = resolve(root, ".orbit-editor", "repository-transaction.json");
+  const journalBefore = await readFile(journalPath, "utf8");
+  await mkdir(resolve(root, "dist"), { recursive: true });
+  await writeFile(
+    resolve(root, "dist", "build-info.json"),
+    `${JSON.stringify({
+      project: "orbit-open-roadmap",
+      courseId: result.edition.courseId,
+      courseRevision: `sha256:${"b".repeat(64)}`,
+      courseDigest: result.edition.digest,
+    }, null, 2)}\n`,
+    "utf8",
+  );
+
+  await assert.rejects(
+    finalizeRepositoryApplication({ root, rollbackToken: result.rollbackToken }),
+    (error) => error.code === "author-finalization-evidence-mismatch",
+  );
+  assert.equal(await readFile(journalPath, "utf8"), journalBefore);
+  await rollbackRepositoryApplication({
+    root,
+    rollbackToken: result.rollbackToken,
+    runner: successfulRunner(),
+  });
+});
+
+test("finalize falla cerrado si dist desaparece después de check", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const result = await applyEditionToRepository({
+    root,
+    document: createEditorDocument(),
+    expectedPreviousRevision: null,
+    runner: successfulRunner(),
+    requireClean: false,
+  });
+  const journalPath = resolve(root, ".orbit-editor", "repository-transaction.json");
+  const journalBefore = await readFile(journalPath, "utf8");
+  await rm(resolve(root, "dist"), { recursive: true, force: true });
+
+  await assert.rejects(
+    finalizeRepositoryApplication({ root, rollbackToken: result.rollbackToken }),
+    (error) => error.code === "author-finalization-evidence-mismatch",
+  );
+  assert.equal(await readFile(journalPath, "utf8"), journalBefore);
+  await rollbackRepositoryApplication({
+    root,
+    rollbackToken: result.rollbackToken,
+    runner: successfulRunner(),
+  });
+});
+
+test("finalize exige que el envelope completo de dist sea idéntico a la fuente", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const result = await applyEditionToRepository({
+    root,
+    document: createEditorDocument(),
+    expectedPreviousRevision: null,
+    runner: successfulRunner(),
+    requireClean: false,
+  });
+  const builtPath = resolve(
+    root,
+    "dist/public/data/courses/electromagnetism-applied.edition.json",
+  );
+  const source = await readFile(
+    resolve(root, "public/data/courses/electromagnetism-applied.edition.json"),
+    "utf8",
+  );
+  const built = JSON.parse(await readFile(builtPath, "utf8"));
+  built.acceptsUnversionedProgress = !built.acceptsUnversionedProgress;
+  await writeFile(builtPath, `${JSON.stringify(built, null, 2)}\n`, "utf8");
+
+  await assert.rejects(
+    finalizeRepositoryApplication({ root, rollbackToken: result.rollbackToken }),
+    (error) => error.code === "author-finalization-evidence-mismatch",
+  );
+
+  const alteredPrevious = JSON.parse(source);
+  alteredPrevious.previousRevision = `sha256:${"c".repeat(64)}`;
+  await writeFile(
+    builtPath,
+    `${JSON.stringify(alteredPrevious, null, 2)}\n`,
+    "utf8",
+  );
+  await assert.rejects(
+    finalizeRepositoryApplication({ root, rollbackToken: result.rollbackToken }),
+    (error) => error.code === "author-finalization-evidence-mismatch",
+  );
+  await rollbackRepositoryApplication({
+    root,
+    rollbackToken: result.rollbackToken,
+    runner: successfulRunner(),
+  });
+});
+
+test("GET session durante check es observacional y no recupera el journal activo", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const checkStarted = deferred();
+  const releaseCheck = deferred();
+  const runner = async ({ args, cwd }) => {
+    if (args?.includes("check")) {
+      checkStarted.resolve();
+      await releaseCheck.promise;
+    }
+    if (args?.some((argument) => ["check", "build"].includes(argument))) {
+      await materializeFixtureBuild(cwd);
+    }
+    return { code: 0, stdout: "ok", stderr: "" };
+  };
+  const author = await createEditorAuthorServer({
+    root,
+    port: 0,
+    runner,
+    requireClean: false,
+    sessionToken: "concurrency-session",
+  });
+  t.after(async () => {
+    releaseCheck.resolve();
+    await author.close();
+  });
+  const headers = {
+    "content-type": "application/json",
+    origin: author.origin,
+    "x-orbit-author-token": "concurrency-session",
+  };
+  const applyResponsePromise = fetch(`${author.origin}/__orbit/author/apply`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      document: createEditorDocument(),
+      expectedPreviousRevision: null,
+    }),
+  });
+  await checkStarted.promise;
+
+  const journalPath = resolve(root, ".orbit-editor", "repository-transaction.json");
+  const target = resolve(
+    root,
+    "public/data/courses/electromagnetism-applied.edition.json",
+  );
+  const journalBefore = await readFile(journalPath, "utf8");
+  const sourceBefore = await readFile(target, "utf8");
+  assert.equal(JSON.parse(journalBefore).status, "source-installed");
+
+  let secondRunnerCalls = 0;
+  await assert.rejects(
+    createEditorAuthorServer({
+      root,
+      port: 0,
+      runner: async () => {
+        secondRunnerCalls += 1;
+        return { code: 0, stdout: "", stderr: "" };
+      },
+      requireClean: false,
+      sessionToken: "second-process",
+    }),
+    (error) => error.code === "author-helper-already-running",
+  );
+  assert.equal(secondRunnerCalls, 0);
+  assert.equal(await readFile(journalPath, "utf8"), journalBefore);
+  assert.equal(await readFile(target, "utf8"), sourceBefore);
+
+  const concurrentSession = await fetch(`${author.origin}/__orbit/author/session`);
+  assert.equal(concurrentSession.status, 409);
+  assert.equal((await concurrentSession.json()).code, "author-busy");
+  assert.equal(await readFile(journalPath, "utf8"), journalBefore);
+  assert.equal(await readFile(target, "utf8"), sourceBefore);
+  const concurrentRuntime = await fetch(`${author.origin}/`);
+  assert.equal(concurrentRuntime.status, 503);
+  assert.equal(
+    concurrentRuntime.headers.get("x-orbit-runtime-status"),
+    "repository-transaction-pending",
+  );
+  assert.match(await concurrentRuntime.text(), /completa la recuperación/);
+  const concurrentEditor = await fetch(`${author.origin}/editor.html`);
+  assert.equal(concurrentEditor.status, 200);
+  assert.equal(await concurrentEditor.text(), "ORBIT Editor\n");
+  assert.equal(await readFile(journalPath, "utf8"), journalBefore);
+
+  releaseCheck.resolve();
+  const applyResponse = await applyResponsePromise;
+  assert.equal(applyResponse.status, 200);
+  const applied = await applyResponse.json();
+  assert.equal(JSON.parse(await readFile(journalPath, "utf8")).status, "awaiting-browser");
+  const pendingRuntime = await fetch(`${author.origin}/index.html`);
+  assert.equal(pendingRuntime.status, 503);
+  assert.equal(
+    pendingRuntime.headers.get("x-orbit-runtime-status"),
+    "repository-transaction-pending",
+  );
+  for (const bypass of [
+    "/%69ndex.html",
+    "/index%2ehtml",
+    "/dist/%69ndex.html",
+    "/INDEX.HTML",
+    "/Src/Main.js",
+  ]) {
+    const response = await fetch(`${author.origin}${bypass}`);
+    assert.equal(response.status, 503, bypass);
+    assert.equal(
+      response.headers.get("x-orbit-runtime-status"),
+      "repository-transaction-pending",
+      bypass,
+    );
+  }
+  const rollbackResponse = await fetch(`${author.origin}/__orbit/author/rollback`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ rollbackToken: applied.rollbackToken }),
+  });
+  assert.equal(rollbackResponse.status, 200);
+  const recoveredRuntime = await fetch(`${author.origin}/`);
+  assert.equal(recoveredRuntime.status, 200);
+  assert.equal(await recoveredRuntime.text(), "ORBIT Estudiante\n");
+});
+
+test("la autoría real no admite un origen distinto de 127.0.0.1:4173", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+
+  assert.equal(
+    resolveEditorAuthorCliPort({ environment: {}, argv: ["node", "script"] }),
+    EDITOR_AUTHOR_CANONICAL_PORT,
+  );
+  assert.equal(
+    resolveEditorAuthorCliPort({ environment: { PORT: "4173" }, argv: [] }),
+    EDITOR_AUTHOR_CANONICAL_PORT,
+  );
+  assert.throws(
+    () => resolveEditorAuthorCliPort({ environment: { PORT: "4174" }, argv: [] }),
+    (error) => error.code === "noncanonical-author-origin",
+  );
+  assert.throws(
+    () => resolveEditorAuthorCliPort({ environment: {}, argv: ["node", "script", "4174"] }),
+    (error) => error.code === "noncanonical-author-origin",
+  );
+  await assert.rejects(
+    createEditorAuthorServer({ root, port: 4174, requireClean: false }),
+    (error) => error.code === "noncanonical-author-origin",
+  );
+  await assert.rejects(
+    readFile(resolve(root, ".orbit-editor-helper-lock", "owner.json"), "utf8"),
+    /ENOENT/,
+  );
+});
+
+test("un lock de helper solo se recupera si su dueño muerto es verificable", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const directory = resolve(root, ".orbit-editor-helper-lock");
+  await mkdir(directory);
+  await writeFile(
+    resolve(directory, "owner.json"),
+    `${JSON.stringify({
+      kind: "orbit-editor-author-lock",
+      schemaVersion: 1,
+      id: "stale-owner-0000000000000000",
+      pid: 2_147_483_647,
+      repositoryRoot: root,
+      createdAt: "2026-08-30T00:00:00.000Z",
+    }, null, 2)}\n`,
+    "utf8",
+  );
+
+  const acquired = await acquireEditorAuthorLock(root);
+  assert.equal(acquired.owner.pid, process.pid);
+  await acquired.release();
+  await assert.rejects(readFile(resolve(directory, "owner.json"), "utf8"), /ENOENT/);
+
+  await mkdir(directory);
+  await writeFile(resolve(directory, "owner.json"), "{}\n", "utf8");
+  await assert.rejects(
+    acquireEditorAuthorLock(root),
+    (error) => error.code === "invalid-author-helper-lock",
+  );
+  assert.equal(await readFile(resolve(directory, "owner.json"), "utf8"), "{}\n");
+});
+
+test("la API loopback exige same-origin, token y JSON", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const author = await createEditorAuthorServer({
+    root,
+    port: 0,
+    runner: successfulRunner(),
+    requireClean: false,
+    sessionToken: "session-test",
+  });
+  t.after(() => author.close());
+
+  const session = await fetch(`${author.origin}/__orbit/author/session`).then((response) => response.json());
+  assert.equal(session.token, "session-test");
+  const rejected = await fetch(`${author.origin}/__orbit/author/apply`, {
+    method: "POST",
+    headers: { "content-type": "application/json", origin: "https://example.invalid" },
+    body: JSON.stringify({ document: createEditorDocument(), expectedPreviousRevision: null }),
+  });
+  assert.equal(rejected.status, 403);
+
+  const accepted = await fetch(`${author.origin}/__orbit/author/apply`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: author.origin,
+      "x-orbit-author-token": "session-test",
+    },
+    body: JSON.stringify({ document: createEditorDocument(), expectedPreviousRevision: null }),
+  });
+  assert.equal(accepted.status, 200);
+  const body = await accepted.json();
+  assert.equal(body.protocol.next, "apply-browser-transaction");
+  await fetch(`${author.origin}/__orbit/author/rollback`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: author.origin,
+      "x-orbit-author-token": "session-test",
+    },
+    body: JSON.stringify({ rollbackToken: body.rollbackToken }),
+  });
+});
+
+test("Host y la autoridad absolute-form deben coincidir con el origen loopback real", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const author = await createEditorAuthorServer({
+    root,
+    port: 0,
+    runner: successfulRunner(),
+    requireClean: false,
+    sessionToken: "authority-session-secret",
+  });
+  t.after(() => author.close());
+
+  const foreignHost = await rawHttpRequest(author.origin, {
+    path: "/__orbit/author/session",
+    host: "example.invalid",
+  });
+  assert.equal(foreignHost.status, 421);
+  assert.equal(foreignHost.json().code, "noncanonical-request-authority");
+  assert.doesNotMatch(foreignHost.text, /authority-session-secret/);
+
+  const foreignStaticHost = await rawHttpRequest(author.origin, {
+    path: "/editor.html",
+    host: "example.invalid",
+  });
+  assert.equal(foreignStaticHost.status, 421);
+  assert.doesNotMatch(foreignStaticHost.text, /ORBIT Editor/);
+
+  const foreignAbsolute = await rawHttpRequest(author.origin, {
+    path: "http://example.invalid/__orbit/author/session",
+  });
+  assert.equal(foreignAbsolute.status, 421);
+  assert.equal(foreignAbsolute.json().code, "noncanonical-request-authority");
+  assert.doesNotMatch(foreignAbsolute.text, /authority-session-secret/);
+
+  const equivalentButNoncanonicalAbsolute = await rawHttpRequest(author.origin, {
+    path: `http://2130706433:${new URL(author.origin).port}/__orbit/author/session`,
+  });
+  assert.equal(equivalentButNoncanonicalAbsolute.status, 421);
+  assert.equal(
+    equivalentButNoncanonicalAbsolute.json().code,
+    "noncanonical-request-authority",
+  );
+
+  const canonicalAbsolute = await rawHttpRequest(author.origin, {
+    path: `${author.origin}/__orbit/author/session`,
+  });
+  assert.equal(canonicalAbsolute.status, 200);
+  assert.equal(canonicalAbsolute.json().token, "authority-session-secret");
+});
+
+test("el helper sirve solo la aplicación estática y excluye archivos del checkout", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const allowedFiles = new Map([
+    ["src/editor/editor-main.js", "export const editorAsset = true;\n"],
+    ["src/core/hex.js", "export const coreAsset = true;\n"],
+    ["public/data/courses/course.json", "{\"course\":true}\n"],
+    ["public/favicon.svg", "<svg></svg>\n"],
+  ]);
+  for (const [relativePath, content] of allowedFiles) {
+    const path = resolve(root, relativePath);
+    await mkdir(resolve(path, ".."), { recursive: true });
+    await writeFile(path, content, "utf8");
+  }
+  const forbiddenFiles = new Map([
+    ["ORBIT_UPDATES.md", "updates-secret\n"],
+    ["scripts/private.mjs", "script-secret\n"],
+    ["tests/private.test.mjs", "test-secret\n"],
+    ["docs/private.md", "docs-secret\n"],
+    ["src/AGENTS.md", "source-instructions-secret\n"],
+    ["public/assets/README.md", "public-not-runtime-secret\n"],
+    [".env", "environment-secret\n"],
+  ]);
+  for (const [relativePath, content] of forbiddenFiles) {
+    const path = resolve(root, relativePath);
+    await mkdir(resolve(path, ".."), { recursive: true });
+    await writeFile(path, content, "utf8");
+  }
+
+  const author = await createEditorAuthorServer({
+    root,
+    port: 0,
+    runner: successfulRunner(),
+    requireClean: false,
+    sessionToken: "static-session",
+  });
+  t.after(() => author.close());
+
+  for (const [path, expected] of [
+    ["/editor.html", "ORBIT Editor\n"],
+    ["/index.html", "ORBIT Estudiante\n"],
+    ["/src/editor/editor-main.js", allowedFiles.get("src/editor/editor-main.js")],
+    ["/src/core/hex.js", allowedFiles.get("src/core/hex.js")],
+    ["/public/data/courses/course.json", allowedFiles.get("public/data/courses/course.json")],
+    ["/public/favicon.svg", allowedFiles.get("public/favicon.svg")],
+  ]) {
+    const response = await fetch(`${author.origin}${path}`);
+    assert.equal(response.status, 200, path);
+    assert.equal(await response.text(), expected, path);
+  }
+
+  for (const path of [
+    "/ORBIT_UPDATES.md",
+    "/package.json",
+    "/scripts/private.mjs",
+    "/tests/private.test.mjs",
+    "/docs/private.md",
+    "/src/AGENTS.md",
+    "/public/assets/README.md",
+    "/.env",
+    "/dist/build-info.json",
+  ]) {
+    const response = await fetch(`${author.origin}${path}`);
+    assert.equal(response.status, 404, path);
+  }
+});
+
+test("el helper revalida la whitelist tras resolver enlaces simbólicos", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const privatePath = resolve(root, "private.js");
+  const linkPath = resolve(root, "src/leak.js");
+  await mkdir(resolve(linkPath, ".."), { recursive: true });
+  await writeFile(privatePath, "helper-private-content\n", "utf8");
+  try {
+    await symlink(privatePath, linkPath, "file");
+  } catch (error) {
+    if (["EPERM", "EACCES", "ENOSYS"].includes(error?.code)) {
+      t.skip(`symlink no disponible en esta plataforma: ${error.code}`);
+      return;
+    }
+    throw error;
+  }
+
+  const author = await createEditorAuthorServer({
+    root,
+    port: 0,
+    runner: successfulRunner(),
+    requireClean: false,
+    sessionToken: "symlink-session",
+  });
+  t.after(() => author.close());
+
+  const response = await fetch(`${author.origin}/src/leak.js`);
+  assert.equal(response.status, 404);
+  assert.doesNotMatch(await response.text(), /helper-private-content/);
+});
+
+test("la API limita el borrador y no sirve archivos privados del checkout", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await mkdir(resolve(root, ".git"), { recursive: true });
+  await writeFile(resolve(root, ".git", "config"), "private", "utf8");
+  const author = await createEditorAuthorServer({
+    root,
+    port: 0,
+    runner: successfulRunner(),
+    requireClean: false,
+    sessionToken: "payload-session",
+  });
+  t.after(() => author.close());
+
+  const privateResponse = await fetch(`${author.origin}/.git/config`);
+  assert.equal(privateResponse.status, 404);
+
+  const oversized = await fetch(`${author.origin}/__orbit/author/apply`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: author.origin,
+      "x-orbit-author-token": "payload-session",
+    },
+    body: JSON.stringify({ document: "x".repeat(1_048_576) }),
+  });
+  assert.equal(oversized.status, 413);
+  assert.equal((await oversized.json()).code, "payload-too-large");
+});

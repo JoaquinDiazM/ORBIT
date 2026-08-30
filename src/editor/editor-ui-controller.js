@@ -1,3 +1,10 @@
+import {
+  AREA_APPEARANCE_CONTOURS,
+  AREA_APPEARANCE_MOTIFS,
+  AREA_APPEARANCE_PALETTES,
+  DEFAULT_AREA_APPEARANCE,
+} from "../core/area-appearance.js";
+
 function query(selector, root = document) {
   const node = root.querySelector(selector);
   if (!node) throw new Error(`Falta el control requerido del editor: ${selector}`);
@@ -58,6 +65,24 @@ function timestampLabel(value) {
   }).format(date)}`;
 }
 
+export function getEditorMutationNotice(
+  result,
+  successMessage,
+  { quietSuccess = false, fallbackMessage = "La operación no superó la validación del editor." } = {},
+) {
+  if (!result?.ok) {
+    return {
+      accepted: false,
+      message: result?.errors?.[0]?.message ?? fallbackMessage,
+      level: "error",
+    };
+  }
+  if (result.changed && !quietSuccess) {
+    return { accepted: true, message: successMessage, level: "success" };
+  }
+  return { accepted: true, message: null, level: null };
+}
+
 function edgeKindsLabel(requirementKinds = []) {
   const labels = {
     completedLocations: "Spider",
@@ -67,13 +92,54 @@ function edgeKindsLabel(requirementKinds = []) {
   return requirementKinds.map((kind) => labels[kind] ?? kind).join(" + ");
 }
 
+function listSummary(entries = []) {
+  return entries.length > 0 ? `${entries.length} · ${entries.join(", ")}` : "0";
+}
+
+function courseSourceLabel(source) {
+  const labels = {
+    published: "archivo publicado validado",
+    browser: "edición local validada del navegador",
+    applied: "fuente, build y navegador sincronizados",
+  };
+  return labels[source] ?? String(source ?? "desconocida");
+}
+
+function profileLabel(profile) {
+  const labels = { student: "Estudiante", teacher: "Docente", debug: "Debug" };
+  return labels[profile] ?? String(profile ?? "—");
+}
+
 export class EditorUIController {
-  constructor({ model, app }) {
+  constructor({
+    model,
+    app,
+    bowerbird,
+    applicationCoordinator = null,
+    courseEdition = null,
+    courseWarnings = [],
+  }) {
     this.model = model;
     this.app = app;
+    this.bowerbird = bowerbird;
+    this.applicationCoordinator = applicationCoordinator;
+    this.courseEdition = courseEdition;
+    this.courseWarnings = structuredClone(courseWarnings);
     this.readOnly = Boolean(model.getSnapshot().readOnly);
-    this.currentView = this.readOnly ? "overview" : "spider";
+    this.currentView = this.readOnly ? "bowerbird" : "spider";
     this.toastTimer = null;
+    this.resetConfirmationTimer = null;
+    this.resetArmed = false;
+    this.applicationPlan = null;
+    this.applicationBusy = false;
+    this.applicationGeneration = 0;
+    this.applicationProbeStarted = false;
+    this.applicationProbeRunning = false;
+    this.pendingResolution = null;
+    this.applicationEvidence = null;
+    this.reloadRequired = false;
+    this.helperStatusText = "Sin comprobar";
+    this.destroyed = false;
 
     this.elements = {
       shell: query("#app"),
@@ -87,12 +153,39 @@ export class EditorUIController {
       inspectorEyebrow: query("#editor-inspector-eyebrow"),
       spiderPanel: query("#editor-spider-panel"),
       beePanel: query("#editor-bee-panel"),
+      bowerbirdPanel: query("#editor-bowerbird-panel"),
       overviewPanel: query("#editor-overview-panel"),
       warningSummary: query("#editor-warning-summary"),
       warningList: query("#editor-warning-list"),
+      courseApplication: query("#editor-course-application"),
+      currentRevision: query("#editor-current-revision"),
+      currentSource: query("#editor-current-source"),
+      helperStatus: query("#editor-author-helper-status"),
+      validateApplication: query("#editor-validate-application"),
+      applicationStatus: query("#editor-application-status"),
+      pendingApplication: query("#editor-pending-application"),
+      pendingDetail: query("#editor-pending-detail"),
+      recoverApplication: query("#editor-recover-application"),
+      applicationPlan: query("#editor-application-plan"),
+      diffAreas: query("#editor-diff-areas"),
+      diffLocations: query("#editor-diff-locations"),
+      diffAppearances: query("#editor-diff-appearances"),
+      diffAddedConnections: query("#editor-diff-added-connections"),
+      diffRemovedConnections: query("#editor-diff-removed-connections"),
+      validationReachability: query("#editor-validation-reachability"),
+      applicationImpact: query("#editor-application-impact"),
+      confirmApplication: query("#editor-confirm-application"),
+      applyCourse: query("#editor-apply-course"),
+      applicationEvidence: query("#editor-application-evidence"),
+      appliedRevision: query("#editor-applied-revision"),
+      appliedDigest: query("#editor-applied-digest"),
+      appliedBuild: query("#editor-applied-build"),
+      appliedProfiles: query("#editor-applied-profiles"),
+      appliedPreserved: query("#editor-applied-preserved"),
       helpPanel: query("#editor-help-panel"),
       spiderButton: query("#editor-open-spider"),
       beeButton: query("#editor-open-bee"),
+      bowerbirdButton: query("#editor-open-bowerbird"),
       locationSelect: query("#editor-location-select"),
       locationArea: query("#editor-location-area"),
       locationX: query("#editor-location-x"),
@@ -107,9 +200,19 @@ export class EditorUIController {
       selectedAreaSummary: query("#editor-selected-area-summary"),
       previousArea: query("#editor-area-previous"),
       nextArea: query("#editor-area-next"),
+      bowerbirdArea: query("#editor-bowerbird-area"),
+      bowerbirdPalette: query("#editor-bowerbird-palette"),
+      bowerbirdMotif: query("#editor-bowerbird-motif"),
+      bowerbirdContour: query("#editor-bowerbird-contour"),
+      bowerbirdPaletteDescription: query("#editor-bowerbird-palette-description"),
+      bowerbirdMotifDescription: query("#editor-bowerbird-motif-description"),
+      bowerbirdContourDescription: query("#editor-bowerbird-contour-description"),
+      bowerbirdReset: query("#editor-bowerbird-reset"),
+      bowerbirdScope: query("#editor-bowerbird-scope"),
       undo: query("#editor-undo"),
       redo: query("#editor-redo"),
       reset: query("#editor-reset"),
+      exportButton: query("#editor-export"),
       activeTool: query("#editor-active-tool"),
       areaCount: query("#editor-area-count"),
       locationCount: query("#editor-location-count"),
@@ -120,9 +223,14 @@ export class EditorUIController {
     };
 
     if (this.readOnly) this.#applyReadOnlyControls();
+    this.elements.courseApplication.hidden = !this.applicationCoordinator;
 
     this.#bindEvents();
-    this.unsubscribeModel = this.model.subscribe(() => this.render());
+    this.unsubscribeModel = this.model.subscribe(() => {
+      this.#invalidateApplicationPlan("El borrador cambió; vuelve a validar su impacto.");
+      this.render();
+    });
+    this.unsubscribeBowerbird = this.bowerbird.subscribe(() => this.render());
     this.unsubscribeApp = this.app.subscribe((event) => {
       if (event?.message) this.toast(event.message, event.level ?? "info");
       this.render();
@@ -131,20 +239,28 @@ export class EditorUIController {
   }
 
   destroy() {
+    this.destroyed = true;
     this.unsubscribeModel?.();
+    this.unsubscribeBowerbird?.();
     this.unsubscribeApp?.();
     window.removeEventListener("keydown", this.onKeyDown);
     if (this.toastTimer !== null) window.clearTimeout(this.toastTimer);
+    if (this.resetConfirmationTimer !== null) {
+      window.clearTimeout(this.resetConfirmationTimer);
+    }
   }
 
   #applyReadOnlyControls() {
     for (const button of [this.elements.spiderButton, this.elements.beeButton]) {
       button.setAttribute("aria-disabled", "true");
+      button.disabled = true;
       button.title = "El perfil estudiante no permite usar Spider ni Bee.";
     }
     this.elements.undo.disabled = true;
     this.elements.redo.disabled = true;
     this.elements.reset.disabled = true;
+    this.elements.exportButton.disabled = true;
+    this.elements.exportButton.title = "Solo el perfil Docente puede exportar el borrador del curso.";
     this.elements.importInput.disabled = true;
     this.elements.importInput.closest("label")?.classList.add("is-disabled");
     for (const panel of [this.elements.spiderPanel, this.elements.beePanel]) {
@@ -167,6 +283,7 @@ export class EditorUIController {
     );
     on("#editor-open-spider", "click", () => this.showView("spider"));
     on("#editor-open-bee", "click", () => this.showView("bee"));
+    on("#editor-open-bowerbird", "click", () => this.showView("bowerbird"));
     on("#editor-open-overview", "click", () => this.showView("overview"));
     on("#editor-open-help", "click", () => this.showView("help"));
     on("#editor-close-inspector", "click", () => {
@@ -183,14 +300,15 @@ export class EditorUIController {
     on("#editor-undo", "click", () => this.#report(this.model.undo(), "Cambio deshecho."));
     on("#editor-redo", "click", () => this.#report(this.model.redo(), "Cambio rehecho."));
     on("#editor-export", "click", () => {
+      if (this.readOnly) {
+        this.toast("Solo el perfil Docente puede exportar el borrador del curso.", "warning");
+        return;
+      }
       const date = new Date().toISOString().slice(0, 10);
       downloadJson(`orbit-editor-electromagnetismo-${date}.json`, this.model.exportDocument());
       this.toast("Borrador editorial exportado.", "success");
     });
-    on("#editor-reset", "click", () => {
-      if (!window.confirm("¿Restaurar la cartografía canónica? Esta acción inicia un nuevo historial editorial.")) return;
-      this.#report(this.model.reset(), "Borrador restaurado a la cartografía canónica.");
-    });
+    on("#editor-reset", "click", () => this.#requestDraftReset());
 
     this.elements.importInput.addEventListener("change", async () => {
       const [file] = this.elements.importInput.files ?? [];
@@ -244,6 +362,43 @@ export class EditorUIController {
     });
     this.elements.previousArea.addEventListener("click", () => this.#swapSelectedArea(-1));
     this.elements.nextArea.addEventListener("click", () => this.#swapSelectedArea(1));
+    this.elements.bowerbirdArea.addEventListener("change", () => {
+      this.app.selectArea(this.elements.bowerbirdArea.value);
+      this.render();
+    });
+    for (const select of [
+      this.elements.bowerbirdPalette,
+      this.elements.bowerbirdMotif,
+      this.elements.bowerbirdContour,
+    ]) {
+      select.addEventListener("change", () => this.#applyBowerbirdAppearance());
+    }
+    this.elements.bowerbirdReset.addEventListener("click", () => {
+      const areaId = this.app.getState().selectedAreaId;
+      if (!areaId) return;
+      this.#report(
+        this.bowerbird.resetAreaAppearance(areaId),
+        this.readOnly
+          ? "La zona vuelve a heredar la apariencia del curso."
+          : "Apariencia canónica restaurada en el borrador.",
+      );
+    });
+    this.elements.validateApplication.addEventListener("click", () => {
+      void this.#validateCourseApplication();
+    });
+    this.elements.confirmApplication.addEventListener("change", () => {
+      this.#renderApplicationState();
+    });
+    this.elements.applyCourse.addEventListener("click", () => {
+      void this.#applyCourseEdition();
+    });
+    this.elements.recoverApplication.addEventListener("click", () => {
+      if (this.reloadRequired) {
+        window.location.reload();
+        return;
+      }
+      void this.#recoverPendingApplication();
+    });
 
     this.onKeyDown = (event) => this.#handleKeyDown(event);
     window.addEventListener("keydown", this.onKeyDown, { passive: false });
@@ -256,7 +411,360 @@ export class EditorUIController {
     button.title = `${collapsed ? "Expandir" : "Minimizar"} ${label}`;
   }
 
+  #requestDraftReset() {
+    if (this.readOnly) return;
+    if (!this.resetArmed) {
+      this.resetArmed = true;
+      this.elements.reset.textContent = "Confirmar restauración";
+      this.elements.reset.setAttribute("aria-pressed", "true");
+      this.toast(
+        "Pulsa «Confirmar restauración» para iniciar un nuevo historial editorial.",
+        "warning",
+        7000,
+      );
+      if (this.resetConfirmationTimer !== null) {
+        window.clearTimeout(this.resetConfirmationTimer);
+      }
+      this.resetConfirmationTimer = window.setTimeout(() => this.#disarmDraftReset(), 8000);
+      return;
+    }
+    this.#disarmDraftReset();
+    this.#report(this.model.reset(), "Borrador restaurado a la cartografía canónica.");
+  }
+
+  #disarmDraftReset() {
+    this.resetArmed = false;
+    this.elements.reset.textContent = "Restaurar";
+    this.elements.reset.setAttribute("aria-pressed", "false");
+    if (this.resetConfirmationTimer !== null) {
+      window.clearTimeout(this.resetConfirmationTimer);
+      this.resetConfirmationTimer = null;
+    }
+  }
+
+  #setApplicationStatus(message, level = "info") {
+    this.elements.applicationStatus.textContent = message;
+    this.elements.applicationStatus.dataset.level = level;
+  }
+
+  #setApplicationBusy(busy) {
+    this.applicationBusy = Boolean(busy);
+    this.elements.shell.dataset.applying = String(this.applicationBusy);
+    this.elements.shell.setAttribute("aria-busy", String(this.applicationBusy));
+    this.elements.inspector.inert = this.applicationBusy;
+    this.elements.generalDock.inert = this.applicationBusy;
+    this.elements.toolsDock.inert = this.applicationBusy;
+    this.elements.canvas.inert = this.applicationBusy;
+    this.#renderApplicationState();
+  }
+
+  #invalidateApplicationPlan(message = null) {
+    this.applicationGeneration += 1;
+    this.applicationCoordinator?.invalidate();
+    this.applicationPlan = null;
+    this.elements.confirmApplication.checked = false;
+    if (message && !this.applicationBusy) this.#setApplicationStatus(message, "warning");
+    this.#renderApplicationState();
+  }
+
+  #applicationErrorMessage(error) {
+    const helperErrors = new Set([
+      "author-helper-unavailable",
+      "invalid-author-response",
+      "invalid-author-session",
+      "invalid-author-endpoint",
+      "author-request-failed",
+    ]);
+    if (helperErrors.has(error?.code)) {
+      return "El helper local no está disponible o no es compatible. Ejecuta `npm run editor:author` y abre la URL que indique.";
+    }
+    if (error?.code === "revision-conflict") {
+      return "La fuente cambió desde la validación. Recarga el Editor y vuelve a validar el borrador.";
+    }
+    if (error?.code === "application-plan-stale") {
+      return "El borrador cambió después de validarse; vuelve a validar el Resumen.";
+    }
+    if (error?.code === "course-in-use") {
+      return "Otra pestaña de ORBIT usa el curso. Ciérrala antes de aplicar la edición.";
+    }
+    if (error?.code === "course-locks-unavailable") {
+      return "Este navegador no ofrece Web Locks; la aplicación segura queda bloqueada.";
+    }
+    return error?.message ?? "La operación local no pudo completarse de forma verificable.";
+  }
+
+  async #probeAuthorHelper({ announceReady = true } = {}) {
+    if (!this.applicationCoordinator || this.applicationProbeRunning || this.destroyed) return;
+    this.applicationProbeStarted = true;
+    this.applicationProbeRunning = true;
+    this.helperStatusText = "Comprobando sesión local…";
+    this.#renderApplicationState();
+    try {
+      const resolution = await this.applicationCoordinator.inspectPending();
+      if (this.destroyed) return;
+      this.pendingResolution = resolution.action === "none" ? null : resolution;
+      if (this.pendingResolution) {
+        this.helperStatusText = "Transacción pendiente detectada";
+        this.#setApplicationStatus(
+          this.pendingResolution.action === "finalize"
+            ? "El navegador ya usa la revisión objetivo: la recuperación solo cerrará el journal del helper."
+            : "El navegador no usa la revisión objetivo: la recuperación restaurará la fuente y el build anteriores.",
+          "warning",
+        );
+      } else {
+        this.helperStatusText = "Conectado · protocolo local v1";
+        if (announceReady && !this.applicationPlan) {
+          this.#setApplicationStatus(
+            "Helper listo. Valida la edición y revisa el impacto antes de confirmar.",
+            "success",
+          );
+        }
+      }
+    } catch (error) {
+      if (this.destroyed) return;
+      this.helperStatusText = error?.code === "pending-browser-state-ambiguous"
+        ? "Pendiente bloqueada por estado ambiguo"
+        : "No disponible";
+      this.pendingResolution = error?.code === "pending-browser-state-ambiguous"
+        ? { action: "ambiguous", error }
+        : null;
+      if (error?.code !== "pending-browser-state-ambiguous") {
+        this.applicationProbeStarted = false;
+      }
+      this.#setApplicationStatus(this.#applicationErrorMessage(error), "error");
+    } finally {
+      this.applicationProbeRunning = false;
+      if (!this.destroyed) this.#renderApplicationState();
+    }
+  }
+
+  async #validateCourseApplication() {
+    if (!this.applicationCoordinator || this.applicationBusy || this.reloadRequired) return;
+    const candidate = this.model.getSnapshot().document;
+    const generation = this.applicationGeneration;
+    this.#setApplicationBusy(true);
+    this.#setApplicationStatus(
+      "Validando cartografía, progresión, diferencias e impacto local…",
+      "info",
+    );
+    try {
+      const plan = await this.applicationCoordinator.validate(candidate);
+      if (generation !== this.applicationGeneration) {
+        this.applicationCoordinator.invalidate();
+        this.applicationPlan = null;
+        this.#setApplicationStatus(
+          "El borrador cambió durante la validación; repite el análisis.",
+          "warning",
+        );
+        return;
+      }
+      this.applicationPlan = plan;
+      this.elements.confirmApplication.checked = false;
+      const warningCount = plan.validation.warnings.length;
+      this.#setApplicationStatus(
+        plan.changed
+          ? `Plan válido${warningCount ? ` con ${warningCount} advertencia${warningCount === 1 ? "" : "s"}` : ""}. Revisa el impacto y confirma explícitamente.`
+          : "La revisión calculada coincide con la edición activa; no hay nada que aplicar.",
+        plan.changed ? (warningCount ? "warning" : "success") : "info",
+      );
+    } catch (error) {
+      this.applicationPlan = null;
+      this.elements.confirmApplication.checked = false;
+      this.#setApplicationStatus(this.#applicationErrorMessage(error), "error");
+    } finally {
+      this.#setApplicationBusy(false);
+    }
+  }
+
+  async #applyCourseEdition() {
+    if (
+      !this.applicationCoordinator
+      || this.applicationBusy
+      || !this.applicationPlan?.changed
+      || !this.elements.confirmApplication.checked
+      || this.pendingResolution
+      || this.reloadRequired
+    ) return;
+    const candidate = this.model.getSnapshot().document;
+    const confirmedPlan = structuredClone(this.applicationPlan);
+    this.#setApplicationBusy(true);
+    this.#setApplicationStatus(
+      "Aplicando fuente, ejecutando `npm run check`, construyendo dist y reiniciando el progreso local…",
+      "warning",
+    );
+    try {
+      const result = await this.applicationCoordinator.apply(candidate);
+      this.applicationPlan = null;
+      this.pendingResolution = null;
+      this.elements.confirmApplication.checked = false;
+      this.courseEdition = {
+        ...this.courseEdition,
+        edition: structuredClone(result.edition),
+        courseRevision: result.edition.revision,
+        source: "applied",
+      };
+      this.applicationEvidence = {
+        revision: result.edition.revision,
+        digest: result.edition.digest,
+        build: result.repository.checkPassed
+          ? "Fuente y dist verificados por npm run check (incluye build)."
+          : "Fuente y navegador aplicados; el helper no informó evidencia completa del check.",
+        profiles: confirmedPlan.impact.resetProfiles.map(profileLabel).join(", "),
+        preserved: "Borrador Docente y preferencias Bowerbird personales de Estudiante.",
+      };
+      this.helperStatusText = "Conectado · transacción finalizada";
+      this.#setApplicationStatus(
+        `Edición aplicada y verificada: ${result.edition.revision}.`,
+        "success",
+      );
+      this.toast("Edición local aplicada; los tres perfiles comienzan sin progreso.", "success", 7000);
+    } catch (error) {
+      if (["revision-conflict", "application-plan-stale"].includes(error?.code)) {
+        this.#invalidateApplicationPlan();
+      }
+      if (error?.code === "course-application-recovery-required") {
+        this.reloadRequired = true;
+      }
+      this.#setApplicationStatus(this.#applicationErrorMessage(error), "error");
+      if (["pending-course-application", "course-finalization-pending", "pending-browser-finalization"].includes(error?.code)) {
+        this.applicationProbeStarted = false;
+      }
+    } finally {
+      this.#setApplicationBusy(false);
+      if (!this.applicationProbeStarted) void this.#probeAuthorHelper({ announceReady: false });
+    }
+  }
+
+  async #recoverPendingApplication() {
+    if (!this.applicationCoordinator || this.applicationBusy || this.reloadRequired) return;
+    this.#setApplicationBusy(true);
+    this.#setApplicationStatus("Verificando la revisión local antes de recuperar…", "warning");
+    try {
+      const result = await this.applicationCoordinator.recoverPending();
+      this.pendingResolution = null;
+      this.applicationPlan = null;
+      this.elements.confirmApplication.checked = false;
+      if (result.action === "finalized") {
+        this.courseEdition = {
+          ...this.courseEdition,
+          edition: structuredClone(result.edition),
+          courseRevision: result.edition.revision,
+          source: "applied",
+        };
+        this.applicationEvidence = {
+          revision: result.edition.revision,
+          digest: result.edition.digest,
+          build: "Fuente y build ya verificados; journal del helper finalizado sin repetir el reset.",
+          profiles: "Estudiante, Docente y Debug",
+          preserved: "Borrador Docente y preferencias Bowerbird personales de Estudiante.",
+        };
+        this.helperStatusText = "Conectado · recuperación finalizada";
+        this.#setApplicationStatus(
+          "La edición objetivo ya estaba en el navegador; se finalizó el helper sin reiniciar de nuevo.",
+          "success",
+        );
+      } else {
+        this.reloadRequired = true;
+        this.helperStatusText = "Fuente anterior restaurada · recarga requerida";
+        this.#setApplicationStatus(
+          "La revisión objetivo no estaba instalada: se restauraron fuente y build anteriores. Recarga el Editor para continuar.",
+          "warning",
+        );
+      }
+    } catch (error) {
+      this.#setApplicationStatus(this.#applicationErrorMessage(error), "error");
+      if (error?.code === "pending-browser-state-ambiguous") {
+        this.pendingResolution = { action: "ambiguous", error };
+      }
+    } finally {
+      this.#setApplicationBusy(false);
+    }
+  }
+
+  #renderApplicationState() {
+    if (!this.applicationCoordinator) {
+      this.elements.courseApplication.hidden = true;
+      return;
+    }
+    this.elements.courseApplication.hidden = false;
+    const coordinator = this.applicationCoordinator.getSnapshot();
+    this.elements.currentRevision.textContent = coordinator.currentEdition.revision;
+    this.elements.currentSource.textContent = courseSourceLabel(this.courseEdition?.source);
+    this.elements.helperStatus.textContent = this.helperStatusText;
+
+    const pending = this.pendingResolution;
+    this.elements.pendingApplication.hidden = !pending && !this.reloadRequired;
+    if (this.reloadRequired) {
+      this.elements.pendingDetail.textContent = "La fuente anterior ya fue restaurada. Recarga para descartar la edición objetivo que esta pestaña tenía en memoria.";
+      this.elements.recoverApplication.textContent = "Recargar ORBIT Editor";
+      this.elements.recoverApplication.disabled = this.applicationBusy;
+    } else if (pending) {
+      const descriptions = {
+        finalize: "El navegador contiene exactamente la revisión objetivo. Se puede finalizar el journal sin repetir el reinicio.",
+        rollback: "El navegador conserva la revisión anterior o ninguna edición local. Se puede restaurar fuente y build sin tocar el progreso.",
+        ambiguous: "La revisión del navegador no coincide con los extremos del journal. La recuperación automática queda bloqueada sin modificar nada.",
+      };
+      this.elements.pendingDetail.textContent = descriptions[pending.action] ?? "La transacción pendiente requiere revisión.";
+      this.elements.recoverApplication.textContent = pending.action === "finalize"
+        ? "Finalizar journal pendiente"
+        : pending.action === "rollback"
+          ? "Restaurar fuente anterior"
+          : "Recuperación bloqueada";
+      this.elements.recoverApplication.disabled = this.applicationBusy || pending.action === "ambiguous";
+    }
+
+    this.elements.validateApplication.disabled = this.applicationBusy || Boolean(pending) || this.reloadRequired;
+    this.elements.applicationPlan.hidden = !this.applicationPlan;
+    if (this.applicationPlan) {
+      const { diff, impact, validation } = this.applicationPlan;
+      this.elements.diffAreas.textContent = listSummary(diff.movedAreas);
+      this.elements.diffLocations.textContent = listSummary(diff.movedLocations);
+      this.elements.diffAppearances.textContent = listSummary(diff.changedAreaAppearances);
+      this.elements.diffAddedConnections.textContent = listSummary(diff.addedConnections);
+      this.elements.diffRemovedConnections.textContent = listSummary(diff.removedConnections);
+      this.elements.validationReachability.textContent = `${validation.reachableAreas} zonas · ${validation.reachableLocations} lugares · ${validation.reachableConcepts} conceptos`;
+      const rows = impact.profiles.map((entry) => {
+        const row = document.createElement("tr");
+        const values = [
+          profileLabel(entry.profile),
+          entry.found ? "Sí" : "No",
+          entry.readable ? `${entry.completedLocations}/${impact.totalLocations}` : "—",
+          entry.readable ? `${entry.concepts}/${impact.totalConcepts}` : "—",
+          entry.found ? (entry.readable ? "Legible" : "No legible") : "Sin guardado",
+        ];
+        for (const value of values) {
+          const cell = document.createElement("td");
+          cell.textContent = value;
+          row.append(cell);
+        }
+        return row;
+      });
+      this.elements.applicationImpact.replaceChildren(...rows);
+    } else {
+      this.elements.applicationImpact.replaceChildren();
+    }
+    this.elements.confirmApplication.disabled = this.applicationBusy
+      || !this.applicationPlan?.changed
+      || Boolean(pending)
+      || this.reloadRequired;
+    this.elements.applyCourse.disabled = this.applicationBusy
+      || !this.applicationPlan?.changed
+      || !this.elements.confirmApplication.checked
+      || Boolean(pending)
+      || this.reloadRequired;
+
+    this.elements.applicationEvidence.hidden = !this.applicationEvidence;
+    if (this.applicationEvidence) {
+      this.elements.appliedRevision.textContent = this.applicationEvidence.revision;
+      this.elements.appliedDigest.textContent = this.applicationEvidence.digest;
+      this.elements.appliedBuild.textContent = this.applicationEvidence.build;
+      this.elements.appliedProfiles.textContent = this.applicationEvidence.profiles;
+      this.elements.appliedPreserved.textContent = this.applicationEvidence.preserved;
+    }
+  }
+
   #handleKeyDown(event) {
+    if (this.applicationBusy) return;
     if (event.code === "Escape") {
       if (this.app.cancelGesture()) event.preventDefault();
       return;
@@ -325,6 +833,21 @@ export class EditorUIController {
     this.#report(result, "Nodo desplazado.", { quietSuccess: true });
   }
 
+  #applyBowerbirdAppearance() {
+    const areaId = this.app.getState().selectedAreaId;
+    if (!areaId) return;
+    this.#report(
+      this.bowerbird.setAreaAppearance(areaId, {
+        paletteId: this.elements.bowerbirdPalette.value,
+        motifId: this.elements.bowerbirdMotif.value,
+        contourId: this.elements.bowerbirdContour.value,
+      }),
+      this.readOnly
+        ? "Apariencia personal guardada."
+        : "Apariencia Bowerbird guardada en el borrador.",
+    );
+  }
+
   #swapSelectedArea(direction) {
     const selectedAreaId = this.app.getState().selectedAreaId;
     const snapshot = this.model.getSnapshot();
@@ -345,13 +868,13 @@ export class EditorUIController {
   }
 
   #report(result, successMessage, { quietSuccess = false } = {}) {
-    if (!result?.ok) {
-      const message = result?.errors?.[0]?.message ?? this.#reasonMessage(result?.reason);
-      this.toast(message, "error");
-      return false;
-    }
-    if (result.changed && !quietSuccess) this.toast(successMessage, "success");
-    return true;
+    const notice = getEditorMutationNotice(result, successMessage, {
+      quietSuccess,
+      fallbackMessage: this.#reasonMessage(result?.reason),
+    });
+    if (notice.message) this.toast(notice.message, notice.level);
+    if (!notice.accepted) this.render();
+    return notice.accepted;
   }
 
   #reasonMessage(reason) {
@@ -368,6 +891,8 @@ export class EditorUIController {
       "nothing-to-undo": "No hay cambios para deshacer.",
       "nothing-to-redo": "No hay cambios para rehacer.",
       "profile-read-only": "El perfil estudiante no puede modificar el borrador editorial.",
+      "invalid-area-appearance": "La apariencia debe usar presets compatibles.",
+      "storage-write-failed": "No fue posible guardar el cambio en este navegador.",
     };
     return messages[reason] ?? "La operación no superó la validación del editor.";
   }
@@ -379,25 +904,35 @@ export class EditorUIController {
     }
     this.currentView = view;
     this.elements.inspector.hidden = false;
-    if (view === "spider" || view === "bee") this.app.setActiveTool(view);
+    if (["spider", "bee", "bowerbird"].includes(view)) this.app.setActiveTool(view);
     this.render();
+    if (
+      view === "overview"
+      && this.applicationCoordinator
+      && !this.applicationProbeStarted
+    ) {
+      void this.#probeAuthorHelper();
+    }
   }
 
   render() {
     const snapshot = this.model.getSnapshot();
+    const appearanceSnapshot = this.bowerbird.getSnapshot();
     const appState = this.app.getState();
     this.elements.shell.dataset.tool = appState.activeTool;
     this.elements.shell.dataset.dragging = String(Boolean(appState.gesture));
     this.elements.areaCount.textContent = String(snapshot.areas.length);
     this.elements.locationCount.textContent = String(snapshot.locations.length);
-    this.elements.saveStatus.textContent = timestampLabel(snapshot.document.updatedAt);
+    this.elements.saveStatus.textContent = timestampLabel(appearanceSnapshot.updatedAt);
     this.elements.draftBadge.textContent = this.readOnly
-      ? "solo lectura"
+      ? appearanceSnapshot.warnings.length
+        ? `${appearanceSnapshot.warnings.length} advertencia${appearanceSnapshot.warnings.length === 1 ? "" : "s"}`
+        : "apariencia personal"
       : snapshot.warnings.length
         ? `${snapshot.warnings.length} advertencia${snapshot.warnings.length === 1 ? "" : "s"}`
         : "borrador local";
     this.elements.draftBadge.title = this.readOnly
-      ? "Consulta local sin permisos de edición."
+      ? "Bowerbird guarda una apariencia local separada del borrador Docente."
       : snapshot.warnings.length
         ? "Abre Resumen para revisar las advertencias del borrador."
         : "Borrador editorial guardado localmente.";
@@ -412,9 +947,15 @@ export class EditorUIController {
       "aria-pressed",
       String(!this.readOnly && appState.activeTool === "bee"),
     );
+    this.elements.bowerbirdButton.setAttribute(
+      "aria-pressed",
+      String(appState.activeTool === "bowerbird"),
+    );
     const activeMode = this.readOnly
-      ? "Consulta · solo lectura"
-      : appState.activeTool === "bee"
+      ? "Bowerbird · personal"
+      : appState.activeTool === "bowerbird"
+        ? "Bowerbird"
+        : appState.activeTool === "bee"
         ? "Bee"
         : `Spider · ${appState.spiderMode === "connect" ? "conectar" : "mover"}`;
     this.elements.activeTool.textContent = activeMode;
@@ -423,9 +964,17 @@ export class EditorUIController {
     }
 
     this.#renderInspectorView();
-    this.#renderWarnings(snapshot);
+    this.#renderWarnings({
+      warnings: [
+        ...this.courseWarnings,
+        ...snapshot.warnings,
+        ...appearanceSnapshot.warnings,
+      ],
+    });
+    this.#renderApplicationState();
     this.#renderLocationControls(snapshot, appState);
     this.#renderAreaControls(snapshot, appState);
+    this.#renderBowerbirdControls(appearanceSnapshot, appState);
     this.#renderConnections(snapshot, appState);
   }
 
@@ -441,9 +990,14 @@ export class EditorUIController {
         title: "Bee",
         eyebrow: "Árbol I · zonas",
       },
+      bowerbird: {
+        panel: this.elements.bowerbirdPanel,
+        title: "Bowerbird",
+        eyebrow: "Apariencia · zonas",
+      },
       overview: {
         panel: this.elements.overviewPanel,
-        title: "ORBIT Editor 0.4.0",
+        title: "ORBIT Editor",
         eyebrow: "Borrador local",
       },
       help: {
@@ -452,7 +1006,7 @@ export class EditorUIController {
         eyebrow: "Ratón y teclado",
       },
     };
-    const selected = views[this.currentView] ?? views.spider;
+    const selected = views[this.currentView] ?? views.bowerbird;
     for (const view of Object.values(views)) view.panel.hidden = view !== selected;
     this.elements.inspectorTitle.textContent = selected.title;
     this.elements.inspectorEyebrow.textContent = selected.eyebrow;
@@ -554,6 +1108,75 @@ export class EditorUIController {
       : "Selecciona una zona del anillo 1 o 2.";
     this.elements.previousArea.disabled = this.readOnly || !selected || selected.tier === 0;
     this.elements.nextArea.disabled = this.readOnly || !selected || selected.tier === 0;
+  }
+
+  #renderBowerbirdControls(appearanceSnapshot, appState) {
+    const selected = appearanceSnapshot.areas.find(
+      (area) => area.id === appState.selectedAreaId,
+    ) ?? appearanceSnapshot.areas[0];
+    if (!selected) return;
+    if (selected.id !== appState.selectedAreaId) this.app.selectArea(selected.id);
+
+    this.#replaceSelectOptions(
+      this.elements.bowerbirdArea,
+      appearanceSnapshot.areas,
+      selected.id,
+      {
+        groups: [
+          ["Base", appearanceSnapshot.areas.filter((area) => area.tier === 0)],
+          ["Anillo 1 · teoría", appearanceSnapshot.areas.filter((area) => area.tier === 1)],
+          ["Anillo 2 · aplicaciones", appearanceSnapshot.areas.filter((area) => area.tier === 2)],
+        ],
+      },
+    );
+
+    const appearance = selected.appearance ?? DEFAULT_AREA_APPEARANCE;
+    const renderPresetSelect = (select, entries, selectedId) => {
+      const options = entries.map((entry) => {
+        const option = document.createElement("option");
+        option.value = entry.id;
+        option.textContent = entry.label;
+        option.title = entry.description;
+        option.selected = entry.id === selectedId;
+        return option;
+      });
+      select.replaceChildren(...options);
+    };
+    renderPresetSelect(
+      this.elements.bowerbirdPalette,
+      AREA_APPEARANCE_PALETTES,
+      appearance.paletteId,
+    );
+    renderPresetSelect(
+      this.elements.bowerbirdMotif,
+      AREA_APPEARANCE_MOTIFS,
+      appearance.motifId,
+    );
+    renderPresetSelect(
+      this.elements.bowerbirdContour,
+      AREA_APPEARANCE_CONTOURS,
+      appearance.contourId,
+    );
+
+    const describe = (entries, id) => entries.find((entry) => entry.id === id)?.description ?? "";
+    this.elements.bowerbirdPaletteDescription.textContent = describe(
+      AREA_APPEARANCE_PALETTES,
+      appearance.paletteId,
+    );
+    this.elements.bowerbirdMotifDescription.textContent = describe(
+      AREA_APPEARANCE_MOTIFS,
+      appearance.motifId,
+    );
+    this.elements.bowerbirdContourDescription.textContent = describe(
+      AREA_APPEARANCE_CONTOURS,
+      appearance.contourId,
+    );
+    this.elements.bowerbirdReset.textContent = this.readOnly
+      ? "Heredar apariencia del curso"
+      : "Restaurar apariencia canónica";
+    this.elements.bowerbirdScope.textContent = this.readOnly
+      ? "Alcance: preferencia personal de Estudiante; no modifica ni se exporta con el borrador Docente."
+      : "Alcance: borrador común Docente; el cambio participa en historial, importación y exportación.";
   }
 
   #renderConnections(snapshot, appState) {
