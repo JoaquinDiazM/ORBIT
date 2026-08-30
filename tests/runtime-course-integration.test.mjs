@@ -231,6 +231,7 @@ test("la composición runtime carga la edición, la inyecta y limita Bowerbird p
     /profile === APP_CONFIG\.defaultProfile\s*\? new BowerbirdPreferencesModel/,
   );
   assert.match(main, /const dispose = \(\) => \{[\s\S]*for \(const \[label, release\] of \[/);
+  assert.match(main, /\["monitor de mantenimiento", \(\) => maintenanceMonitor\?\.stop\(\)\]/);
   assert.match(main, /\["juego", \(\) => game\.destroy\(\)\]/);
   assert.match(main, /\["audio", \(\) => audio\.destroy\(\)\]/);
   assert.match(main, /\["suscripción de audio", \(\) => unsubscribeAudioSettings\(\)\]/);
@@ -238,6 +239,11 @@ test("la composición runtime carga la edición, la inyecta y limita Bowerbird p
   assert.match(main, /try \{\s*release\(\);\s*\} catch \(error\)/);
   assert.match(main, /finally \{\s*runtimeLock\?\.release\(\);\s*\}/);
   assert.match(main, /window\.addEventListener\("pagehide", dispose, \{ once: true \}\)/);
+  assert.match(main, /maintenanceMonitor = new OrbitMaintenanceMonitor\(/);
+  assert.match(
+    main,
+    /onMaintenance: \(\) => \{[\s\S]*shell\.inert = true;[\s\S]*dispose\(\);[\s\S]*window\.location\.reload\(\);/,
+  );
   assert.match(
     main,
     /window\.addEventListener\("pageshow", \(event\) => \{\s*if \(event\.persisted\) window\.location\.reload\(\);/,

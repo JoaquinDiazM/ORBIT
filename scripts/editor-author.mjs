@@ -1122,8 +1122,11 @@ export async function createEditorAuthorServer({
         response.end("Método no permitido");
         return;
       }
-      if (shouldBlockRuntimeEntry(repositoryRoot, request.url, { busy })) {
-        sendRuntimeEntryUnavailable(response);
+      if (shouldBlockRuntimeEntry(repositoryRoot, request.url, {
+        busy,
+        maintenance: true,
+      })) {
+        sendRuntimeEntryUnavailable(response, { maintenance: true });
         return;
       }
       const filePath = await safeStaticPath(repositoryRoot, request.url);
@@ -1137,8 +1140,11 @@ export async function createEditorAuthorServer({
         response.end("Recurso no encontrado");
         return;
       }
-      if (shouldBlockRuntimeEntry(repositoryRoot, request.url, { busy })) {
-        sendRuntimeEntryUnavailable(response);
+      if (shouldBlockRuntimeEntry(repositoryRoot, request.url, {
+        busy,
+        maintenance: true,
+      })) {
+        sendRuntimeEntryUnavailable(response, { maintenance: true });
         return;
       }
       const body = request.method === "HEAD" ? null : await readFile(filePath);
@@ -1214,7 +1220,7 @@ if (invokedDirectly) {
     const port = resolveEditorAuthorCliPort();
     const author = await createEditorAuthorServer({ port });
     console.log(`ORBIT Editor · autoría local canónica: ${author.origin}/editor.html`);
-    console.log("Detén npm run dev antes de autorizar cambios; ambos usan 127.0.0.1:4173.");
+    console.log("Modo mantenimiento: las entradas de ORBIT permanecen bloqueadas hasta volver a iniciar npm run dev.");
     console.log("La API de aplicación solo acepta solicitudes same-origin con token de sesión.");
     console.log("Presiona Ctrl+C para detener el helper.");
     const shutdown = () => author.close().finally(() => process.exit(0));

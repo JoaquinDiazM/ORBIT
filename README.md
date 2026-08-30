@@ -71,6 +71,10 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
   flujo local **Validar → revisar impacto → confirmar → aplicar** usa respaldo y recuperación,
   exige cerrar otras pestañas de ORBIT y reinicia únicamente los progresos Estudiante, Docente y
   Debug; conserva el documento Docente y las preferencias Bowerbird Estudiante.
+- `npm run dev` es el modo normal: sirve ORBIT y Editor, permite editar y validar, pero bloquea
+  **Aplicar** con una explicación visible. `npm run editor:author` es el modo mantenimiento:
+  conserva Editor y su API, bloquea todas las entradas de ORBIT y habilita la aplicación solo
+  después de verificar la sesión local y el bloqueo exclusivo.
 - Los perfiles y bloqueos son modos locales elegibles, no cuentas, autenticación ni control de
   acceso real.
 - Una dependencia npm fijada y documentada: KaTeX 0.18.1; la cohorte `0.5.0` no añade paquetes,
@@ -96,9 +100,12 @@ documento, mostrar el diff y cuantificar el avance local de los tres perfiles an
 una confirmación en línea. Aplicar escribe solo la ruta canónica, ejecuta las comprobaciones y el
 build, instala la edición en el navegador y realiza un reinicio total y específico del progreso;
 un journal y un respaldo permiten recuperar o revertir una interrupción. Mientras esa
-transacción esté pendiente, los servidores locales bloquean la entrada Estudiante y conservan
-Editor disponible para finalizar o revertir. El helper reserva un único proceso por checkout e
-inspecciona que esté limpio, pero no crea commits, no prepara el índice y no hace push.
+sesión de mantenimiento esté activa, todas las entradas de ORBIT —Estudiante, Docente y Debug—
+responden `503`; Editor y sus recursos siguen disponibles para aplicar, finalizar o revertir.
+Una pestaña de ORBIT que permanecía abierta desde `dev` detecta el cambio, detiene su runtime,
+libera el bloqueo compartido y recarga hacia esa barrera. Al terminar hay que detener autoría e
+iniciar otra vez `npm run dev`. El helper reserva un único proceso por checkout e inspecciona
+que esté limpio, pero no crea commits, no prepara el índice y no hace push.
 
 ### Cambios centrales de 0.4.3
 
@@ -210,6 +217,11 @@ Como alternativa puntual, `npm.cmd` evita el wrapper de PowerShell. `npm run dev
 `http://127.0.0.1:4173`: no acepta `PORT`, argumentos de puerto ni busca un fallback. Si el
 origen está ocupado, detén con `Ctrl+C` el servidor o helper anterior y vuelve a iniciar el
 comando. Mantener un solo origen es necesario para compartir Web Locks y almacenamiento local.
+En este modo normal, ORBIT y Editor están disponibles; Resumen puede validar un borrador, pero
+**Aplicar** permanece deshabilitado y explica cómo entrar en mantenimiento. Para aplicar, detén
+`dev`, cierra las demás pestañas de ORBIT e inicia `npm run editor:author`. Ese comando bloquea
+ORBIT mientras esté activo. Cuando finalices, detén autoría y reinicia `npm run dev` para revisar
+la edición en los tres perfiles.
 En ORBIT Editor Docente, un servidor compatible revela **Detener servidor** al final de General:
 la primera pulsación arma una confirmación y la segunda cierra de forma cooperativa únicamente el
 proceso ORBIT que sirve esa página. El control funciona con `dev` y `editor:author`, pero se niega
@@ -247,8 +259,8 @@ Los controles de arrastre, teclado, conexión, intercambio de zonas y deshacer/r
 ## Comandos del repositorio
 
 ```bash
-npm run dev       # servidor local; origen fijo 127.0.0.1:4173, sin fallback
-npm run editor:author # helper de autoría; origen fijo 127.0.0.1:4173, sin fallback
+npm run dev       # modo normal: ORBIT + Editor; aplicar bloqueado
+npm run editor:author # mantenimiento: ORBIT bloqueado; aplicación local habilitable
 npm run validate  # referencias, coordenadas y alcanzabilidad del contenido
 npm test          # pruebas con node:test
 npm run build     # crea dist/

@@ -68,7 +68,9 @@ El producto ya incluye:
   modelo;
 - documento `orbit-editor-project` `v2`, catálogo visual y preferencias Estudiante aisladas;
 - `orbit-course-edition` con revisión/digest y aplicación local recuperable mediante
-  `npm run editor:author`, sin backend público ni dependencia nueva.
+  `npm run editor:author`, sin backend público ni dependencia nueva;
+- modos locales explícitos: `dev` sirve ORBIT y Editor pero no aplica; `editor:author` bloquea
+  Estudiante/Docente/Debug y conserva solo Editor y su API de mantenimiento.
 
 El contenido científico es demostrativo. No lo trates como una guía terminada.
 
@@ -88,9 +90,13 @@ recuperable, pero no muta Git ni publica. Estas capacidades elegibles por URL no
 autenticación.
 
 Toda ejecución local usa únicamente `http://127.0.0.1:4173`: `npm run dev` y la autoría rechazan
-overrides y fallback. El helper toma un lock de proceso por checkout y bloquea la entrada
-Estudiante mientras exista un journal pendiente. Editor sigue accesible para recuperar; nunca
-abras otro puerto para eludir esa barrera, porque separaría Web Locks y `localStorage`.
+overrides y fallback. `dev` es el modo normal: ORBIT y Editor están disponibles, pero aplicar
+permanece bloqueado aun si la validación local es correcta. `editor:author` es mantenimiento:
+niega siempre las entradas ORBIT de los tres perfiles, deja Editor accesible y solo habilita
+aplicar tras verificar la sesión de autoría. Una pestaña ORBIT previa sondea la transición,
+detiene su runtime, libera el Web Lock compartido y recarga hacia el `503`. El helper toma un
+lock de proceso por checkout; nunca abras otro puerto para eludir la barrera, porque separaría
+Web Locks y `localStorage`.
 Editor Docente puede detener cooperativamente cualquiera de esos dos servicios desde General,
 pero solo después de validar una sesión local independiente y una doble confirmación. El control
 no mata procesos ajenos y autoría lo rechaza durante operaciones o journals pendientes.
@@ -160,10 +166,10 @@ Incluye esa evaluación en tu resumen de cambios o en el mensaje de commit.
 
 ```bash
 npm install
-npm run dev
+npm run dev # modo normal: ORBIT + Editor; aplicar bloqueado
 # usa el selector para Estudiante/Docente; para Debug abre ?debug=1&profile=debug
 # abre editor.html sin query para autoría docente o con ?profile=student para Bowerbird personal
-# usa npm run editor:author solo para probar una aplicación local sobre un checkout limpio
+# detén dev y usa editor:author solo para aplicar en mantenimiento sobre un checkout limpio
 
 npm run check
 ```
@@ -191,10 +197,14 @@ Para probar cambios editoriales:
    personal sin mutar el documento Docente;
 8. abre `editor.html?profile=debug` y confirma que no se crea el modelo editorial;
 9. valida en Resumen y revisa diff, impacto de los tres perfiles y plan invalidado tras editar;
-10. con un checkout de prueba limpio, detén `npm run dev`, cierra las demás pestañas, inicia
+10. en `dev`, confirma que Resumen permite editar/validar, identifica **Modo normal** y mantiene
+    confirmación/**Aplicar** deshabilitados con una explicación visible;
+11. con un checkout de prueba limpio, detén `npm run dev`, cierra las demás pestañas, inicia
     `npm run editor:author` en el origen fijo `127.0.0.1:4173`,
-    aplica y comprueba reset, conservación de documento/preferencias y concordancia fuente/build;
-11. vuelve a ORBIT en los tres perfiles y comprueba la revisión instalada.
+    comprueba que todas las entradas ORBIT responden en mantenimiento, aplica y verifica reset,
+    conservación de documento/preferencias y concordancia fuente/build;
+12. detén autoría, inicia nuevamente `npm run dev` y vuelve a ORBIT en los tres perfiles para
+    comprobar la revisión instalada.
 
 ## 6. Prohibiciones frecuentes
 
@@ -214,6 +224,7 @@ No:
 - afirmes que exportar un borrador actualiza ORBIT, escribe Git o publica automáticamente;
 - presentes el helper loopback como backend, dejes que acepte rutas del navegador o permitas que
   aplique sin revisión coincidente, checkout limpio, confirmación o bloqueo exclusivo;
+- sirvas ORBIT durante `editor:author` o habilites **Aplicar** durante `dev`;
 - hagas que una zona dependa de una llave situada únicamente dentro de ella;
 - renombres IDs publicados sin migración;
 - agregues React, Phaser, Vite, un CDN o cualquier paquete “por comodidad” sin ADR;

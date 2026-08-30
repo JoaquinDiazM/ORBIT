@@ -51,3 +51,24 @@ test("el helper bloquea la entrada desde busy aun antes de materializar el journ
     false,
   );
 });
+
+test("el modo mantenimiento bloquea ORBIT pero conserva el editor", () => {
+  assert.equal(
+    shouldBlockRuntimeEntry("C:/inexistente", "/?profile=teacher", {
+      maintenance: true,
+    }),
+    true,
+  );
+  assert.equal(
+    shouldBlockRuntimeEntry("C:/inexistente", "/src/main.js", {
+      maintenance: true,
+    }),
+    true,
+  );
+  assert.equal(
+    shouldBlockRuntimeEntry("C:/inexistente", "/editor.html", {
+      maintenance: true,
+    }),
+    false,
+  );
+});

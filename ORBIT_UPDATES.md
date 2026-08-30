@@ -347,7 +347,8 @@ opciones de colores, dibujos estáticos o móviles y contornos.
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y` si se limita a una aplicación local; una publicación remota depende de
   UPD-002 y puede requerir otro alcance de versión.
-- Próximo responsable: JoaquinDiazM, que revisa el apagado controlado de `dev` y `editor:author`.
+- Próximo responsable: JoaquinDiazM, que revisa los modos normal/mantenimiento, la aplicación y
+  el apagado controlado de `dev` y `editor:author`.
 
 #### Solicitud original
 
@@ -364,7 +365,10 @@ perfil.
 - Decisiones confirmadas: la página estática aplica la edición al navegador; un helper Node de
   autoría, ligado exclusivamente a loopback, escribe el artefacto fuente fijo y ejecuta
   validación/build. La edición incluye Spider, Bee y Bowerbird Docente; nunca incluye ni elimina
-  preferencias personales Bowerbird de Estudiante.
+  preferencias personales Bowerbird de Estudiante. `npm run dev` es el modo normal: ORBIT y
+  Editor permanecen disponibles, pero aplicar está bloqueado. `npm run editor:author` es el modo
+  mantenimiento: solo Editor y sus recursos/API permanecen disponibles, mientras las entradas
+  de ORBIT se bloquean hasta volver a iniciar `dev`.
 - Criterios de aceptación: documento desplegable `orbit-course-edition` v1 con revisión y digest;
   validar esquema, catálogo, IDs, anillos, offsets, conexiones, ciclos y progresión antes de
   resetear; contar lugares y conceptos por perfil; confirmación en línea invalidada por cambios
@@ -373,15 +377,22 @@ perfil.
   cuerpo, escritura atómica, checks/build y rollback; evidencia final de edición, fuente, build y
   perfiles reiniciados; control Docente de doble confirmación para detener exclusivamente el
   proceso ORBIT que sirve la página, tanto en desarrollo como en autoría, sin enumerar ni matar
-  procesos ajenos y sin cerrar mientras haya una aplicación o recuperación pendiente.
+  procesos ajenos y sin cerrar mientras haya una aplicación o recuperación pendiente; detección
+  explícita de modo en Resumen, validación permitida pero confirmación/aplicación inhabilitadas en
+  `dev`, y aplicación habilitada solo tras validar la sesión de autoría; 503 permanente para las
+  entradas Estudiante/Docente/Debug durante mantenimiento; una pestaña ORBIT cargada desde `dev`
+  detecta el cambio de servicio, detiene su runtime, libera el lock y recarga hacia el bloqueo;
+  los errores de aplicación se anuncian junto al control y mediante una alerta visible; el éxito
+  explica que debe detenerse mantenimiento y reiniciarse `dev` para revisar la edición aplicada.
 - Fuera de alcance: conflictos, concurrencia editorial, cuentas reales, publicación/despliegue
-  remoto, Git automático, reset parcial y cualquier sustituto improvisado de UPD-002.
+  remoto, Git automático, reset parcial, coordinación entre otros navegadores/equipos y cualquier
+  sustituto improvisado de UPD-002.
 - Dependencias, invariantes o ADR: consume `orbit-editor-project` v2 de UPD-013; el runtime
   materializa un artefacto fijo sobre los datos académicos base; el sitio desplegado sigue siendo
   estático; los estados de curso y progreso incorporan revisión para impedir resurrección desde
-  pestañas antiguas; nuevo ADR 0008 enmienda la frontera de ADR 0007; el apagado usa un protocolo
-  local separado del que aplica ediciones y tokens efímeros solo en memoria; no añadir
-  dependencias.
+  pestañas antiguas; ADR 0008 enmienda la frontera de ADR 0007 y se amplía para definir los modos
+  normal/mantenimiento; el apagado y la detección usan un protocolo local separado del que aplica
+  ediciones y tokens efímeros solo en memoria; no añadir dependencias.
 
 #### Preguntas bloqueantes
 
@@ -406,20 +417,37 @@ perfil.
   journal; un hosting o proceso ajeno nunca se termina. La integración también cerró una
   ambigüedad previa de request-target con barras invertidas antes de exponer tokens, serializa
   solicitudes de cierre concurrentes y descarta cuerpos HTTP abortados sin derribar el servicio.
+  La segunda corrección define `dev` como modo normal y `editor:author` como mantenimiento:
+  Resumen muestra el modo y el motivo de bloqueo junto a **Aplicar**, valida en ambos, pero solo
+  habilita confirmación/aplicación con una sesión de autoría verificada. Autoría responde `503`
+  a raíz, Estudiante, Docente, Debug y módulos de arranque durante toda su ejecución, mientras
+  conserva Editor/API. Las pestañas ORBIT abiertas desde `dev` toleran la pausa del servidor,
+  detectan autoría, vuelven inerte el shell, detienen subsistemas, liberan el Web Lock y recargan.
+  Un preflight `HEAD` también rechaza mantenimiento antes de construir `ProgressionModel`, incluso
+  si el navegador intentara reutilizar una entrada en caché.
+  Errores y éxito se anuncian junto al control y mediante toast; la evidencia final indica
+  detener mantenimiento y reiniciar `dev`.
 - Pruebas: aplicación completa, no-op, conteos, cancelación, contratos futuros, locks y pestañas,
   crashes en cada fase, rollback/finalize, progreso resucitado, envelopes divergentes, Host y
   absolute-form, límite/alcance estático, realpath y coincidencia exacta fuente/dist/build-info.
-  Suite integral: 366 aprobadas, 0 fallos y 2 skips EPERM de symlink; repositorio: 118 JS y 40
-  Markdown válidos; build estático reconstruido y helper excluido de `dist`. Prueba real de ambos
-  comandos: respuesta 202, terminal finalizada, 4173 liberado y lock de autoría retirado. Las
-  regresiones incluyen cierre concurrente y aborto de un POST parcial sin ejecutar el apagado.
-- Cómo revisar para JoaquinDiazM: desde un checkout limpio ejecutar `npm run editor:author`, abrir
-  la URL indicada, modificar una zona, nodo, conexión y apariencia, y usar **Resumen** para
-  validar el diff/impacto antes de confirmar. La confirmación reinicia el progreso local de
-  Estudiante, Docente y Debug; exportar antes cualquier avance que se quiera conservar. Después,
-  iniciar por separado `npm run dev` y `npm run editor:author`, abrir Editor Docente y pulsar dos
-  veces **Detener servidor**; comprobar que la terminal termina. El control no debe aparecer en
-  Estudiante/Debug ni apagar autoría durante una aplicación o recuperación pendiente.
+  Suite integral actual: 374 aprobadas, 0 fallos y 2 skips EPERM de symlink; repositorio: 120 JS
+  y 40 Markdown válidos; validación de 19 zonas/20 conceptos/29 lugares y build estático
+  reconstruido. El runtime de este agente no incluye el binario npm, por lo que ejecutó
+  directamente y con éxito los cuatro componentes de `npm run check`: validate, `node --test`,
+  repo-check y build. Prueba HTTP real: `dev` sirvió los tres perfiles, Editor y `main.js` con
+  sesión `development`, sin API de autoría; mantenimiento devolvió `503 maintenance` para todas
+  las entradas ORBIT y `200` para Editor/assets/API. Ambos apagados respondieron `202`, terminaron
+  su terminal, liberaron 4173 y retiraron el lock de autoría sin journal residual. El inventario,
+  sidecars, licencias y cinco claves de audio se reauditaron sin cambios.
+- Cómo revisar para JoaquinDiazM: ejecuta primero `npm run dev`, abre Editor Docente, modifica una
+  zona/nodo/conexión/apariencia y valida en **Resumen**. Debe indicar **Modo normal**, mostrar el
+  diff/impacto y mantener confirmación/**Aplicar** bloqueados con instrucciones. Deja una pestaña
+  ORBIT abierta, detén `dev` e inicia `npm run editor:author`: esa pestaña debe congelarse y
+  recargar al `503`, mientras Editor continúa disponible. Cierra las demás pestañas ORBIT, vuelve
+  a validar y aplica; exporta antes cualquier avance que quieras conservar. Al finalizar, detén
+  mantenimiento, inicia `npm run dev` y revisa la nueva edición en Estudiante, Docente y Debug.
+  **Detener servidor** requiere dos pulsaciones y no debe aparecer en Estudiante/Debug ni apagar
+  autoría durante una aplicación o recuperación pendiente.
 - Observaciones del usuario: Pregunta 1: Subir/aplicar significa unar el borrador en nuestro navegador y modificar fuentes/build de manera local. Sin embargo, esta actualizacion debe estar pensada para que en el momento que abordemos UPD-002 no tengamos que pensar los detalles que ahora estamos definiendo como politica de perdida de datos/progreso, verificacion de reseteo en todos los tipos de perfiles por accion de docente en ORBIT Editor, verificacion de cambios efectuados en el mapamundi (Nodos, zonas, etc), etc. Pregunta 2: Como todavia no tenemos sistema de cuentas, es para todos los estados locales de nuestro navegador. Pregunta 3: Todo, por lo quje hay que mantener coherencia en las actualizaciones de ORBIT Editor para que no se incluyan opciones que arruinen el objetivo principal de ORBIT, aprender. Pregunta 4: Si, el primer paso es validar y el segundo confirmar, y soltar datos utiles entre medio. Manten todo ese desarrollo en la ventana de resumen sin quitar lo que ya esta, complementandolo. 5.- Mostrar ambos y declarar el reinicio total.
 - Observaciones del usuario: Parece ser que falta un boton de shutdown, preferiblemente en el
   ORBIT Editor del perfil docente, para que un usuario desarrolador como yo pueda hacer pruebas,
@@ -433,6 +461,20 @@ perfil.
   ORBIT, de ser otra la causa del problema implementa soluciones parecida o la misma, y siempre
   deja en claro en la Especificación elaborada por el agente de esta UPD como solucionaste mi
   feedback.
+- Observaciones del usuario (2): Creo entender la estrategia que delimitaste o estamos definiendo
+  ahora, antes de resolver UPD-002, hay un curso/servidor, pero dos manera de inicializarlo, con
+  npm run editor:author y con npm run dev. npm run dev es el servidor en estado normal,
+  estudiantes rabajando, docentes monitoreando y acceso al Editor por ambos perfiles, pero sin la
+  capazidad de aplicar los cambios de un docente en modo editor, algo normal, puesto que no
+  queremos hacer ese tipo de cambio mientras otras cuentas estan activas. Luego esta la
+  inicializacion con npm run editor:author, podriamos definir esta como el servidor en modo
+  mantenimiento y restringir ORBIT, es decir el acceso a ORBIT y su progreso quedaria congelado,
+  la gracia de tener al servidor en modo mantenimiento es aplicar los cambios de Editor, los
+  cuales se pudieron definir cuando el servidor estaba en modo normal, pero por seguridad esta
+  bloqueado el boton que aplica los cambios. Si te parece adecuada esa polica por favor termina
+  de implementarla porque en ninguna inicializacion de servidor pude ver reflejados los cambios
+  que hice con ORBIT Editor en el perfil de docente, el boton simplemete no hacia nada a pesar de
+  que el proceso de validacion de los cambios sale positivo.
 
 ### UPD-015 — Red única de aprendizaje y apertura territorial derivada
 

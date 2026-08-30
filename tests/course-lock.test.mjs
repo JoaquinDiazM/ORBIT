@@ -318,3 +318,18 @@ test("el sondeo de entrada falla cerrado ante el 503 transaccional", async () =>
       && error.code === "repository-transaction-pending",
   );
 });
+
+test("el sondeo de entrada no crea progreso durante mantenimiento local", async () => {
+  await assert.rejects(
+    assertCourseRuntimeEntryAvailable({
+      fetchImpl: async () => ({
+        status: 503,
+        headers: { get: (name) => name === "x-orbit-runtime-status"
+          ? "maintenance"
+          : null },
+      }),
+    }),
+    (error) => error instanceof CourseLockError
+      && error.code === "local-maintenance",
+  );
+});

@@ -832,9 +832,9 @@ test("GET session durante check es observacional y no recupera el journal activo
   assert.equal(concurrentRuntime.status, 503);
   assert.equal(
     concurrentRuntime.headers.get("x-orbit-runtime-status"),
-    "repository-transaction-pending",
+    "maintenance",
   );
-  assert.match(await concurrentRuntime.text(), /completa la recuperación/);
+  assert.match(await concurrentRuntime.text(), /servicio local está en mantenimiento/);
   const concurrentEditor = await fetch(`${author.origin}/editor.html`);
   assert.equal(concurrentEditor.status, 200);
   assert.equal(await concurrentEditor.text(), "ORBIT Editor\n");
@@ -863,20 +863,21 @@ test("GET session durante check es observacional y no recupera el journal activo
   assert.equal(pendingRuntime.status, 503);
   assert.equal(
     pendingRuntime.headers.get("x-orbit-runtime-status"),
-    "repository-transaction-pending",
+    "maintenance",
   );
   for (const bypass of [
     "/%69ndex.html",
     "/index%2ehtml",
     "/dist/%69ndex.html",
     "/INDEX.HTML",
+    "/src/bootstrap.js",
     "/Src/Main.js",
   ]) {
     const response = await fetch(`${author.origin}${bypass}`);
     assert.equal(response.status, 503, bypass);
     assert.equal(
       response.headers.get("x-orbit-runtime-status"),
-      "repository-transaction-pending",
+      "maintenance",
       bypass,
     );
   }
@@ -887,8 +888,11 @@ test("GET session durante check es observacional y no recupera el journal activo
   });
   assert.equal(rollbackResponse.status, 200);
   const recoveredRuntime = await fetch(`${author.origin}/`);
-  assert.equal(recoveredRuntime.status, 200);
-  assert.equal(await recoveredRuntime.text(), "ORBIT Estudiante\n");
+  assert.equal(recoveredRuntime.status, 503);
+  assert.equal(
+    recoveredRuntime.headers.get("x-orbit-runtime-status"),
+    "maintenance",
+  );
 });
 
 test("la autoría real no admite un origen distinto de 127.0.0.1:4173", async (t) => {
@@ -1158,7 +1162,6 @@ test("el helper sirve solo la aplicación estática y excluye archivos del check
 
   for (const [path, expected] of [
     ["/editor.html", "ORBIT Editor\n"],
-    ["/index.html", "ORBIT Estudiante\n"],
     ["/src/editor/editor-main.js", allowedFiles.get("src/editor/editor-main.js")],
     ["/src/core/hex.js", allowedFiles.get("src/core/hex.js")],
     ["/public/data/courses/course.json", allowedFiles.get("public/data/courses/course.json")],
@@ -1167,6 +1170,23 @@ test("el helper sirve solo la aplicación estática y excluye archivos del check
     const response = await fetch(`${author.origin}${path}`);
     assert.equal(response.status, 200, path);
     assert.equal(await response.text(), expected, path);
+  }
+
+  for (const path of [
+    "/",
+    "/index.html",
+    "/index.html?profile=teacher",
+    "/index.html?debug=1",
+    "/%69ndex.html",
+    "/index%2ehtml",
+    "/dist/%69ndex.html",
+    "/INDEX.HTML",
+    "/Src/Main.js",
+  ]) {
+    const response = await fetch(`${author.origin}${path}`);
+    assert.equal(response.status, 503, path);
+    assert.equal(response.headers.get("x-orbit-runtime-status"), "maintenance", path);
+    assert.match(await response.text(), /ORBIT está cerrado temporalmente/, path);
   }
 
   for (const path of [

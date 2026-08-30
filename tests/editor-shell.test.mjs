@@ -64,11 +64,13 @@ test("el shell del editor expone Spider, Bee y Bowerbird en menús retractables"
     "editor-course-application",
     "editor-validate-application",
     "editor-application-status",
+    "editor-service-mode-status",
     "editor-pending-application",
     "editor-recover-application",
     "editor-application-plan",
     "editor-application-impact",
     "editor-confirm-application",
+    "editor-apply-readiness",
     "editor-apply-course",
     "editor-application-evidence",
     "editor-applied-revision",
@@ -76,6 +78,7 @@ test("el shell del editor expone Spider, Bee y Bowerbird en menús retractables"
     "editor-applied-build",
     "editor-applied-profiles",
     "editor-applied-preserved",
+    "editor-applied-next-step",
     "editor-access-notice",
     "editor-shutdown-local",
   ];
@@ -277,6 +280,27 @@ test("el apagado local queda oculto hasta validar el servicio y exige doble acti
   assert.match(ui, /await this\.localServiceClient\.shutdown\(\)/);
   assert.match(ui, /Servidor detenido/);
   assert.doesNotMatch(ui, /window\.confirm/);
+});
+
+test("la aplicación distingue modo normal de mantenimiento y explica cada bloqueo", async () => {
+  const ui = await readFile(
+    new URL("../src/editor/editor-ui-controller.js", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(ui, /this\.localServiceMode = session\.service/);
+  assert.match(ui, /this\.authorSessionReady = true/);
+  assert.match(ui, /Modo normal: puedes editar y validar, pero aplicar está bloqueado/);
+  assert.match(ui, /Modo mantenimiento verificado: ORBIT está cerrado/);
+  assert.match(ui, /const maintenanceReady = this\.localServiceMode === "editor-author"/);
+  assert.match(ui, /this\.elements\.confirmApplication\.disabled[\s\S]*\|\| !maintenanceReady/);
+  assert.match(ui, /this\.elements\.applyCourse\.disabled[\s\S]*\|\| !maintenanceReady/);
+  assert.match(ui, /await this\.#refreshApplicationCapability\(\{ announceReady: false \}\)/);
+  assert.match(ui, /Comprobando el modo mantenimiento antes de aplicar/);
+  assert.match(ui, /Servidor detenido: aplicar permanece bloqueado/);
+  assert.match(ui, /La edición coincide con la revisión activa; no hay cambios que aplicar/);
+  assert.match(ui, /this\.toast\(message, "error", 7000\)/);
+  assert.match(ui, /Detén el modo mantenimiento e inicia `npm run dev`/);
 });
 
 test("el Resumen explica el alcance local, el reset y los datos preservados", async () => {

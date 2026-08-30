@@ -271,6 +271,9 @@
                 <div><dt>Fuente activa</dt><dd id="editor-current-source">—</dd></div>
                 <div><dt>Helper local</dt><dd id="editor-author-helper-status" role="status">Sin comprobar</dd></div>
               </dl>
+              <p id="editor-service-mode-status" class="editor-service-mode-status" role="status">
+                Detectando si el servicio está en modo normal o mantenimiento…
+              </p>
               <div class="editor-application-actions">
                 <button id="editor-validate-application" type="button">Validar edición e impacto</button>
               </div>
@@ -328,7 +331,15 @@
                   <input id="editor-confirm-application" type="checkbox" />
                   <span>Entiendo el reinicio de los tres perfiles y confirmo aplicar esta revisión local.</span>
                 </label>
-                <button id="editor-apply-course" type="button" disabled>Aplicar edición al curso</button>
+                <p id="editor-apply-readiness" class="editor-apply-readiness" role="status">
+                  Aplicar permanece bloqueado hasta comprobar el modo mantenimiento.
+                </p>
+                <button
+                  id="editor-apply-course"
+                  type="button"
+                  aria-describedby="editor-apply-readiness"
+                  disabled
+                >Aplicar edición al curso</button>
               </section>
 
               <section
@@ -344,6 +355,7 @@
                   <div><dt>Fuente y build</dt><dd id="editor-applied-build">—</dd></div>
                   <div><dt>Perfiles reiniciados</dt><dd id="editor-applied-profiles">—</dd></div>
                   <div><dt>Datos preservados</dt><dd id="editor-applied-preserved">—</dd></div>
+                  <div><dt>Siguiente paso</dt><dd id="editor-applied-next-step">—</dd></div>
                 </dl>
               </section>
             </section>

@@ -17,6 +17,7 @@ import {
   assertCourseRuntimeEntryAvailable,
   prepareCourseRuntimeLock,
 } from "./core/course-lock.js";
+import { OrbitMaintenanceMonitor } from "./core/local-service-mode.js";
 import { ProgressionModel } from "./core/progression.js";
 import { createLegacyProgressKeys } from "./core/storage.js";
 import { validateProjectData } from "./core/validator.js";
@@ -25,6 +26,7 @@ import { UIController } from "./ui/ui-controller.js";
 
 async function startOrbitRuntime() {
   let runtimeLock = null;
+  let maintenanceMonitor = null;
   let startupReady = false;
   try {
     const courseSession = await prepareCourseRuntimeLock({
@@ -206,9 +208,13 @@ async function startOrbitRuntime() {
 
     if (profileCapabilities.canUseDebugger) window.OrbitDebug = debugApi;
 
+    let disposed = false;
     const dispose = () => {
+      if (disposed) return;
+      disposed = true;
       try {
         for (const [label, release] of [
+          ["monitor de mantenimiento", () => maintenanceMonitor?.stop()],
           ["juego", () => game.destroy()],
           ["audio", () => audio.destroy()],
           ["suscripción de audio", () => unsubscribeAudioSettings()],
@@ -235,6 +241,20 @@ async function startOrbitRuntime() {
       "color:#a9bfd0",
     );
     startupReady = true;
+    maintenanceMonitor = new OrbitMaintenanceMonitor({
+      onMaintenance: () => {
+        const shell = document.querySelector("#app");
+        if (shell) {
+          shell.inert = true;
+          shell.dataset.maintenance = "true";
+        }
+        dispose();
+        window.location.reload();
+      },
+    });
+    void maintenanceMonitor.start().catch((error) => {
+      console.error("No fue posible activar la transición local de mantenimiento.", error);
+    });
   } finally {
     if (!startupReady) runtimeLock?.release();
   }

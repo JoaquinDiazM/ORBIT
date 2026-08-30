@@ -39,6 +39,11 @@ Si la página fue servida por `npm run dev` o `npm run editor:author` compatible
 segundos y la segunda detiene únicamente ese proceso ORBIT. Estudiante y Debug no reciben el
 control; un hosting estático o proceso ajeno tampoco puede ser terminado desde el navegador.
 
+Con `dev` estás en **modo normal**: ORBIT y Editor funcionan, y Resumen permite validar y revisar
+impacto, pero muestra junto a **Aplicar** que la operación está bloqueada. Con `editor:author`
+estás en **modo mantenimiento**: ORBIT queda cerrado y Editor comprueba la sesión antes de
+habilitar la confirmación y la aplicación.
+
 ## Acceso local por perfil
 
 - **Docente:** `editor.html` o `editor.html?profile=teacher`; dispone de General, Spider, Bee,
@@ -225,13 +230,20 @@ npm run editor:author
 
 Abre exactamente la URL `127.0.0.1` que imprime la terminal. Un servidor iniciado con
 `npm run dev`, GitHub Pages u otro origen permite al perfil Docente editar y exportar, pero no
-aplicar fuentes.
+aplicar fuentes. Resumen identifica el modo normal y mantiene deshabilitadas tanto la
+confirmación como **Aplicar**, incluso después de una validación correcta.
 
 El origen de mantenimiento es fijo: `http://127.0.0.1:4173`. No cambies `PORT` y detén primero
 `npm run dev`; usar otro puerto separaría los Web Locks y los tres progresos locales que deben
 reiniciarse. Solo puede existir un helper por checkout. Si una interrupción deja un journal,
-ORBIT Estudiante queda temporalmente bloqueado, pero `editor.html` permanece disponible para
+ORBIT completo queda temporalmente bloqueado, pero `editor.html` permanece disponible para
 finalizar o revertir desde Resumen.
+
+En mantenimiento no se sirve ninguna variante de ORBIT: raíz, Estudiante, Docente, Debug y sus
+módulos de arranque responden `503`; Editor, sus recursos y la API local permanecen disponibles.
+Si una pestaña de ORBIT quedó abierta al detener `dev`, detecta la aparición de autoría, congela
+la interfaz, libera su bloqueo compartido y recarga hacia esa barrera. Cierra igualmente las
+demás pestañas antes de aplicar; el mecanismo coordina este navegador/origen, no otros equipos.
 
 El helper no acepta apagarse desde la interfaz mientras ejecuta una aplicación o existe un
 journal pendiente. Finaliza o recupera primero la transacción. Fuera de esas fases, el apagado
@@ -253,6 +265,9 @@ En **Resumen**, el flujo seguro es:
    `npm run check` y prepara el build. Después el navegador instala la edición y reinicia los tres
    perfiles; el helper cierra el journal solo al completar ambas partes.
 
+Los rechazos de sesión, checkout, revisión o bloqueo aparecen junto al control y también como
+alerta temporal; una respuesta positiva ya no puede quedar visualmente como un botón inerte.
+
 El reinicio total elimina logros, posición, transporte activo, ajustes y overrides de depuración
 de Estudiante, Docente y Debug, incluidas sus claves legadas compatibles. Conserva el documento
 Docente `v2`, las preferencias Bowerbird Estudiante y cualquier dato no relacionado. Nunca usa
@@ -264,8 +279,9 @@ continúe la aplicación pendiente o restaure fuente y build. No inicies otra ap
 exista una recuperación pendiente. El helper inspecciona `git status` para exigir un checkout
 limpio, pero no muta Git: no crea commits, no ejecuta `git add` y no hace push.
 
-Después de aplicar, recorre ORBIT en Estudiante, Docente y Debug, revisa `dist/build-info.json` y
-publica mediante el flujo normal del repositorio. Aplicar localmente no despliega el sitio.
+Después de aplicar, detén `editor:author`, inicia `npm run dev`, recorre ORBIT en Estudiante,
+Docente y Debug, revisa `dist/build-info.json` y publica mediante el flujo normal del repositorio.
+Aplicar localmente no despliega el sitio.
 
 ## Controles y accesibilidad
 

@@ -662,6 +662,29 @@
   color: #ffdce0;
 }
 
+.editor-service-mode-status,
+.editor-apply-readiness {
+  margin: 0.62rem 0;
+  padding: 0.55rem 0.62rem;
+  border: 1px solid rgba(255, 207, 112, 0.34);
+  border-radius: 0.48rem;
+  background: rgba(61, 48, 22, 0.32);
+  color: #ffe9b0;
+}
+
+.editor-service-mode-status[data-level="success"],
+.editor-apply-readiness[data-level="success"] {
+  border-color: rgba(124, 229, 179, 0.42);
+  background: rgba(20, 74, 56, 0.32);
+  color: #d7ffe9;
+}
+
+.editor-service-mode-status[data-level="info"] {
+  border-color: rgba(120, 227, 255, 0.34);
+  background: rgba(16, 45, 66, 0.48);
+  color: #dff8ff;
+}
+
 .editor-pending-application,
 .editor-application-plan,
 .editor-application-evidence {

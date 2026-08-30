@@ -41,6 +41,9 @@ npm run check
 Sirve el directorio del proyecto sin transformar los módulos; el navegador carga el código
 fuente directamente. Usa exclusivamente `http://127.0.0.1:4173/`: no acepta `PORT`, argumentos
 de puerto ni busca un fallback, porque otro origen tendría Web Locks y `localStorage` distintos.
+Es el modo normal: mantiene disponibles ORBIT y Editor. El perfil Docente puede editar y validar
+en Resumen, pero la confirmación y **Aplicar** permanecen bloqueados con una indicación visible
+de que hace falta entrar en mantenimiento.
 
 Las dos entradas son:
 
@@ -75,9 +78,10 @@ Comprueba IDs, referencias, coordenadas, recompensas, requisitos y alcanzabilida
 
 ### `npm run editor:author`
 
-Sirve las mismas entradas desde `127.0.0.1` y añade una API de sesión same-origin para aplicar
-una edición desde **Resumen**. Es una herramienta de mantenimiento local: usa un token aleatorio,
-un límite de cuerpo y rutas fijas, y no se incluye en `dist/`.
+Sirve Editor desde `127.0.0.1`, añade una API de sesión same-origin para aplicar una edición desde
+**Resumen** y bloquea con `503` todas las entradas de ORBIT, incluidos los perfiles Estudiante,
+Docente y Debug. Es el modo mantenimiento local: usa un token aleatorio, un límite de cuerpo y
+rutas fijas, y no se incluye en `dist/`.
 
 La ejecución real usa el mismo origen canónico de `npm run dev`,
 `http://127.0.0.1:4173`: no acepta otro `PORT` ni busca un puerto alternativo, porque Web Locks y
@@ -86,14 +90,19 @@ ocupe ese puerto. El helper reserva además el checkout
 con un lock de proceso verificable antes de recuperar o escribir; una segunda instancia no toca
 la fuente ni el journal.
 
+Una pestaña de ORBIT que quedó abierta desde `dev` consulta el modo local periódicamente. Cuando
+aparece autoría, vuelve inerte la interfaz, detiene juego/audio, libera el bloqueo compartido y
+recarga; la nueva solicitud recibe la barrera de mantenimiento. El sondeo solo coordina pestañas
+del mismo navegador y origen local: no equivale a cuentas, bloqueo de otros equipos ni backend.
+
 Antes de aplicar exige un checkout limpio mediante una inspección de `git status` y compara la
 revisión anterior con el plan validado. Escribe atómicamente solo
 `public/data/courses/electromagnetism-applied.edition.json`, ejecuta `npm run check` y conserva
 journal y respaldo hasta que el navegador complete el reset. Si falla, restaura la fuente y el
-build. Mientras el journal del repositorio exista, tanto `npm run dev` como el helper responden
-en modo mantenimiento para `index.html`; `editor.html` sigue disponible para recuperar. El
-arranque de ORBIT también recupera o bloquea cualquier journal del navegador antes de crear
-progreso. El helper no muta Git: no crea commits, no prepara el índice y no hace push.
+build. Autoría mantiene ORBIT bloqueado durante toda su vida, no solo mientras exista el journal;
+en `dev`, un journal pendiente también activa la barrera. `editor.html` sigue disponible para
+recuperar. El arranque de ORBIT también recupera o bloquea cualquier journal del navegador antes
+de crear progreso. El helper no muta Git: no crea commits, no prepara el índice y no hace push.
 
 ### `npm test`
 

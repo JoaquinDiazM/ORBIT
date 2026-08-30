@@ -86,16 +86,31 @@ rechaza antes del reset.
 ### Helper de autoría local
 
 Tanto el servidor de desarrollo como el comando de autoría fijan `127.0.0.1:4173`, sin fallback
-ni override de puerto. El comando separado de autoría sirve el sitio y habilita exclusivamente
-la operación de mantenimiento. Usa ruta fuente fija, límite de cuerpo, token aleatorio de
-sesión, mismo origen y sin CORS. Antes de recuperar reserva atómicamente un
+ni override de puerto. Se distinguen dos estados operativos. `npm run dev` es **modo normal**:
+sirve ORBIT y Editor, permite editar y validar, pero nunca habilita la aplicación. El comando
+separado `npm run editor:author` es **modo mantenimiento**: sirve Editor y su API, y responde
+`503` a toda entrada de ORBIT, incluidos Estudiante, Docente, Debug y sus módulos de arranque.
+Usa ruta fuente fija, límite de cuerpo, token aleatorio de sesión, mismo origen y sin CORS. Antes
+de recuperar reserva atómicamente un
 único proceso helper por checkout. La escritura se hace mediante archivo temporal y reemplazo; después ejecuta las
 comprobaciones y el build, y restaura fuente/build si falla.
 
-Mientras existe un journal del repositorio, los servidores locales no sirven la entrada de
-ORBIT Estudiante; Editor continúa disponible para resolverla. Un journal del navegador se
-inspecciona y recupera bajo el mismo Web Lock antes de crear progreso. Esto impide que una pestaña
-o un segundo proceso conviertan una edición pendiente en estado de curso utilizable.
+Autoría mantiene esa barrera durante toda su vida, no solo mientras exista un journal. En modo
+normal, un journal pendiente también bloquea ORBIT y conserva Editor para resolverlo. Una pestaña
+ORBIT ya cargada desde `dev` sondea la sesión de control local; al detectar mantenimiento vuelve
+inerte la interfaz, detiene sus subsistemas, libera el bloqueo compartido y recarga hacia el
+`503`. Un journal del navegador se inspecciona y recupera bajo el mismo Web Lock antes de crear
+progreso. Esto impide que una pestaña o un segundo proceso conviertan una edición pendiente en
+estado de curso utilizable.
+
+La interfaz solo habilita la confirmación y **Aplicar** cuando coinciden el modo
+`editor-author`, una sesión de autoría válida y el plan actual. En `dev`, hosting estático o ante
+un fallo de sesión, permite editar/validar pero explica el bloqueo junto al control. Los errores
+de aplicación se anuncian allí y mediante un aviso temporal; el éxito indica detener autoría y
+reiniciar `dev` antes de revisar los tres perfiles.
+
+Esta coordinación pertenece al mismo navegador, origen loopback y equipo. No congela sesiones
+en otro navegador o máquina y no reemplaza el mantenimiento multiusuario de UPD-002.
 
 El helper no acepta rutas del cliente, no crea commits, no prepara el índice, no hace push y no
 se copia a `dist`. Solo inspecciona `git status` para exigir un checkout limpio; no muta Git. El
@@ -158,6 +173,8 @@ contrato de edición y pérdida de progreso es reutilizable, pero 0.5.0 opera so
 
 - Aplicar fuentes exige iniciar explícitamente el helper local; un hosting estático no puede
   realizar esa operación.
+- ORBIT no puede recorrerse mientras el helper de autoría está activo; para revisar el resultado
+  hay que detener mantenimiento y reiniciar `dev`.
 - Deben cerrarse otras pestañas de ORBIT para obtener el bloqueo exclusivo.
 - El documento editorial, la edición desplegable, las preferencias y el progreso tienen ciclos
   de migración distintos que requieren pruebas independientes.
@@ -176,6 +193,9 @@ contrato de edición y pérdida de progreso es reutilizable, pero 0.5.0 opera so
 - Un fallo durante la aplicación conserva evidencia suficiente para restaurar o recuperarse.
 - Ningún runtime crea progreso mientras exista una transacción de curso pendiente o ambigua.
 - Un solo helper opera cada checkout y el origen real de autoría es `127.0.0.1:4173`.
+- `dev` nunca habilita **Aplicar** y `editor:author` nunca sirve una entrada de ORBIT.
+- Una pestaña ORBIT que observa la transición a mantenimiento libera su bloqueo compartido antes
+  de recargar hacia la barrera `503`.
 - El apagado web solo cierra el servicio ORBIT que emitió su token, responde antes del cierre y
   nunca interrumpe una operación o journal de autoría.
 - El helper solo escucha en loopback, solo escribe la ruta canónica y no muta Git; su única

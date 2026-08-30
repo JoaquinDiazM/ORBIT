@@ -189,11 +189,20 @@ explícita, nunca una aplicación silenciosamente parcial.
 
 La recuperación se ejecuta antes de construir `ProgressionModel` y bajo la misma exclusión: una
 segunda pestaña no puede interpretar un journal `prepared` como abandonado durante una
-aplicación activa. Los servidores de desarrollo y autoría niegan las entradas del runtime con
-`503` mientras exista el journal del repositorio, pero mantienen `editor.html` accesible. El
-`npm run dev` y el helper real fijan `127.0.0.1:4173`, sin override ni fallback. El helper toma
-un lock atómico por checkout antes de cualquier recovery, de modo que origen, Web Locks,
+aplicación activa. `npm run dev` es el modo normal: sirve ORBIT y Editor, aunque un journal del
+repositorio hace que las entradas runtime respondan `503`. `npm run editor:author` es el modo
+mantenimiento y niega siempre esas entradas —Estudiante, Docente y Debug— mientras mantiene
+`editor.html`, sus assets y API. Ambos fijan `127.0.0.1:4173`, sin override ni fallback. El helper
+toma un lock atómico por checkout antes de cualquier recovery, de modo que origen, Web Locks,
 almacenamiento y proceso pertenezcan a una sola sesión de mantenimiento.
+
+`src/core/local-service-mode.js` sondea el protocolo local desde una pestaña ORBIT iniciada en
+`dev`. Si el servicio reaparece como autoría después de una interrupción, el runtime vuelve
+inerte el shell, detiene monitor, juego, audio y preferencias, libera el bloqueo compartido y
+recarga hacia el `503`. Fallos de red intermedios se reintentan; un hosting sin protocolo no
+activa esta coordinación. Además, el sondeo `HEAD` de entrada rechaza `maintenance` antes de crear
+`ProgressionModel` si una caché intentara reanudar el runtime. Su alcance es un navegador/origen
+local, no sesiones remotas.
 Ambos servidores rechazan una autoridad HTTP distinta de `127.0.0.1:4173` antes de exponer
 sesiones o estáticos y sirven únicamente el shell, `src/`, `public/` y la distribución necesaria
 de KaTeX; la whitelist se repite sobre el destino real de cualquier enlace simbólico.
@@ -344,7 +353,10 @@ mutación Spider/Bee o del documento Docente.
 Importar y exportar intercambia JSON editorial Docente; las preferencias Estudiante nunca se
 incluyen. **Resumen** valida y materializa un plan ligado al digest, muestra diff e impacto y
 coordina la aplicación con `npm run editor:author`. El helper solo opera en loopback y no se
-incluye en `dist`; ejecuta comprobaciones y build, pero no muta Git ni despliega. La frontera está
+incluye en `dist`; ejecuta comprobaciones y build, pero no muta Git ni despliega. La UI separa
+modo normal de mantenimiento: puede validar en ambos, pero solo habilita confirmación/aplicación
+tras verificar la sesión de autoría. Los rechazos aparecen junto al botón y en un aviso temporal,
+y el éxito exige reiniciar `dev` para revisar ORBIT. La frontera está
 descrita en la [Guía de ORBIT Editor](EDITOR_GUIDE.md) y decidida por [ADR
 0007](decisions/0007-static-local-editor.md) y [ADR
 0008](decisions/0008-scoped-appearance-and-local-course-application.md).
@@ -363,7 +375,9 @@ Cada OGG tiene un sidecar homónimo, entrada de manifiesto, atribución y botón
 2. carga y valida la edición publicada o su descendiente local;
 3. adquiere el bloqueo compartido de curso;
 4. crea progreso `v4`, preferencias Bowerbird Estudiante, UI y juego sobre el curso materializado;
-5. publica `window.OrbitDebug` solo para Debug e inicia el loop.
+5. publica `window.OrbitDebug` solo para Debug e inicia el loop;
+6. si está en el servicio local normal, vigila la transición a mantenimiento para detenerse,
+   liberar el bloqueo compartido y recargar sin conservar un runtime activo.
 
 Ese flujo corresponde a `index.html`, la entrada de ORBIT. `editor.html` usa su propio
 bootstrap: resuelve primero el acceso local, no inicializa ningún modelo en Debug, carga la

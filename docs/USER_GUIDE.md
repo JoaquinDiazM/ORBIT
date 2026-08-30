@@ -196,8 +196,11 @@ reiniciará, confirmar y aplicar. El reinicio elimina progreso, posición y ajus
 perfiles, pero conserva tanto el documento Docente como las preferencias Bowerbird Estudiante.
 Antes de iniciar el helper, detén el servidor de desarrollo: el mantenimiento usa siempre
 `http://127.0.0.1:4173` para compartir el mismo almacenamiento y los mismos bloqueos. Si una
-interrupción deja una aplicación pendiente, ORBIT Estudiante se bloquea hasta resolverla desde
-Editor.
+interrupción deja una aplicación pendiente, ORBIT se bloquea hasta resolverla desde Editor.
+Durante toda la ejecución de `editor:author`, la raíz y los tres perfiles responden en modo
+mantenimiento; una pestaña ORBIT que seguía abierta se vuelve inerte, libera su bloqueo y recarga.
+Editor muestra junto a **Aplicar** si está en modo normal o mantenimiento y por qué la acción está
+bloqueada. Después de aplicar, detén autoría e inicia otra vez `npm run dev` para revisar el curso.
 Aplicar localmente construye `dist/`; no crea commits, no hace push y no despliega el sitio. Como
 la query se puede editar, `editor.html` no ofrece autenticación ni control de acceso real.
 

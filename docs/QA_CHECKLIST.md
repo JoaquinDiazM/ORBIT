@@ -242,8 +242,17 @@
 
 ### Aplicación local de una edición
 
-- [ ] En un servidor ordinario, Resumen explica que hace falta `npm run editor:author` y no
-      finge escribir fuentes.
+- [ ] En `npm run dev`, ORBIT y Editor están disponibles; Resumen permite editar/validar,
+      identifica **Modo normal**, mantiene confirmación/**Aplicar** deshabilitados y explica que
+      hace falta `npm run editor:author` sin fingir escribir fuentes.
+- [ ] En `npm run editor:author`, raíz, Estudiante, Docente, Debug, `bootstrap.js` y `main.js`
+      responden `503` con estado `maintenance`; Editor, sus assets permitidos y las API locales
+      siguen disponibles.
+- [ ] Una pestaña ORBIT abierta desde `dev` tolera el intervalo sin servidor, detecta autoría,
+      vuelve inerte la UI, detiene subsistemas, libera el Web Lock compartido y recarga una sola
+      vez hacia mantenimiento.
+- [ ] Un `index.html` reutilizado desde caché rechaza el `503 maintenance` en su preflight antes
+      de construir `ProgressionModel` o escribir progreso.
 - [ ] El helper escucha solo en `127.0.0.1`, exige same-origin y token de sesión, limita el cuerpo
       y no acepta rutas proporcionadas por el cliente.
 - [ ] El helper rechaza un checkout sucio y una `expectedPreviousRevision` obsoleta; solo
@@ -258,7 +267,10 @@
 - [ ] Otra pestaña de ORBIT mantiene un bloqueo compartido y hace que la aplicación se rechace
       antes del reset; la operación obtiene un bloqueo exclusivo al continuar.
 - [ ] Una aplicación correcta deja fuente, `dist` y `build-info.json` con revisión/digest
-      concordantes, instala la edición local y crea avances `v4` limpios para los tres perfiles.
+      concordantes, instala la edición local y crea avances `v4` limpios para los tres perfiles;
+      la evidencia indica detener autoría y reiniciar `dev` antes de revisarlos.
+- [ ] Errores de sesión, checkout, revisión, red o bloqueo se muestran junto a **Aplicar** y como
+      toast; ninguna respuesta positiva o negativa deja el control con apariencia de no-op.
 - [ ] Un fallo de check/build restaura fuente y build; un fallo entre helper y navegador deja
       journal/respaldo recuperable y bloquea otra aplicación hasta finalizar o revertir.
 - [ ] El helper real rechaza otro puerto que no sea `127.0.0.1:4173`, y una segunda instancia —aun
@@ -276,8 +288,9 @@
       responde 409, mientras un apagado válido e inactivo libera el lock y permite reiniciar.
 - [ ] Dos apagados concurrentes producen un único 202; abortar un cuerpo POST parcial no apaga ni
       derriba el servidor y este sigue aceptando una sesión de control posterior.
-- [ ] Con un journal pendiente, `/`, `index.html`, `bootstrap.js` y `main.js` responden en modo
-      mantenimiento incluso con escapes o mayúsculas; `editor.html` continúa accesible.
+- [ ] En autoría, y también en `dev` cuando hay un journal pendiente, `/`, `index.html`,
+      `bootstrap.js` y `main.js` responden en modo mantenimiento incluso con escapes o mayúsculas;
+      `editor.html` continúa accesible.
 - [ ] Un crash con journal local `prepared` o `committed` seguido de abrir Estudiante recupera o
       bloquea antes de crear `ProgressionModel`; una segunda pestaña Editor no revierte la
       transacción activa.

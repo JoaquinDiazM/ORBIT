@@ -35,24 +35,36 @@ export function repositoryTransactionPending(root) {
   return existsSync(resolve(root, REPOSITORY_TRANSACTION_RELATIVE_PATH));
 }
 
-export function shouldBlockRuntimeEntry(root, requestUrl, { busy = false } = {}) {
+export function shouldBlockRuntimeEntry(root, requestUrl, {
+  busy = false,
+  maintenance = false,
+} = {}) {
   return isRuntimeEntryRequest(requestUrl)
-    && (busy || repositoryTransactionPending(root));
+    && (maintenance || busy || repositoryTransactionPending(root));
 }
 
-export function sendRuntimeEntryUnavailable(response) {
-  const body = [
-    "ORBIT Estudiante está temporalmente bloqueado por una aplicación pendiente.",
-    "Abre /editor.html, completa la recuperación y vuelve a cargar esta página.",
-    "",
-  ].join("\n");
+export function sendRuntimeEntryUnavailable(response, { maintenance = false } = {}) {
+  const body = maintenance
+    ? [
+        "ORBIT está cerrado temporalmente porque el servicio local está en mantenimiento.",
+        "Abre /editor.html para aplicar o recuperar la edición del curso.",
+        "Cuando termines, detén editor:author e inicia npm run dev para reabrir ORBIT.",
+        "",
+      ].join("\n")
+    : [
+        "ORBIT Estudiante está temporalmente bloqueado por una aplicación pendiente.",
+        "Abre /editor.html, completa la recuperación y vuelve a cargar esta página.",
+        "",
+      ].join("\n");
   response.writeHead(503, {
     "content-type": "text/plain; charset=utf-8",
     "content-length": Buffer.byteLength(body),
     "cache-control": "no-store",
     "retry-after": "1",
     "x-content-type-options": "nosniff",
-    "x-orbit-runtime-status": "repository-transaction-pending",
+    "x-orbit-runtime-status": maintenance
+      ? "maintenance"
+      : "repository-transaction-pending",
   });
   response.end(body);
 }

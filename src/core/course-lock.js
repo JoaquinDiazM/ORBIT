@@ -162,13 +162,18 @@ export async function assertCourseRuntimeEntryAvailable({
 } = {}) {
   if (typeof fetchImpl !== "function") return;
   const response = await fetchImpl(entryUrl, { method: "HEAD", cache: "no-store" });
-  if (
-    response?.status === 503
-    && response.headers?.get?.("x-orbit-runtime-status") === "repository-transaction-pending"
-  ) {
+  if (response?.status !== 503) return;
+  const runtimeStatus = response.headers?.get?.("x-orbit-runtime-status");
+  if (runtimeStatus === "repository-transaction-pending") {
     throw new CourseLockError(
       "repository-transaction-pending",
       "ORBIT Estudiante está bloqueado mientras el Editor recupera una aplicación pendiente. Abre editor.html y completa la recuperación antes de recargar.",
+    );
+  }
+  if (runtimeStatus === "maintenance") {
+    throw new CourseLockError(
+      "local-maintenance",
+      "ORBIT está cerrado mientras el servicio local está en mantenimiento. Detén editor:author e inicia npm run dev antes de recargar.",
     );
   }
 }
