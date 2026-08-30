@@ -79,6 +79,7 @@ export class UIController {
     this.exerciseStates = new Map();
     this.activeInteractiveFigures = [];
     this.activeReferenceView = "symbols";
+    this.settingsPanelIds = ["visual-panel", "sound-panel", "help-panel"];
     this.secondaryPanelIds = [
       "knowledge-panel",
       "visual-panel",
@@ -90,11 +91,14 @@ export class UIController {
     this.elements = {
       area: document.querySelector("#hud-area"),
       transport: document.querySelector("#hud-transport"),
-      concepts: document.querySelector("#hud-concepts"),
+      progress: document.querySelector("#hud-progress"),
+      progressValue: document.querySelector("#hud-progress-value"),
       mission: document.querySelector("#hud-mission"),
       versionBadge: document.querySelector("#orbit-version-badge"),
       profileSelect: document.querySelector("#profile-select"),
       editorLink: document.querySelector("#open-orbit-editor"),
+      settingsButton: document.querySelector("#open-settings"),
+      settingsTools: document.querySelector("#settings-tools"),
       interactionPrompt: document.querySelector("#interaction-prompt"),
       interactionText: document.querySelector("#interaction-text"),
       lessonPanel: document.querySelector("#lesson-panel"),
@@ -155,7 +159,9 @@ export class UIController {
     this.#bindStaticControls();
     this.#updateVisualControls();
     this.#updateSoundControls();
-    this.progression.subscribe(() => {
+    this.#updateConceptProgress(this.progression.getSnapshot());
+    this.progression.subscribe((event) => {
+      this.#updateConceptProgress(event.snapshot);
       this.updateKnowledgePanel();
       this.updateReferencePanel();
       this.#updateVisualControls();
@@ -183,6 +189,9 @@ export class UIController {
     });
     document.querySelector("#open-knowledge").addEventListener("click", () => {
       this.toggleKnowledgePanel();
+    });
+    this.elements.settingsButton.addEventListener("click", () => {
+      this.toggleSettingsMenu();
     });
     document.querySelector("#open-visual").addEventListener("click", () => {
       this.toggleVisualPanel();
@@ -366,8 +375,21 @@ export class UIController {
   updateHUD({ area, snapshot }) {
     this.elements.area.textContent = area?.title ?? "Fuera de la cartografía";
     this.elements.transport.textContent = snapshot.activeTransport.title;
-    this.elements.concepts.textContent = `${snapshot.concepts.size} / ${CONCEPTS.length}`;
     this.elements.mission.textContent = snapshot.nextMission;
+  }
+
+  #updateConceptProgress(snapshot) {
+    const total = CONCEPTS.length;
+    const acquired = Math.min(total, Math.max(0, snapshot.concepts.size));
+    const percentage = total === 0 ? 0 : Math.round((acquired / total) * 100);
+    const percentageLabel = `${percentage}%`;
+    const accessibleLabel = `${percentageLabel}; ${acquired} de ${total} conceptos adquiridos`;
+
+    this.elements.progress.max = 100;
+    this.elements.progress.value = percentage;
+    this.elements.progress.textContent = accessibleLabel;
+    this.elements.progress.setAttribute("aria-valuetext", accessibleLabel);
+    this.elements.progressValue.textContent = percentageLabel;
   }
 
   setInteraction(location) {
@@ -1227,6 +1249,29 @@ export class UIController {
     this.updateKnowledgePanel();
   }
 
+  toggleSettingsMenu() {
+    if (this.elements.settingsTools.hidden) {
+      this.elements.settingsTools.hidden = false;
+      this.#syncPanelControls();
+      return;
+    }
+    this.#closeSettingsMenu();
+  }
+
+  #closeSettingsMenu() {
+    for (const panelId of this.settingsPanelIds) {
+      this.closePanel(panelId, { restoreFocus: false });
+    }
+    for (const [panelId, returnTarget] of this.panelReturnFocus) {
+      if (this.elements.settingsTools.contains(returnTarget)) {
+        this.panelReturnFocus.set(panelId, this.elements.settingsButton);
+      }
+    }
+    this.elements.settingsTools.hidden = true;
+    this.#syncPanelControls();
+    this.elements.settingsButton.focus({ preventScroll: true });
+  }
+
   updateKnowledgePanel() {
     if (this.elements.knowledgePanel.hidden && !this.openPanels.includes("knowledge-panel")) return;
     const snapshot = this.progression.getSnapshot();
@@ -1680,7 +1725,11 @@ export class UIController {
 
   closeTopPanel() {
     const panelId = this.openPanels.at(-1);
-    if (panelId) this.closePanel(panelId);
+    if (panelId) {
+      this.closePanel(panelId);
+      return;
+    }
+    if (!this.elements.settingsTools.hidden) this.#closeSettingsMenu();
   }
 
   isBlockingModalOpen() {

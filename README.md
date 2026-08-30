@@ -32,7 +32,9 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
 - Lugares extensos divididos en etapas desbloqueables dentro de la ventana principal; el Taller Vectorial desarrolla ahora seis etapas con andamiaje decreciente.
 - Visor de campos vectoriales 2D en SVG nativo, con muestreo y escala comparables, parámetros efímeros y descripción accesible sin animación automática.
 - Política matemática segura para equivalencia numérica, funcional y por gradiente, con parser restringido y evaluación determinista sin ejecutar JavaScript ingresado por el usuario.
-- Menú secundario con **Árboles**, **Visual**, **Símbolos**, **Constantes**, **Formulario**, **Glosario**, **Ayuda** y **Sonido**, compatible con la ventana del lugar.
+- Menú secundario con accesos primarios a **Árboles**, **Símbolos**, **Constantes**, **Formulario**, **Glosario** y **Ajustes**; este último reúne **Visual**, **Sonido** y **Ayuda** sin quitar ninguna capacidad.
+- HUD con una barra nativa de **Progreso** conceptual: muestra un porcentaje entero derivado del
+  perfil activo y conserva «X de Y conceptos adquiridos» como equivalente accesible.
 - Las colecciones de referencia conservan sus paneles de consulta; lo que se omite son los cuadros bibliográficos repetidos. Cada procedencia pertinente se anuncia una sola vez al producirse su desbloqueo.
 - Selector local con exactamente tres perfiles —**Estudiante**, **Docente** y **Debug**— y
   progreso separado para cada uno. El avance `v3` del antiguo perfil `normal` migra a
@@ -185,9 +187,8 @@ local, pero conserva el borrador en una clave editorial separada y no carga prog
 | Rueda del ratón | Zoom |
 | `G` | Activar o desactivar el Lente de campo, una vez adquirido |
 | `T` | Alternar transportes adquiridos |
-| `M` | Abrir el mezclador de Ambiente e Interfaz y efectos |
 | `K` | Ver los dos árboles de progresión |
-| `H` | Ver ayuda |
+| Botón **Ajustes** | Mostrar los accesos a Visual, Sonido y Ayuda |
 | `F2` o `` ` `` | Abrir/cerrar el debugger, solo en el perfil Debug |
 | `Esc` | Cerrar el último panel abierto |
 | `Shift` + clic | Teletransportarse con el debugger activo |

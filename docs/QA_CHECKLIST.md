@@ -117,12 +117,19 @@
 - [ ] El selector ofrece exactamente **Estudiante**, **Docente** y **Debug**, refleja el perfil
       activo y su cambio conserva una URL canónica.
 - [ ] La interfaz informa que los perfiles son locales y no autenticación.
+- [ ] El HUD presenta una barra nativa **Progreso**, con porcentaje entero visible y el conteo
+      equivalente «X de Y conceptos adquiridos» en `aria-valuetext`.
+- [ ] Con 0, 7 y 20 conceptos de los 20 actuales, el HUD muestra respectivamente `0 %`, `35 %`
+      y `100 %`; reiniciar o cambiar de perfil actualiza el indicador sin estado adicional.
 - [ ] Todas las acciones esenciales tienen teclado.
 - [ ] El foco es visible.
 - [ ] Abrir un panel mueve el foco a su cierre; `Esc` o el botón de cierre lo devuelve al control que lo abrió.
 - [ ] En la vista móvil, `Tab` y `Shift` + `Tab` permanecen dentro del panel visible hasta cerrarlo.
 - [ ] La lección principal puede permanecer abierta junto con un panel secundario.
-- [ ] El menú ofrece **Árboles**, **Visual**, **Símbolos**, **Constantes**, **Formulario**, **Glosario**, **Ayuda** y **Sonido**; abrir uno sustituye cualquier otro panel secundario abierto.
+- [ ] El dock ofrece **Árboles**, **Símbolos**, **Constantes**, **Formulario**, **Glosario** y **Ajustes**; este último revela **Visual**, **Sonido** y **Ayuda** mediante clic, `Enter` o espacio.
+- [ ] Cerrar una vista agrupada devuelve el foco a su acceso visible; un segundo `Esc` colapsa **Ajustes** y enfoca su botón, sin dejar foco en controles ocultos.
+- [ ] Abrir una herramienta sustituye cualquier otro panel secundario abierto.
+- [ ] Las teclas `H` y `M` no abren paneles, no disparan audio y no bloquean su futuro uso.
 - [ ] **Árboles** lista zonas, lugares y recompensas, pero no duplica los controles ni la leyenda de la red del mapamundi.
 - [ ] **Visual** explica sus tres niveles y la semántica brillante/tenue sin depender exclusivamente del color.
 - [ ] Las etapas de una lección anuncian por texto cuál está activa, disponible o bloqueada.
@@ -183,7 +190,7 @@
 ## Audio
 
 - [ ] No se reproduce nada antes del primer gesto del usuario.
-- [ ] `M` y el botón del HUD abren o cierran **Sonido**; no alteran el volumen por sí solos.
+- [ ] **Ajustes → Sonido** abre o cierra el mezclador; navegar hasta él no altera el volumen por sí solo.
 - [ ] Los sliders **Ambiente** e **Interfaz y efectos** se ajustan y persisten de forma independiente.
 - [ ] Llevar un slider a `0 %` silencia solo su categoría; el otro canal continúa respetando su propio valor.
 - [ ] El ambiente se pausa al ocultar la pestaña y vuelve solo si su volumen sigue por encima de cero.

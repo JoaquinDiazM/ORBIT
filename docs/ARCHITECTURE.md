@@ -187,13 +187,20 @@ emite una sola señal de finalización; no superpone el cue ordinario de interac
 `src/ui/ui-controller.js` controla la barra de estado, el selector de perfiles locales, la
 ventana principal del lugar, un único panel secundario, etapas, secuencias, ejercicios,
 árboles, visualización, referencias, sonido, ayuda, avisos y debugger. La ventana principal y
-la secundaria pueden coexistir en escritorio. El menú ofrece **Árboles**, **Visual**,
-**Símbolos**, **Constantes**, **Formulario**, **Glosario**, **Ayuda** y **Sonido**; abrir uno
-sustituye al panel secundario anterior. **Árboles** lista la progresión, mientras **Visual**
-controla la red del mapa y las vistas de referencia consultan el contenido desbloqueado sin
-volver a mostrar su bibliografía. Cambiar el selector recarga ORBIT con el perfil canónico y
-propaga ese modo al enlace del Editor. Los controles y ayudas de depuración se ocultan fuera de
-Debug. La UI construye contenido mediante APIs DOM y `textContent`.
+la secundaria pueden coexistir en escritorio. El dock ofrece **Árboles**, **Símbolos**,
+**Constantes**, **Formulario**, **Glosario** y el disclosure nativo **Ajustes**. Este último
+revela los accesos a **Visual**, **Sonido** y **Ayuda** sin convertirse en otro panel ni estado
+persistido; abrir una de esas vistas sustituye al panel secundario anterior. **Árboles** lista
+la progresión, mientras **Visual** controla la red del mapa y las vistas de referencia consultan
+el contenido desbloqueado sin volver a mostrar su bibliografía. Cambiar el selector recarga
+ORBIT con el perfil canónico y propaga ese modo al enlace del Editor. Los controles y ayudas de
+depuración se ocultan fuera de Debug. La UI construye contenido mediante APIs DOM y
+`textContent`.
+
+El HUD deriva su barra nativa **Progreso** de `snapshot.concepts`: limita el conteo al catálogo
+vigente, redondea el porcentaje al entero más cercano y expone «N %; X de Y conceptos
+adquiridos» mediante `aria-valuetext`. La barra se inicializa con el perfil activo y reacciona a
+los eventos de `ProgressionModel`; no añade estado persistente ni se recalcula en cada frame.
 
 `src/ui/vector-field-2d.js` dibuja campos 2D con SVG y DOM nativos. Separa normalización, muestreo, trazado de curvas integrales simples y escala fija del renderer accesible. Las dos figuras de una comparación comparten dominio, densidad y escala; los deslizadores actualizan parámetros locales sin animación, persistencia ni pérdida de la respuesta. `prefers-reduced-motion` queda satisfecho porque no se inician interpolaciones ni partículas automáticas. Este módulo no implementa render 3D, álgebra simbólica ni un lenguaje general de gráficos.
 

@@ -106,7 +106,7 @@ OrbitDebug.setAmbienceVolume(0.4);
 OrbitDebug.setEffectsVolume(0.8);
 ```
 
-El botón `M` abre el mezclador y la API modifica cada categoría mediante `ProgressionModel`; cero silencia únicamente esa categoría. El debugger visual incluye pruebas individuales de los cinco recursos disponibles, incluidos `ui_select` y `zone_unlocked`.
+**Ajustes → Sonido** abre el mezclador y la API modifica cada categoría mediante `ProgressionModel`; cero silencia únicamente esa categoría. El debugger visual incluye pruebas individuales de los cinco recursos disponibles, incluidos `ui_select` y `zone_unlocked`.
 
 ### Estado
 
@@ -178,12 +178,12 @@ bajo `orbit-progress:v3:student`. Confirma también que Docente y Debug permanec
 2. Verifica que un elemento `hiddenUntilUnlocked` no se vea antes de sus requisitos.
 3. Completa el prerrequisito.
 4. Confirma aparición y acceso del elemento lateral.
-5. En **Visual**, selecciona **Oculta** y verifica una única flecha brillante en dirección prerrequisito → destino con la etiqueta textual **NUEVO**.
+5. En **Ajustes → Visual**, selecciona **Oculta** y verifica una única flecha brillante en dirección prerrequisito → destino con la etiqueta textual **NUEVO**.
 6. Selecciona **Directo** y confirma que aparecen conexiones elegibles dentro del mismo hexágono o entre hexágonos que comparten frontera, pero no conexiones más lejanas.
 7. Selecciona **Total** y confirma que se añaden las conexiones elegibles de mayor alcance.
 8. Comprueba que `completed → completed/completable` usa flecha brillante y sólida, mientras `completable → blocked` usa flecha tenue y discontinua.
 9. Confirma que un extremo oculto no produzca aristas y que cambiar el nivel no modifique requisitos ni progreso.
-10. Revisa que **Árboles** se limite al listado de zonas, lugares y recompensas; la configuración y la leyenda permanecen en **Visual**.
+10. Revisa que **Árboles** se limite al listado de zonas, lugares y recompensas; la configuración y la leyenda permanecen en **Ajustes → Visual**.
 
 El dataset completo deriva 13 parejas únicas después de agrupar requisitos duplicados; cuatro relaciones `completedLocations` se declaran explícitamente. `newlyAccessibleLocationIds` y el lugar fuente de la transición son estado efímero del evento y no deben aparecer en el JSON exportado. En un destino con varios prerrequisitos, solo la arista desde la última finalización causal lleva **NUEVO**. `treeTwoVisualizationMode`, en cambio, es una preferencia saneada y sí debe sobrevivir a recarga, exportación e importación.
 

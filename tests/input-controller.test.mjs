@@ -82,3 +82,29 @@ test("un campo conserva la escritura y el canvas entrega Space al mundo", () => 
     global.window = previousWindow;
   }
 });
+
+test("H y M quedan libres y no producen acciones globales", () => {
+  const previousWindow = global.window;
+  global.window = { addEventListener() {}, removeEventListener() {} };
+  try {
+    const controller = new InputController({});
+    const target = { closest: () => null };
+    for (const [code, formerAction] of [["KeyH", "help"], ["KeyM", "audio"]]) {
+      let prevented = false;
+      controller.onKeyDown({
+        code,
+        target,
+        preventDefault() {
+          prevented = true;
+        },
+      });
+      assert.equal(prevented, false);
+      assert.equal(controller.consume(formerAction), false);
+      controller.onKeyUp({ code });
+    }
+    assert.deepEqual(controller.axis(), { x: 0, y: 0 });
+    controller.destroy();
+  } finally {
+    global.window = previousWindow;
+  }
+});

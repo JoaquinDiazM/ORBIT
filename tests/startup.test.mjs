@@ -72,6 +72,8 @@ test("el shell expone todos los menús secundarios de ORBIT", async () => {
     "sound-panel",
     "help-panel",
     "open-knowledge",
+    "open-settings",
+    "settings-tools",
     "open-visual",
     "open-symbols",
     "open-constants",
@@ -82,6 +84,8 @@ test("el shell expone todos los menús secundarios de ORBIT", async () => {
     "sound-ambience",
     "sound-effects",
     "orbit-version-badge",
+    "hud-progress",
+    "hud-progress-value",
     "profile-select",
     "open-orbit-editor",
   ];
@@ -101,6 +105,22 @@ test("el shell expone todos los menús secundarios de ORBIT", async () => {
   assert.match(index, /Zona desbloqueada/);
   assert.match(index, /aria-label="Cambiar perfil local; no constituye autenticación"/);
   assert.match(index, /title="Perfiles locales sin autenticación"/);
+  assert.match(index, /<dt id="hud-progress-heading">Progreso<\/dt>/);
+  assert.match(index, /<progress[\s\S]{0,360}id="hud-progress"[\s\S]{0,360}max="100"/);
+  assert.match(index, /id="hud-progress-value"[\s\S]{0,120}aria-hidden="true"/);
+  assert.doesNotMatch(index, /id=["']hud-concepts["']/);
+  assert.match(index, /id="open-settings"[\s\S]{0,240}aria-controls="settings-tools"/);
+  const settingsStart = index.indexOf('id="settings-tools"');
+  const settingsEnd = index.indexOf("</div>", settingsStart);
+  assert.ok(settingsStart > 0 && settingsEnd > settingsStart);
+  const settingsGroup = index.slice(settingsStart, settingsEnd);
+  assert.match(settingsGroup, /role="group"/);
+  assert.match(settingsGroup, /aria-labelledby="open-settings"/);
+  assert.match(settingsGroup, /\bhidden\b/);
+  for (const childId of ["open-visual", "open-sound", "open-help"]) {
+    assert.match(settingsGroup, new RegExp(`id=["']${childId}["']`));
+  }
+  assert.doesNotMatch(index, /<kbd>[HM]<\/kbd>/);
 });
 
 test("la guardia convierte un fallo de módulo en un diagnóstico visible", async () => {

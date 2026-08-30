@@ -225,15 +225,6 @@ export class GameApp {
       this.ui.toggleKnowledgePanel();
       void this.audio?.playInteractionCue?.();
     }
-    if (this.input.consume("help")) {
-      this.ui.toggleHelpPanel();
-      void this.audio?.playInteractionCue?.();
-    }
-    if (this.input.consume("audio")) {
-      this.ui.toggleSoundPanel();
-      void this.audio?.playInteractionCue?.();
-    }
-
     if (this.input.consume("gadget") && !this.ui.isBlockingModalOpen()) {
       const result = this.progression.toggleFieldLens();
       this.ui.toast(

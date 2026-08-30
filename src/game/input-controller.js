@@ -9,10 +9,8 @@ const ACTION_KEYS = Object.freeze({
   interact: ["KeyE", "Space"],
   debug: ["F2", "Backquote"],
   knowledge: ["KeyK"],
-  help: ["KeyH"],
   gadget: ["KeyG"],
   transport: ["KeyT"],
-  audio: ["KeyM"],
   escape: ["Escape"],
 });
 
@@ -46,7 +44,7 @@ export class InputController {
       const actionEntry = Object.entries(ACTION_KEYS).find(([, keys]) =>
         keys.includes(event.code),
       );
-      const uiShortcutActions = new Set(["debug", "knowledge", "help", "audio", "escape"]);
+      const uiShortcutActions = new Set(["debug", "knowledge", "escape"]);
       if (isActivatableControlTarget(event.target)) {
         if (["Space", "Enter"].includes(event.code)) return;
         if (!actionEntry || !uiShortcutActions.has(actionEntry[0])) return;

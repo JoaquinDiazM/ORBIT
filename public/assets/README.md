@@ -135,7 +135,7 @@ audio.volume = definition.volume;
 
 Los navegadores suelen bloquear audio automático antes de la primera interacción del usuario. El sistema de audio debe inicializarse después de un clic, una tecla o una acción equivalente.
 
-La implementación activa está en `src/audio/audio-manager.js`. El ambiente comienza tras el primer gesto; `M` abre el mezclador independiente de Ambiente e Interfaz y efectos. El cruce de hexágono, cada interacción válida y el primer desbloqueo de una zona disparan sus efectos correspondientes; el debugger permite probar los cinco recursos versionados sin completar el recorrido. Un valor de cero silencia únicamente su categoría.
+La implementación activa está en `src/audio/audio-manager.js`. El ambiente comienza tras el primer gesto; **Ajustes → Sonido** abre el mezclador independiente de Ambiente e Interfaz y efectos. El cruce de hexágono, cada interacción válida y el primer desbloqueo de una zona disparan sus efectos correspondientes; el debugger permite probar los cinco recursos versionados sin completar el recorrido. Un valor de cero silencia únicamente su categoría.
 
 ## Reglas para colaboradores y agentes
 

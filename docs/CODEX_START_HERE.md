@@ -33,13 +33,18 @@ El producto ya incluye:
 - movimiento continuo en Canvas 2D;
 - 19 hexágonos en tres niveles: base, seis fundamentos y doce aplicaciones;
 - fronteras físicas derivadas del Árbol I;
-- lugares y recompensas derivados del Árbol II, con 13 parejas únicas —cuatro `completedLocations` explícitas canónicas— y un menú **Visual** independiente con modos **Oculta**, **Directo** y **Total**;
+- lugares y recompensas derivados del Árbol II, con 13 parejas únicas —cuatro
+  `completedLocations` explícitas canónicas— y un panel **Visual** separado de Árboles,
+  accesible desde **Ajustes**, con modos **Oculta**, **Directo** y **Total**;
 - ejercicios de alternativa, número, expresión segura, secuencia y confirmación;
 - guardado separado para los perfiles canónicos `student`, `teacher` y `debug` en
   `localStorage`, con migración del antiguo `normal` a `student`;
 - progreso `v3`, migración desde `v1`/`v2` y lectura compatible del prefijo histórico `aea-progress`;
 - audio local con cinco recursos verificables y volúmenes independientes `ambience`/`effects`;
-- ventana principal compatible con un panel secundario de Árboles, Visual, Símbolos, Constantes, Formulario, Glosario, Ayuda o Sonido;
+- ventana principal compatible con un panel secundario de Árboles, Símbolos, Constantes,
+  Formulario o Glosario, más **Ajustes** como acceso agrupado a Visual, Sonido y Ayuda;
+- HUD con barra nativa de **Progreso**, porcentaje conceptual entero y equivalente accesible
+  «X de Y», todo derivado del snapshot del perfil sin persistencia adicional;
 - biblioteca derivada y validada de símbolos, constantes, fórmulas y glosario con paneles de consulta y atribución única al desbloquear, sin cuadros bibliográficos repetidos;
 - Taller Vectorial de seis etapas: elementos diferenciales, comparación SVG de campos, reconstrucción cartesiana guiada y evaluación cilíndrica independiente;
 - Observatorio de Coulomb de cinco etapas y `PointChargeField2D` para tres cargas normalizadas operables con puntero y teclado;

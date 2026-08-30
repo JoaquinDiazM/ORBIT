@@ -308,6 +308,58 @@ code {
   font-weight: 700;
 }
 
+.hud-progress {
+  display: grid;
+  min-height: 1rem;
+  align-items: center;
+}
+
+.hud-progress > * {
+  grid-area: 1 / 1;
+}
+
+.hud-progress-meter {
+  display: block;
+  width: 100%;
+  height: 1rem;
+  overflow: hidden;
+  border: 1px solid rgba(120, 227, 255, 0.3);
+  border-radius: 999px;
+  appearance: none;
+  -webkit-appearance: none;
+  color: var(--accent-strong);
+  background: rgba(4, 15, 27, 0.82);
+}
+
+.hud-progress-meter::-webkit-progress-bar {
+  border-radius: inherit;
+  background: rgba(4, 15, 27, 0.82);
+}
+
+.hud-progress-meter::-webkit-progress-value {
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent-strong), var(--gold));
+}
+
+.hud-progress-meter::-moz-progress-bar {
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent-strong), var(--gold));
+}
+
+.hud-progress-value {
+  position: relative;
+  z-index: 1;
+  justify-self: center;
+  padding: 0.02rem 0.24rem;
+  border-radius: 999px;
+  color: #f6fbff;
+  background: rgba(4, 15, 27, 0.72);
+  font-size: 0.58rem;
+  font-weight: 850;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
 .tool-dock {
   position: absolute;
   z-index: 12;
@@ -380,6 +432,17 @@ code {
   content: "×";
   border-style: dashed;
   color: #ffd8dc;
+}
+
+.dock-submenu {
+  display: grid;
+  padding: 0.12rem 0 0.12rem 0.48rem;
+  gap: 0.38rem;
+  border-left: 1px solid rgba(120, 227, 255, 0.24);
+}
+
+.dock-submenu .dock-button {
+  background: rgba(9, 28, 46, 0.82);
 }
 
 .compact-card {
@@ -1828,6 +1891,14 @@ code {
     border-bottom-width: 4px;
     border-left-width: 1px;
     border-bottom-color: var(--gold);
+  }
+
+  .dock-submenu {
+    display: flex;
+    flex: 0 0 auto;
+    padding: 0 0 0 0.1rem;
+    gap: 0.32rem;
+    border-left: 0;
   }
 
   .compact-card {

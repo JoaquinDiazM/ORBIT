@@ -43,7 +43,20 @@
         <dl class="hud-stats">
           <div><dt>Zona</dt><dd id="hud-area">Campamento Base</dd></div>
           <div><dt>Transporte</dt><dd id="hud-transport">A pie</dd></div>
-          <div><dt>Conceptos</dt><dd id="hud-concepts">0 / 20</dd></div>
+          <div>
+            <dt id="hud-progress-heading">Progreso</dt>
+            <dd class="hud-progress">
+              <progress
+                id="hud-progress"
+                class="hud-progress-meter"
+                max="100"
+                value="0"
+                aria-labelledby="hud-progress-heading"
+                aria-valuetext="0%; 0 de 20 conceptos adquiridos"
+              >0%; 0 de 20 conceptos adquiridos</progress>
+              <span id="hud-progress-value" class="hud-progress-value" aria-hidden="true">0%</span>
+            </dd>
+          </div>
           <div><dt>Misión</dt><dd id="hud-mission">Encuentra el Taller Vectorial</dd></div>
         </dl>
       </section>
@@ -57,14 +70,6 @@
           aria-controls="knowledge-panel"
           aria-expanded="false"
         >Árboles <kbd>K</kbd></button>
-        <button
-          id="open-visual"
-          class="dock-button"
-          data-mark="◎"
-          type="button"
-          aria-controls="visual-panel"
-          aria-expanded="false"
-        >Visual</button>
         <button
           id="open-symbols"
           class="dock-button"
@@ -102,21 +107,45 @@
           aria-expanded="false"
         >Glosario</button>
         <button
-          id="open-help"
+          id="open-settings"
           class="dock-button"
-          data-mark="?"
+          data-mark="⚙"
           type="button"
-          aria-controls="help-panel"
+          aria-controls="settings-tools"
           aria-expanded="false"
-        >Ayuda <kbd>H</kbd></button>
-        <button
-          id="open-sound"
-          class="dock-button"
-          data-mark="◉"
-          type="button"
-          aria-controls="sound-panel"
-          aria-expanded="false"
-        >Sonido <kbd>M</kbd></button>
+        >Ajustes</button>
+        <div
+          id="settings-tools"
+          class="dock-submenu"
+          role="group"
+          aria-labelledby="open-settings"
+          hidden
+        >
+          <button
+            id="open-visual"
+            class="dock-button"
+            data-mark="◎"
+            type="button"
+            aria-controls="visual-panel"
+            aria-expanded="false"
+          >Visual</button>
+          <button
+            id="open-sound"
+            class="dock-button"
+            data-mark="◉"
+            type="button"
+            aria-controls="sound-panel"
+            aria-expanded="false"
+          >Sonido</button>
+          <button
+            id="open-help"
+            class="dock-button"
+            data-mark="?"
+            type="button"
+            aria-controls="help-panel"
+            aria-expanded="false"
+          >Ayuda</button>
+        </div>
       </nav>
 
       <section id="controls-hint" class="glass-card compact-card" aria-label="Controles principales">
@@ -124,7 +153,6 @@
         <span><kbd>E</kbd>: interactuar</span>
         <span><kbd>G</kbd>: gadget</span>
         <span><kbd>T</kbd>: transporte</span>
-        <span><kbd>M</kbd>: sonido</span>
         <span data-debug-only hidden><kbd>F2</kbd>: debugger</span>
       </section>
 
@@ -245,7 +273,7 @@
             <div><dt><kbd>T</kbd></dt><dd>Cambiar entre transportes adquiridos.</dd></div>
             <div><dt>Rueda del ratón</dt><dd>Ajustar el zoom.</dd></div>
             <div><dt><kbd>K</kbd></dt><dd>Abrir los dos árboles de progresión.</dd></div>
-            <div><dt><kbd>M</kbd></dt><dd>Abrir el mezclador de ambiente y efectos.</dd></div>
+            <div><dt>Ajustes</dt><dd>Abrir Visual, Sonido o esta ayuda desde el menú lateral.</dd></div>
             <div data-debug-only hidden><dt><kbd>F2</kbd></dt><dd>Abrir el debugger para pruebas.</dd></div>
             <div><dt><kbd>Esc</kbd></dt><dd>Cerrar paneles.</dd></div>
           </dl>

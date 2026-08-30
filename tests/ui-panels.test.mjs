@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { APP_CONFIG } from "../src/config.js";
+import { CONCEPTS } from "../src/data/knowledge.js";
 import { UIController } from "../src/ui/ui-controller.js";
 
 function makeNode(id, documentHarness) {
@@ -106,6 +107,13 @@ function makeHarness() {
     if (referenceView) button.dataset.referenceView = referenceView;
     return button;
   });
+  const settingsButton = getNode("open-settings");
+  settingsButton.setAttribute("aria-controls", "settings-tools");
+  settingsButton.setAttribute("aria-expanded", "false");
+  controls.push(settingsButton);
+  const settingsTools = getNode("settings-tools");
+  settingsTools.hidden = true;
+  settingsTools.append(controls[1], controls[6], controls[7]);
 
   const visualInputs = ["hidden", "direct", "total"].map((mode) => {
     const input = getNode(`tree-two-${mode}`);
@@ -154,11 +162,12 @@ function makeHarness() {
     treeTwoVisualizationMode: "hidden",
   };
   const subscribers = new Set();
+  const acquiredConceptIds = new Set();
   const volumeChanges = [];
   const visualModeChanges = [];
   const snapshot = () => ({
     state: { settings: { ...settings } },
-    concepts: new Set(),
+    concepts: new Set(acquiredConceptIds),
     completedLocationIds: new Set(),
     rewards: new Set(),
     unlockedAreaIds: new Set(["origin"]),
@@ -207,8 +216,10 @@ function makeHarness() {
 
   return {
     controls,
+    acquiredConceptIds,
     document,
     documentListeners,
+    emit,
     getNode,
     progression,
     settings,
@@ -238,6 +249,38 @@ test("el HUD deriva la versión de APP_CONFIG y deja el perfil únicamente en el
       `Versión actual de ${APP_CONFIG.appName}: ${APP_CONFIG.version}`,
     );
     assert.equal(getNode("profile-select").value, progression.profile);
+  });
+});
+
+test("el HUD presenta progreso conceptual entero, accesible y reactivo", () => {
+  withController((_controller, { acquiredConceptIds, emit, getNode }) => {
+    const progress = getNode("hud-progress");
+    const value = getNode("hud-progress-value");
+
+    assert.equal(progress.max, 100);
+    assert.equal(progress.value, 0);
+    assert.equal(value.textContent, "0%");
+    assert.equal(progress.getAttribute("aria-valuetext"), "0%; 0 de 20 conceptos adquiridos");
+
+    for (const concept of CONCEPTS.slice(0, 7)) acquiredConceptIds.add(concept.id);
+    emit("concept-granted");
+    assert.equal(progress.value, 35);
+    assert.equal(value.textContent, "35%");
+    assert.equal(progress.textContent, "35%; 7 de 20 conceptos adquiridos");
+    assert.equal(progress.getAttribute("aria-valuetext"), "35%; 7 de 20 conceptos adquiridos");
+
+    for (const concept of CONCEPTS) acquiredConceptIds.add(concept.id);
+    acquiredConceptIds.add("concepto-desconocido");
+    emit("debug-complete-all");
+    assert.equal(progress.value, 100);
+    assert.equal(value.textContent, "100%");
+    assert.equal(progress.getAttribute("aria-valuetext"), "100%; 20 de 20 conceptos adquiridos");
+
+    acquiredConceptIds.clear();
+    emit("reset");
+    assert.equal(progress.value, 0);
+    assert.equal(value.textContent, "0%");
+    assert.equal(progress.getAttribute("aria-valuetext"), "0%; 0 de 20 conceptos adquiridos");
   });
 });
 
@@ -277,6 +320,85 @@ test("la lección coexiste con menús secundarios, que siguen siendo exclusivos"
     controller.openPanel("help-panel");
     assert.equal(getNode("visual-panel").hidden, true);
     assert.equal(getNode("help-panel").hidden, false);
+  });
+});
+
+test("Ajustes revela sus tres accesos y Esc restaura el foco por niveles", () => {
+  withController((controller, { document, getNode }) => {
+    const settingsButton = getNode("open-settings");
+    const settingsTools = getNode("settings-tools");
+    const visualButton = getNode("open-visual");
+
+    assert.equal(settingsTools.hidden, true);
+    assert.equal(settingsButton.getAttribute("aria-expanded"), "false");
+    document.activeElement = settingsButton;
+    settingsButton.dispatch("click");
+    assert.equal(settingsTools.hidden, false);
+    assert.equal(settingsButton.getAttribute("aria-expanded"), "true");
+
+    document.activeElement = visualButton;
+    visualButton.dispatch("click");
+    assert.equal(getNode("visual-panel").hidden, false);
+    assert.equal(document.activeElement, getNode("visual-panel").closeButton);
+    assert.equal(visualButton.getAttribute("aria-expanded"), "true");
+
+    controller.closeTopPanel();
+    assert.equal(getNode("visual-panel").hidden, true);
+    assert.equal(settingsTools.hidden, false);
+    assert.equal(document.activeElement, visualButton);
+
+    controller.closeTopPanel();
+    assert.equal(settingsTools.hidden, true);
+    assert.equal(settingsButton.getAttribute("aria-expanded"), "false");
+    assert.equal(document.activeElement, settingsButton);
+  });
+});
+
+test("colapsar Ajustes cierra antes el panel hijo y no deja el foco oculto", () => {
+  withController((controller, { document, getNode }) => {
+    const settingsButton = getNode("open-settings");
+    const settingsTools = getNode("settings-tools");
+    const soundButton = getNode("open-sound");
+
+    document.activeElement = settingsButton;
+    settingsButton.dispatch("click");
+    document.activeElement = soundButton;
+    soundButton.dispatch("click");
+    assert.equal(getNode("sound-panel").hidden, false);
+
+    document.activeElement = settingsButton;
+    settingsButton.dispatch("click");
+    assert.equal(getNode("sound-panel").hidden, true);
+    assert.equal(settingsTools.hidden, true);
+    assert.equal(document.activeElement, settingsButton);
+    assert.deepEqual(controller.openPanels, []);
+  });
+});
+
+test("colapsar Ajustes rebasa retornos de foco heredados por otros paneles", () => {
+  withController((controller, { document, getNode }) => {
+    const settingsButton = getNode("open-settings");
+    const settingsTools = getNode("settings-tools");
+    const soundButton = getNode("open-sound");
+
+    document.activeElement = settingsButton;
+    settingsButton.dispatch("click");
+    document.activeElement = soundButton;
+    soundButton.dispatch("click");
+    document.activeElement = getNode("sound-panel").closeButton;
+    controller.openPanel("knowledge-panel");
+
+    assert.equal(getNode("sound-panel").hidden, true);
+    assert.equal(getNode("knowledge-panel").hidden, false);
+    assert.equal(settingsTools.hidden, false);
+
+    document.activeElement = settingsButton;
+    settingsButton.dispatch("click");
+    assert.equal(settingsTools.hidden, true);
+
+    controller.closeTopPanel();
+    assert.equal(getNode("knowledge-panel").hidden, true);
+    assert.equal(document.activeElement, settingsButton);
   });
 });
 

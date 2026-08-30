@@ -30,6 +30,14 @@ Recorre el mundo, interactúa con lugares académicos y adquiere conceptos. Cada
 
 El contenido actual es una demostración de mecánicas y estructura. No constituye todavía un curso completo.
 
+## Progreso del HUD
+
+La cabecera muestra una barra **Progreso** con el porcentaje de conceptos adquiridos en el
+perfil activo. El valor se redondea al entero más cercano y va de `0 %` a `100 %`; no representa
+el porcentaje de una misión individual. Para tecnologías de asistencia, la misma barra anuncia
+también el conteo equivalente —por ejemplo, «35 %; 7 de 20 conceptos adquiridos»—. Cambiar de
+perfil o reiniciarlo actualiza el indicador desde su propio avance, sin crear un guardado nuevo.
+
 ## Movimiento
 
 - `WASD` o flechas: mover al personaje libremente.
@@ -60,7 +68,7 @@ El panel **Árboles** es un listado del estado de zonas, lugares y recompensas. 
 
 ## Visualización de la red
 
-El botón **Visual** abre un panel independiente para configurar las guías del Árbol II que se superponen sobre el mapamundi:
+En el menú lateral, **Ajustes → Visual** abre el panel que configura las guías del Árbol II que se superponen sobre el mapamundi:
 
 - **Oculta:** muestra únicamente la conexión que produjo el último desbloqueo de esta sesión. Si todavía no ocurrió uno, no dibuja conexiones.
 - **Directo:** muestra todas las conexiones elegibles dentro de un mismo hexágono o entre dos hexágonos que comparten frontera.
@@ -73,15 +81,13 @@ Las flechas siempre apuntan desde el lugar que aporta el prerrequisito hacia el 
 Al interactuar con un lugar, su ventana principal aparece a la derecha. El menú izquierdo puede mantener abierta a la vez una única ventana secundaria:
 
 - **Árboles**;
-- **Visual**;
 - **Símbolos**;
 - **Constantes**;
 - **Formulario**;
 - **Glosario**;
-- **Ayuda**;
-- **Sonido**.
+- **Ajustes**, que despliega **Visual**, **Sonido** y **Ayuda**.
 
-En escritorio puedes consultar uno de esos paneles sin cerrar la misión o lección actual. En pantallas estrechas los paneles ocupan el espacio disponible y `Esc` los cierra en orden inverso a su apertura.
+En escritorio puedes consultar uno de esos paneles sin cerrar la misión o lección actual. **Ajustes** se abre y se cierra con clic, `Enter` o espacio; al cerrar una vista el foco vuelve a su acceso dentro del grupo. En pantallas estrechas los paneles ocupan el espacio disponible y `Esc` cierra primero el panel visible y después el grupo Ajustes.
 
 Los paneles **Símbolos**, **Constantes**, **Formulario** y **Glosario** permiten consultar las entradas disponibles y las condiciones de las todavía bloqueadas. Cuando se desbloquea una entrada cuya procedencia merece mostrarse, la interfaz comunica esa fuente una sola vez en ese momento. La consulta posterior conserva el contenido, pero no repite cuadros bibliográficos en cada tarjeta.
 
@@ -91,13 +97,12 @@ Las lecciones extensas se dividen en etapas. Una lectura habilita **Continuar**;
 
 - `G`: activa o desactiva la Lente de campo después de adquirirla.
 - `T`: alterna entre los transportes disponibles.
-- `M`: abre o cierra el panel **Sonido**.
 
 Los transportes cambian la velocidad de exploración, no los prerrequisitos académicos.
 
 ## Audio y ecuaciones
 
-El ambiente comienza solo después de tu primer clic o tecla. El panel **Sonido** tiene dos controles independientes: **Ambiente** e **Interfaz y efectos**. Llevar uno a `0 %` silencia únicamente esa categoría; ambos valores se guardan en el perfil.
+El ambiente comienza solo después de tu primer clic o tecla. **Ajustes → Sonido** abre dos controles independientes: **Ambiente** e **Interfaz y efectos**. Llevar uno a `0 %` silencia únicamente esa categoría; ambos valores se guardan en el perfil.
 
 Las interacciones ordinarias solicitan el cue de confirmación predeterminado. Si una acción tiene un cue específico —por ejemplo, una finalización que abre una zona—, ese cue sustituye al predeterminado: nunca deben superponerse los dos. Las mismas acciones conservan siempre una indicación visual aunque el volumen esté en cero o el recurso no esté disponible.
 
