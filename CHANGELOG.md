@@ -2,6 +2,46 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [0.4.2] - 2026-08-30
+
+### Añadido
+
+- Perfiles locales **Estudiante**, **Docente** y **Debug**, con avances separados y migración
+  compatible del antiguo perfil `normal` a `student`.
+- Política de capacidades por perfil: Docente autocompleta únicamente lecciones y misiones
+  evaluables; Estudiante y Docente excluyen las herramientas de depuración; ORBIT Editor ofrece
+  autoría completa a Docente, consulta sin mutaciones a Estudiante y bloquea Debug antes de
+  iniciar el modelo editorial.
+
+### Cambiado
+
+- La primera ruta se presenta como **Electromagnetismo** en interfaz, metadatos y documentación
+  vigente, conservando el anillo de aplicaciones, el título oficial del curso fuente y los IDs y
+  claves persistentes publicados.
+- El zoom mínimo común de ORBIT y ORBIT Editor baja de `0.58` a `0.28`, y el margen exterior
+  aumenta a dos tamaños de hexágono (`460` unidades). **Encuadrar** aprovecha el lienzo y mantiene
+  operables puntero, teclado y hit testing.
+- El HUD usa el selector como única representación del perfil y muestra la versión derivada de
+  la configuración en lugar del rótulo «Ruta interactiva».
+
+### Corregido
+
+- Las cabeceras reservan espacio para descendentes tipográficos, evitando que se recorte la «g»
+  de **Electromagnetismo** sin perder la elipsis horizontal.
+- ORBIT Editor permite compensar el inspector y los menús abiertos al alejar el mapa, alcanzar
+  el margen permitido y volver al centro sin alterar el comportamiento de cámara de ORBIT.
+- El autocompletado docente usa la finalización normal sin duplicar la señal de audio de
+  interacción.
+
+### Verificación y alcance
+
+- La cohorte corresponde exactamente a `UPD-008`, `UPD-009` y `UPD-010`; pasan `226/226`
+  pruebas, validación de contenido, revisión del repositorio, build estático e inspección visual
+  a 1280 × 720.
+- Se conservan 19 zonas, 20 conceptos, 28 lugares, progreso `v3`, documento editorial `v1`, los
+  cinco audios y las dependencias existentes. Los perfiles son políticas locales de interfaz,
+  no cuentas, autenticación ni autorización de servidor.
+
 ## [0.4.1] - 2026-08-29
 
 ### Añadido

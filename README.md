@@ -18,7 +18,7 @@ El autor sitúa el origen pedagógico de esta primera ruta en su experiencia doc
 
 La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra lineal y física clásica, especialmente quienes consideran estudiar Ingeniería Eléctrica o comienzan los primeros semestres de la especialidad.
 
-> **Estado:** base técnica y pedagógica `0.4.1`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
+> **Estado:** base técnica y pedagógica `0.4.2`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
 
 ## Qué demuestra esta versión
 
@@ -58,7 +58,24 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
 - Borrador editorial `v1` con autoguardado local, historial, importación y exportación JSON; nunca modifica el progreso `v3` ni publica automáticamente.
 - Los perfiles y bloqueos son modos locales elegibles, no cuentas, autenticación ni control de
   acceso real.
-- Una dependencia npm fijada y documentada: KaTeX 0.18.1; `0.4.1` no añade paquetes, backend, autenticación, render 3D ni CDN.
+- Una dependencia npm fijada y documentada: KaTeX 0.18.1; `0.4.2` no añade paquetes, backend, autenticación, render 3D ni CDN.
+
+### Cambios centrales de 0.4.2
+
+La primera ruta se presenta como **Electromagnetismo** en la interfaz y la documentación
+vigente. El título oficial del curso fuente, el anillo de aplicaciones y los IDs y claves
+persistentes publicados permanecen intactos.
+
+ORBIT ofrece los perfiles locales **Estudiante**, **Docente** y **Debug** con avances separados.
+Docente autocompleta únicamente actividades evaluables; las herramientas de depuración quedan
+reservadas para Debug. ORBIT Editor ofrece autoría completa a Docente, consulta sin mutaciones a
+Estudiante y bloquea Debug antes de construir el modelo editorial. Estos modos no constituyen
+cuentas, autenticación ni autorización real.
+
+ORBIT y ORBIT Editor permiten alejar hasta `0.28` y recorrer un margen exterior de 460 unidades.
+El Editor conserva además el mundo alcanzable cuando paneles laterales ocupan el lienzo. El HUD
+usa el selector como única indicación del perfil y muestra la versión activa desde la
+configuración.
 
 ### Cambios centrales de 0.4.1
 

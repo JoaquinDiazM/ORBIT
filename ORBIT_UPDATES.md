@@ -285,7 +285,7 @@ contenido mediante ORBIT Editor durante mantenciones planificadas.
 
 ### UPD-008 — Nombre visible de la ruta: Electromagnetismo
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `contenido`
 - Versión objetivo: `0.4.2`
 - Impacto sugerido: `Z`.
@@ -344,7 +344,7 @@ nombre por uno más general.
 
 ### UPD-009 — Ampliar zoom y margen del mapamundi
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `0.4.2`
 - Impacto sugerido: `Z`.
@@ -401,7 +401,7 @@ básicamente lo mismo y no merecen ser tratados en dos actualizaciones diferente
 
 ### UPD-010 — Perfiles estudiante, docente y debug
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `0.4.2`
 - Impacto sugerido: `Z`; el contrato local acotado prepara futuras capacidades de mayor

@@ -22,7 +22,7 @@ En este orden:
 
 ## 2. Estado actual
 
-La versión publicada `0.4.1` es un prototipo estático con una dependencia local respaldada por ADR, dos entradas deliberadamente separadas y un flujo de actualizaciones por cohortes con autorización y revisión humana:
+La versión publicada `0.4.2` es un prototipo estático con una dependencia local respaldada por ADR, dos entradas deliberadamente separadas y un flujo de actualizaciones por cohortes con autorización y revisión humana:
 
 - **ORBIT** en `index.html`, con perfiles locales Estudiante, Docente y Debug;
 - **ORBIT Editor** en `editor.html`, con acceso Docente completo por defecto, consulta

@@ -41,7 +41,7 @@ La experiencia combina dos modos que deberán coexistir en una versión futura:
 - **Modo Expedición:** progresión narrativa y desbloqueos espaciales.
 - **Modo consulta temática:** acceso académico directo por tema, útil para repasar antes de una evaluación.
 
-La versión `0.4.1` conserva sin reducción la Expedición publicada en 0.3.2: 19 zonas, 20 conceptos, 28 lugares y 13 parejas derivadas del Árbol II, de las cuales cuatro tienen un requisito `completedLocations` explícito canónico. El Taller Vectorial sirve como primer nodo desarrollado con mayor profundidad: reúne elementos diferenciales, una comparación visual de campos en SVG, un ejemplo cartesiano guiado y una evaluación cilíndrica independiente. El modo de consulta temática con acceso directo, la profundidad curricular completa y la conexión entre cursos siguen siendo hitos posteriores.
+La versión `0.4.2` conserva sin reducción la Expedición publicada en 0.3.2: 19 zonas, 20 conceptos, 28 lugares y 13 parejas derivadas del Árbol II, de las cuales cuatro tienen un requisito `completedLocations` explícito canónico. El Taller Vectorial sirve como primer nodo desarrollado con mayor profundidad: reúne elementos diferenciales, una comparación visual de campos en SVG, un ejemplo cartesiano guiado y una evaluación cilíndrica independiente. El modo de consulta temática con acceso directo, la profundidad curricular completa y la conexión entre cursos siguen siendo hitos posteriores.
 
 La entrada es `index.html` y ofrece exactamente tres modos locales con progreso `v3` separado:
 Estudiante, Docente y Debug. El antiguo `normal` migra a Estudiante sin perder el avance
@@ -161,7 +161,7 @@ El proyecto debe privilegiar contenido y ejercicios sobre producción audiovisua
 - assets costosos;
 - animaciones largas.
 
-La versión `0.4.1` no añade backend, autenticación, gráficos 3D, telemetría ni dependencias. El avance dentro de etapas, los parámetros de figuras y las respuestas parciales siguen siendo estado local de sesión. El progreso de ORBIT permanece en `v3`; el documento Editor comienza en `v1` bajo otra clave y otro contrato. Cambiar cualquiera de ellos requiere versionar y sanear el esquema correspondiente, sin confundir ambos espacios.
+La versión `0.4.2` no añade backend, autenticación, gráficos 3D, telemetría ni dependencias. El avance dentro de etapas, los parámetros de figuras y las respuestas parciales siguen siendo estado local de sesión. El progreso de ORBIT permanece en `v3`; el documento Editor comienza en `v1` bajo otra clave y otro contrato. Cambiar cualquiera de ellos requiere versionar y sanear el esquema correspondiente, sin confundir ambos espacios.
 
 La entrada Editor no escribe archivos fuente, Git ni el servidor. Sus bloqueos por query no
 constituyen control de acceso; la publicación sigue siendo manual y cualquier restricción real
