@@ -179,7 +179,14 @@ Sin propuestas pendientes de clasificar.
 
 ## Cohorte inmediata
 
-Sin cohorte inmediata en preparación.
+- Versión: `0.4.2`
+- Estado de la cohorte: `cerrada`
+- IDs: `UPD-008`, `UPD-009`, `UPD-010`
+- Cierre confirmado por JoaquinDiazM: 2026-08-29.
+
+JoaquinDiazM confirmó que estos tres IDs son los únicos de ORBIT 0.4.2. La cohorte puede
+implementarse y revisarse por partes, pero la versión, el changelog y el push esperan la
+aprobación de los tres resultados.
 
 ## Actualizaciones activas
 
@@ -225,7 +232,7 @@ ser utilizables en otros lugares de aprendizaje.
 
 ### UPD-002 — Sistema de servidor online
 
-- Estado: `faltan-detalles`
+- Estado: `pospuesto`
 - Tipo: `épica`
 - Versión objetivo: `auto`
 - Impacto sugerido: se decidirá al dividir la épica; una operación real multiusuario será un
@@ -274,7 +281,7 @@ contenido mediante ORBIT Editor durante mantenciones planificadas.
 
 ### UPD-003 — Exportar aplicaciones ejecutables
 
-- Estado: `faltan-detalles`
+- Estado: `pospuesto`
 - Tipo: `épica`
 - Versión objetivo: `auto`
 - Impacto sugerido: `Y`, sujeto a la arquitectura del servidor y actualización.
@@ -310,7 +317,7 @@ que el resultado esperado aún no está definido.
 
 ### UPD-006 — Perfil estudiantil limitado dentro de ORBIT Editor
 
-- Estado: `faltan-detalles`
+- Estado: `descartado`
 - Tipo: `feature`
 - Versión objetivo: `auto`
 - Impacto sugerido: `Y`.
@@ -345,7 +352,7 @@ perfil o modo de estudiante claramente más limitado que el modo docente.
 
 ### UPD-008 — Nombre visible de la ruta: Electromagnetismo
 
-- Estado: `propuesto`
+- Estado: `autorizado`
 - Tipo: `contenido`
 - Versión objetivo: `0.4.2`
 - Impacto sugerido: `Z`.
@@ -390,7 +397,7 @@ nombre por uno más general.
 
 ### UPD-009 — Ampliar zoom y margen del mapamundi
 
-- Estado: `propuesto`
+- Estado: `autorizado`
 - Tipo: `feature`
 - Versión objetivo: `0.4.2`
 - Impacto sugerido: `Z`.
@@ -433,9 +440,9 @@ básicamente lo mismo y no merecen ser tratados en dos actualizaciones diferente
 
 ### UPD-010 — Perfiles estudiante, docente y debug
 
-- Estado: `faltan-detalles`
+- Estado: `autorizado`
 - Tipo: `feature`
-- Versión objetivo: `auto`
+- Versión objetivo: `0.4.2`
 - Impacto sugerido: `Y`, sujeto al contrato de capacidades y persistencia.
 - Próximo responsable: JoaquinDiazM, quien debe responder las cuatro preguntas bloqueantes.
 
@@ -484,7 +491,7 @@ mapamundi, incluida su interacción y visualización.
 - Pruebas: no aplican todavía.
 - Cómo revisar para JoaquinDiazM: responder las cuatro preguntas y confirmar el contrato de cada
   perfil antes de autorizar.
-- Observaciones del usuario: pendientes.
+- Observaciones del usuario: Respecto a la primera pregunta, el perfil de docente tiene la habilidad de autocompletacion cuando interactua en una zona que requiera respuesta, es decir lugares de aprendizage o misiones. De momento esa sera la unica caracteristica que distinge al perfil de docente respecto al perfil de estudiante. Respecto a la segunda pregunta, en efecto, lo vamos a mantener local, pero tener definidos los perfiles nos va a ayudar mas tarde cuando vayamos a abordar la UPD-002, en ese sentido es una update intermedia de menor riesgo y volumen que nos facilitara la posterior tarea, por lo mismo la clasifique dentro del cohorte de una version tipo Z y no tipo Y. Respecto a la tercera pregunta, el progreso de cada perfil debe ser separado (Al igual que en el futuro con multiples cuentas, repitiendo tipos de perfiles, cada usuario debe mantener su avance aislado). El estado en el que esta ahora el perfil normal, proximamente perfil de estudiante, es algo que se resetea solo despues de actualizaciones de contenido o cuya naturaleza requiera un reset, lo mismo con el perfil docente y debug (Mientras tengamos bien configurado el perfil debug podremos hacer las pruebas que queramos de manera agil sin gastar tiempo en resolver/responder a las preguntas del curso). Cuando el proyecto este mas avanzado y equipos docentes lo este pidiendo para sus cursos, habran otras normativas para el reset, incluso resets paraciales, pero de moemnto nisiquiera esta activado el sistema de cuentas, asi que no intentaremos resolver algo que no es un problema ahora. Respecto a la cuarta pregunta, el esquema final sera el siguiente: 1.- Cada cuenta tendra acceso al ORBIT editor del curso, pero solo las cuentas que son perfiles docente podran tener acceso completo a todos los menus del editor. 2.- Las cuentas con perfil de estudiante solo podran realizar cambios minusculos al esquema del mapamundi, principalmente visuales y que, al volver a ORBIT, solo ellos en su cuenta puedan ver. En el update de ahora lo correcto seria darles acceso, pero bloquera spider y bee, que salte un mensaje de perfil de estudiante no permite esta accion o algo asi. 3.- El perfil de debug que no tiene razon de ser en ORBIT editor, por lo que bloquear el acceso de ese perfil al editor seria buena idea. Los tres puntos que te acabo de mensionar implican una version final cuando tengamos las cuentas verificadas, un editor maduro con menus de editor que si puedan ser accedidos por estudiantes, etc, por el momento en nuestro ambiente local solo aplica lo minimo que despues facilite la tarea de updates mas grandes. Quiero ver como queda esto una vez aprobado y despues darte un UPD mas preciso que el que ahora estoy descartando, UPD-006.
 
 ## Historial
 
