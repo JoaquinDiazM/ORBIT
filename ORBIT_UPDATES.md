@@ -189,133 +189,21 @@ Sin propuestas pendientes de clasificar.
 
 ## Cohorte inmediata
 
-- Versión: `0.4.3`
-- Estado de la cohorte: `cerrada`
-- IDs: `UPD-011`, `UPD-012`
-- Cierre confirmado por JoaquinDiazM: 2026-08-30.
+- Versión: `0.5.0`
+- Estado de la cohorte: `abierta`
+- IDs: `UPD-001`, `UPD-013`, `UPD-014`
+- Apertura confirmada por JoaquinDiazM: 2026-08-30.
 
 ## Actualizaciones activas
 
-### UPD-011 — Menú de ajustes para herramientas auxiliares
-
-- Estado: `publicando`
-- Tipo: `feature`
-- Versión objetivo: `0.4.3`
-- Impacto sugerido: `Z`.
-- Próximo responsable: JoaquinDiazM, que debe revisar el resultado y cambiar el estado a
-  `aprobado` o devolver observaciones concretas.
-
-#### Solicitud original
-
-Envolver algunos menús del panel izquierdo en un único acceso primario. El nuevo menú
-**Ajustes** debe reunir los accesos actuales a Visual, Sonido y Ayuda para recuperar espacio de
-la barra ante futuras incorporaciones; el diseño exacto queda delegado al agente.
-
-#### Especificación elaborada por el agente
-
-- Objetivo observable: sustituir los tres accesos primarios Visual, Sonido y Ayuda por un único
-  acceso Ajustes, desde el que se abren esas mismas vistas sin perder capacidad.
-- Decisiones confirmadas: Árboles, Símbolos, Constantes, Formulario y Glosario permanecen como
-  accesos propios; Ajustes será un grupo desplegable nativo dentro del dock y no otro diálogo;
-  este punto reorganiza navegación, no preferencias ni contenido. La observación más reciente
-  deja `H` y `M` libres, sin atajos globales.
-- Criterios de aceptación: Ajustes permite llegar con puntero y teclado a Visual, Sonido y
-  Ayuda; `H` y `M` no se interceptan ni se anuncian como atajos; foco, exclusividad de paneles,
-  persistencia y layout responsive se conservan; colapsar el grupo no deja el foco en un control
-  oculto; el dock reduce sus accesos persistentes sin ocultar el estado activo.
-- Fuera de alcance: añadir ajustes nuevos, cambiar la semántica de Visual o Sonido, retirar
-  otros atajos o rediseñar por completo el dock.
-- Dependencias, invariantes o ADR: preservar la pila de paneles y el wiring de audio; no requiere
-  dependencia ni ADR.
-
-#### Preguntas bloqueantes
-
-- Ninguna; el preflight resolvió el disclosure, el foco y la liberación de `H`/`M` sin ampliar
-  el alcance.
-
-#### Implementación y revisión
-
-- Base revisada: `65e1adc1d2699d02cdfdffacf66a4e382b61fb25` y la interfaz publicada en
-  ORBIT 0.4.2.
-- Rutas propias: dock y paneles de `index.html`, entrada/acciones, `UIController`, estilos,
-  documentación de controles y pruebas de startup, entrada y paneles.
-- Resultado: el dock conserva como accesos primarios Árboles, Símbolos, Constantes, Formulario
-  y Glosario, y añade un disclosure nativo Ajustes que revela Visual, Sonido y Ayuda. Las vistas,
-  su exclusividad y preferencias siguen intactas; `H` y `M` quedaron libres. El cierre por
-  niveles y los destinos de retorno de foco se rebasan al botón Ajustes antes de ocultar el
-  grupo, incluso cuando otro panel heredó un control interno como origen.
-- Pruebas: focalizadas de entrada, startup y paneles `19/19`; suite completa `232/232`;
-  progresión simulada con 19 zonas, 20 conceptos y 28 lugares; sintaxis, enlaces, política de
-  repositorio y build correctos. QA aislada en Edge a 1280 × 720 y 720 × 900, perfiles
-  Estudiante, Docente y Debug, sin errores de consola; `Esc` cerró panel y grupo por niveles y
-  `H`/`M` no alteraron la interfaz.
-- Cómo revisar para JoaquinDiazM: abrir ORBIT y confirmar que el dock muestra seis accesos
-  primarios, desplegar **Ajustes** con puntero y teclado y abrir Visual, Sonido y Ayuda. Con una
-  vista abierta, pulsar `Esc` dos veces para cerrar primero la vista y luego el grupo; comprobar
-  además que `H` y `M` no abren paneles ni reproducen audio.
-- Observaciones del usuario: Tambien aprovecha de quitar los atajos con letras, quiero mantener "h" y "m" libres.
-
-### UPD-012 — Progreso porcentual en el HUD
-
-- Estado: `publicando`
-- Tipo: `feature`
-- Versión objetivo: `0.4.3`
-- Impacto sugerido: `Z`.
-- Próximo responsable: JoaquinDiazM, que debe revisar el resultado y cambiar el estado a
-  `aprobado` o devolver observaciones concretas.
-
-#### Solicitud original
-
-Reemplazar la sección **Conceptos** del HUD superior por **Progreso**. En lugar del contador
-actual, mostrar una barra de avance con el porcentaje centrado, calculado a partir de lo mismo
-que cuenta hoy esa sección.
-
-#### Especificación elaborada por el agente
-
-- Objetivo observable: el HUD muestra una barra Progreso y un porcentaje derivados de conceptos
-  adquiridos sobre el total vigente.
-- Decisiones confirmadas: se conserva exactamente la fuente conceptual del contador actual; el
-  porcentaje es estado derivado y no se persiste.
-- Criterios de aceptación: se actualiza al progresar o cambiar de perfil; permanece entre 0 y
-  100; comunica porcentaje y equivalente «X de Y» a tecnologías asistivas; no depende solo del
-  color y se mantiene legible en los cortes responsive.
-- Fuera de alcance: redefinir el progreso, ponderar zonas o actividades, añadir analítica o
-  cambiar el esquema de guardado.
-- Dependencias, invariantes o ADR: una única fuente de verdad en `ProgressionModel`; no requiere
-  dependencia ni ADR.
-
-#### Preguntas bloqueantes
-
-- Ninguna; se confirma redondeo al entero más cercano, barra nativa y «X de Y conceptos» dentro
-  de su nombre accesible.
-
-#### Implementación y revisión
-
-- Base revisada: `65e1adc1d2699d02cdfdffacf66a4e382b61fb25` y la interfaz publicada en
-  ORBIT 0.4.2.
-- Rutas propias: HUD de `index.html`, `UIController`, estilos y pruebas de startup/paneles.
-- Resultado: **Conceptos** fue sustituido por una barra `<progress>` nativa titulada
-  **Progreso**, con porcentaje entero centrado y equivalente accesible «N %; X de Y conceptos
-  adquiridos». Se inicializa desde el snapshot del perfil y reacciona a eventos de progresión;
-  el valor se limita a 0–100 y no agrega persistencia ni trabajo por frame.
-- Pruebas: suite completa `232/232`, incluidos 0 %, 35 %, 100 %, reinicio y conteos
-  desconocidos limitados al catálogo; progresión simulada, repo-check y build correctos. QA
-  aislada en Edge verificó 0 % en Estudiante/Docente/Debug, 35 % con 7 de 20 conceptos en Debug,
-  etiqueta accesible exacta, layout a 1280 × 720 y 720 × 900 y ausencia de errores de consola.
-- Cómo revisar para JoaquinDiazM: comprobar en la cabecera que **Progreso** reemplaza a
-  **Conceptos** y que el porcentaje queda centrado y legible. En Debug, conceder siete conceptos
-  con `window.OrbitDebug.grantNextConcept()` y verificar `35 %`; un lector de accesibilidad debe
-  recibir «35 %; 7 de 20 conceptos adquiridos».
-- Observaciones del usuario: ninguna.
-
 ### UPD-001 — Hub de gadgets y explorador de campos vectoriales
 
-- Estado: `pospuesto`
+- Estado: `autorizado`
 - Tipo: `épica`
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y` cuando se defina una primera capacidad completa.
-- Próximo responsable: JoaquinDiazM, que debe decidir si autoriza este punto cuando corresponda
-  preparar la cohorte 0.5.0.
+- Próximo responsable: agente de desarrollo, que debe completar el preflight de la cohorte
+  inmediata 0.5.0 y delimitar un MVP verificable antes de editar.
 
 #### Solicitud original
 
@@ -347,16 +235,17 @@ ser utilizables en otros lugares de aprendizaje.
 
 - Resultado: no iniciada; la descripción no autoriza cambios.
 - Pruebas: no aplican todavía.
-- Observaciones del usuario: para la primera pregunta bloquente centrate en ese y en una calculadora cientifica (Esta no es desbloqueable, todos la deben tener desde el inicio). Puedes dejar el esqueleto del gadget de la carta smith, creando el nodo+conexion tambien, pero no gastaremos recursos en una primera version de los nuevos gadgets solo para construir una carta smith completamete operativa, funcional y util para resolver ejercicios. En definitiva hay que quitar la superposicion actual del lente de campo y lo del boton G, ahora sera un menu al que se accede en la barra lateral izquierda con un click
+- Observaciones del usuario: Para la primera pregunta bloquente centrate en ese y en una calculadora cientifica (Esta no es desbloqueable, todos la deben tener desde el inicio). Puedes dejar el esqueleto del gadget de la carta smith, creando el nodo+conexion tambien, pero no gastaremos recursos en una primera version de los nuevos gadgets solo para construir una carta smith completamete operativa, funcional y util para resolver ejercicios. En definitiva hay que quitar la superposicion actual del lente de campo y lo del boton G, ahora sera un menu al que se accede en la barra lateral izquierda con un click
 
 ### UPD-013 — Bowerbird: personalización visual de zonas
 
-- Estado: `pospuesto`
+- Estado: `autorizado`
 - Tipo: `feature`
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y`; el objetivo provisional debe coordinarse con los demás puntos de 0.5.0
   antes de cerrar esa cohorte.
-- Próximo responsable: JoaquinDiazM, cuando decida reactivar este punto dentro de 0.5.0.
+- Próximo responsable: agente de desarrollo, que debe completar el preflight y coordinar el
+  esquema visual con UPD-014 antes de editar.
 
 #### Solicitud original
 
@@ -399,12 +288,13 @@ opciones de colores, dibujos estáticos o móviles y contornos.
 
 ### UPD-014 — Aplicar una edición del curso
 
-- Estado: `pospuesto`
+- Estado: `autorizado`
 - Tipo: `infraestructura`
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y` si se limita a una aplicación local; una publicación remota depende de
   UPD-002 y puede requerir otro alcance de versión.
-- Próximo responsable: JoaquinDiazM, cuando decida reactivar este punto dentro de 0.5.0.
+- Próximo responsable: agente de desarrollo, que debe completar el preflight y definir una
+  aplicación local atómica y recuperable antes de editar.
 
 #### Solicitud original
 
@@ -506,4 +396,4 @@ junto con cada ficha y sus intercambios, en
 [`docs/UPDATES_HISTORY.md`](docs/UPDATES_HISTORY.md). `CHANGELOG.md` mantiene solo el resumen
 orientado a quienes usan ORBIT; los descartes no reciben versión ni entrada de changelog.
 
-La cohorte ORBIT 0.4.2 está publicada y archivada bajo esta metodología.
+La cohorte ORBIT 0.4.3 está publicada y archivada bajo esta metodología.
