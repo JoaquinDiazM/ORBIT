@@ -41,6 +41,44 @@ La sección de descartes usa la ficha original y añade únicamente su fecha de 
 
 ## Actualizaciones descartadas
 
+### UPD-003 — Exportar aplicaciones ejecutables
+
+- Estado: `descartado`
+- Tipo: `épica`
+- Versión objetivo: `auto`
+- Fecha de descarte: 2026-08-30.
+- Impacto sugerido: `Y`, sujeto a la arquitectura del servidor y actualización.
+- Próximo responsable: JoaquinDiazM.
+
+#### Solicitud original
+
+Cuando ORBIT esté más maduro, dejar de depender de terminales, Visual Studio Code o Codex para
+usarlo y distribuir aplicaciones ejecutables. El texto original termina en “pasar a...”, por lo
+que el resultado esperado aún no está definido.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: pendiente.
+- Decisiones confirmadas: la ejecución cotidiana no debe exigir herramientas de desarrollo.
+- Criterios de aceptación: se redactarán cuando se defina plataforma y modo operativo.
+- Fuera de alcance provisional: elegir empaquetador, instalador, firma o mecanismo de actualización
+  antes de acordar el producto distribuible.
+- Dependencias, invariantes o ADR: depende parcialmente de UPD-002.
+
+#### Preguntas bloqueantes
+
+1. ¿La primera plataforma objetivo es únicamente Windows?
+2. ¿Quieres aplicaciones separadas para ORBIT, ORBIT Editor y servidor, o un instalador que
+   reúna todo?
+3. ¿Deben funcionar sin conexión, conectarse siempre al servidor o soportar ambos modos?
+
+#### Implementación y revisión
+
+- Resultado: no iniciada; propuesta incompleta.
+- Pruebas: no aplican todavía.
+- Observaciones del usuario: No es que no lo quiera terminar haciendo, pero es un paso MUY a
+  futuro y tenerlo en esta cola me estorba, por eso se cambia el estado a descartado.
+
 ### UPD-006 — Perfil estudiantil limitado dentro de ORBIT Editor
 
 - Estado: `descartado`

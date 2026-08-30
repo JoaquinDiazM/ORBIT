@@ -283,45 +283,9 @@ contenido mediante ORBIT Editor durante mantenciones planificadas.
 - Pruebas: no aplican todavía.
 - Observaciones del usuario: pendientes.
 
-### UPD-003 — Exportar aplicaciones ejecutables
-
-- Estado: `pospuesto`
-- Tipo: `épica`
-- Versión objetivo: `auto`
-- Impacto sugerido: `Y`, sujeto a la arquitectura del servidor y actualización.
-- Próximo responsable: JoaquinDiazM.
-
-#### Solicitud original
-
-Cuando ORBIT esté más maduro, dejar de depender de terminales, Visual Studio Code o Codex para
-usarlo y distribuir aplicaciones ejecutables. El texto original termina en “pasar a...”, por lo
-que el resultado esperado aún no está definido.
-
-#### Especificación elaborada por el agente
-
-- Objetivo observable: pendiente.
-- Decisiones confirmadas: la ejecución cotidiana no debe exigir herramientas de desarrollo.
-- Criterios de aceptación: se redactarán cuando se defina plataforma y modo operativo.
-- Fuera de alcance provisional: elegir empaquetador, instalador, firma o mecanismo de actualización
-  antes de acordar el producto distribuible.
-- Dependencias, invariantes o ADR: depende parcialmente de UPD-002.
-
-#### Preguntas bloqueantes
-
-1. ¿La primera plataforma objetivo es únicamente Windows?
-2. ¿Quieres aplicaciones separadas para ORBIT, ORBIT Editor y servidor, o un instalador que
-   reúna todo?
-3. ¿Deben funcionar sin conexión, conectarse siempre al servidor o soportar ambos modos?
-
-#### Implementación y revisión
-
-- Resultado: no iniciada; propuesta incompleta.
-- Pruebas: no aplican todavía.
-- Observaciones del usuario: pendientes.
-
 ### UPD-008 — Nombre visible de la ruta: Electromagnetismo
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `contenido`
 - Versión objetivo: `0.4.2`
 - Impacto sugerido: `Z`.
@@ -380,7 +344,7 @@ nombre por uno más general.
 
 ### UPD-009 — Ampliar zoom y margen del mapamundi
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `feature`
 - Versión objetivo: `0.4.2`
 - Impacto sugerido: `Z`.
@@ -437,7 +401,7 @@ básicamente lo mismo y no merecen ser tratados en dos actualizaciones diferente
 
 ### UPD-010 — Perfiles estudiante, docente y debug
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `feature`
 - Versión objetivo: `0.4.2`
 - Impacto sugerido: `Z`; el contrato local acotado prepara futuras capacidades de mayor
@@ -510,6 +474,190 @@ mapamundi, incluida su interacción y visualización.
   edición completa, y pantalla Debug bloqueada sin mapa editorial.
 - Observaciones del usuario: Respecto a la primera pregunta, el perfil de docente tiene la habilidad de autocompletacion cuando interactua en una zona que requiera respuesta, es decir lugares de aprendizage o misiones. De momento esa sera la unica caracteristica que distinge al perfil de docente respecto al perfil de estudiante. Respecto a la segunda pregunta, en efecto, lo vamos a mantener local, pero tener definidos los perfiles nos va a ayudar mas tarde cuando vayamos a abordar la UPD-002, en ese sentido es una update intermedia de menor riesgo y volumen que nos facilitara la posterior tarea, por lo mismo la clasifique dentro del cohorte de una version tipo Z y no tipo Y. Respecto a la tercera pregunta, el progreso de cada perfil debe ser separado (Al igual que en el futuro con multiples cuentas, repitiendo tipos de perfiles, cada usuario debe mantener su avance aislado). El estado en el que esta ahora el perfil normal, proximamente perfil de estudiante, es algo que se resetea solo despues de actualizaciones de contenido o cuya naturaleza requiera un reset, lo mismo con el perfil docente y debug (Mientras tengamos bien configurado el perfil debug podremos hacer las pruebas que queramos de manera agil sin gastar tiempo en resolver/responder a las preguntas del curso). Cuando el proyecto este mas avanzado y equipos docentes lo este pidiendo para sus cursos, habran otras normativas para el reset, incluso resets paraciales, pero de moemnto nisiquiera esta activado el sistema de cuentas, asi que no intentaremos resolver algo que no es un problema ahora. Respecto a la cuarta pregunta, el esquema final sera el siguiente: 1.- Cada cuenta tendra acceso al ORBIT editor del curso, pero solo las cuentas que son perfiles docente podran tener acceso completo a todos los menus del editor. 2.- Las cuentas con perfil de estudiante solo podran realizar cambios minusculos al esquema del mapamundi, principalmente visuales y que, al volver a ORBIT, solo ellos en su cuenta puedan ver. En el update de ahora lo correcto seria darles acceso, pero bloquera spider y bee, que salte un mensaje de perfil de estudiante no permite esta accion o algo asi. 3.- El perfil de debug que no tiene razon de ser en ORBIT editor, por lo que bloquear el acceso de ese perfil al editor seria buena idea. Los tres puntos que te acabo de mensionar implican una version final cuando tengamos las cuentas verificadas, un editor maduro con menus de editor que si puedan ser accedidos por estudiantes, etc, por el momento en nuestro ambiente local solo aplica lo minimo que despues facilite la tarea de updates mas grandes. Quiero ver como queda esto una vez aprobado y despues darte un UPD mas preciso que el que ahora estoy descartando, UPD-006.
 - Observaciones del usuario (2): A nivel funcional quedo excelente, pero visualmente hay una redundancia, en el panel superior de la interfaz de ORBIT esta cuadro que dice "perfil: {perfil}" y el cuadro que muestra "{Perfil}" a secas, deja solo uno de ellos, yo recomiendo el segundo. Cerca de esa misma zona, en el cuadro que dice "ruta interactiva" mejor pongamos la version actual de ORBIT, el mensaje de ruta interactiva es totalmente intrasendente para cualquier usuario para el que este pensado ORBIT.
+
+### UPD-011 — Menú de ajustes para herramientas auxiliares
+
+- Estado: `propuesto`
+- Tipo: `feature`
+- Versión objetivo: `0.4.3`
+- Impacto sugerido: `Z`.
+- Próximo responsable: JoaquinDiazM, que debe decidir si autoriza este punto y si 0.4.3
+  contendrá también UPD-012.
+
+#### Solicitud original
+
+Envolver algunos menús del panel izquierdo en un único acceso primario. El nuevo menú
+**Ajustes** debe reunir los accesos actuales a Visual, Sonido y Ayuda para recuperar espacio de
+la barra ante futuras incorporaciones; el diseño exacto queda delegado al agente.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: sustituir los tres accesos primarios Visual, Sonido y Ayuda por un único
+  acceso Ajustes, desde el que se abren esas mismas vistas sin perder capacidad.
+- Decisiones confirmadas: Árboles, Símbolos, Constantes, Formulario y Glosario permanecen como
+  accesos propios; este punto reorganiza navegación, no preferencias ni contenido.
+- Criterios de aceptación: Ajustes permite llegar con puntero y teclado a las tres vistas; los
+  atajos `H` y `M`, foco, exclusividad de paneles, persistencia y layout responsive se conservan;
+  el dock reduce sus accesos persistentes sin ocultar el estado activo.
+- Fuera de alcance: añadir ajustes nuevos, cambiar la semántica de Visual o Sonido o rediseñar
+  por completo el dock.
+- Dependencias, invariantes o ADR: preservar la pila de paneles y el wiring de audio; no requiere
+  dependencia ni ADR.
+
+#### Preguntas bloqueantes
+
+- Ninguna; el alcance está listo para que el usuario decida si lo autoriza.
+
+#### Implementación y revisión
+
+- Resultado: no iniciada; la descripción no autoriza cambios.
+- Pruebas: no aplican todavía.
+- Cómo revisar para JoaquinDiazM: pendiente de implementación.
+- Observaciones del usuario: ninguna.
+
+### UPD-012 — Progreso porcentual en el HUD
+
+- Estado: `propuesto`
+- Tipo: `feature`
+- Versión objetivo: `0.4.3`
+- Impacto sugerido: `Z`.
+- Próximo responsable: JoaquinDiazM, que debe decidir si autoriza este punto y si 0.4.3
+  contendrá también UPD-011.
+
+#### Solicitud original
+
+Reemplazar la sección **Conceptos** del HUD superior por **Progreso**. En lugar del contador
+actual, mostrar una barra de avance con el porcentaje centrado, calculado a partir de lo mismo
+que cuenta hoy esa sección.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: el HUD muestra una barra Progreso y un porcentaje derivados de conceptos
+  adquiridos sobre el total vigente.
+- Decisiones confirmadas: se conserva exactamente la fuente conceptual del contador actual; el
+  porcentaje es estado derivado y no se persiste.
+- Criterios de aceptación: se actualiza al progresar o cambiar de perfil; permanece entre 0 y
+  100; comunica porcentaje y equivalente «X de Y» a tecnologías asistivas; no depende solo del
+  color y se mantiene legible en los cortes responsive.
+- Fuera de alcance: redefinir el progreso, ponderar zonas o actividades, añadir analítica o
+  cambiar el esquema de guardado.
+- Dependencias, invariantes o ADR: una única fuente de verdad en `ProgressionModel`; no requiere
+  dependencia ni ADR.
+
+#### Preguntas bloqueantes
+
+- Ninguna; se recomienda redondear al entero más cercano y conservar «X de Y» como texto
+  accesible.
+
+#### Implementación y revisión
+
+- Resultado: no iniciada; la descripción no autoriza cambios.
+- Pruebas: no aplican todavía.
+- Cómo revisar para JoaquinDiazM: pendiente de implementación.
+- Observaciones del usuario: ninguna.
+
+### UPD-013 — Bowerbird: personalización visual de zonas
+
+- Estado: `faltan-detalles`
+- Tipo: `feature`
+- Versión objetivo: `0.5.0`
+- Impacto sugerido: `Y`; el objetivo provisional debe coordinarse con los demás puntos de 0.5.0
+  antes de cerrar esa cohorte.
+- Próximo responsable: JoaquinDiazM, que debe resolver la política estudiantil y el catálogo
+  visual mínimo.
+
+#### Solicitud original
+
+Añadir al menú de ORBIT Editor un modo **Bowerbird**, disponible para Estudiante y Docente, que
+permita configurar la apariencia de hexágonos o zonas sin moverlos como Bee. Debe ampliar las
+opciones de colores, dibujos estáticos o móviles y contornos.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: Bowerbird previsualiza y configura paleta, motivos y contorno de una zona
+  sin alterar posición, anillo, contenido ni progresión.
+- Decisiones confirmadas: es una herramienta visual distinta de Bee; no cambia geometría ni
+  topología y debe existir para ambos perfiles con alcances de persistencia explícitos.
+- Criterios de aceptación provisionales: selección accesible de zona, vista previa inmediata,
+  presets legibles más allá del color, animaciones compatibles con `prefers-reduced-motion`,
+  historial y saneamiento editorial para Docente, y ninguna mutación lógica o geométrica.
+- Fuera de alcance: dibujo o código arbitrario, carga libre de imágenes, editor gráfico general,
+  publicación del curso o assets sin procedencia y licencia.
+- Dependencias, invariantes o ADR: requiere una definición visual compartida por ambos renderers,
+  decidir migración del documento editorial `v1` y reconciliar la política Estudiante de solo
+  lectura con personalizaciones locales.
+
+#### Preguntas bloqueantes
+
+1. ¿Docente modifica el borrador común mientras Estudiante guarda una apariencia local aislada
+   y visible solo en su propio ORBIT? Recomendación: sí; Estudiante nunca altera el curso base.
+2. ¿Aceptamos para el MVP presets versionados de paleta, contorno y motivos propios, sin selector
+   de archivos ni dibujo libre?
+3. ¿Estudiante puede decorar todas las zonas o solo las ya desbloqueadas? Recomendación inicial:
+   todas, dejando claro que la apariencia no concede progreso.
+4. ¿La exportación del curso incluye solo el borrador Docente y deja las preferencias personales
+   en una clave separada? Recomendación: sí.
+
+#### Implementación y revisión
+
+- Resultado: no iniciada; faltan decisiones de persistencia y alcance estudiantil.
+- Pruebas: no aplican todavía.
+- Cómo revisar para JoaquinDiazM: responder las cuatro preguntas antes de autorizar.
+- Observaciones del usuario: ninguna.
+
+### UPD-014 — Aplicar una edición del curso
+
+- Estado: `faltan-detalles`
+- Tipo: `infraestructura`
+- Versión objetivo: `auto`
+- Impacto sugerido: `Y` si se limita a una aplicación local; una publicación remota depende de
+  UPD-002 y puede requerir otro alcance de versión.
+- Próximo responsable: JoaquinDiazM, que debe definir qué significa aplicar o subir en la
+  arquitectura estática actual.
+
+#### Solicitud original
+
+Añadir a Resumen de ORBIT Editor una sección con un botón para subir o aplicar la edición. La
+primera versión no resolverá conflictos: reiniciará el progreso de todos los perfiles antes de
+usar la configuración nueva y mostrará una confirmación que advierta cuánto avance perderá cada
+perfil.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: una acción confirmada valida el borrador, explica el progreso afectado y
+  aplica la configuración al destino acordado sin dejar estados parciales.
+- Decisiones confirmadas: la primera política será reinicio total, no mezcla de progreso; debe
+  existir una advertencia cuantificada y confirmación explícita.
+- Criterios de aceptación provisionales: validar y respaldar antes de perder datos; mostrar por
+  perfil el avance afectado; aplicar y resetear de forma atómica o no hacer ninguna de ambas;
+  mantener una ruta recuperable; el resultado debe volver a pasar validación y build cuando
+  corresponda.
+- Fuera de alcance: resolución de conflictos, edición simultánea, cuentas reales, despliegue
+  remoto improvisado, escritura silenciosa al repositorio o resets parciales.
+- Dependencias, invariantes o ADR: ADR 0007 separa Editor de fuentes, despliegue y progreso; una
+  aplicación directa exige revisarlo. Depende del esquema editorial final y de UPD-002 para
+  afectar cuentas remotas.
+
+#### Preguntas bloqueantes
+
+1. ¿«Subir/aplicar» significa usar el borrador solo en este navegador, modificar fuentes y build
+   mediante una herramienta local, o publicar al futuro servidor? Recomendación: no simular una
+   subida remota antes de UPD-002.
+2. ¿«Todos los perfiles» son Estudiante, Docente y Debug de este navegador o todas las cuentas
+   futuras del curso? El sitio estático solo puede conocer los tres estados locales.
+3. ¿Debe aplicar únicamente Spider/Bee, también Bowerbird o todo el futuro documento editorial?
+4. ¿Aceptas validar y crear respaldo antes de aplicar, y resetear solo cuando se confirme que la
+   operación puede completarse?
+5. ¿La advertencia debe contar lugares completados y conceptos adquiridos por perfil?
+   Recomendación: mostrar ambos y declarar el reinicio total.
+
+#### Implementación y revisión
+
+- Resultado: no iniciada; el Editor actual solo exporta JSON y no existe un destino de
+  publicación acordado.
+- Pruebas: no aplican todavía.
+- Cómo revisar para JoaquinDiazM: responder las cinco preguntas antes de autorizar.
+- Observaciones del usuario: ninguna.
 
 ## Historial
 
