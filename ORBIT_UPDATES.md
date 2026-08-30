@@ -198,7 +198,7 @@ Sin propuestas pendientes de clasificar.
 
 ### UPD-011 — Menú de ajustes para herramientas auxiliares
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `0.4.3`
 - Impacto sugerido: `Z`.
@@ -257,7 +257,7 @@ la barra ante futuras incorporaciones; el diseño exacto queda delegado al agent
 
 ### UPD-012 — Progreso porcentual en el HUD
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `0.4.3`
 - Impacto sugerido: `Z`.

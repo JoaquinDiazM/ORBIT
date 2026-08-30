@@ -2,6 +2,36 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [0.4.3] - 2026-08-30
+
+### Añadido
+
+- Acceso primario **Ajustes** en el dock de ORBIT, que revela Visual, Sonido y Ayuda mediante un
+  disclosure nativo utilizable con puntero y teclado.
+- Barra nativa **Progreso** en el HUD, con porcentaje conceptual entero centrado y equivalente
+  accesible «X de Y conceptos adquiridos».
+
+### Cambiado
+
+- Visual, Sonido y Ayuda dejan de ocupar tres accesos primarios sin perder sus paneles,
+  preferencias ni exclusividad; `Esc` cierra primero la vista activa y después Ajustes.
+- Los atajos globales `H` y `M` se retiran de la entrada, la ayuda y la documentación para
+  mantener ambas letras disponibles.
+
+### Corregido
+
+- Al colapsar Ajustes, todo retorno de foco heredado por otro panel se rebasa al botón visible
+  del grupo, evitando enfocar controles ocultos.
+
+### Verificación y alcance
+
+- La cohorte corresponde exactamente a `UPD-011` y `UPD-012`; pasan `232/232` pruebas,
+  validación de contenido, revisión del repositorio, build estático e inspección visual en
+  Estudiante, Docente y Debug a 1280 × 720 y 720 × 900.
+- Se conservan 19 zonas, 20 conceptos, 28 lugares, progreso `v3`, documento editorial `v1`, los
+  cinco audios y las dependencias existentes. El porcentaje es estado derivado y Ajustes no
+  añade preferencias ni cambia la progresión.
+
 ## [0.4.2] - 2026-08-30
 
 ### Añadido

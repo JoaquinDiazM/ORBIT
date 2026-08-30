@@ -18,7 +18,7 @@ El autor sitúa el origen pedagógico de esta primera ruta en su experiencia doc
 
 La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra lineal y física clásica, especialmente quienes consideran estudiar Ingeniería Eléctrica o comienzan los primeros semestres de la especialidad.
 
-> **Estado:** base técnica y pedagógica `0.4.2`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
+> **Estado:** base técnica y pedagógica `0.4.3`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
 
 ## Qué demuestra esta versión
 
@@ -60,7 +60,18 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
 - Borrador editorial `v1` con autoguardado local, historial, importación y exportación JSON; nunca modifica el progreso `v3` ni publica automáticamente.
 - Los perfiles y bloqueos son modos locales elegibles, no cuentas, autenticación ni control de
   acceso real.
-- Una dependencia npm fijada y documentada: KaTeX 0.18.1; `0.4.2` no añade paquetes, backend, autenticación, render 3D ni CDN.
+- Una dependencia npm fijada y documentada: KaTeX 0.18.1; `0.4.3` no añade paquetes, backend, autenticación, render 3D ni CDN.
+
+### Cambios centrales de 0.4.3
+
+El dock de ORBIT conserva Árboles, Símbolos, Constantes, Formulario y Glosario como accesos
+primarios, y reúne Visual, Sonido y Ayuda bajo el disclosure nativo **Ajustes**. El cierre con
+`Esc` actúa por niveles y restaura el foco a un control visible; las letras `H` y `M` quedan
+libres para usos futuros.
+
+El HUD sustituye el contador **Conceptos** por una barra nativa **Progreso**. Su porcentaje
+entero se deriva del número de conceptos adquiridos y conserva «X de Y conceptos adquiridos»
+como equivalente accesible, sin persistencia nueva ni cálculo adicional por frame.
 
 ### Cambios centrales de 0.4.2
 
