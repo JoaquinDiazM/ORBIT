@@ -183,6 +183,20 @@
   font-size: 0.65rem;
 }
 
+.editor-shutdown-button {
+  margin-top: 0.32rem;
+  border-color: rgba(255, 125, 138, 0.48);
+}
+
+.editor-shutdown-button::before {
+  color: var(--danger);
+}
+
+.editor-shutdown-button[aria-pressed="true"] {
+  background: rgba(92, 34, 45, 0.72);
+  border-color: var(--danger);
+}
+
 .editor-file-button {
   display: grid;
 }

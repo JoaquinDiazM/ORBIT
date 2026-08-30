@@ -268,6 +268,14 @@
 - [ ] Dev y helper rechazan `Host`/absolute-form ajenos; solo sirven assets del producto y nunca
       `ORBIT_UPDATES.md`, `package.json`, `docs/`, `scripts/`, `tests/` ni `.git/`; la whitelist se
       revalida después de resolver enlaces simbólicos.
+- [ ] Dev y helper rechazan autoridades ambiguas con barras invertidas antes de exponer tokens.
+- [ ] Editor Docente revela **Detener servidor** solo tras una sesión local válida; la primera
+      activación confirma y la segunda responde antes de liberar 4173. Estudiante, Debug y un
+      hosting estático no muestran el control.
+- [ ] Origin/token/JSON inválidos no apagan el servicio; autoría ocupada o con journal pendiente
+      responde 409, mientras un apagado válido e inactivo libera el lock y permite reiniciar.
+- [ ] Dos apagados concurrentes producen un único 202; abortar un cuerpo POST parcial no apaga ni
+      derriba el servidor y este sigue aceptando una sesión de control posterior.
 - [ ] Con un journal pendiente, `/`, `index.html`, `bootstrap.js` y `main.js` responden en modo
       mantenimiento incluso con escapes o mayúsculas; `editor.html` continúa accesible.
 - [ ] Un crash con journal local `prepared` o `committed` seguido de abrir Estudiante recupera o

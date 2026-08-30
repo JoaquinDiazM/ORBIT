@@ -77,6 +77,7 @@ test("el shell del editor expone Spider, Bee y Bowerbird en menús retractables"
     "editor-applied-profiles",
     "editor-applied-preserved",
     "editor-access-notice",
+    "editor-shutdown-local",
   ];
 
   for (const id of requiredIds) {
@@ -98,6 +99,10 @@ test("el shell del editor expone Spider, Bee y Bowerbird en menús retractables"
     /Puedes decorar cualquier zona\. En ORBIT, la apariencia de una zona bloqueada se mostrará cuando la desbloquees; decorar no abre zonas ni concede progreso\./,
   );
   assert.doesNotMatch(editor, /node_modules\//);
+  assert.match(
+    editor,
+    /id="editor-shutdown-local"[\s\S]*?aria-pressed="false"[\s\S]*?hidden[\s\S]*?>Detener servidor<\/button>/,
+  );
 });
 
 test("los atajos editoriales respetan el historial nativo de los campos", () => {
@@ -243,6 +248,8 @@ test("el editor carga la edición activa y reserva aplicación/exportación para
   assert.match(main, /baseAreas: course\.areas/);
   assert.match(main, /baseLocations: course\.locations/);
   assert.match(main, /applicationCoordinator = editorAccess === "full"/);
+  assert.match(main, /localServiceClient = editorAccess === "full"/);
+  assert.match(main, /\? new EditorLocalServiceClient\(\)\s*: null/);
   const safeApiStart = main.indexOf("const safeApi = {");
   const installedApiStart = main.indexOf("window.OrbitEditor =", safeApiStart);
   assert.ok(safeApiStart > 0 && installedApiStart > safeApiStart);
@@ -255,6 +262,21 @@ test("el editor carga la edición activa y reserva aplicación/exportación para
     /if \(this\.readOnly\) \{\s*this\.#announceReadOnlyRestriction\("export"\);\s*return;/,
   );
   assert.doesNotMatch(ui, /this\.elements\.exportButton\.disabled = true/);
+});
+
+test("el apagado local queda oculto hasta validar el servicio y exige doble activación", async () => {
+  const ui = await readFile(
+    new URL("../src/editor/editor-ui-controller.js", import.meta.url),
+    "utf8",
+  );
+  assert.match(ui, /this\.elements\.shutdownButton\.hidden = true/);
+  assert.match(ui, /await this\.localServiceClient\.connect\(\)/);
+  assert.match(ui, /this\.elements\.shutdownButton\.hidden = false/);
+  assert.match(ui, /if \(!this\.shutdownArmed\)/);
+  assert.match(ui, /Confirmar apagado/);
+  assert.match(ui, /await this\.localServiceClient\.shutdown\(\)/);
+  assert.match(ui, /Servidor detenido/);
+  assert.doesNotMatch(ui, /window\.confirm/);
 });
 
 test("el Resumen explica el alcance local, el reset y los datos preservados", async () => {

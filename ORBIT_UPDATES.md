@@ -262,7 +262,7 @@ ser utilizables en otros lugares de aprendizaje.
 
 ### UPD-013 — Bowerbird: personalización visual de zonas
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `feature`
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y`; el objetivo provisional debe coordinarse con los demás puntos de 0.5.0
@@ -347,7 +347,7 @@ opciones de colores, dibujos estáticos o móviles y contornos.
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y` si se limita a una aplicación local; una publicación remota depende de
   UPD-002 y puede requerir otro alcance de versión.
-- Próximo responsable: JoaquinDiazM, que revisa el flujo local de aplicación y recuperación.
+- Próximo responsable: JoaquinDiazM, que revisa el apagado controlado de `dev` y `editor:author`.
 
 #### Solicitud original
 
@@ -371,13 +371,17 @@ perfil.
   posteriores; respaldo, journal y recuperación; borrar solo claves de progreso canónicas y
   legadas; helper sin nombres de ruta enviados por cliente, con token mismo origen, límite de
   cuerpo, escritura atómica, checks/build y rollback; evidencia final de edición, fuente, build y
-  perfiles reiniciados.
+  perfiles reiniciados; control Docente de doble confirmación para detener exclusivamente el
+  proceso ORBIT que sirve la página, tanto en desarrollo como en autoría, sin enumerar ni matar
+  procesos ajenos y sin cerrar mientras haya una aplicación o recuperación pendiente.
 - Fuera de alcance: conflictos, concurrencia editorial, cuentas reales, publicación/despliegue
   remoto, Git automático, reset parcial y cualquier sustituto improvisado de UPD-002.
 - Dependencias, invariantes o ADR: consume `orbit-editor-project` v2 de UPD-013; el runtime
   materializa un artefacto fijo sobre los datos académicos base; el sitio desplegado sigue siendo
   estático; los estados de curso y progreso incorporan revisión para impedir resurrección desde
-  pestañas antiguas; nuevo ADR 0008 enmienda la frontera de ADR 0007; no añadir dependencias.
+  pestañas antiguas; nuevo ADR 0008 enmienda la frontera de ADR 0007; el apagado usa un protocolo
+  local separado del que aplica ediciones y tokens efímeros solo en memoria; no añadir
+  dependencias.
 
 #### Preguntas bloqueantes
 
@@ -388,23 +392,34 @@ perfil.
 
 - Base revisada: `3e0a6f6` (`0.4.3` publicada y cohorte 0.5.0 abierta).
 - Rutas propias: edición desplegable y adaptador, revisión de progreso, transacción de
-  almacenamiento, Resumen, helper Node, build/validación, ADR, documentación y pruebas.
+  almacenamiento, Resumen, helper Node, control local de servicios, General, build/validación,
+  ADR, documentación y pruebas.
 - Resultado: implementados `orbit-course-edition` v1, materialización runtime, Resumen con
   diff/impacto/confirmación y helper de autoría en `127.0.0.1:4173`. La aplicación usa locks,
   revisión optimista, journal y respaldo verificables; reinicia únicamente progreso actual y
   legado de los tres perfiles, preserva borrador/preferencias y recupera interrupciones de forma
   idempotente. Fuente, `dist` y `build-info` quedaron en la revisión
-  `sha256:74c5b6f717a1605a07588b9b7192c4869f98029e9db4c5162832e41477cae05d`.
+  `sha256:74c5b6f717a1605a07588b9b7192c4869f98029e9db4c5162832e41477cae05d`. La corrección de
+  revisión añadió **Detener servidor** a General solo para Docente: valida una sesión de control
+  independiente, exige doble activación y detiene cooperativamente el proceso `dev` o
+  `editor:author` que sirve la página. Autoría rechaza el cierre si está ocupada o conserva un
+  journal; un hosting o proceso ajeno nunca se termina. La integración también cerró una
+  ambigüedad previa de request-target con barras invertidas antes de exponer tokens, serializa
+  solicitudes de cierre concurrentes y descarta cuerpos HTTP abortados sin derribar el servicio.
 - Pruebas: aplicación completa, no-op, conteos, cancelación, contratos futuros, locks y pestañas,
   crashes en cada fase, rollback/finalize, progreso resucitado, envelopes divergentes, Host y
   absolute-form, límite/alcance estático, realpath y coincidencia exacta fuente/dist/build-info.
-  Suite integral: 357 aprobadas, 0 fallos y 2 skips EPERM de symlink; repositorio: 115 JS y 40
-  Markdown válidos; build estático reconstruido y helper excluido de `dist`. Auditoría final sin
-  hallazgos P0/P1/P2.
+  Suite integral: 366 aprobadas, 0 fallos y 2 skips EPERM de symlink; repositorio: 118 JS y 40
+  Markdown válidos; build estático reconstruido y helper excluido de `dist`. Prueba real de ambos
+  comandos: respuesta 202, terminal finalizada, 4173 liberado y lock de autoría retirado. Las
+  regresiones incluyen cierre concurrente y aborto de un POST parcial sin ejecutar el apagado.
 - Cómo revisar para JoaquinDiazM: desde un checkout limpio ejecutar `npm run editor:author`, abrir
   la URL indicada, modificar una zona, nodo, conexión y apariencia, y usar **Resumen** para
   validar el diff/impacto antes de confirmar. La confirmación reinicia el progreso local de
-  Estudiante, Docente y Debug; exportar antes cualquier avance que se quiera conservar.
+  Estudiante, Docente y Debug; exportar antes cualquier avance que se quiera conservar. Después,
+  iniciar por separado `npm run dev` y `npm run editor:author`, abrir Editor Docente y pulsar dos
+  veces **Detener servidor**; comprobar que la terminal termina. El control no debe aparecer en
+  Estudiante/Debug ni apagar autoría durante una aplicación o recuperación pendiente.
 - Observaciones del usuario: Pregunta 1: Subir/aplicar significa unar el borrador en nuestro navegador y modificar fuentes/build de manera local. Sin embargo, esta actualizacion debe estar pensada para que en el momento que abordemos UPD-002 no tengamos que pensar los detalles que ahora estamos definiendo como politica de perdida de datos/progreso, verificacion de reseteo en todos los tipos de perfiles por accion de docente en ORBIT Editor, verificacion de cambios efectuados en el mapamundi (Nodos, zonas, etc), etc. Pregunta 2: Como todavia no tenemos sistema de cuentas, es para todos los estados locales de nuestro navegador. Pregunta 3: Todo, por lo quje hay que mantener coherencia en las actualizaciones de ORBIT Editor para que no se incluyan opciones que arruinen el objetivo principal de ORBIT, aprender. Pregunta 4: Si, el primer paso es validar y el segundo confirmar, y soltar datos utiles entre medio. Manten todo ese desarrollo en la ventana de resumen sin quitar lo que ya esta, complementandolo. 5.- Mostrar ambos y declarar el reinicio total.
 - Observaciones del usuario: Parece ser que falta un boton de shutdown, preferiblemente en el
   ORBIT Editor del perfil docente, para que un usuario desarrolador como yo pueda hacer pruebas,
@@ -419,11 +434,87 @@ perfil.
   deja en claro en la Especificación elaborada por el agente de esta UPD como solucionaste mi
   feedback.
 
+### UPD-015 — Red única de aprendizaje y apertura territorial derivada
+
+- Estado: `faltan-detalles`
+- Tipo: `épica`
+- Versión objetivo: `0.6.0`
+- Impacto sugerido: `Y`; reemplaza el contrato central de progresión, el documento editorial y
+  la representación de ambos productos.
+- Próximo responsable: JoaquinDiazM, que confirma las cuatro decisiones bloqueantes.
+
+#### Solicitud original
+
+Replantear la política con la que se accede a nuevas zonas. El actual Árbol II debe ser el
+grafo único y principal del avance, conectando solo lugares de aprendizaje y misiones; el Árbol I
+deja de ser un grafo y pasa a representar la apertura de áreas del mapamundi derivada del estado
+de esa red. Taller Vectorial debe ser requisito de Coulomb y, al satisfacerse esa relación entre
+zonas vecinas, debe abrirse Electroestática. Personajes secundarios y gadgets deben habilitarse
+directamente cuando su zona sea accesible. Además, unificar los conectores visuales: todos deben
+ser dorados sólidos o dorados tenues discontinuos, tanto en ORBIT como en ORBIT Editor.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: ORBIT usa una única **Red de aprendizaje** explícita, dirigida y acíclica,
+  formada exclusivamente por lugares `lesson` y `mission`. Una zona no mantiene un segundo grafo
+  de requisitos: se abre cuando al menos un nodo académico de su interior tiene satisfechos todos
+  sus prerrequisitos y comparte frontera con una zona ya abierta.
+- Decisiones confirmadas: el actual Árbol II pasa a ser la red maestra; el actual Árbol I deja de
+  presentarse y modelarse como grafo independiente; `vector-workshop → coulomb-observatory`
+  reemplaza la relación de Vectores con el gadget; NPC secundarios y gadgets quedan disponibles
+  al abrir su zona; los conectores persistentes usan solo dorado sólido o dorado tenue
+  discontinuo según su estado.
+- Criterios de aceptación: las conexiones académicas tienen como extremos únicamente `lesson` o
+  `mission` y una sola fuente explícita de verdad; completar Taller Vectorial convierte Coulomb
+  en completable y abre Electroestática por adyacencia; conceptos y recompensas siguen siendo
+  resultados e inventario, pero no otra vía de apertura; NPC, gadgets y la política por confirmar
+  de transportes permanecen fuera de la red; Base y Debug permanecen fuera de la red; Spider
+  rechaza tipos laterales, duplicados, autorrelaciones, ciclos y zonas sin entrada posible; ORBIT
+  conserva los modos Oculta, Directo y Total y su matriz brillante/tenue; ORBIT Editor elimina la
+  distinción cian de relaciones derivadas; los nombres visibles pasan a **Zonas** y **Red de
+  aprendizaje** sin cambiar IDs solo por presentación; el documento Docente migra de
+  `orbit-editor-project` v2 a v3 preservando cartografía, apariencias y conexiones académicas
+  válidas; las 19 zonas y los 21 nodos académicos actuales permanecen alcanzables; una edición
+  aplicada usa el reinicio total de perfiles definido en 0.5.0.
+- Fuera de alcance: servidor, cuentas, base de datos o cualquier parte de UPD-002; contenido o
+  ejercicios nuevos; crear o eliminar zonas/lugares; cambiar IDs publicados; alterar movimiento,
+  geometría axial, adyacencia o Bowerbird; conceder automáticamente recompensas sin interacción
+  salvo decisión expresa.
+- Dependencias, invariantes o ADR: requiere 0.5.0 publicada y consume el documento v2 y la
+  aplicación local de UPD-013/UPD-014; exige ADR 0009 que sustituya deliberadamente ADR 0002 y
+  actualizar el invariante de dos árboles en `AGENTS.md`; conserva estado derivado, IDs estables,
+  sitio estático, adyacencia axial y validación integral.
+
+#### Preguntas bloqueantes
+
+1. ¿Una zona se abre cuando cualquier `lesson` o `mission` de su interior ya puede realizarse, o
+   quieres designar nodos de entrada especiales? Recomendación: cualquier nodo académico elegible
+   más adyacencia; evita una segunda tabla de puertas y hace que Spider actualice la política.
+2. Cuando una zona se abre, ¿NPC y gadgets quedan solo disponibles para interactuar o sus
+   recompensas se conceden automáticamente? Recomendación: disponibles, pero no completados;
+   hablar con Onnes o adquirir un gadget sigue requiriendo la interacción correspondiente.
+3. ¿Qué ocurre con los dos transportes? Recomendación: la misma política lateral que gadgets y
+   NPC: disponibles con la zona, fuera de la red y con la recompensa concedida al interactuar.
+4. ¿Convertimos cada requisito conceptual vigente en una conexión desde su único lugar otorgante
+   o quieres rediseñar toda la topología? Recomendación: conversión completa y verificable como
+   primera base, sin reducción transitiva; después puede ajustarse con Spider.
+
+#### Implementación y revisión
+
+- Base revisada: arquitectura candidata de 0.5.0; implementación no iniciada.
+- Rutas propias: datos de mundo/lugares, grafos y progresión, validador, documento/modelo/renderer
+  Editor, renderer/UI de ORBIT, edición de curso, ADR, documentación y pruebas.
+- Resultado: no iniciada; espera respuestas.
+- Pruebas: no aplican todavía.
+- Cómo revisar para JoaquinDiazM: responder las cuatro preguntas y confirmar especialmente la
+  política de transportes y la conversión de topología.
+- Observaciones del usuario: ninguna posterior a la solicitud original.
+
 ### UPD-002 — Sistema de servidor online
 
 - Estado: `pospuesto`
 - Tipo: `épica`
-- Versión objetivo: `0.6.0`
+- Versión objetivo: `auto`
 - Impacto sugerido: se decidirá al dividir la épica; una operación real multiusuario será un
   hito mayor que una especificación o prototipo aislado.
 - Próximo responsable: JoaquinDiazM.

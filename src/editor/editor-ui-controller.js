@@ -131,6 +131,7 @@ export class EditorUIController {
     app,
     bowerbird,
     applicationCoordinator = null,
+    localServiceClient = null,
     courseEdition = null,
     courseWarnings = [],
   }) {
@@ -138,6 +139,7 @@ export class EditorUIController {
     this.app = app;
     this.bowerbird = bowerbird;
     this.applicationCoordinator = applicationCoordinator;
+    this.localServiceClient = localServiceClient;
     this.courseEdition = courseEdition;
     this.courseWarnings = structuredClone(courseWarnings);
     this.readOnly = Boolean(model.getSnapshot().readOnly);
@@ -145,6 +147,9 @@ export class EditorUIController {
     this.toastTimer = null;
     this.resetConfirmationTimer = null;
     this.resetArmed = false;
+    this.shutdownConfirmationTimer = null;
+    this.shutdownArmed = false;
+    this.shutdownBusy = false;
     this.applicationPlan = null;
     this.applicationBusy = false;
     this.applicationGeneration = 0;
@@ -227,6 +232,7 @@ export class EditorUIController {
       undo: query("#editor-undo"),
       redo: query("#editor-redo"),
       reset: query("#editor-reset"),
+      shutdownButton: query("#editor-shutdown-local"),
       exportButton: query("#editor-export"),
       activeTool: query("#editor-active-tool"),
       areaCount: query("#editor-area-count"),
@@ -240,6 +246,7 @@ export class EditorUIController {
 
     if (this.readOnly) this.#applyReadOnlyControls();
     this.elements.courseApplication.hidden = !this.applicationCoordinator;
+    this.elements.shutdownButton.hidden = true;
 
     this.#bindEvents();
     this.unsubscribeModel = this.model.subscribe(() => {
@@ -252,6 +259,7 @@ export class EditorUIController {
       this.render();
     });
     this.render();
+    if (this.localServiceClient) void this.#probeLocalServiceControl();
   }
 
   destroy() {
@@ -263,6 +271,9 @@ export class EditorUIController {
     if (this.toastTimer !== null) window.clearTimeout(this.toastTimer);
     if (this.resetConfirmationTimer !== null) {
       window.clearTimeout(this.resetConfirmationTimer);
+    }
+    if (this.shutdownConfirmationTimer !== null) {
+      window.clearTimeout(this.shutdownConfirmationTimer);
     }
   }
 
@@ -343,6 +354,9 @@ export class EditorUIController {
       this.toast("Borrador editorial exportado.", "success");
     });
     on("#editor-reset", "click", () => this.#requestDraftReset());
+    on("#editor-shutdown-local", "click", () => {
+      void this.#requestLocalShutdown();
+    });
 
     this.elements.importControl.addEventListener("click", (event) => {
       if (!this.readOnly) return;
@@ -487,6 +501,86 @@ export class EditorUIController {
     if (this.resetConfirmationTimer !== null) {
       window.clearTimeout(this.resetConfirmationTimer);
       this.resetConfirmationTimer = null;
+    }
+  }
+
+  async #probeLocalServiceControl() {
+    try {
+      const session = await this.localServiceClient.connect();
+      if (this.destroyed) return;
+      this.elements.shutdownButton.hidden = false;
+      this.elements.shutdownButton.disabled = false;
+      this.elements.shutdownButton.title = session.busy
+        ? "Hay una aplicación pendiente o en curso; resuélvela antes de apagar."
+        : "Detiene únicamente el servidor ORBIT que sirve esta página.";
+    } catch {
+      if (!this.destroyed) this.elements.shutdownButton.hidden = true;
+    }
+  }
+
+  async #requestLocalShutdown() {
+    if (!this.localServiceClient || this.shutdownBusy || this.applicationBusy) return;
+    if (!this.shutdownArmed) {
+      this.shutdownArmed = true;
+      this.elements.shutdownButton.textContent = "Confirmar apagado";
+      this.elements.shutdownButton.setAttribute("aria-pressed", "true");
+      this.toast(
+        "Vuelve a pulsar «Confirmar apagado» para detener este servidor ORBIT.",
+        "warning",
+        7000,
+      );
+      if (this.shutdownConfirmationTimer !== null) {
+        window.clearTimeout(this.shutdownConfirmationTimer);
+      }
+      this.shutdownConfirmationTimer = window.setTimeout(
+        () => this.#disarmLocalShutdown(),
+        8000,
+      );
+      return;
+    }
+
+    this.#disarmLocalShutdown();
+    this.shutdownBusy = true;
+    this.elements.shutdownButton.disabled = true;
+    this.elements.shutdownButton.setAttribute("aria-busy", "true");
+    this.elements.shutdownButton.textContent = "Apagando…";
+    try {
+      await this.localServiceClient.shutdown();
+      if (this.destroyed) return;
+      this.elements.shutdownButton.textContent = "Servidor detenido";
+      this.elements.shutdownButton.title = "El servidor local se detuvo; puedes cerrar esta pestaña.";
+      this.toast(
+        "Servidor local detenido. Puedes cerrar esta pestaña; reinicia el comando para volver a abrir ORBIT.",
+        "success",
+        7000,
+      );
+    } catch (error) {
+      if (this.destroyed) return;
+      this.shutdownBusy = false;
+      this.elements.shutdownButton.disabled = false;
+      this.elements.shutdownButton.textContent = "Detener servidor";
+      const message = error?.code === "local-service-busy"
+        ? "No se apagó: termina o recupera la aplicación pendiente y vuelve a intentarlo."
+        : [
+            "local-service-unavailable",
+            "invalid-local-service-response",
+            "invalid-local-service-session",
+          ].includes(error?.code)
+          ? "Este servidor ya no admite apagado controlado; usa Ctrl+C en su terminal."
+          : error?.message ?? "No fue posible detener el servidor local.";
+      this.toast(message, "error", 7000);
+    } finally {
+      if (!this.destroyed) this.elements.shutdownButton.setAttribute("aria-busy", "false");
+    }
+  }
+
+  #disarmLocalShutdown() {
+    this.shutdownArmed = false;
+    this.elements.shutdownButton.textContent = "Detener servidor";
+    this.elements.shutdownButton.setAttribute("aria-pressed", "false");
+    if (this.shutdownConfirmationTimer !== null) {
+      window.clearTimeout(this.shutdownConfirmationTimer);
+      this.shutdownConfirmationTimer = null;
     }
   }
 

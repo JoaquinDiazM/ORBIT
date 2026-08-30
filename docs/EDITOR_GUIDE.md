@@ -34,6 +34,11 @@ ejecutar el comando. Abrir `editor.html` sin query equivale a Docente con acceso
 `profile` no carga progreso dentro del Editor: solo selecciona una capacidad local y el alcance
 de Bowerbird sobre la misma edición base.
 
+Si la página fue servida por `npm run dev` o `npm run editor:author` compatible, Docente ve
+**Detener servidor** al final de General. La primera activación arma una confirmación durante ocho
+segundos y la segunda detiene únicamente ese proceso ORBIT. Estudiante y Debug no reciben el
+control; un hosting estático o proceso ajeno tampoco puede ser terminado desde el navegador.
+
 ## Acceso local por perfil
 
 - **Docente:** `editor.html` o `editor.html?profile=teacher`; dispone de General, Spider, Bee,
@@ -227,6 +232,11 @@ El origen de mantenimiento es fijo: `http://127.0.0.1:4173`. No cambies `PORT` y
 reiniciarse. Solo puede existir un helper por checkout. Si una interrupción deja un journal,
 ORBIT Estudiante queda temporalmente bloqueado, pero `editor.html` permanece disponible para
 finalizar o revertir desde Resumen.
+
+El helper no acepta apagarse desde la interfaz mientras ejecuta una aplicación o existe un
+journal pendiente. Finaliza o recupera primero la transacción. Fuera de esas fases, el apagado
+controlado responde al navegador, cierra el listener, libera el lock del helper y permite volver
+a ejecutar el comando en 4173.
 
 En **Resumen**, el flujo seguro es:
 

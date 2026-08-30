@@ -102,6 +102,19 @@ se copia a `dist`. Solo inspecciona `git status` para exigir un checkout limpio;
 sitio construido continúa siendo estático; esta herramienta no es el backend ni la publicación
 remota de UPD-002.
 
+### Apagado controlado del servicio local
+
+`npm run dev` y `npm run editor:author` comparten un protocolo de control distinto de la sesión
+que aplica ediciones. Un GET same-origin entrega un token efímero solo en memoria y un POST JSON
+autenticado solicita el apagado. El servidor responde antes de cerrar su listener; no enumera ni
+termina procesos por PID. El helper de autoría rechaza la solicitud mientras esté ocupado o haya
+un journal que deba finalizarse o recuperarse, y libera su lock al cerrar en reposo.
+
+El control permanece oculto en el HTML. Solo ORBIT Editor Docente lo revela tras validar una
+sesión compatible y exige doble activación temporal. No aparece en Estudiante o Debug, no opera
+desde un hosting estático y no constituye autenticación: protege contra accidentes y peticiones
+web cruzadas, no contra software local con acceso al equipo.
+
 ## Alternativas consideradas
 
 ### Incluir preferencias Estudiante en el JSON Docente
@@ -163,6 +176,8 @@ contrato de edición y pérdida de progreso es reutilizable, pero 0.5.0 opera so
 - Un fallo durante la aplicación conserva evidencia suficiente para restaurar o recuperarse.
 - Ningún runtime crea progreso mientras exista una transacción de curso pendiente o ambigua.
 - Un solo helper opera cada checkout y el origen real de autoría es `127.0.0.1:4173`.
+- El apagado web solo cierra el servicio ORBIT que emitió su token, responde antes del cierre y
+  nunca interrumpe una operación o journal de autoría.
 - El helper solo escucha en loopback, solo escribe la ruta canónica y no muta Git; su única
   operación Git es inspeccionar `git status`.
 - `dist` contiene el mismo artefacto y digest registrados por `build-info.json`.

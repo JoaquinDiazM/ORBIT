@@ -210,6 +210,10 @@ Como alternativa puntual, `npm.cmd` evita el wrapper de PowerShell. `npm run dev
 `http://127.0.0.1:4173`: no acepta `PORT`, argumentos de puerto ni busca un fallback. Si el
 origen está ocupado, detén con `Ctrl+C` el servidor o helper anterior y vuelve a iniciar el
 comando. Mantener un solo origen es necesario para compartir Web Locks y almacenamiento local.
+En ORBIT Editor Docente, un servidor compatible revela **Detener servidor** al final de General:
+la primera pulsación arma una confirmación y la segunda cierra de forma cooperativa únicamente el
+proceso ORBIT que sirve esa página. El control funciona con `dev` y `editor:author`, pero se niega
+durante una aplicación o recuperación y no termina procesos ajenos que ocupen 4173.
 
 Después de actualizar el repositorio, detén cualquier servidor anterior con `Ctrl+C` y vuelve a
 iniciarlo. Para una sesión de depuración separada de los avances Estudiante y Docente, usa:

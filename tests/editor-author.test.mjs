@@ -811,6 +811,21 @@ test("GET session durante check es observacional y no recupera el journal activo
   const concurrentSession = await fetch(`${author.origin}/__orbit/author/session`);
   assert.equal(concurrentSession.status, 409);
   assert.equal((await concurrentSession.json()).code, "author-busy");
+  const busyControlSession = await fetch(`${author.origin}/__orbit/local/session`).then(
+    (response) => response.json(),
+  );
+  assert.equal(busyControlSession.busy, true);
+  const rejectedBusyShutdown = await fetch(`${author.origin}/__orbit/local/shutdown`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: author.origin,
+      "x-orbit-local-token": busyControlSession.token,
+    },
+    body: JSON.stringify({ intent: "shutdown" }),
+  });
+  assert.equal(rejectedBusyShutdown.status, 409);
+  assert.equal((await rejectedBusyShutdown.json()).code, "local-service-busy");
   assert.equal(await readFile(journalPath, "utf8"), journalBefore);
   assert.equal(await readFile(target, "utf8"), sourceBefore);
   const concurrentRuntime = await fetch(`${author.origin}/`);
@@ -830,6 +845,20 @@ test("GET session durante check es observacional y no recupera el journal activo
   assert.equal(applyResponse.status, 200);
   const applied = await applyResponse.json();
   assert.equal(JSON.parse(await readFile(journalPath, "utf8")).status, "awaiting-browser");
+  const pendingControlSession = await fetch(`${author.origin}/__orbit/local/session`).then(
+    (response) => response.json(),
+  );
+  assert.equal(pendingControlSession.busy, true);
+  const rejectedPendingShutdown = await fetch(`${author.origin}/__orbit/local/shutdown`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: author.origin,
+      "x-orbit-local-token": pendingControlSession.token,
+    },
+    body: JSON.stringify({ intent: "shutdown" }),
+  });
+  assert.equal(rejectedPendingShutdown.status, 409);
   const pendingRuntime = await fetch(`${author.origin}/index.html`);
   assert.equal(pendingRuntime.status, 503);
   assert.equal(
@@ -968,6 +997,68 @@ test("la API loopback exige same-origin, token y JSON", async (t) => {
   });
 });
 
+test("el apagado local responde antes de cerrar y libera el lock del helper", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const author = await createEditorAuthorServer({
+    root,
+    port: 0,
+    runner: successfulRunner(),
+    requireClean: false,
+    sessionToken: "author-session",
+    localServiceToken: "l".repeat(64),
+  });
+  t.after(() => author.close());
+
+  const sessionResponse = await fetch(`${author.origin}/__orbit/local/session`);
+  assert.equal(sessionResponse.status, 200);
+  assert.equal(sessionResponse.headers.get("cache-control"), "no-store");
+  assert.equal(sessionResponse.headers.get("access-control-allow-origin"), null);
+  const session = await sessionResponse.json();
+  assert.equal(session.service, "editor-author");
+  assert.equal(session.token, "l".repeat(64));
+  assert.equal(session.busy, false);
+
+  const rejected = await fetch(`${author.origin}/__orbit/local/shutdown`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "https://example.invalid",
+      "x-orbit-local-token": session.token,
+    },
+    body: JSON.stringify({ intent: "shutdown" }),
+  });
+  assert.equal(rejected.status, 403);
+  assert.equal(author.server.listening, true);
+
+  const accepted = await fetch(`${author.origin}/__orbit/local/shutdown`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: author.origin,
+      "x-orbit-local-token": session.token,
+      "sec-fetch-site": "same-origin",
+    },
+    body: JSON.stringify({ intent: "shutdown" }),
+  });
+  assert.equal(accepted.status, 202);
+  assert.equal(accepted.headers.get("connection"), "close");
+  assert.equal((await accepted.json()).state, "shutting-down");
+
+  await new Promise((resolve) => setImmediate(resolve));
+  await author.close();
+  assert.equal(author.server.listening, false);
+
+  const restarted = await createEditorAuthorServer({
+    root,
+    port: 0,
+    runner: successfulRunner(),
+    requireClean: false,
+    sessionToken: "restarted-session",
+  });
+  await restarted.close();
+});
+
 test("Host y la autoridad absolute-form deben coincidir con el origen loopback real", async (t) => {
   const root = await fixture();
   t.after(() => rm(root, { recursive: true, force: true }));
@@ -1001,6 +1092,15 @@ test("Host y la autoridad absolute-form deben coincidir con el origen loopback r
   assert.equal(foreignAbsolute.status, 421);
   assert.equal(foreignAbsolute.json().code, "noncanonical-request-authority");
   assert.doesNotMatch(foreignAbsolute.text, /authority-session-secret/);
+
+  for (const path of [
+    "/\\evil/__orbit/local/session",
+    "/%5c%5cevil/__orbit/local/session",
+  ]) {
+    const ambiguousAuthority = await rawHttpRequest(author.origin, { path });
+    assert.equal(ambiguousAuthority.status, 421, path);
+    assert.doesNotMatch(ambiguousAuthority.text, /authority-session-secret/);
+  }
 
   const equivalentButNoncanonicalAbsolute = await rawHttpRequest(author.origin, {
     path: `http://2130706433:${new URL(author.origin).port}/__orbit/author/session`,

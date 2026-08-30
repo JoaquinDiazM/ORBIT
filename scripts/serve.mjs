@@ -8,6 +8,10 @@ import {
   sendRuntimeEntryUnavailable,
   shouldBlockRuntimeEntry,
 } from "./repository-runtime-gate.mjs";
+import {
+  createLocalServiceControl,
+  createLocalServiceToken,
+} from "./local-service-control.mjs";
 
 export const ORBIT_DEV_CANONICAL_PORT = 4173;
 export const ORBIT_DEV_CANONICAL_ORIGIN =
@@ -101,9 +105,14 @@ export function isCanonicalOrbitDevRequest(request, {
   try {
     const requestTarget = request.url ?? "";
     const parsed = new URL(requestTarget, canonical);
+    if (
+      parsed.origin !== canonical.origin
+      || parsed.username !== ""
+      || parsed.password !== ""
+    ) return false;
     const absoluteForm = /^[a-z][a-z0-9+.-]*:\/\//i.test(requestTarget);
     if (absoluteForm) {
-      return parsed.origin === canonical.origin && !parsed.username && !parsed.password;
+      return true;
     }
     if (!requestTarget.startsWith("/") || requestTarget.startsWith("//")) return false;
     return !decodeURIComponent(parsed.pathname).replaceAll("\\", "/").startsWith("//");
@@ -112,8 +121,20 @@ export function isCanonicalOrbitDevRequest(request, {
   }
 }
 
-export function createOrbitDevRequestHandler({ projectRoot = root } = {}) {
-  return function handleRequest(request, response) {
+export function createOrbitDevRequestHandler({
+  projectRoot = root,
+  localServiceToken = createLocalServiceToken(),
+  shutdown = null,
+} = {}) {
+  const localServiceControl = typeof shutdown === "function"
+    ? createLocalServiceControl({
+        service: "development",
+        token: localServiceToken,
+        shutdown,
+      })
+    : null;
+
+  return async function handleRequest(request, response) {
     if (!isCanonicalOrbitDevRequest(request)) {
       response.writeHead(421, {
         "content-type": "text/plain; charset=utf-8",
@@ -122,6 +143,12 @@ export function createOrbitDevRequestHandler({ projectRoot = root } = {}) {
       response.end("Autoridad local no permitida");
       return;
     }
+    const requestOrigin = ORBIT_DEV_CANONICAL_ORIGIN;
+    const url = new URL(request.url, requestOrigin);
+    if (
+      localServiceControl
+      && await localServiceControl.handle({ request, response, requestOrigin, url })
+    ) return;
     if (!request.url || !["GET", "HEAD"].includes(request.method ?? "")) {
       response.writeHead(405, { "content-type": "text/plain; charset=utf-8" });
       response.end("Método no permitido");
@@ -171,9 +198,10 @@ export function resolveOrbitDevCliPort({
 }
 
 let activeServer = null;
+let shutdownStarted = false;
 
 function listen(candidatePort) {
-  const candidateServer = createServer(createOrbitDevRequestHandler());
+  const candidateServer = createServer(createOrbitDevRequestHandler({ shutdown }));
 
   candidateServer.once("error", (error) => {
     if (error.code === "EADDRINUSE") {
@@ -200,11 +228,14 @@ function listen(candidatePort) {
 }
 
 function shutdown() {
+  if (shutdownStarted) return;
+  shutdownStarted = true;
   if (!activeServer?.listening) {
     process.exit(0);
     return;
   }
   activeServer.close(() => process.exit(0));
+  activeServer.closeIdleConnections?.();
 }
 
 const invokedDirectly = process.argv[1]

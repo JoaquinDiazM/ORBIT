@@ -18,6 +18,7 @@ import { withExclusiveCourseLock } from "../core/course-lock.js";
 import { validateProjectData } from "../core/validator.js";
 import { CourseApplicationCoordinator } from "./course-application-coordinator.js";
 import { EditorAuthorClient } from "./editor-author-client.js";
+import { EditorLocalServiceClient } from "./editor-local-service-client.js";
 import { EDITOR_DOCUMENT_SCHEMA_VERSION } from "./editor-document.js";
 import { EditorApp } from "./editor-app.js";
 import { EditorBowerbirdSession } from "./bowerbird-session.js";
@@ -164,6 +165,9 @@ if (editorAccess === "blocked") {
         documentOptions,
       })
     : null;
+  const localServiceClient = editorAccess === "full"
+    ? new EditorLocalServiceClient()
+    : null;
   const bowerbird = new EditorBowerbirdSession({
     editorModel: model,
     personalPreferences,
@@ -176,6 +180,7 @@ if (editorAccess === "blocked") {
     app,
     bowerbird,
     applicationCoordinator,
+    localServiceClient,
     courseEdition: course,
     courseWarnings,
   });

@@ -61,6 +61,12 @@ corresponder al código actual. Detén su terminal con `Ctrl+C` y vuelve a ejecu
 Si 4173 está ocupado, el comando termina con un error accionable; detén el proceso anterior en
 vez de abrir ORBIT en otro puerto.
 
+Tanto `dev` como `editor:author` exponen una sesión efímera de control local, separada de la API
+de aplicación. ORBIT Editor Docente valida esa sesión antes de revelar **Detener servidor**. El
+apagado exige doble activación, autoridad y `Origin` canónicos, JSON y token aleatorio; responde
+antes de cerrar el listener. Nunca busca o mata PIDs. `editor:author` rechaza el cierre mientras
+ejecuta una operación o conserva un journal que debe finalizarse o recuperarse.
+
 En desarrollo, el navegador obtiene KaTeX desde `node_modules/katex/dist/`. El build reemplaza esas dos referencias por `vendor/katex/` y copia únicamente el runtime publicable; ninguna ruta a `node_modules` llega a `dist/`.
 
 ### `npm run validate`

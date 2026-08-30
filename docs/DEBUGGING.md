@@ -11,6 +11,11 @@ http://127.0.0.1:4173/?debug=1&profile=debug
 `npm run dev` usa siempre ese origen; si está ocupado, detén el proceso anterior en vez de
 iniciar otro puerto.
 
+Cuando la página proviene de una versión compatible de `npm run dev` o `npm run editor:author`,
+ORBIT Editor Docente muestra **Detener servidor** en General. Dos activaciones cierran solo ese
+servicio después de responder al navegador. El control no aparece en Estudiante o Debug y no
+sustituye `Ctrl+C` para un proceso ajeno o una versión anterior sin este protocolo.
+
 Debug es uno de los tres perfiles locales canónicos y mantiene un único avance separado de
 Estudiante y Docente. Los nombres arbitrarios ya no crean sesiones de prueba. `?debug=1` abre
 el panel al iniciar; `?profile=debug` es la capacidad que habilita el debugger.

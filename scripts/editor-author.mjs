@@ -26,6 +26,10 @@ import {
   sendRuntimeEntryUnavailable,
   shouldBlockRuntimeEntry,
 } from "./repository-runtime-gate.mjs";
+import {
+  createLocalServiceControl,
+  createLocalServiceToken,
+} from "./local-service-control.mjs";
 
 const SOURCE_RELATIVE_PATH = COURSE_EDITION_SOURCE_URL.replace(/^\.\//, "");
 const AUTHOR_STATE_DIRECTORY = ".orbit-editor";
@@ -929,6 +933,18 @@ function canonicalRequestContext(request, server) {
   } catch {
     return null;
   }
+  if (
+    url.origin !== origin
+    || url.username !== ""
+    || url.password !== ""
+  ) return null;
+  try {
+    if (decodeURIComponent(url.pathname).replaceAll("\\", "/").startsWith("//")) {
+      return null;
+    }
+  } catch {
+    return null;
+  }
   return { authority, origin, url };
 }
 
@@ -938,6 +954,7 @@ export async function createEditorAuthorServer({
   runner = defaultRunner,
   requireClean = true,
   sessionToken = token(),
+  localServiceToken = createLocalServiceToken(),
 } = {}) {
   if (port !== 0 && port !== EDITOR_AUTHOR_CANONICAL_PORT) {
     throw new EditorAuthorError(
@@ -956,8 +973,39 @@ export async function createEditorAuthorServer({
   }
   let origin = null;
   let busy = false;
+  let server = null;
+  let closePromise = null;
+  const close = () => {
+    if (closePromise) return closePromise;
+    closePromise = (async () => {
+      if (server?.listening) {
+        const closed = new Promise((resolveClose, rejectClose) => {
+          server.close((error) => (error ? rejectClose(error) : resolveClose()));
+        });
+        server.closeIdleConnections?.();
+        await closed;
+      }
+      await helperLock.release();
+    })();
+    return closePromise;
+  };
+  const shutdownBlocked = async () => {
+    if (busy) return true;
+    try {
+      const pending = await inspectRepositoryApplication(repositoryRoot);
+      return busy || pending.pending || pending.incomplete;
+    } catch {
+      return true;
+    }
+  };
+  const localServiceControl = createLocalServiceControl({
+    service: "editor-author",
+    token: localServiceToken,
+    isBusy: shutdownBlocked,
+    shutdown: close,
+  });
 
-  const server = createServer(async (request, response) => {
+  server = createServer(async (request, response) => {
     try {
       const requestContext = canonicalRequestContext(request, server);
       if (!requestContext) {
@@ -969,6 +1017,15 @@ export async function createEditorAuthorServer({
         return;
       }
       const { origin: requestOrigin, url } = requestContext;
+      if (await localServiceControl.handle({ request, response, requestOrigin, url })) return;
+      if (localServiceControl.shutdownPending) {
+        sendJson(response, 503, {
+          ok: false,
+          code: "local-service-shutdown-pending",
+          message: "El helper local se está apagando.",
+        });
+        return;
+      }
       if (url.pathname === "/__orbit/author/session" && request.method === "GET") {
         if (busy) {
           sendJson(response, 409, {
@@ -1120,14 +1177,7 @@ export async function createEditorAuthorServer({
     server,
     origin,
     token: sessionToken,
-    close: async () => {
-      if (server.listening) {
-        await new Promise((resolveClose, rejectClose) => {
-          server.close((error) => (error ? rejectClose(error) : resolveClose()));
-        });
-      }
-      await helperLock.release();
-    },
+    close,
   };
 }
 

@@ -201,6 +201,11 @@ Editor.
 Aplicar localmente construye `dist/`; no crea commits, no hace push y no despliega el sitio. Como
 la query se puede editar, `editor.html` no ofrece autenticación ni control de acceso real.
 
+En una sesión local compatible, Docente dispone de **Detener servidor** al final del menú General.
+Pulsa una vez para armar la confirmación y otra para apagar `npm run dev` o
+`npm run editor:author`. El botón no aparece en Estudiante/Debug, no interrumpe una aplicación
+pendiente y nunca intenta cerrar otro programa que simplemente ocupe el puerto.
+
 ## Accesibilidad básica
 
 - La interfaz puede manejarse con teclado.

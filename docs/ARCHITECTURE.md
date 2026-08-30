@@ -199,6 +199,13 @@ sesiones o estáticos y sirven únicamente el shell, `src/`, `public/` y la dist
 de KaTeX; la whitelist se repite sobre el destino real de cualquier enlace simbólico.
 Documentación operativa, paquetes, tests, scripts y metadatos Git no son recursos web.
 
+`scripts/local-service-control.mjs` define un protocolo de apagado distinto del protocolo de
+aplicación: sesión efímera, token en memoria, autoridad/`Origin` exactos y POST JSON sin CORS. La
+respuesta 202 termina antes de cerrar el listener. `dev` solo cierra su propio servidor;
+`editor:author` además impide el cierre si está ocupado o hay journal pendiente y libera su lock
+al finalizar. El cliente se incluye oculto en Editor y solo revela el control a Docente después
+de validar una sesión compatible; no enumera procesos ni convierte el sitio estático en backend.
+
 ### Validación
 
 `src/core/validator.js` verifica referencias, tarjetas de campos, secuencias y políticas matemáticas, y simula la progresión completa. Su propósito principal es detectar contenido inválido y bloqueos conceptuales antes de ejecutar el sitio.

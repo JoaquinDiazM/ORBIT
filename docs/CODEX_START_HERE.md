@@ -91,6 +91,9 @@ Toda ejecución local usa únicamente `http://127.0.0.1:4173`: `npm run dev` y l
 overrides y fallback. El helper toma un lock de proceso por checkout y bloquea la entrada
 Estudiante mientras exista un journal pendiente. Editor sigue accesible para recuperar; nunca
 abras otro puerto para eludir esa barrera, porque separaría Web Locks y `localStorage`.
+Editor Docente puede detener cooperativamente cualquiera de esos dos servicios desde General,
+pero solo después de validar una sesión local independiente y una doble confirmación. El control
+no mata procesos ajenos y autoría lo rechaza durante operaciones o journals pendientes.
 
 Las fuentes se añaden de forma selectiva cuando una afirmación específica las necesita. La biblioteca permanece en los datos, el validador y sus paneles de **Símbolos**, **Constantes**, **Formulario** y **Glosario**. Esos paneles muestran el contenido desbloqueado, pero no repiten cuadros bibliográficos: la UI comunica cada fuente pertinente una vez, en la transición que desbloquea su entrada. No cites operaciones elementales ni repitas dentro de un nodo la procedencia docente ya reconocida globalmente en el README.
 
