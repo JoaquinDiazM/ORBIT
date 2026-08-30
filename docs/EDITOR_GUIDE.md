@@ -38,9 +38,10 @@ de Bowerbird sobre la misma edición base.
 
 - **Docente:** `editor.html` o `editor.html?profile=teacher`; dispone de General, Spider, Bee,
   Bowerbird, historial, importación, restauración, exportación y aplicación local asistida.
-- **Estudiante:** `editor.html?profile=student`; puede consultar, desplazar, ampliar, encuadrar,
-  exportar y usar Bowerbird para sus preferencias personales. Spider, Bee y las mutaciones del
-  documento Docente quedan bloqueadas con un mensaje claro.
+- **Estudiante:** `editor.html?profile=student`; puede consultar, desplazar, ampliar, encuadrar y
+  usar Bowerbird para sus preferencias personales. Spider, Bee, historial, importación,
+  restauración y exportación del borrador Docente quedan bloqueados. No hay un banner permanente:
+  cada intento muestra una alerta temporal, breve y específica para la acción.
 - **Debug:** `editor.html?profile=debug`; muestra el bloqueo y no crea el modelo editorial.
 
 `?debug=1` no eleva capacidades del Editor. Como cualquiera puede cambiar estas queries, la

@@ -198,7 +198,7 @@ Sin propuestas pendientes de clasificar.
 
 ### UPD-001 — Hub de gadgets y explorador de campos vectoriales
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `épica`
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y` cuando se defina una primera capacidad completa.
@@ -267,7 +267,8 @@ ser utilizables en otros lugares de aprendizaje.
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y`; el objetivo provisional debe coordinarse con los demás puntos de 0.5.0
   antes de cerrar esa cohorte.
-- Próximo responsable: JoaquinDiazM, que revisa el contrato visual y editorial `v2`.
+- Próximo responsable: JoaquinDiazM, que revisa la corrección de interacción solicitada para el
+  perfil Estudiante.
 
 #### Solicitud original
 
@@ -289,7 +290,9 @@ opciones de colores, dibujos estáticos o móviles y contornos.
   sólido/discontinuo/doble; selección por mapa y control accesible; disclaimer permanente de
   que decorar no desbloquea; `prefers-reduced-motion`; migración íntegra del documento Docente
   `v1` a `v2`; exportación exclusivamente Docente; la misma terna produce la misma apariencia en
-  Editor y Estudiante; esquemas o catálogos futuros desconocidos fallan de forma cerrada.
+  Editor y Estudiante; esquemas o catálogos futuros desconocidos fallan de forma cerrada; el
+  perfil Estudiante no muestra un aviso de acceso permanente y comunica cada intento restringido
+  mediante una alerta temporal, breve y específica para la acción.
 - Fuera de alcance: dibujo o código arbitrario, colores o archivos libres, nuevos assets,
   cambios de geometría/grafos/progreso y publicación remota.
 - Dependencias, invariantes o ADR: documento `orbit-editor-project` v2 con
@@ -311,16 +314,31 @@ opciones de colores, dibujos estáticos o móviles y contornos.
   receta Canvas compartida por Editor y ORBIT. Docente edita el documento común `v2` con
   historial/autoguardado; Estudiante persiste solo overrides personales con precedencia
   `personal → publicada → canónica`; las zonas cerradas permanecen neutrales y Debug no entra al
-  Editor. Contratos futuros fallan cerrados sin sobrescribir el raw.
+  Editor. Contratos futuros fallan cerrados sin sobrescribir el raw. La corrección de revisión
+  retiró el banner permanente del perfil Estudiante y conserva enfocados Spider, Bee, Deshacer,
+  Rehacer, Exportar, Importar y Restaurar para emitir una alerta temporal, breve y específica sin
+  ejecutar la acción ni alterar el borrador.
 - Pruebas: catálogo, saneamiento, paridad de renderers, animación y movimiento reducido,
   migración `v1→v2`, aislamiento de claves, fallos de almacenamiento, preferencias futuras,
-  historial/exportación y los tres perfiles. Incluidas en la suite integral de 357 aprobadas;
-  revisión visual Docente/Estudiante amplia y compacta, sin diagnósticos de consola.
+  historial/exportación, los tres perfiles y las siete restricciones de Estudiante. Suite
+  integral: 358 aprobadas y 2 omitidas por falta de permisos de enlaces simbólicos en Windows;
+  revisión visual Estudiante amplia y compacta, incluidos teclado, caducidad de las alertas,
+  ausencia de mutaciones y consola sin diagnósticos.
 - Cómo revisar para JoaquinDiazM: en `editor.html` decorar una zona como Docente; luego abrir
   `editor.html?profile=student`, decorar otra y recargar. Confirmar que Spider/Bee siguen
   bloqueados para Estudiante, que cada alcance persiste por separado y que una zona aún cerrada
   continúa neutral en ORBIT hasta desbloquearla.
+- Corrección de revisión completada: banner permanente retirado y las siete acciones restringidas
+  convertidas en controles bloqueados pero activables que anuncian mensajes temporales
+  diferenciados.
 - Observaciones del usuario: Pregunta 1: Esa es justo la politica adecuada, aceptu tu recomentacion. Pregunta 2: Si, mantengamos el producto minimo viable en opciones pre-construidas. Pregunta 3: Si, estudiante y docente pueden decorar las zonas que quiera, pero hay que añadir un disclaimer de que los cambios a zonas todavia no desbloqueadas en ORBIT no se veran de inmediato. Pregunta 4: Sí.
+- Observaciones del usuario (2): El mensaje de "Spider y Bee están bloqueados. Bowerbird solo
+  modifica tu apariencia local; esta limitación local no es autenticación" todo el tiempo en el
+  ORBIT Editor con el perfil de estudiante es muy molesto, mejor dejalo en alterta cada vez que
+  el estudiante clickee un apartado al que le hemos definido que no tiene acceso. El mensaje
+  debe ser una alerta temporal como la que sale cuando seleccionas un nodo o zona. Debe ser un
+  mensaje diferente cuando intenta seleccionar bee, spider o cualquier funcion restringida, y
+  ser conciso, no super largo como el de ahora.
 
 ### UPD-014 — Aplicar una edición del curso
 
@@ -387,7 +405,19 @@ perfil.
   la URL indicada, modificar una zona, nodo, conexión y apariencia, y usar **Resumen** para
   validar el diff/impacto antes de confirmar. La confirmación reinicia el progreso local de
   Estudiante, Docente y Debug; exportar antes cualquier avance que se quiera conservar.
-- Observaciones del usuario: Pregunta 1: Subir/aplicar significa unar el borrador en nuestro navegador y modificar fuentes/build de manera local. Sin embargo, esta actualizacion debe estar pensada para que en el momento que abordemos UPD-002 no tengamos que pensar los detalles que ahora estamos definiendo como politica de perdida de datos/progreso, verificacion de reseteo en todos los tipos de perfiles por accion de docente en ORBIT Editor, verificacion de cambios efectuados en el mapamundi (Nodos, zonas, etc), etc. Pregunta 2: Como todavia no tenemos sistema de cuentas, es para todos los estados locales de nuestro navegador. Pregunta 3: Todo, por lo quje hay que mantener coherencia en las actualizaciones de ORBIT Editor para que no se incluyan opciones que arruinen el objetivo principal de ORBIT, aprender. Pregunta 4: Si, el primer paso es validar y el segundo confirmar, y soltar datos utiles entre medio. Manten todo ese desarrollo en la ventana de resumen sin quitar lo que ya esta, complementandolo. 5.- Mostrar ambos y declarar el reinicio total
+- Observaciones del usuario: Pregunta 1: Subir/aplicar significa unar el borrador en nuestro navegador y modificar fuentes/build de manera local. Sin embargo, esta actualizacion debe estar pensada para que en el momento que abordemos UPD-002 no tengamos que pensar los detalles que ahora estamos definiendo como politica de perdida de datos/progreso, verificacion de reseteo en todos los tipos de perfiles por accion de docente en ORBIT Editor, verificacion de cambios efectuados en el mapamundi (Nodos, zonas, etc), etc. Pregunta 2: Como todavia no tenemos sistema de cuentas, es para todos los estados locales de nuestro navegador. Pregunta 3: Todo, por lo quje hay que mantener coherencia en las actualizaciones de ORBIT Editor para que no se incluyan opciones que arruinen el objetivo principal de ORBIT, aprender. Pregunta 4: Si, el primer paso es validar y el segundo confirmar, y soltar datos utiles entre medio. Manten todo ese desarrollo en la ventana de resumen sin quitar lo que ya esta, complementandolo. 5.- Mostrar ambos y declarar el reinicio total.
+- Observaciones del usuario: Parece ser que falta un boton de shutdown, preferiblemente en el
+  ORBIT Editor del perfil docente, para que un usuario desarrolador como yo pueda hacer pruebas,
+  esto es de mi termina en VSC -> PS C:\Users\joaqu\OneDrive\Documentos\ORBIT> npm run dev ->
+  orbit-open-roadmap@0.4.3 dev -> node scripts/serve.mjs -> No se pudo iniciar ORBIT:
+  http://127.0.0.1:4173 ya está ocupado. -> Detén con Ctrl+C el npm run dev/editor:author
+  anterior; no abras otro puerto porque separaría locks y progreso.; Esto probablemente pasa
+  porque tu tienes corriendo el servidor en alguna parte de mi laptop que yo desconosco, por lo
+  que no puedo acceder a ella y aplicar el Ctrl+C, si es asi solo añade un boton en el menu
+  general del ORBIT Editor en perfil docente para un apagado controlado de los servicios de
+  ORBIT, de ser otra la causa del problema implementa soluciones parecida o la misma, y siempre
+  deja en claro en la Especificación elaborada por el agente de esta UPD como solucionaste mi
+  feedback.
 
 ### UPD-002 — Sistema de servidor online
 

@@ -57,9 +57,6 @@ function configureProfileShell(profile, editorAccess) {
       draftBadge.textContent = "apariencia personal";
       draftBadge.title = "Bowerbird guarda una apariencia local separada del curso.";
     }
-    notice.hidden = false;
-    noticeTitle.textContent = "Perfil estudiante · Bowerbird personal";
-    noticeDetail.textContent = "Spider y Bee están bloqueados. Bowerbird solo modifica tu apariencia local; esta limitación local no es autenticación.";
     canvas?.setAttribute(
       "aria-label",
       "Mapa de ORBIT Editor con Bowerbird personal. Selecciona zonas para decorarlas; Spider y Bee están bloqueados.",

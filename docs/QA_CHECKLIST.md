@@ -181,9 +181,11 @@
 
 - [ ] `editor.html` identifica inequívocamente **ORBIT Editor** y enlaza de vuelta a ORBIT.
 - [ ] `editor.html` sin query y `?profile=teacher` abren Docente con capacidad completa.
-- [ ] `?profile=student` muestra el alcance personal, permite pan/zoom/encuadre/consulta,
-      exportación y Bowerbird, y bloquea Spider, Bee, importación, restauración e historial del
+- [ ] `?profile=student` muestra el alcance personal, permite pan/zoom/encuadre/consulta y
+      Bowerbird, y bloquea Spider, Bee, exportación, importación, restauración e historial del
       documento Docente.
+- [ ] Estudiante no ve un aviso de acceso permanente; pulsar cada control restringido por ratón
+      o teclado conserva el foco disponible y muestra un toast temporal, breve y específico.
 - [ ] En Estudiante, intentar Spider/Bee o una mutación Docente por puntero, teclado o API
       conserva intacto el documento; cambiar Bowerbird solo actualiza su clave personal.
 - [ ] `?profile=debug` muestra un bloqueo enfocable, no crea `EditorModel` ni renderer y no

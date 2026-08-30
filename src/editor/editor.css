@@ -84,14 +84,10 @@
   cursor: grab;
 }
 
-.editor-shell[data-access="read-only"] .editor-inspector {
-  top: calc(var(--chrome-gap) + var(--hud-height) + 4.55rem);
-  height: calc(100vh - var(--hud-height) - 5.65rem);
-}
-
-.editor-shell[data-access="read-only"] .editor-tools-dock .dock-button[aria-disabled="true"],
-.editor-shell[data-access="read-only"] .editor-file-button.is-disabled {
+.editor-shell[data-access="read-only"] button[aria-disabled="true"],
+.editor-shell[data-access="read-only"] .editor-file-button[aria-disabled="true"] {
   opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .editor-shell[data-access="blocked"] #world-canvas,

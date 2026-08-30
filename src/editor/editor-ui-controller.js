@@ -40,6 +40,21 @@ export function getReadOnlyCameraPan(event) {
   };
 }
 
+const READ_ONLY_RESTRICTION_MESSAGES = Object.freeze({
+  spider: "Spider requiere el perfil Docente.",
+  bee: "Bee requiere el perfil Docente.",
+  undo: "Deshacer cambios requiere el perfil Docente.",
+  redo: "Rehacer cambios requiere el perfil Docente.",
+  export: "Exportar el borrador requiere el perfil Docente.",
+  import: "Importar borradores requiere el perfil Docente.",
+  reset: "Restaurar el borrador requiere el perfil Docente.",
+});
+
+export function getReadOnlyRestrictionMessage(action) {
+  return READ_ONLY_RESTRICTION_MESSAGES[action]
+    ?? "Esta función requiere el perfil Docente.";
+}
+
 export function fitEditorWorld({ app, inspector, canvas }) {
   inspector.hidden = true;
   canvas.focus({ preventScroll: true });
@@ -218,6 +233,7 @@ export class EditorUIController {
       locationCount: query("#editor-location-count"),
       saveStatus: query("#editor-save-status"),
       draftBadge: query("#editor-draft-badge"),
+      importControl: query("#editor-import-control"),
       importInput: query("#editor-import"),
       toastRegion: query("#toast-region"),
     };
@@ -251,18 +267,30 @@ export class EditorUIController {
   }
 
   #applyReadOnlyControls() {
-    for (const button of [this.elements.spiderButton, this.elements.beeButton]) {
+    for (const [button, action] of [
+      [this.elements.spiderButton, "spider"],
+      [this.elements.beeButton, "bee"],
+    ]) {
       button.setAttribute("aria-disabled", "true");
-      button.disabled = true;
-      button.title = "El perfil estudiante no permite usar Spider ni Bee.";
+      button.disabled = false;
+      button.title = getReadOnlyRestrictionMessage(action);
     }
-    this.elements.undo.disabled = true;
-    this.elements.redo.disabled = true;
-    this.elements.reset.disabled = true;
-    this.elements.exportButton.disabled = true;
-    this.elements.exportButton.title = "Solo el perfil Docente puede exportar el borrador del curso.";
+    for (const [button, action] of [
+      [this.elements.undo, "undo"],
+      [this.elements.redo, "redo"],
+      [this.elements.reset, "reset"],
+      [this.elements.exportButton, "export"],
+    ]) {
+      button.setAttribute("aria-disabled", "true");
+      button.disabled = false;
+      button.title = getReadOnlyRestrictionMessage(action);
+    }
     this.elements.importInput.disabled = true;
-    this.elements.importInput.closest("label")?.classList.add("is-disabled");
+    this.elements.importControl.classList.add("is-disabled");
+    this.elements.importControl.setAttribute("aria-disabled", "true");
+    this.elements.importControl.setAttribute("role", "button");
+    this.elements.importControl.setAttribute("tabindex", "0");
+    this.elements.importControl.title = getReadOnlyRestrictionMessage("import");
     for (const panel of [this.elements.spiderPanel, this.elements.beePanel]) {
       panel.inert = true;
       panel.setAttribute("aria-disabled", "true");
@@ -297,11 +325,17 @@ export class EditorUIController {
         canvas: this.elements.canvas,
       }),
     );
-    on("#editor-undo", "click", () => this.#report(this.model.undo(), "Cambio deshecho."));
-    on("#editor-redo", "click", () => this.#report(this.model.redo(), "Cambio rehecho."));
+    on("#editor-undo", "click", () => {
+      if (this.readOnly) return this.#announceReadOnlyRestriction("undo");
+      return this.#report(this.model.undo(), "Cambio deshecho.");
+    });
+    on("#editor-redo", "click", () => {
+      if (this.readOnly) return this.#announceReadOnlyRestriction("redo");
+      return this.#report(this.model.redo(), "Cambio rehecho.");
+    });
     on("#editor-export", "click", () => {
       if (this.readOnly) {
-        this.toast("Solo el perfil Docente puede exportar el borrador del curso.", "warning");
+        this.#announceReadOnlyRestriction("export");
         return;
       }
       const date = new Date().toISOString().slice(0, 10);
@@ -309,6 +343,17 @@ export class EditorUIController {
       this.toast("Borrador editorial exportado.", "success");
     });
     on("#editor-reset", "click", () => this.#requestDraftReset());
+
+    this.elements.importControl.addEventListener("click", (event) => {
+      if (!this.readOnly) return;
+      event.preventDefault();
+      this.#announceReadOnlyRestriction("import");
+    });
+    this.elements.importControl.addEventListener("keydown", (event) => {
+      if (!this.readOnly || !["Enter", "Space"].includes(event.code)) return;
+      event.preventDefault();
+      this.#announceReadOnlyRestriction("import");
+    });
 
     this.elements.importInput.addEventListener("change", async () => {
       const [file] = this.elements.importInput.files ?? [];
@@ -412,7 +457,10 @@ export class EditorUIController {
   }
 
   #requestDraftReset() {
-    if (this.readOnly) return;
+    if (this.readOnly) {
+      this.#announceReadOnlyRestriction("reset");
+      return;
+    }
     if (!this.resetArmed) {
       this.resetArmed = true;
       this.elements.reset.textContent = "Confirmar restauración";
@@ -773,7 +821,7 @@ export class EditorUIController {
     if (historyAction) {
       event.preventDefault();
       if (this.readOnly) {
-        this.toast("El perfil estudiante no puede modificar el historial editorial.", "warning");
+        this.#announceReadOnlyRestriction(historyAction);
         return;
       }
       const result = historyAction === "redo" ? this.model.redo() : this.model.undo();
@@ -877,6 +925,10 @@ export class EditorUIController {
     return notice.accepted;
   }
 
+  #announceReadOnlyRestriction(action) {
+    this.toast(getReadOnlyRestrictionMessage(action), "warning");
+  }
+
   #reasonMessage(reason) {
     const messages = {
       "same-area": "La zona ya ocupa esa posición.",
@@ -899,7 +951,7 @@ export class EditorUIController {
 
   showView(view) {
     if (this.readOnly && (view === "spider" || view === "bee")) {
-      this.toast("El perfil estudiante no permite usar Spider ni Bee.", "warning");
+      this.#announceReadOnlyRestriction(view);
       return;
     }
     this.currentView = view;
@@ -936,8 +988,8 @@ export class EditorUIController {
       : snapshot.warnings.length
         ? "Abre Resumen para revisar las advertencias del borrador."
         : "Borrador editorial guardado localmente.";
-    this.elements.undo.disabled = this.readOnly || !snapshot.canUndo;
-    this.elements.redo.disabled = this.readOnly || !snapshot.canRedo;
+    this.elements.undo.disabled = !this.readOnly && !snapshot.canUndo;
+    this.elements.redo.disabled = !this.readOnly && !snapshot.canRedo;
 
     this.elements.spiderButton.setAttribute(
       "aria-pressed",

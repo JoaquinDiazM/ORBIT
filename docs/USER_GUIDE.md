@@ -178,9 +178,10 @@ http://127.0.0.1:4173/editor.html
 
 Sin query, Docente prepara posiciones de nodos, dependencias directas, ordenamiento de zonas y
 apariencias con **Spider**, **Bee** y **Bowerbird**. Con `?profile=student` permite consultar,
-recorrer, encuadrar, exportar y guardar preferencias Bowerbird personales, pero mantiene Spider,
-Bee y el documento Docente en solo lectura. Con `?profile=debug` bloquea la entrada antes de crear
-el modelo editorial.
+recorrer, encuadrar y guardar preferencias Bowerbird personales, pero mantiene Spider, Bee,
+historial, exportación, importación, restauración y el documento Docente en solo lectura. Cada
+intento restringido muestra un aviso temporal conciso; no ocupa el mapa con un banner permanente.
+Con `?profile=debug` bloquea la entrada antes de crear el modelo editorial.
 
 El documento Docente se autoguarda bajo `orbit-editor:v2:electromagnetism-applied`; las
 preferencias Bowerbird Estudiante usan

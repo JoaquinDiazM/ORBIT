@@ -8,6 +8,7 @@ import {
   getEditorMutationNotice,
   getEditorHistoryAction,
   getReadOnlyCameraPan,
+  getReadOnlyRestrictionMessage,
 } from "../src/editor/editor-ui-controller.js";
 import { canUseEditorTool } from "../src/editor/editor-app.js";
 
@@ -175,6 +176,25 @@ test("Estudiante puede usar solo Bowerbird entre las herramientas editoriales", 
   assert.equal(canUseEditorTool("unknown", { readOnly: false }), false);
 });
 
+test("cada intento restringido de Estudiante recibe un aviso temporal breve y específico", async () => {
+  const actions = ["spider", "bee", "undo", "redo", "export", "import", "reset"];
+  const messages = actions.map((action) => getReadOnlyRestrictionMessage(action));
+
+  assert.equal(new Set(messages).size, actions.length);
+  for (const message of messages) {
+    assert.match(message, /perfil Docente\.$/);
+    assert.ok(message.length < 60);
+  }
+
+  const main = await readFile(EDITOR_MAIN_PATH, "utf8");
+  const readOnlyBranch = main.slice(
+    main.indexOf('if (editorAccess === "read-only")'),
+    main.indexOf('} else if (editorAccess === "blocked")'),
+  );
+  assert.doesNotMatch(readOnlyBranch, /notice\.hidden\s*=\s*false/);
+  assert.doesNotMatch(main, /Spider y Bee están bloqueados\. Bowerbird solo modifica/);
+});
+
 test("Encuadrar despeja el inspector y devuelve el foco antes de ajustar el mundo", () => {
   const events = [];
   const inspector = { hidden: false };
@@ -229,7 +249,12 @@ test("el editor carga la edición activa y reserva aplicación/exportación para
   assert.doesNotMatch(main.slice(safeApiStart, installedApiStart), /exportDocument:/);
   assert.match(main.slice(installedApiStart), /exportDocument: \(\) => model\.exportDocument\(\)/);
   const ui = await readFile(new URL("../src/editor/editor-ui-controller.js", import.meta.url), "utf8");
-  assert.match(ui, /this\.elements\.exportButton\.disabled = true/);
+  assert.match(ui, /\[this\.elements\.exportButton, "export"\]/);
+  assert.match(
+    ui,
+    /if \(this\.readOnly\) \{\s*this\.#announceReadOnlyRestriction\("export"\);\s*return;/,
+  );
+  assert.doesNotMatch(ui, /this\.elements\.exportButton\.disabled = true/);
 });
 
 test("el Resumen explica el alcance local, el reset y los datos preservados", async () => {
