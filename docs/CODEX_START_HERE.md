@@ -22,7 +22,7 @@ En este orden:
 
 ## 2. Estado actual
 
-La base publicada es `0.5.0` y la siguiente cohorte operativa se controla en
+La base publicada es `0.5.1` y la siguiente cohorte operativa se controla en
 `ORBIT_UPDATES.md`. El prototipo sigue siendo estático, conserva una dependencia local
 respaldada por ADR, dos entradas
 deliberadamente separadas y un flujo por cohortes con autorización y revisión humana:

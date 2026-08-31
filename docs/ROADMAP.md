@@ -87,7 +87,7 @@ El sistema de contenido escalable que antes ocupaba este hito permanece pendient
 
 ## 0.5 — Herramientas y edición versionada
 
-Estado: cohorte candidata `0.5.0` en revisión local.
+Estado: `0.5.1` publicada; las herramientas y la edición versionada están operativas.
 
 - Incorporar **Gadgets** con calculadora siempre disponible, Explorador de campos 2D
   desbloqueable y Carta de Smith opcional.

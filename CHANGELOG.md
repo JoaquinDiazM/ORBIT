@@ -2,6 +2,35 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [0.5.1] - 2026-08-31
+
+### Cambiado
+
+- ORBIT representa las relaciones visibles con una única familia amarilla: brillante, continua
+  y con resplandor para `completado → completado/completable`; tenue y discontinua para
+  `completable → bloqueado`, sin cambiar topología, dirección ni los modos de **Visual**.
+- ORBIT Editor dibuja todas las conexiones confirmadas con la misma flecha amarilla brillante;
+  la distinción entre relaciones directas y derivadas permanece en sus controles y textos.
+
+### Corregido
+
+- El rótulo **Bowerbird** cabe completo en el dock expandido de `8.75rem`, conservando la
+  abreviatura `BW`, el foco visible y el comportamiento responsive.
+- **Aplicar** acepta un checkout con cambios locales sin consultar ni mutar Git, deja intactas
+  las demás rutas y conserva una copia persistente de la fuente reemplazada con
+  fecha, revisión y SHA-256 en `.orbit-editor-backups/`.
+
+### Verificación y alcance
+
+- La cohorte corresponde exactamente a `UPD-016`, `UPD-017` y `UPD-018`. El check integral
+  ejecuta 394 pruebas: 392 aprobadas, 0 fallos y 2 omisiones EPERM esperadas de symlink; valida
+  19 zonas, 20 conceptos, 29 lugares alcanzables, revisión del repositorio y build estático.
+- JoaquinDiazM revisó en Edge externo con el servicio iniciado desde Visual Studio Code el dock,
+  los conectores y la aplicación con respaldo, y aprobó los tres IDs.
+- Se conservan la topología, los IDs, los esquemas, el contenido, los cinco audios y KaTeX
+  0.18.1. La cartografía aplicada durante la prueba queda fuera de 0.5.1 como semilla de 0.6.0;
+  no se añaden dependencias, backend público, cuentas, autenticación, telemetría ni CDN.
+
 ## [0.5.0] - 2026-08-31
 
 ### Añadido

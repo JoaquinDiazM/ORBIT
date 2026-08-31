@@ -248,7 +248,7 @@ Sin propuestas pendientes de clasificar.
 
 ### UPD-016 — Corregir desborde del rótulo Bowerbird
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `bug`
 - Versión objetivo: `0.5.1`
 - Impacto sugerido: `Z`; corrección visual compatible y acotada al dock de ORBIT Editor.
@@ -302,7 +302,7 @@ cuando el dock muestra el texto completo. El modo minimizado `BW` se ve correcta
 
 ### UPD-017 — Unificar la apariencia de conectores
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `bug`
 - Versión objetivo: `0.5.1`
 - Impacto sugerido: `Z`; normaliza la representación visual sin cambiar la topología.
@@ -370,7 +370,7 @@ resolverse antes y quedar fuera de UPD-015.
 
 ### UPD-018 — Aplicar con trabajo local respaldado
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `bug`
 - Versión objetivo: `0.5.1`
 - Impacto sugerido: `Z`; corrige un bloqueo local sin alterar el formato de edición, el reset

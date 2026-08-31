@@ -41,7 +41,7 @@ La experiencia combina dos modos que deberán coexistir en una versión futura:
 - **Modo Expedición:** progresión narrativa y desbloqueos espaciales.
 - **Modo consulta temática:** acceso académico directo por tema, útil para repasar antes de una evaluación.
 
-La versión `0.5.0` conserva las 19 zonas y 20 conceptos y amplía el dataset a 29
+La versión `0.5.1` conserva las 19 zonas y 20 conceptos y amplía el dataset a 29
 lugares, 14 parejas derivadas del Árbol II y cinco requisitos `completedLocations` explícitos. El
 nuevo lugar es una estación opcional que desbloquea el esqueleto de Carta de Smith; no bloquea el
 tronco. El Taller Vectorial sigue siendo el primer nodo desarrollado con mayor profundidad:
@@ -180,7 +180,7 @@ El proyecto debe privilegiar contenido y ejercicios sobre producción audiovisua
 - assets costosos;
 - animaciones largas.
 
-La cohorte `0.5.0` no añade backend público, autenticación, gráficos 3D, telemetría ni
+La cohorte `0.5.1` no añade backend público, autenticación, gráficos 3D, telemetría ni
 dependencias. El avance dentro de etapas, los parámetros de figuras y las respuestas parciales
 siguen siendo estado de sesión. Progreso `v4`, documento Editor `v2`, preferencias Bowerbird `v1`
 y edición de curso `v1` usan claves y migraciones distintas.

@@ -18,7 +18,7 @@ El autor sitúa el origen pedagógico de esta primera ruta en su experiencia doc
 
 La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra lineal y física clásica, especialmente quienes consideran estudiar Ingeniería Eléctrica o comienzan los primeros semestres de la especialidad.
 
-> **Estado:** base publicada `0.5.0`; la siguiente cohorte operativa se controla en `ORBIT_UPDATES.md`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
+> **Estado:** base publicada `0.5.1`; la siguiente cohorte operativa se controla en `ORBIT_UPDATES.md`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
 
 ## Qué demuestra esta versión
 
@@ -77,8 +77,24 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
   después de verificar la sesión local y el bloqueo exclusivo.
 - Los perfiles y bloqueos son modos locales elegibles, no cuentas, autenticación ni control de
   acceso real.
-- Una dependencia npm fijada y documentada: KaTeX 0.18.1; la cohorte `0.5.0` no añade paquetes,
+- Una dependencia npm fijada y documentada: KaTeX 0.18.1; la cohorte `0.5.1` no añade paquetes,
   backend público, autenticación, render 3D ni CDN.
+
+### Cambios centrales de 0.5.1
+
+ORBIT normaliza los conectores persistentes en dos estados amarillos accesibles: brillante,
+continuo y con resplandor para relaciones completadas o que conducen a un nodo completable;
+tenue y discontinuo para orientar desde un nodo completable hacia otro bloqueado. ORBIT Editor
+usa la flecha brillante para toda conexión confirmada y mantiene la distinción directa/derivada
+en sus controles y textos, sin cambiar la topología.
+
+El dock editorial adopta el ancho común de `8.75rem`, por lo que **Bowerbird** cabe completo sin
+alterar la abreviatura `BW`, el foco ni el comportamiento responsive.
+
+El helper de autoría ya no exige un checkout limpio para **Aplicar**: no consulta ni muta Git,
+deja intactas las demás rutas locales y preserva la fuente canónica reemplazada en
+`.orbit-editor-backups/` con fecha, revisión y SHA-256. El control de revisión coincidente,
+el bloqueo exclusivo, el journal, el rollback y el reinicio de los tres perfiles permanecen.
 
 ### Cambios centrales de 0.5.0
 
@@ -104,8 +120,8 @@ sesión de mantenimiento esté activa, todas las entradas de ORBIT —Estudiante
 responden `503`; Editor y sus recursos siguen disponibles para aplicar, finalizar o revertir.
 Una pestaña de ORBIT que permanecía abierta desde `dev` detecta el cambio, detiene su runtime,
 libera el bloqueo compartido y recarga hacia esa barrera. Al terminar hay que detener autoría e
-iniciar otra vez `npm run dev`. El helper reserva un único proceso por checkout e inspecciona
-que esté limpio, pero no crea commits, no prepara el índice y no hace push.
+iniciar otra vez `npm run dev`. El helper reserva un único proceso por checkout, no consulta ni
+muta Git y respalda la fuente reemplazada sin alterar las demás rutas locales.
 
 ### Cambios centrales de 0.4.3
 
