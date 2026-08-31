@@ -106,11 +106,38 @@ una ruta futura deberá declarar con igual precisión su público, convenciones 
    autorizado y acordado.
 10. Añade o actualiza pruebas. Todo audio versionado debe tener atribución, entrada de manifiesto
    y una forma accesible de ser escuchado; nunca debe ser la única señal de un estado.
-11. Ejecuta `npm run check` y la revisión manual específica, incluido el perfil de depuración y
-    los eventos de audio aplicables.
-12. Registra la evidencia en `ORBIT_UPDATES.md`, cambia el punto a `en-revision` y crea de
-    preferencia un commit local coherente. En este estado no actualices versión o changelog ni
-    hagas push: espera que el usuario lo marque `aprobado` y que toda la cohorte quede lista.
+11. Ejecuta `npm run check` y las pruebas automáticas aisladas. No ejecutes ni atribuyas la
+    revisión manual canónica de navegador, perfiles o aplicación: entrégala a JoaquinDiazM u otro
+    desarrollador, que la realizará en Edge externo con el servicio iniciado desde un terminal
+    visible de Visual Studio Code.
+12. Antes de solicitar esa revisión, confirma el preflight prístino definido en
+    `ORBIT_UPDATES.md`. Para una aplicación canónica exige checkout completamente limpio y
+    congela toda escritura del agente desde la validación hasta recibir el resultado humano.
+13. Registra por separado pruebas automáticas, preflight y revisión manual humana; cambia el
+    punto a `en-revision` y crea de preferencia un commit local coherente. En este estado no
+    actualices versión o changelog ni hagas push: espera que el usuario lo marque `aprobado` y
+    que toda la cohorte quede lista.
+
+### Entorno prístino para revisión humana
+
+- No inicies `npm run dev` o `npm run editor:author` como proceso oculto o persistente para una
+  revisión manual. El servicio canónico lo inicia el desarrollador desde un terminal visible de
+  VS Code; las pruebas de agente usan raíces temporales, almacenamiento inyectado y procesos en
+  primer plano que se cierran al terminar.
+- No uses ni limpies el perfil real de Edge, `localStorage`, cachés o progreso del desarrollador.
+  Cualquier excepción se explica antes y la ejecuta el propio desarrollador.
+- No adoptes o detengas procesos ajenos y no cambies la configuración global de Git como
+  workaround de permisos, propietario o aislamiento. Informa el comando que ejecutará el
+  desarrollador cuando sea necesario.
+- Antes del handoff comprueba `git status`, puerto/PID 4173, identidad del lock, ausencia de
+  journals/tombstones/procesos de agente, `Cache-Control: no-store` y concordancia de
+  fuente/`dist`/`build-info.json`. Declara de forma explícita cualquier recurso que siga activo.
+- Desde que el desarrollador valida un borrador hasta que comunica el resultado de **Aplicar**, el
+  checkout queda congelado: no modifiques fuente, build, cola o Git. Si la revisión/digest cambia,
+  detén el handoff y explica la diferencia; nunca reemplaces silenciosamente el borrador humano.
+- La validación del agente cubre automatización reproducible; los gestos, perfiles, reset real,
+  caché y aplicación canónica en navegador se consideran evidencia humana y no se simulan sobre
+  el entorno persistente del usuario.
 
 ## Criterios de término
 

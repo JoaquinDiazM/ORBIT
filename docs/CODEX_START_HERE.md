@@ -174,6 +174,12 @@ npm run dev # modo normal: ORBIT + Editor; aplicar bloqueado
 npm run check
 ```
 
+Los recorridos manuales siguientes pertenecen a JoaquinDiazM u otro desarrollador: se ejecutan
+en Microsoft Edge externo con el servicio canónico iniciado desde un terminal visible de Visual
+Studio Code. El agente prepara el guion, ejecuta automatización aislada y registra la evidencia
+recibida; no usa el perfil persistente real, no deja un servicio oculto y congela el checkout
+entre validar y aplicar una edición.
+
 Para probar cambios de progresión:
 
 1. inicia Estudiante y confirma la migración de cualquier clave `normal` compatible;
@@ -292,9 +298,11 @@ Orden obligatorio al comenzar:
 2. publicar una cohorte solo si está cerrada y todos sus IDs están `aprobado`;
 3. recuperar los `en-implementacion` de la versión inmediata;
 4. revisar únicamente los `autorizado` de esa cohorte y devolver a `faltan-detalles` lo ambiguo;
-5. implementar y validar solo el alcance acordado, sin adelantar una versión futura;
-6. dejar cada resultado en `en-revision`, opcionalmente en un commit local, pero sin changelog,
-   versión ni push;
+5. implementar y validar automáticamente solo el alcance acordado, sin adelantar una versión
+   futura;
+6. registrar el preflight prístino y entregar la revisión manual a JoaquinDiazM u otro
+   desarrollador; dejar cada resultado en `en-revision`, opcionalmente en un commit local, pero
+   sin changelog, versión ni push;
 7. al aprobarse el conjunto completo, confirmar primero el árbol exacto aprobado, crear el
    release y hacer su push; después de verificarlo, archivar las fichas con un manifiesto de IDs
    en `docs/UPDATES_HISTORY.md` y subir el commit documental de cierre.

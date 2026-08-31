@@ -137,13 +137,17 @@ commit o pull request.
 3. Lee los `AGENTS.md` aplicables, reproduce el comportamiento actual en los perfiles afectados
    y convierte el alcance en criterios verificables.
 4. Marca `en-implementacion`, implementa el cambio mínimo y añade pruebas.
-5. Ejecuta `npm run check`.
-6. Prueba manualmente ORBIT en Estudiante, Docente y `?debug=1&profile=debug`.
-7. Si el cambio afecta cartografía o Editor, prueba además `editor.html`,
+5. Ejecuta `npm run check` y las pruebas automáticas aisladas.
+6. Entrega a JoaquinDiazM u otro desarrollador la revisión manual de ORBIT en Estudiante, Docente
+   y `?debug=1&profile=debug`. Esa persona usa Edge externo y levanta el servicio canónico desde
+   un terminal visible de Visual Studio Code; el agente no opera su perfil persistente.
+7. Si el cambio afecta cartografía o Editor, el guion humano incluye además `editor.html`,
    `editor.html?profile=student`, `editor.html?profile=debug`, round-trip JSON y separación de
-   almacenamiento.
-8. Registra resultado, pruebas y limitaciones en el punto y déjalo `en-revision`. Puede quedar en
-   un commit local coherente; no actualices todavía versión o `CHANGELOG.md` ni hagas push.
+   almacenamiento. Registra antes el preflight prístino y congela el checkout entre validar y
+   aplicar.
+8. Registra por separado resultado, pruebas automáticas, preflight y revisión manual humana; deja
+   el punto `en-revision`. Puede quedar en un commit local coherente; no actualices todavía versión
+   o `CHANGELOG.md` ni hagas push.
 9. Cuando **todos** los IDs de la cohorte cerrada estén `aprobado`, revalida el conjunto,
    confirma primero en un commit local el árbol exacto aprobado, elige X/Y/Z, actualiza una sola
    vez documentación, changelog y archivos de versión, inspecciona cada hunk y cambia el lote a
@@ -231,6 +235,10 @@ test("la nueva regla conserva la propiedad esperada", () => {
 ```
 
 ## Revisión manual mínima
+
+La ejecuta JoaquinDiazM u otro desarrollador en Edge externo, con el servicio iniciado desde un
+terminal visible de Visual Studio Code. El agente prepara estos pasos y analiza la evidencia, pero
+no reemplaza esta revisión con una sesión propia ni modifica el checkout mientras esté en curso.
 
 - Carga inicial sin errores de consola.
 - Movimiento diagonal y colisión con fronteras bloqueadas.

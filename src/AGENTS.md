@@ -32,4 +32,4 @@ Estas reglas se suman al `AGENTS.md` de la raíz para todo `src/`.
 
 ## Pruebas
 
-Una modificación de `core/` requiere prueba unitaria o explicación clara de por qué el validador existente cubre el caso. Una modificación del loop o renderer requiere revisión manual con debugger además de `npm run check`.
+Una modificación de `core/` requiere prueba unitaria o explicación clara de por qué el validador existente cubre el caso. Una modificación del loop o renderer requiere pruebas automáticas y un guion de revisión con debugger que confirmará JoaquinDiazM u otro desarrollador; el agente no opera la sesión canónica del navegador.

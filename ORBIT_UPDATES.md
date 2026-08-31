@@ -35,7 +35,7 @@ Solo JoaquinDiazM puede cerrar o reabrir una cohorte de versión.
 | `faltan-detalles` | Agente | Hay una decisión bloqueante. El agente escribe solo las preguntas mínimas y una recomendación comprensible. No modifica el producto. |
 | `autorizado` | Solo usuario | Permite la revisión técnica previa y, si el alcance es sólido, la implementación. Si sigue ambiguo, vuelve a `faltan-detalles` sin tocar código. |
 | `en-implementacion` | Agente | Hay trabajo local en curso dentro de la cohorte inmediata. Puede haber varios IDs de esa misma cohorte si sus alcances son independientes. |
-| `en-revision` | Agente | Implementación y pruebas locales terminadas. Espera revisión del usuario; puede quedar en un commit local de control, pero todavía no se versiona, no se incluye en el changelog ni se sube. |
+| `en-revision` | Agente | Implementación y pruebas automáticas terminadas, con preflight prístino registrado. Espera la revisión humana aplicable y aprobación del usuario; puede quedar en un commit local de control, pero todavía no se versiona, no se incluye en el changelog ni se sube. |
 | `aprobado` | Solo usuario | El resultado fue aceptado y su alcance queda congelado. Espera a los demás IDs de su cohorte; no autoriza un push parcial. |
 | `publicando` | Agente | La cohorte completa está aprobada y su commit de release está preparado o en tránsito al remoto. Incluye una versión resuelta y se recupera antes que cualquier otro trabajo. |
 | `bloqueado` | Agente | Un impedimento técnico o externo verificable impide continuar. Debe registrar causa, responsable y condición para reanudar. |
@@ -100,7 +100,8 @@ por ID ascendente. El estado —incluido `pospuesto`— no crea grupos ni altera
    intención en criterios verificables, declarar fuera de alcance y revisar invariantes. Si falta
    una decisión material, cambiarla a `faltan-detalles` y preguntar; si no, marcarla
    `en-implementacion` y proceder.
-6. Al completar un ID, registrar pruebas y revisión manual, cambiarlo a `en-revision` y crear de
+6. Al completar un ID, registrar por separado pruebas automáticas, preflight del entorno e
+   instrucciones o evidencia de revisión manual humana; cambiarlo a `en-revision` y crear de
    preferencia un commit local coherente. No hacer push, no modificar versión ni changelog.
 7. Mientras exista una cohorte inmediata sin publicar, no implementar IDs destinados a una
    versión posterior. Sí se pueden refinar sus especificaciones y preguntas, incluso moverlos a
@@ -112,6 +113,45 @@ El límite es **una sola cohorte de versión en implementación, revisión o pub
 checkout**, no un solo ID. Todos los puntos activos deben pertenecer a esa versión inmediata;
 los futuros esperan. Nunca se usa `git add -A`: se preparan rutas explícitas y se inspecciona
 cada hunk, porque una ruta también podría contener cambios ajenos.
+
+## Separación de entornos y pruebas manuales
+
+Las pruebas manuales que usan el navegador, los perfiles Estudiante/Docente/Debug, progreso,
+`localStorage`, Web Locks, caché, el origen `127.0.0.1:4173`, `npm run dev`,
+`npm run editor:author` o **Aplicar edición al curso** pertenecen a JoaquinDiazM o a otro
+desarrollador del repositorio. Se realizan en **Microsoft Edge** externo contra un servicio
+iniciado por esa persona desde un terminal visible de **Visual Studio Code** en la raíz
+canónica. El agente entrega los pasos y registra la evidencia comunicada por el desarrollador,
+pero no sustituye esa revisión operando otro navegador o perfil persistente ni declara superada
+una comprobación humana que el desarrollador no haya ejecutado.
+
+Los agentes pueden ejecutar suites, builds, sondeos HTTP y E2E sin navegador únicamente en
+primer plano y con almacenamiento inyectado, procesos acotados o raíces temporales. No deben
+usar el perfil real del desarrollador, mutar su `localStorage`, borrar cachés, dejar servidores
+en segundo plano ni ocupar el puerto canónico para una revisión humana. Si una prueba automática
+necesita un servicio, debe comprobar primero que el puerto requerido está libre, aislarlo,
+registrar su PID, terminarlo dentro de la misma prueba y demostrar que liberó sus recursos. Un
+agente tampoco adopta o detiene procesos ajenos ni cambia la configuración global de Git para
+resolver diferencias de entorno o propietario.
+
+Antes de solicitar una prueba manual, el agente debe entregar un estado prístino y comprobar:
+
+- checkout y rutas staged/unstaged explícitas;
+- puerto `127.0.0.1:4173` libre o asociado exactamente al proceso visible del desarrollador;
+- identidad PID/lock coherente y ausencia de procesos iniciados por agentes;
+- ausencia de journals, tombstones o locks residuales de autoría;
+- revisión coincidente entre fuente, `dist` y `build-info.json` cuando corresponda;
+- respuestas locales con `Cache-Control: no-store` y una única URL/origen canónicos.
+
+Una excepción que requiera limpiar o reemplazar estado real del navegador se explica primero y
+solo la ejecuta el desarrollador. Un conflicto creado por el entorno del agente nunca se corrige
+alterando silenciosamente el borrador Docente validado.
+
+Durante una validación y aplicación humana el checkout queda **congelado**: ningún agente modifica
+fuente, build, cola operativa o Git hasta que el desarrollador comunique el resultado. Para
+**Aplicar**, `git status --porcelain` debe estar vacío antes de validar y la revisión/digest no
+puede cambiar entre validar y aplicar. Si aparece una diferencia, se informa y se vuelve a
+preparar el handoff; nunca se sustituye el borrador validado por otra edición.
 
 ## Versionado y publicación
 
@@ -172,8 +212,9 @@ Un párrafo libre.
 - Base revisada:
 - Rutas propias:
 - Resultado: no iniciada.
-- Pruebas: no aplican todavía.
-- Cómo revisar para JoaquinDiazM:
+- Pruebas automáticas: no aplican todavía.
+- Preflight del entorno: pendiente.
+- Revisión manual humana: pendiente — pasos para JoaquinDiazM:
 - Observaciones del usuario: ninguna.
 ```
 
@@ -190,9 +231,9 @@ Sin propuestas pendientes de clasificar.
 ## Cohorte inmediata
 
 - Versión: `0.5.0`
-- Estado de la cohorte: `abierta`
+- Estado de la cohorte: `cerrada`
 - IDs: `UPD-001`, `UPD-013`, `UPD-014`
-- Apertura confirmada por JoaquinDiazM: 2026-08-30.
+- Cierre confirmado por JoaquinDiazM: 2026-08-31.
 
 ## Actualizaciones activas
 
@@ -433,7 +474,15 @@ perfil.
   limitado al origen canónico; `/editor.html/` redirige a `/editor.html`. Durante un apagado, la
   sesión vieja responde `503` y no puede cancelar la reconexión; al detectar el servicio nuevo se
   restablecen el control de apagado y el mensaje de disponibilidad.
-- Pruebas: aplicación completa, no-op, conteos, cancelación, contratos futuros, locks y pestañas,
+  La cuarta corrección invoca `fetch` sin convertirlo en método de los clientes del servicio y
+  de autoría, eliminando `Illegal invocation` en Edge. La aplicación manual final instaló el
+  borrador Docente validado como
+  `sha256:9b542c016e1d83772539698307cc3f5020bcaba0719f43950de67b07e96066da`:
+  16 zonas y 6 nodos movidos, 1 conexión añadida, 0 apariencias y 0 conexiones retiradas. El
+  helper sincronizó fuente/build, reinició los tres perfiles y terminó sin journal, lock ni
+  proceso residual.
+- Pruebas automáticas: aplicación completa, no-op, conteos, cancelación, contratos futuros, locks
+  y pestañas,
   crashes en cada fase, rollback/finalize, progreso resucitado, envelopes divergentes, Host y
   absolute-form, límite/alcance estático, realpath y coincidencia exacta fuente/dist/build-info.
   Suite integral previa a esta corrección: 374 aprobadas, 0 fallos y 2 skips EPERM de symlink;
@@ -452,9 +501,19 @@ perfil.
   añade una conexión y cambia una apariencia mediante helper HTTP; verifica la misma edición en
   fuente/dist/build-info/navegador, elimina todas las claves actuales y legadas de los tres
   perfiles y preserva el borrador Docente y Bowerbird Estudiante. Una prueba real adicional sobre
-  127.0.0.1:4173 observó `development → unknown transitorio → editor-author listo` después del
+  `127.0.0.1:4173` observó `development → unknown transitorio → editor-author listo` después del
   apagado auténtico; terminó con puerto, lock y journal libres. Como este runtime no incluye npm,
   los cuatro componentes de `npm run check` se ejecutaron directamente con Node 24.19.0.
+  El check integral final de publicación terminó con 388 pruebas: 386 aprobadas, 0 fallos y 2
+  skips EPERM esperados de symlink; validate confirmó 19 zonas, 20 conceptos y 29 lugares,
+  repo-check confirmó 122 JS y 40 Markdown, y el build estático se reconstruyó.
+- Preflight del entorno: antes del handoff canónico se comprobó checkout limpio; al finalizar,
+  fuente, `dist` y `build-info.json` coincidían con la revisión `9b542c…`, el puerto 4173
+  estaba libre y no quedaban proceso de agente, helper, lock, journal ni tombstone.
+- Revisión manual humana: JoaquinDiazM la realizó en Edge externo con
+  `npm run editor:author` iniciado desde un terminal visible de VS Code; comprobó detección del
+  helper, confirmación habilitada, aplicación de su borrador validado y reset de Estudiante,
+  Docente y Debug.
 - Cómo revisar para JoaquinDiazM: ejecuta primero `npm run dev`, abre Editor Docente, modifica una
   zona/nodo/conexión/apariencia y valida en **Resumen**. Debe indicar **Modo normal**, mostrar el
   diff/impacto y mantener confirmación/**Aplicar** bloqueados con instrucciones. Deja una pestaña
@@ -498,7 +557,7 @@ perfil.
 
 ### UPD-016 — Corregir desborde del rótulo Bowerbird
 
-- Estado: `propuesto`
+- Estado: `autorizado`
 - Tipo: `bug`
 - Versión objetivo: `0.5.1`
 - Impacto sugerido: `Z`; corrección visual compatible y acotada al dock de ORBIT Editor.
@@ -542,7 +601,7 @@ cuando el dock muestra el texto completo. El modo minimizado `BW` se ve correcta
 
 ### UPD-017 — Unificar la apariencia de conectores
 
-- Estado: `propuesto`
+- Estado: `autorizado`
 - Tipo: `bug`
 - Versión objetivo: `0.5.1`
 - Impacto sugerido: `Z`; normaliza la representación visual sin cambiar la topología.
