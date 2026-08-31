@@ -2,6 +2,56 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [0.5.0] - 2026-08-31
+
+### Añadido
+
+- Panel **Gadgets** con calculadora científica segura disponible desde el inicio, Explorador de
+  campos 2D desbloqueable y una primera estación/esqueleto de Carta de Smith opcional.
+- **Bowerbird** en ORBIT Editor: Docente incorpora apariencias al documento editorial y
+  Estudiante conserva preferencias personales aisladas, con precedencia
+  personal → publicada → canónica.
+- Artefacto desplegable `orbit-course-edition` v1 y flujo local
+  **Validar → impacto → confirmar → aplicar**, con respaldo, journal, recuperación, reinicio de
+  los tres progresos y concordancia verificable entre fuente, navegador y build.
+- Modos locales explícitos: `npm run dev` para operación normal y
+  `npm run editor:author` para mantenimiento; este último bloquea ORBIT y reserva Editor/API
+  para aplicar una edición.
+
+### Cambiado
+
+- El antiguo Lente superpuesto y el atajo `G` se reemplazan por Gadgets sin romper sus IDs de
+  recompensa históricos; el documento editorial avanza a v2 y el progreso a v4 ligado a la
+  revisión activa del curso.
+- La edición publicada adopta la cartografía validada por el autor: 16 zonas y 6 nodos movidos,
+  más la dependencia directa `vector-workshop → coulomb-observatory`, sin retirar conexiones ni
+  cambiar apariencias.
+- El helper de mantenimiento aplica exclusivamente la edición Docente validada sobre un checkout
+  limpio; nunca crea commits, modifica Git ni publica un remoto.
+
+### Corregido
+
+- Los controles restringidos de Estudiante en Editor anuncian alertas breves por acción, sin un
+  banner permanente ni mutaciones accidentales del borrador Docente.
+- La reconexión del Editor sobrevive al cambio normal/mantenimiento, al foco y a BFCache; las
+  llamadas `fetch` conservan su receptor correcto en Edge y **Volver a comprobar servicio**
+  fuerza un diagnóstico visible.
+- **Detener servidor** cierra de forma cooperativa solo el servicio local que sirve la página,
+  rechaza una transacción ocupada y no deja puerto, lock o journal residual.
+
+### Verificación y alcance
+
+- La cohorte corresponde exactamente a `UPD-001`, `UPD-013` y `UPD-014`. El check integral
+  ejecuta 388 pruebas: 386 aprobadas, 0 fallos y 2 omisiones esperadas porque Windows negó crear
+  symlinks; valida 19 zonas, 20 conceptos y 29 lugares alcanzables, 122 archivos JavaScript, 40
+  Markdown y el build estático.
+- JoaquinDiazM aplicó la revisión
+  `sha256:9b542c016e1d83772539698307cc3f5020bcaba0719f43950de67b07e96066da`
+  manualmente en Edge, con autoría iniciada desde un terminal visible de VS Code, y confirmó el
+  reinicio de Estudiante, Docente y Debug.
+- Se conservan los cinco audios, KaTeX 0.18.1 y el alcance estático: no se añaden backend público,
+  cuentas, autenticación, telemetría, CDN ni dependencias de ejecución.
+
 ## [0.4.3] - 2026-08-30
 
 ### Añadido

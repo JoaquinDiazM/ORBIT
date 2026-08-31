@@ -22,8 +22,9 @@ En este orden:
 
 ## 2. Estado actual
 
-La base publicada es `0.4.3` y la cohorte candidata `0.5.0` está en revisión local. El prototipo
-sigue siendo estático, conserva una dependencia local respaldada por ADR, dos entradas
+La base publicada es `0.5.0` y la siguiente cohorte operativa se controla en
+`ORBIT_UPDATES.md`. El prototipo sigue siendo estático, conserva una dependencia local
+respaldada por ADR, dos entradas
 deliberadamente separadas y un flujo por cohortes con autorización y revisión humana:
 
 - **ORBIT** en `index.html`, con perfiles locales Estudiante, Docente y Debug;

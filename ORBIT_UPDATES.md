@@ -239,7 +239,7 @@ Sin propuestas pendientes de clasificar.
 
 ### UPD-001 — Hub de gadgets y explorador de campos vectoriales
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `épica`
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y` cuando se defina una primera capacidad completa.
@@ -303,7 +303,7 @@ ser utilizables en otros lugares de aprendizaje.
 
 ### UPD-013 — Bowerbird: personalización visual de zonas
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y`; el objetivo provisional debe coordinarse con los demás puntos de 0.5.0
@@ -383,7 +383,7 @@ opciones de colores, dibujos estáticos o móviles y contornos.
 
 ### UPD-014 — Aplicar una edición del curso
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `infraestructura`
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y` si se limita a una aplicación local; una publicación remota depende de

@@ -18,7 +18,7 @@ El autor sitúa el origen pedagógico de esta primera ruta en su experiencia doc
 
 La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra lineal y física clásica, especialmente quienes consideran estudiar Ingeniería Eléctrica o comienzan los primeros semestres de la especialidad.
 
-> **Estado:** base publicada `0.4.3`; la cohorte candidata `0.5.0` está en revisión local. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
+> **Estado:** base publicada `0.5.0`; la siguiente cohorte operativa se controla en `ORBIT_UPDATES.md`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
 
 ## Qué demuestra esta versión
 
@@ -80,7 +80,7 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
 - Una dependencia npm fijada y documentada: KaTeX 0.18.1; la cohorte `0.5.0` no añade paquetes,
   backend público, autenticación, render 3D ni CDN.
 
-### Cambios centrales de 0.5.0 (candidata)
+### Cambios centrales de 0.5.0
 
 **Gadgets** deja de ser un estado superpuesto al mapa y pasa a un panel explícito. La
 calculadora científica está siempre disponible y usa una gramática de lista blanca; el
