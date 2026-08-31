@@ -5,6 +5,7 @@ import {
   TREE_TWO_VISUALIZATION_MODES,
   deriveKnowledgeGraphEdges,
 } from "../src/core/knowledge-graph.js";
+import { ProgressionModel } from "../src/core/progression.js";
 import { LOCATIONS } from "../src/data/locations.js";
 import { AREAS as WORLD_AREAS } from "../src/data/world.js";
 
@@ -22,14 +23,56 @@ const TEST_AREAS = Object.freeze([
   Object.freeze({ id: "far", q: 3, r: 0 }),
 ]);
 
+const EXPECTED_LEARNING_CONNECTION_IDS = Object.freeze([
+  "ampere-foundry->maxwell-archive",
+  "antenna-range->atacama-array",
+  "atacama-array->lunar-relay",
+  "circuit-analysis-bench->power-network-station",
+  "circuit-analysis-bench->rotating-machine-lab",
+  "circuit-analysis-bench->transmission-line-bench",
+  "coulomb-observatory->circuit-analysis-bench",
+  "coulomb-observatory->faraday-station",
+  "coulomb-observatory->maxwell-archive",
+  "differential-equations-lab->field-solver-lab",
+  "differential-equations-lab->maxwell-archive",
+  "differential-equations-lab->rotating-machine-lab",
+  "differential-equations-lab->spectrum-workshop",
+  "differential-equations-lab->superconductivity-transition-lab",
+  "faraday-station->ampere-foundry",
+  "faraday-station->maxwell-archive",
+  "field-solver-lab->lunar-relay",
+  "hertz-beacon->antenna-range",
+  "hertz-beacon->waveguide-mode-gallery",
+  "maxwell-archive->hertz-beacon",
+  "maxwell-archive->optics-bench",
+  "maxwell-archive->wireless-link-station",
+  "optics-bench->lunar-relay",
+  "power-network-station->lunar-relay",
+  "spectrum-workshop->atacama-array",
+  "superconductivity-transition-lab->lunar-relay",
+  "superconductivity-transition-lab->sensor-calibration-lab",
+  "vector-workshop->coulomb-observatory",
+  "vector-workshop->differential-equations-lab",
+  "wireless-link-station->lunar-relay",
+]);
+
+class MemoryStorage {
+  load() {
+    return null;
+  }
+
+  save() {}
+}
+
 test("publica los tres modos internos en el orden de la interfaz", () => {
   assert.deepEqual(TREE_TWO_VISUALIZATION_MODES, ["hidden", "direct", "total"]);
 });
 
-test("agrega requisitos por pareja y separa apariencia de novedad", () => {
+test("usa solo dependencias académicas explícitas y separa apariencia de novedad", () => {
   const locations = [
     {
       id: "source",
+      kind: "lesson",
       areaId: "same",
       grants: {
         concepts: ["shared-concept"],
@@ -39,6 +82,7 @@ test("agrega requisitos por pareja y separa apariencia de novedad", () => {
     },
     {
       id: "target",
+      kind: "mission",
       areaId: "adjacent",
       grants: {},
       requirements: {
@@ -70,7 +114,7 @@ test("agrega requisitos por pareja y separa apariencia de novedad", () => {
       id: "source->target",
       sourceId: "source",
       targetId: "target",
-      requirementKinds: ["completedLocations", "concepts", "rewards"],
+      requirementKinds: ["completedLocations"],
       sourceState: "completed",
       targetState: "completable",
       appearance: "bright",
@@ -83,9 +127,10 @@ test("agrega requisitos por pareja y separa apariencia de novedad", () => {
 
 test("aplica exactamente la matriz de estados y excluye extremos ocultos", () => {
   const pair = [
-    { id: "source", areaId: "same", grants: {}, requirements: {} },
+    { id: "source", kind: "lesson", areaId: "same", grants: {}, requirements: {} },
     {
       id: "target",
+      kind: "lesson",
       areaId: "same",
       grants: {},
       requirements: { completedLocations: ["source"] },
@@ -125,25 +170,29 @@ test("aplica exactamente la matriz de estados y excluye extremos ocultos", () =>
   );
 });
 
-test("hidden conserva solo el último desbloqueo causal", () => {
+test("hidden muestra únicamente la arista causal del último desbloqueo", () => {
   const locations = [
     {
       id: "first",
+      kind: "lesson",
       areaId: "same",
       grants: { concepts: ["first-concept"] },
       requirements: {},
     },
     {
       id: "last",
+      kind: "lesson",
       areaId: "adjacent",
       grants: { rewards: ["gadgets:last"] },
       requirements: {},
     },
     {
       id: "target",
+      kind: "mission",
       areaId: "far",
       grants: {},
       requirements: {
+        completedLocations: ["first", "last"],
         concepts: ["first-concept"],
         rewards: ["gadgets:last"],
       },
@@ -171,6 +220,53 @@ test("hidden conserva solo el último desbloqueo causal", () => {
 
   assert.deepEqual(edges.map((edge) => edge.id), ["last->target"]);
   assert.equal(edges[0].appearance, "bright");
+  assert.equal(edges[0].isNew, true);
+});
+
+test("hidden conserva solo la causa directa aunque una cascada revele otros destinos", () => {
+  const areas = [
+    { id: "origin", q: 0, r: 0, initial: true, order: 0 },
+    { id: "branch", q: 0, r: 1, order: 1 },
+    { id: "bridge", q: 1, r: 0, order: 2 },
+    { id: "far", q: 2, r: 0, order: 3 },
+  ];
+  const location = (id, areaId, completedLocations = []) => ({
+    id,
+    areaId,
+    kind: "lesson",
+    shortTitle: id,
+    offset: { x: 0, y: 0 },
+    requirements: { completedLocations },
+    grants: {},
+  });
+  const locations = [
+    location("vector-workshop", "origin"),
+    location("branch-node", "branch", ["vector-workshop"]),
+    location("bridge-node", "bridge", ["branch-node"]),
+    location("far-node", "far", ["vector-workshop"]),
+  ];
+  const progression = new ProgressionModel({
+    profile: "student",
+    storage: new MemoryStorage(),
+    areas,
+    locations,
+  });
+
+  progression.completeLocation("vector-workshop");
+  const result = progression.completeLocation("branch-node");
+  assert.deepEqual(result.newlyUnlockedAreaIds, ["bridge", "far"]);
+  assert.deepEqual(result.newlyAccessibleLocationIds, ["bridge-node", "far-node"]);
+
+  const edges = deriveKnowledgeGraphEdges({
+    locations,
+    areas,
+    snapshot: progression.getSnapshot(),
+    visualizationMode: "hidden",
+    newlyAccessibleLocationIds: result.newlyAccessibleLocationIds,
+    unlockSourceLocationId: "branch-node",
+  });
+
+  assert.deepEqual(edges.map((edge) => edge.id), ["branch-node->bridge-node"]);
   assert.equal(edges[0].isNew, true);
 });
 
@@ -226,13 +322,14 @@ test("Faraday → Maxwell pasa de amarillo tenue a brillante según la progresi�
 
 test("direct limita conexiones al mismo hexágono o a una frontera axial", () => {
   const locations = [
-    { id: "source", areaId: "same", grants: {}, requirements: {} },
+    { id: "source", kind: "lesson", areaId: "same", grants: {}, requirements: {} },
     ...[
       ["same-target", "same"],
       ["adjacent-target", "adjacent"],
       ["far-target", "far"],
     ].map(([id, areaId]) => ({
       id,
+      kind: "lesson",
       areaId,
       grants: {},
       requirements: { completedLocations: ["source"] },
@@ -264,7 +361,7 @@ test("direct limita conexiones al mismo hexágono o a una frontera axial", () =>
   );
 });
 
-test("el dataset actual no deriva parejas duplicadas", () => {
+test("el dataset publica las 30 parejas académicas sin conexiones laterales", () => {
   const locationIds = LOCATIONS.map((location) => location.id);
   const edges = deriveKnowledgeGraphEdges({
     locations: LOCATIONS,
@@ -277,11 +374,14 @@ test("el dataset actual no deriva parejas duplicadas", () => {
     visualizationMode: "total",
   });
 
-  assert.equal(edges.length, 14);
+  assert.equal(edges.length, 30);
   assert.equal(new Set(edges.map((edge) => edge.id)).size, edges.length);
-  assert.ok(
-    edges.some((edge) => edge.id === "transmission-line-bench->smith-chart-station"),
+  assert.deepEqual(
+    edges.map((edge) => edge.id).sort(),
+    EXPECTED_LEARNING_CONNECTION_IDS,
   );
+  assert.equal(edges.some((edge) => edge.id.includes("smith-chart-station")), false);
+  assert.equal(edges.some((edge) => edge.id.includes("field-lens-cache")), false);
   assert.ok(
     edges.every(
       (edge) =>
@@ -292,16 +392,14 @@ test("el dataset actual no deriva parejas duplicadas", () => {
     ),
   );
 
-  const coulombEdge = edges.find(
-    (edge) => edge.id === "coulomb-observatory->gauss-guide-post",
-  );
+  const coulombEdge = edges.find((edge) => edge.id === "vector-workshop->coulomb-observatory");
   const atacamaEdge = edges.find((edge) => edge.id === "atacama-array->lunar-relay");
   const superconductivityEdge = edges.find(
     (edge) => edge.id === "superconductivity-transition-lab->lunar-relay",
   );
-  assert.deepEqual(coulombEdge?.requirementKinds, ["completedLocations", "concepts"]);
-  assert.deepEqual(atacamaEdge?.requirementKinds, ["completedLocations", "concepts"]);
-  assert.deepEqual(superconductivityEdge?.requirementKinds, ["concepts"]);
+  assert.deepEqual(coulombEdge?.requirementKinds, ["completedLocations"]);
+  assert.deepEqual(atacamaEdge?.requirementKinds, ["completedLocations"]);
+  assert.deepEqual(superconductivityEdge?.requirementKinds, ["completedLocations"]);
 
   const directEdges = deriveKnowledgeGraphEdges({
     locations: LOCATIONS,
@@ -313,8 +411,9 @@ test("el dataset actual no deriva parejas duplicadas", () => {
     }),
     visualizationMode: "direct",
   });
-  assert.equal(directEdges.length, 8);
-  assert.ok(
-    directEdges.some((edge) => edge.id === "transmission-line-bench->smith-chart-station"),
+  assert.equal(directEdges.length, 14);
+  assert.equal(
+    directEdges.some((edge) => edge.id.includes("smith-chart-station")),
+    false,
   );
 });

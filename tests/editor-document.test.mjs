@@ -13,7 +13,11 @@ import {
   applyEditorDocument,
   createEditorDocument,
   deriveEditorTreeTwoTopology,
+  importEditorDocument,
+  materializeEditorDraft,
+  sanitizeEditorDraft,
   sanitizeEditorDocument,
+  serializeEditorDraft,
   serializeEditorDocument,
 } from "../src/editor/editor-document.js";
 
@@ -37,33 +41,26 @@ test("el documento canónico publica layout, apariencia y dependencias explícit
   assert.equal(candidate.baseDataVersion, EDITOR_BASE_DATA_VERSION);
   assert.equal(candidate.areas.length, AREAS.length);
   assert.equal(candidate.locations.length, LOCATIONS.length);
-  assert.deepEqual(candidate.treeTwoConnections, [
-    {
-      sourceId: "ampere-foundry",
-      targetId: "electric-cart-depot",
-      kind: "completedLocation",
-    },
-    {
-      sourceId: "atacama-array",
-      targetId: "lunar-relay",
-      kind: "completedLocation",
-    },
-    {
-      sourceId: "coulomb-observatory",
-      targetId: "gauss-guide-post",
-      kind: "completedLocation",
-    },
-    {
-      sourceId: "hertz-beacon",
-      targetId: "radio-skiff-hangar",
-      kind: "completedLocation",
-    },
-    {
-      sourceId: "transmission-line-bench",
-      targetId: "smith-chart-station",
-      kind: "completedLocation",
-    },
-  ]);
+  assert.equal(candidate.learningNetwork.nodeIds.length, 21);
+  assert.equal(candidate.learningNetwork.connections.length, 30);
+  assert.equal("treeTwoConnections" in candidate, false);
+  const academicIds = new Set(
+    LOCATIONS.filter(({ kind }) => kind === "lesson" || kind === "mission")
+      .map(({ id }) => id),
+  );
+  assert.deepEqual(new Set(candidate.learningNetwork.nodeIds), academicIds);
+  assert.equal(
+    candidate.learningNetwork.connections.every(
+      ({ sourceId, targetId }) => academicIds.has(sourceId) && academicIds.has(targetId),
+    ),
+    true,
+  );
+  assert.equal(
+    candidate.learningNetwork.connections.every(
+      (connection) => Object.keys(connection).sort().join(",") === "sourceId,targetId",
+    ),
+    true,
+  );
   assert.deepEqual(Object.keys(candidate.areas[0]), ["id", "q", "r", "appearance"]);
   assert.deepEqual(candidate.areas[0].appearance, {
     paletteId: "canonical",
@@ -76,18 +73,19 @@ test("el documento canónico publica layout, apariencia y dependencias explícit
   assert.equal(sanitizeEditorDocument(candidate).ok, true);
 });
 
-test("applyEditorDocument clona los datos y reemplaza solo completedLocations", () => {
+test("applyEditorDocument clona los datos y materializa la red explícita", () => {
   const candidate = document();
-  candidate.treeTwoConnections = candidate.treeTwoConnections.filter(
-    (connection) => connection.targetId !== "gauss-guide-post",
+  candidate.learningNetwork.connections = candidate.learningNetwork.connections.filter(
+    ({ sourceId, targetId }) =>
+      sourceId !== "coulomb-observatory" || targetId !== "maxwell-archive",
   );
-  candidate.treeTwoConnections.push({
+  candidate.learningNetwork.connections.push({
     sourceId: "vector-workshop",
     targetId: "circuit-analysis-bench",
-    kind: "completedLocation",
   });
   const applied = applyEditorDocument(candidate);
   const gauss = applied.locations.find((location) => location.id === "gauss-guide-post");
+  const maxwell = applied.locations.find((location) => location.id === "maxwell-archive");
   const circuit = applied.locations.find(
     (location) => location.id === "circuit-analysis-bench",
   );
@@ -108,7 +106,11 @@ test("applyEditorDocument clona los datos y reemplaza solo completedLocations", 
     gauss.requirements.areas,
     normalizeRequirements(canonicalGauss.requirements).areas,
   );
-  assert.deepEqual(circuit.requirements.completedLocations, ["vector-workshop"]);
+  assert.equal(maxwell.requirements.completedLocations.includes("coulomb-observatory"), false);
+  assert.deepEqual(
+    new Set(circuit.requirements.completedLocations),
+    new Set(["coulomb-observatory", "vector-workshop"]),
+  );
 
   applied.areas[0].q = 99;
   applied.locations[0].offset.x = 99;
@@ -116,17 +118,21 @@ test("applyEditorDocument clona los datos y reemplaza solo completedLocations", 
   assert.equal(LOCATIONS[0].offset.x, 0);
 });
 
-test("la topología del editor agrega bases y distingue relaciones editables", () => {
+test("la topología del editor contiene únicamente relaciones académicas explícitas", () => {
   const applied = applyEditorDocument(document());
   const topology = deriveEditorTreeTwoTopology(applied);
-  const gauss = topology.find(
-    (connection) => connection.id === "coulomb-observatory->gauss-guide-post",
-  );
 
-  assert.equal(topology.length, 14);
-  assert.deepEqual(gauss.requirementKinds, ["completedLocations", "concepts"]);
+  assert.equal(topology.length, 30);
   assert.equal(
-    topology.some((connection) => connection.requirementKinds.includes("rewards")),
+    topology.every(
+      (connection) =>
+        connection.requirementKinds.length === 1
+        && connection.requirementKinds[0] === "completedLocations",
+    ),
+    true,
+  );
+  assert.equal(
+    topology.some((connection) => connection.targetId === "gauss-guide-post"),
     false,
   );
 });
@@ -142,11 +148,6 @@ test("IDs desconocidos se ignoran y entidades ausentes se rebasan", () => {
     id: "future-node",
     areaId: "origin",
     offset: { x: 0, y: 0 },
-  });
-  candidate.treeTwoConnections.push({
-    sourceId: "future-node",
-    targetId: "vector-workshop",
-    kind: "completedLocation",
   });
 
   const result = sanitizeEditorDocument(candidate);
@@ -166,7 +167,6 @@ test("IDs desconocidos se ignoran y entidades ausentes se rebasan", () => {
       "areas-rebased",
       "unknown-location-ignored",
       "locations-rebased",
-      "unknown-connection-ignored",
     ]),
   );
 });
@@ -196,8 +196,13 @@ test("la versión base distinta se rebasa con advertencia", () => {
   assert.equal(result.warnings.some((entry) => entry.code === "base-version-rebased"), true);
 });
 
-test("un borrador v1 de 0.4.0 migra a v2 y restaura el nodo y conexión Smith", () => {
+test("un borrador v1 de 0.4.0 migra a v3, restaura Smith como lugar lateral y no lo conecta", () => {
   const legacy = document();
+  legacy.treeTwoConnections = legacy.learningNetwork.connections.map((connection) => ({
+    ...connection,
+    kind: "completedLocation",
+  }));
+  delete legacy.learningNetwork;
   legacy.schemaVersion = 1;
   legacy.baseDataVersion = "0.4.0";
   delete legacy.appearanceCatalogVersion;
@@ -210,15 +215,19 @@ test("un borrador v1 de 0.4.0 migra a v2 y restaura el nodo y conexión Smith", 
   const result = sanitizeEditorDocument(legacy);
 
   assert.equal(result.ok, true);
-  assert.equal(result.document.schemaVersion, 2);
+  assert.equal(result.document.schemaVersion, 3);
   assert.equal(result.document.appearanceCatalogVersion, 1);
   assert.equal(result.document.locations.length, LOCATIONS.length);
   assert.equal(
-    result.document.treeTwoConnections.some(
+    result.document.learningNetwork.nodeIds.includes("smith-chart-station"),
+    false,
+  );
+  assert.equal(
+    result.document.learningNetwork.connections.some(
       ({ sourceId, targetId }) =>
-        sourceId === "transmission-line-bench" && targetId === "smith-chart-station",
+        sourceId === "smith-chart-station" || targetId === "smith-chart-station",
     ),
-    true,
+    false,
   );
   assert.equal(
     result.document.areas.every(
@@ -227,7 +236,51 @@ test("un borrador v1 de 0.4.0 migra a v2 y restaura el nodo y conexión Smith", 
     true,
   );
   assert.equal(result.warnings.some(({ code }) => code === "editor-schema-migrated"), true);
-  assert.equal(result.warnings.some(({ code }) => code === "connections-rebased"), true);
+});
+
+test("un borrador v2 migra la topología efectiva de 30 pares y descarta laterales", () => {
+  const legacy = document();
+  const derivedLegacyPairs = new Set([
+    "antenna-range->atacama-array",
+    "spectrum-workshop->atacama-array",
+    "wireless-link-station->lunar-relay",
+    "power-network-station->lunar-relay",
+    "field-solver-lab->lunar-relay",
+    "optics-bench->lunar-relay",
+    "superconductivity-transition-lab->lunar-relay",
+  ]);
+  legacy.schemaVersion = 2;
+  legacy.baseDataVersion = "0.5.1";
+  legacy.treeTwoConnections = legacy.learningNetwork.connections
+    .filter(({ sourceId, targetId }) => !derivedLegacyPairs.has(`${sourceId}->${targetId}`))
+    .map((connection) => ({ ...connection, kind: "completedLocation" }));
+  legacy.treeTwoConnections.push(
+    {
+      sourceId: "coulomb-observatory",
+      targetId: "gauss-guide-post",
+      kind: "completedLocation",
+    },
+    {
+      sourceId: "ampere-foundry",
+      targetId: "electric-cart-depot",
+      kind: "completedLocation",
+    },
+  );
+  delete legacy.learningNetwork;
+
+  const result = sanitizeEditorDraft(legacy);
+
+  assert.equal(result.ok, true);
+  assert.equal(result.document.schemaVersion, 3);
+  assert.equal(result.document.learningNetwork.nodeIds.length, 21);
+  assert.equal(result.document.learningNetwork.connections.length, 30);
+  assert.equal(
+    result.document.learningNetwork.connections.some(
+      ({ targetId }) => targetId === "gauss-guide-post" || targetId === "electric-cart-depot",
+    ),
+    false,
+  );
+  assert.equal(result.warnings.some(({ code }) => code === "editor-schema-migrated"), true);
 });
 
 test("rechaza coordenadas no finitas, ocupación duplicada y mezcla de anillos", () => {
@@ -272,29 +325,29 @@ test("rechaza offsets fuera del margen seguro", () => {
 
 test("rechaza conexiones repetidas, autorreferentes y ciclos de toda la topología", () => {
   const duplicate = document();
-  duplicate.treeTwoConnections.push(structuredClone(duplicate.treeTwoConnections[0]));
+  duplicate.learningNetwork.connections.push(
+    structuredClone(duplicate.learningNetwork.connections[0]),
+  );
   assert.equal(
     errorCodes(sanitizeEditorDocument(duplicate)).has("duplicate-connection"),
     true,
   );
 
   const self = document();
-  self.treeTwoConnections.push({
+  self.learningNetwork.connections.push({
     sourceId: "vector-workshop",
     targetId: "vector-workshop",
-    kind: "completedLocation",
   });
   assert.equal(errorCodes(sanitizeEditorDocument(self)).has("self-connection"), true);
 
   const cyclic = document();
-  cyclic.treeTwoConnections.push({
-    sourceId: "gauss-guide-post",
-    targetId: "coulomb-observatory",
-    kind: "completedLocation",
+  cyclic.learningNetwork.connections.push({
+    sourceId: "coulomb-observatory",
+    targetId: "vector-workshop",
   });
   const cycleResult = sanitizeEditorDocument(cyclic);
   assert.equal(cycleResult.ok, false);
-  assert.equal(errorCodes(cycleResult).has("tree-two-cycle"), true);
+  assert.equal(errorCodes(cycleResult).has("learning-network-cycle"), true);
 });
 
 test("serialización e importación son deterministas", () => {
@@ -305,6 +358,66 @@ test("serialización e importación son deterministas", () => {
   assert.equal(first, second);
   assert.equal(first.endsWith("\n"), true);
   assert.deepEqual(JSON.parse(first), candidate);
+});
+
+test("Spider puede guardar un borrador inválido, Validar lo rechaza y una conexión alternativa lo repara", () => {
+  const candidate = document();
+  candidate.learningNetwork.connections = candidate.learningNetwork.connections.filter(
+    ({ sourceId, targetId }) =>
+      sourceId !== "differential-equations-lab"
+      || targetId !== "superconductivity-transition-lab",
+  );
+
+  const draft = sanitizeEditorDraft(candidate);
+  const strict = sanitizeEditorDocument(candidate);
+  assert.equal(draft.ok, true);
+  assert.equal(strict.ok, false);
+  assert.equal(errorCodes(strict).has("missing-learning-predecessor"), true);
+  assert.throws(
+    () => applyEditorDocument(candidate),
+    (error) =>
+      error instanceof EditorDocumentError
+      && error.issues.some(({ code }) => code === "missing-learning-predecessor"),
+  );
+
+  const serialized = serializeEditorDraft(candidate);
+  const imported = importEditorDocument(serialized);
+  assert.equal(imported.ok, true);
+  assert.equal(
+    imported.document.learningNetwork.connections.some(
+      ({ targetId }) => targetId === "superconductivity-transition-lab",
+    ),
+    false,
+  );
+
+  imported.document.learningNetwork.connections.push({
+    sourceId: "maxwell-archive",
+    targetId: "superconductivity-transition-lab",
+  });
+  assert.equal(sanitizeEditorDocument(imported.document).ok, true);
+  assert.doesNotThrow(() => applyEditorDocument(imported.document));
+});
+
+test("retirar un nodo de la red no elimina el lugar del curso", () => {
+  const candidate = document();
+  candidate.learningNetwork.nodeIds = candidate.learningNetwork.nodeIds.filter(
+    (id) => id !== "superconductivity-transition-lab",
+  );
+  candidate.learningNetwork.connections = candidate.learningNetwork.connections.filter(
+    ({ sourceId, targetId }) =>
+      sourceId !== "superconductivity-transition-lab"
+      && targetId !== "superconductivity-transition-lab",
+  );
+
+  const draft = sanitizeEditorDraft(candidate);
+  assert.equal(draft.ok, true);
+  assert.equal(sanitizeEditorDocument(candidate).ok, false);
+  const materialized = materializeEditorDraft(candidate);
+  const location = materialized.locations.find(
+    ({ id }) => id === "superconductivity-transition-lab",
+  );
+  assert.notEqual(location, undefined);
+  assert.deepEqual(location.requirements.completedLocations, []);
 });
 
 test("applyEditorDocument falla explícitamente ante un documento inválido", () => {

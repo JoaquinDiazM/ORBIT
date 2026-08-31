@@ -2,9 +2,12 @@ import { APP_CONFIG } from "../config.js";
 import { CONCEPTS, REWARDS, getReward, parseRewardKey, rewardKey } from "../data/knowledge.js";
 import { LOCATIONS } from "../data/locations.js";
 import { AREAS, WORLD_CONFIG } from "../data/world.js";
-import { TREE_TWO_VISUALIZATION_MODES } from "./knowledge-graph.js";
+import {
+  TREE_TWO_VISUALIZATION_MODES,
+  isLearningLocation,
+  meetsLearningPrerequisites,
+} from "./knowledge-graph.js";
 import { isLocationAllowedForProfile } from "./profile-policy.js";
-import { meetsRequirements } from "./requirements.js";
 import { migrateProgressState } from "./progress-migrations.js";
 import { ProgressStorage, StoragePersistenceError } from "./storage.js";
 import {
@@ -253,24 +256,16 @@ export class ProgressionModel {
       .filter((id) => getReward("transports", id));
   }
 
-  #context(unlockedAreas = this.getUnlockedAreaIds()) {
-    return {
-      concepts: new Set(this.state.concepts),
-      completedLocations: new Set(this.state.completedLocations),
-      rewards: new Set(this.state.rewards),
-      unlockedAreas,
-    };
-  }
-
   #accessibleLocationIds(unlockedAreas = this.getUnlockedAreaIds()) {
-    const context = this.#context(unlockedAreas);
+    const completedLocations = new Set(this.state.completedLocations);
     return new Set(
       this.locations
         .filter(
           (location) =>
             isLocationAllowedForProfile(this.profile, location) &&
             unlockedAreas.has(location.areaId) &&
-            meetsRequirements(location.requirements, context),
+            (!isLearningLocation(location) ||
+              meetsLearningPrerequisites(location, completedLocations)),
         )
         .map((location) => location.id),
     );
@@ -279,10 +274,9 @@ export class ProgressionModel {
   getUnlockedAreaIds() {
     return deriveUnlockedAreaIds({
       areas: this.areas,
+      locations: this.locations,
       worldIndex: this.worldIndex,
-      concepts: new Set(this.state.concepts),
       completedLocations: new Set(this.state.completedLocations),
-      rewards: new Set(this.state.rewards),
       debugUnlockedAreas: new Set(this.state.debugUnlockedAreas),
     });
   }
@@ -301,7 +295,10 @@ export class ProgressionModel {
 
     const unlockedAreas = this.getUnlockedAreaIds();
     if (!unlockedAreas.has(location.areaId)) return false;
-    return meetsRequirements(location.requirements, this.#context(unlockedAreas));
+    return (
+      !isLearningLocation(location) ||
+      meetsLearningPrerequisites(location, new Set(this.state.completedLocations))
+    );
   }
 
   isLocationVisible(locationOrId) {
@@ -571,7 +568,7 @@ export class ProgressionModel {
 
   getNextMission() {
     const orderedLearningLocations = this.locations.filter(
-      (location) => location.grants?.concepts?.length > 0,
+      (location) => isLearningLocation(location),
     );
     const available = orderedLearningLocations.find(
       (location) =>

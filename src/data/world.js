@@ -1,9 +1,13 @@
 export const WORLD_CONFIG = Object.freeze({
   hexSize: 230,
   spawnAreaId: "origin",
+  learningRootLocationId: "vector-workshop",
   spawnOffset: { x: 0, y: 52 },
   backgroundStars: 320,
 });
+
+const LEARNING_NETWORK_UNLOCK_HINT =
+  "Sigue la Red de aprendizaje hasta habilitar un nodo académico de esta zona.";
 
 export const AREAS = Object.freeze([
   {
@@ -19,7 +23,7 @@ export const AREAS = Object.freeze([
     initial: true,
     order: 0,
     tier: 0,
-    requirements: { concepts: [] },
+    requirements: {},
     unlockHint: "Disponible desde el inicio.",
   },
   {
@@ -34,8 +38,8 @@ export const AREAS = Object.freeze([
     accent: "#c9a9ff",
     order: 1,
     tier: 1,
-    requirements: { concepts: ["vectors-and-fields"] },
-    unlockHint: "Completa el Taller Vectorial.",
+    requirements: {},
+    unlockHint: LEARNING_NETWORK_UNLOCK_HINT,
   },
   {
     id: "magnetism",
@@ -49,8 +53,8 @@ export const AREAS = Object.freeze([
     accent: "#82e4c4",
     order: 2,
     tier: 1,
-    requirements: { concepts: ["charge-and-superposition"] },
-    unlockHint: "Completa el Observatorio de Coulomb.",
+    requirements: {},
+    unlockHint: LEARNING_NETWORK_UNLOCK_HINT,
   },
   {
     id: "differential-equations",
@@ -64,8 +68,8 @@ export const AREAS = Object.freeze([
     accent: "#c8b4ff",
     order: 3,
     tier: 1,
-    requirements: { concepts: ["vectors-and-fields"] },
-    unlockHint: "Completa el Taller Vectorial.",
+    requirements: {},
+    unlockHint: LEARNING_NETWORK_UNLOCK_HINT,
   },
   {
     id: "maxwell",
@@ -79,8 +83,8 @@ export const AREAS = Object.freeze([
     accent: "#9ebfff",
     order: 4,
     tier: 1,
-    requirements: { concepts: ["steady-currents"] },
-    unlockHint: "Domina corrientes y campo magnético.",
+    requirements: {},
+    unlockHint: LEARNING_NETWORK_UNLOCK_HINT,
   },
   {
     id: "waves",
@@ -94,8 +98,8 @@ export const AREAS = Object.freeze([
     accent: "#7fe4ff",
     order: 5,
     tier: 1,
-    requirements: { concepts: ["maxwell-synthesis"] },
-    unlockHint: "Completa la síntesis de Maxwell.",
+    requirements: {},
+    unlockHint: LEARNING_NETWORK_UNLOCK_HINT,
   },
   {
     id: "circuits",
@@ -109,8 +113,8 @@ export const AREAS = Object.freeze([
     accent: "#ffd091",
     order: 6,
     tier: 1,
-    requirements: { concepts: ["vectors-and-fields"] },
-    unlockHint: "Completa el Taller Vectorial.",
+    requirements: {},
+    unlockHint: LEARNING_NETWORK_UNLOCK_HINT,
   },
   {
     id: "sensors-instrumentation",
@@ -124,8 +128,8 @@ export const AREAS = Object.freeze([
     accent: "#9fd8ff",
     order: 7,
     tier: 2,
-    requirements: { concepts: ["charge-and-superposition", "circuit-analysis"] },
-    unlockHint: "Combina Electrostática y Circuitos.",
+    requirements: {},
+    unlockHint: LEARNING_NETWORK_UNLOCK_HINT,
   },
   {
     id: "electrical-machines",
@@ -139,10 +143,8 @@ export const AREAS = Object.freeze([
     accent: "#ffbd80",
     order: 8,
     tier: 2,
-    requirements: {
-      concepts: ["steady-currents", "faraday-induction", "circuit-analysis"],
-    },
-    unlockHint: "Combina Magnetismo, Inducción y Circuitos.",
+    requirements: {},
+    unlockHint: LEARNING_NETWORK_UNLOCK_HINT,
   },
   {
     id: "power-systems",
@@ -156,8 +158,8 @@ export const AREAS = Object.freeze([
     accent: "#ffe08a",
     order: 9,
     tier: 2,
-    requirements: { concepts: ["circuit-analysis", "electromechanical-conversion"] },
-    unlockHint: "Completa Circuitos y Máquinas Eléctricas.",
+    requirements: {},
+    unlockHint: LEARNING_NETWORK_UNLOCK_HINT,
   },
   {
     id: "computational-electromagnetics",
@@ -171,8 +173,8 @@ export const AREAS = Object.freeze([
     accent: "#a7c5ff",
     order: 10,
     tier: 2,
-    requirements: { concepts: ["differential-equation-modeling", "maxwell-synthesis"] },
-    unlockHint: "Combina Ecuaciones Diferenciales y Maxwell.",
+    requirements: {},
+    unlockHint: LEARNING_NETWORK_UNLOCK_HINT,
   },
   {
     id: "fourier-analysis",
@@ -186,8 +188,8 @@ export const AREAS = Object.freeze([
     accent: "#91dfdc",
     order: 11,
     tier: 2,
-    requirements: { concepts: ["differential-equation-modeling"] },
-    unlockHint: "Completa Ecuaciones Diferenciales.",
+    requirements: {},
+    unlockHint: LEARNING_NETWORK_UNLOCK_HINT,
   },
   {
     id: "optics-photonics",
@@ -201,8 +203,8 @@ export const AREAS = Object.freeze([
     accent: "#d1b9ff",
     order: 12,
     tier: 2,
-    requirements: { concepts: ["wave-propagation", "fourier-analysis"] },
-    unlockHint: "Combina Ondas y Análisis de Fourier.",
+    requirements: {},
+    unlockHint: LEARNING_NETWORK_UNLOCK_HINT,
   },
   {
     id: "electromagnetic-compatibility",
@@ -216,8 +218,8 @@ export const AREAS = Object.freeze([
     accent: "#c3c8ef",
     order: 13,
     tier: 2,
-    requirements: { concepts: ["maxwell-synthesis", "circuit-analysis"] },
-    unlockHint: "Combina Maxwell y Circuitos.",
+    requirements: {},
+    unlockHint: LEARNING_NETWORK_UNLOCK_HINT,
   },
   {
     id: "waveguides",
@@ -231,8 +233,8 @@ export const AREAS = Object.freeze([
     accent: "#9cc8ff",
     order: 14,
     tier: 2,
-    requirements: { concepts: ["wave-propagation", "differential-equation-modeling"] },
-    unlockHint: "Combina Ondas y Ecuaciones Diferenciales.",
+    requirements: {},
+    unlockHint: LEARNING_NETWORK_UNLOCK_HINT,
   },
   {
     id: "applications",
@@ -246,8 +248,8 @@ export const AREAS = Object.freeze([
     accent: "#ffb6ed",
     order: 15,
     tier: 2,
-    requirements: { concepts: ["wave-propagation"] },
-    unlockHint: "Completa la Baliza de Hertz.",
+    requirements: {},
+    unlockHint: LEARNING_NETWORK_UNLOCK_HINT,
   },
   {
     id: "antennas",
@@ -261,8 +263,8 @@ export const AREAS = Object.freeze([
     accent: "#7adcf8",
     order: 16,
     tier: 2,
-    requirements: { concepts: ["wave-propagation", "differential-equation-modeling"] },
-    unlockHint: "Combina Ondas y Ecuaciones Diferenciales.",
+    requirements: {},
+    unlockHint: LEARNING_NETWORK_UNLOCK_HINT,
   },
   {
     id: "wireless-communications",
@@ -276,10 +278,8 @@ export const AREAS = Object.freeze([
     accent: "#efb9ff",
     order: 17,
     tier: 2,
-    requirements: {
-      concepts: ["antenna-radiation", "transmission-line-analysis", "fourier-analysis"],
-    },
-    unlockHint: "Completa Antenas, Líneas de Transmisión y Fourier.",
+    requirements: {},
+    unlockHint: LEARNING_NETWORK_UNLOCK_HINT,
   },
   {
     id: "transmission-lines",
@@ -293,8 +293,8 @@ export const AREAS = Object.freeze([
     accent: "#8edfff",
     order: 18,
     tier: 2,
-    requirements: { concepts: ["circuit-analysis", "wave-propagation"] },
-    unlockHint: "Combina Circuitos y Ondas.",
+    requirements: {},
+    unlockHint: LEARNING_NETWORK_UNLOCK_HINT,
   },
 ]);
 

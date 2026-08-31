@@ -99,6 +99,10 @@ test("el shell expone todos los menús secundarios de ORBIT", async () => {
   }
   assert.doesNotMatch(index, /Prototipo 0\.2/);
   assert.match(index, /Open Roadmap for Building Intuition and Theory/);
+  assert.match(index, />Zonas · Red\s*<kbd/);
+  assert.match(index, /Zonas y red de aprendizaje/);
+  assert.match(index, /Red de aprendizaje/);
+  assert.doesNotMatch(index, />Árboles</);
   assert.match(index, /name="tree-two-visualization" value="hidden"/);
   assert.match(index, /name="tree-two-visualization" value="direct"/);
   assert.match(index, /name="tree-two-visualization" value="total"/);

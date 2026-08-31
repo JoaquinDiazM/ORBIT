@@ -1,9 +1,12 @@
 # ADR 0002: dos grafos de conocimiento separados
 
-- Estado: aceptado
+- Estado: reemplazado por [ADR 0009](0009-single-learning-network.md)
 - Fecha: 2026-08-25
 
 ## Contexto
+
+> Esta decisión describe el contrato histórico vigente hasta ORBIT 0.5.1. ADR 0009 lo reemplaza
+> por una Red de aprendizaje única y apertura territorial derivada.
 
 El mundo necesita una progresión territorial general y, al mismo tiempo, desbloqueos locales más finos. Mezclar ambas funciones en un único grafo produciría requisitos difíciles de interpretar y podría convertir gadgets o personajes opcionales en bloqueos involuntarios.
 

@@ -36,7 +36,7 @@ El Campamento Base debe diagnosticar y ofrecer repasos breves, no repetir cursos
 | 10 | Analizar sistemas guiados y adaptación | líneas de transmisión | impedancia, reflexión y potencia entregada |
 | 11 | Conectar fuentes, radiación, antenas y sistemas distribuidos | radiación, ganancia, fase | enlace, antena o arreglo interferométrico |
 
-## Posibles regiones del Árbol I
+## Posibles regiones del mapamundi
 
 La tabla curricular no obliga a que cada fila sea exactamente un hexágono. Una región puede contener más de un resultado o una rama puede especializarse.
 
@@ -53,9 +53,11 @@ Campamento Base
             └─ Antenas, radioastronomía y comunicaciones espaciales
 ```
 
-No tiene que ser un árbol estricto. Las aplicaciones avanzadas probablemente requerirán varios conceptos convergentes.
+La Red de aprendizaje no tiene que ser un árbol estricto: es un DAG y las aplicaciones avanzadas
+probablemente requerirán varios predecesores convergentes. Una región se abre por adyacencia
+cuando alguno de sus nodos académicos queda elegible.
 
-## Rutas laterales candidatas del Árbol II
+## Ramas aplicadas candidatas de la Red de aprendizaje
 
 ### Energía y máquinas
 
@@ -118,8 +120,9 @@ Antes de implementar una nueva región, completar:
 | Transferencia | ¿Qué tecnología o sistema nuevo puede analizar? |
 | Errores | ¿Qué confusiones se esperan? |
 | Fuentes | ¿Qué respalda historia, física y valores numéricos? |
-| Desbloqueo I | ¿Abre una región? |
-| Desbloqueo II | ¿Qué lugar, gadget, transporte o ruta abre? |
+| Red de aprendizaje | ¿Qué predecesores académicos necesita y qué sucesores habilita? |
+| Zona | ¿En qué región se ubica y desde qué frontera alcanzable puede abrirla? |
+| Exploración lateral | ¿Qué personaje, gadget o transporte queda disponible con la zona? |
 
 ## Decisiones pendientes
 

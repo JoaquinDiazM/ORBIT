@@ -67,6 +67,10 @@ function locationKindLabel(kind) {
   return labels[kind] ?? kind;
 }
 
+function isAcademicLocation(location) {
+  return ["lesson", "mission"].includes(location?.kind);
+}
+
 export class UIController {
   constructor({
     progression,
@@ -1202,7 +1206,7 @@ export class UIController {
       messageParts.push(`Nueva zona abierta: ${names}.`);
     }
     if (newlyVisibleLocations.length) {
-      messageParts.push(`${newlyVisibleLocations.length} lugar(es) del Árbol II revelado(s).`);
+      messageParts.push(`${newlyVisibleLocations.length} lugar(es) habilitado(s).`);
     }
     if (citationLabels.length) {
       messageParts.push(`Referencia del contenido desbloqueado: ${citationLabels.join("; ")}.`);
@@ -1328,12 +1332,12 @@ export class UIController {
 
     const explanation = element("p", { className: "callout" });
     explanation.textContent =
-      "Árbol I abre regiones hexagonales; Árbol II desbloquea contenido localizado y recompensas dentro de regiones disponibles. El movimiento físico sigue siendo libre.";
+      "La Red de aprendizaje conecta únicamente lecciones y misiones. Una zona vecina se abre cuando contiene al menos un nodo académicamente elegible; sus personajes, gadgets y transportes quedan disponibles para interactuar. El movimiento físico sigue siendo libre.";
     body.append(explanation);
 
     const columns = element("div", { className: "knowledge-columns" });
     const areaColumn = element("section", { className: "knowledge-column" });
-    areaColumn.append(element("h3", { text: "Árbol I · Zonas" }));
+    areaColumn.append(element("h3", { text: "Zonas" }));
     for (const area of [...this.areas].sort((a, b) => a.order - b.order)) {
       const unlocked = snapshot.unlockedAreaIds.has(area.id);
       const card = element("article", {
@@ -1352,8 +1356,8 @@ export class UIController {
     }
 
     const contentColumn = element("section", { className: "knowledge-column" });
-    contentColumn.append(element("h3", { text: "Árbol II · Lugares y recompensas" }));
-    for (const location of this.locations.filter((entry) => entry.kind !== "base" && entry.kind !== "debug")) {
+    contentColumn.append(element("h3", { text: "Red de aprendizaje" }));
+    const renderLocationCard = (location) => {
       const visible = snapshot.visibleLocationIds.has(location.id);
       const accessible = snapshot.accessibleLocationIds.has(location.id);
       const completed = snapshot.completedLocationIds.has(location.id);
@@ -1369,11 +1373,27 @@ export class UIController {
       } else {
         appendTextParagraph(card, "Se revelará cuando se satisfagan sus prerrequisitos.");
       }
-      contentColumn.append(card);
+      return card;
+    };
+    for (const location of this.locations.filter(isAcademicLocation)) {
+      contentColumn.append(renderLocationCard(location));
     }
 
     columns.append(areaColumn, contentColumn);
     body.append(columns);
+
+    const lateral = element("section", { className: "lesson-section" });
+    lateral.append(element("h3", { text: "Exploración lateral" }));
+    appendTextParagraph(
+      lateral,
+      "Personajes, gadgets y transportes no forman parte de la Red de aprendizaje: se habilitan al abrir su zona y conservan su interacción propia.",
+    );
+    for (const location of this.locations.filter(
+      (entry) => !isAcademicLocation(entry) && !["base", "debug"].includes(entry.kind),
+    )) {
+      lateral.append(renderLocationCard(location));
+    }
+    body.append(lateral);
 
     const inventory = element("section", { className: "lesson-section" });
     inventory.append(element("h3", { text: "Inventario desbloqueado" }));
@@ -1541,7 +1561,7 @@ export class UIController {
   #renderFormulaReference(body, snapshot) {
     this.#renderReferenceIntro(
       body,
-      "El formulario crece al completar lugares y rutas del Árbol II. Cada identidad declara las condiciones bajo las que puede aplicarse.",
+      "El formulario crece al completar lugares y recorridos de aprendizaje. Cada identidad declara las condiciones bajo las que puede aplicarse.",
       FORMULAS,
       snapshot,
     );

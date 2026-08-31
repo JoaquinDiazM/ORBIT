@@ -101,7 +101,7 @@ test("cuando los radios se solapan se elige el nodo más cercano", () => {
   );
 });
 
-test("Editor usa amarillo brillante para aristas editables y derivadas", () => {
+test("Editor usa amarillo brillante para las conexiones editables de aprendizaje", () => {
   const editable = getEditorEdgeVisualStyle({ editable: true });
   const derived = getEditorEdgeVisualStyle({ editable: false });
 
@@ -239,7 +239,7 @@ test("EditorRenderer acepta la escena y todos los overlays de la API pública", 
   assert.equal(canvas.height, 640);
 });
 
-test("Canvas dibuja igual las conexiones persistentes editables y derivadas", () => {
+test("Canvas dibuja de forma uniforme las conexiones persistentes de aprendizaje", () => {
   const trace = [];
   const canvas = createCanvasHarness(trace);
   const renderer = new EditorRenderer(canvas);

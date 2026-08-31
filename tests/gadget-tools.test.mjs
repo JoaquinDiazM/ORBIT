@@ -72,7 +72,7 @@ test("la escala adaptativa conserva proporciones y limita la flecha máxima", ()
   assert.equal(fitVectorFieldScale([{ magnitude: 0 }], 6.4), 1);
 });
 
-test("los IDs históricos desbloquean el explorador y Smith usa un nodo lateral directo", () => {
+test("los IDs históricos conservan gadgets laterales disponibles por zona", () => {
   const explorerReward = REWARDS.gadgets.find((reward) => reward.id === "field-lens");
   const smithReward = REWARDS.gadgets.find((reward) => reward.id === "smith-chart");
   const explorer = LOCATIONS.find((location) => location.id === "field-lens-cache");
@@ -81,24 +81,23 @@ test("los IDs históricos desbloquean el explorador y Smith usa un nodo lateral 
   assert.deepEqual(explorer.grants.rewards, ["gadgets:field-lens"]);
   assert.equal(smithReward.title, "Carta de Smith");
   assert.equal(smith.areaId, "transmission-lines");
-  assert.deepEqual(smith.requirements.completedLocations, ["transmission-line-bench"]);
+  assert.deepEqual(smith.requirements, {});
   assert.deepEqual(smith.grants.rewards, ["gadgets:smith-chart"]);
 });
 
-test("Smith se vuelve completable después del Banco y su recompensa no abre territorios", () => {
+test("Smith se habilita con su zona y su recompensa requiere interacción", () => {
   const progression = new ProgressionModel({ profile: "debug", storage: new MemoryStorage() });
   progression.unlockAllAreasForDebug();
   assert.equal(progression.isLocationVisible("smith-chart-station"), true);
-  assert.equal(progression.isLocationAccessible("smith-chart-station"), false);
-  assert.equal(progression.completeLocation("transmission-line-bench", { force: true }).ok, true);
   assert.equal(progression.isLocationAccessible("smith-chart-station"), true);
+  assert.equal(progression.ownsReward("gadgets:smith-chart"), false);
   const areasBefore = progression.getUnlockedAreaIds().size;
   assert.equal(progression.completeLocation("smith-chart-station").ok, true);
   assert.equal(progression.ownsReward("gadgets:smith-chart"), true);
   assert.equal(progression.getUnlockedAreaIds().size, areasBefore);
 });
 
-test("la conexión Smith es la decimocuarta pareja intencional y el dataset sigue alcanzable", () => {
+test("Smith queda fuera de las 30 parejas académicas y el dataset sigue alcanzable", () => {
   const locationIds = LOCATIONS.map((location) => location.id);
   const edges = deriveKnowledgeGraphEdges({
     locations: LOCATIONS,
@@ -110,9 +109,14 @@ test("la conexión Smith es la decimocuarta pareja intencional y el dataset sigu
     },
     visualizationMode: "total",
   });
-  assert.equal(edges.length, 14);
-  assert.ok(edges.some((edge) => edge.id === "transmission-line-bench->smith-chart-station"));
+  assert.equal(edges.length, 30);
+  assert.equal(
+    edges.some((edge) => edge.id === "transmission-line-bench->smith-chart-station"),
+    false,
+  );
   const validation = validateProjectData();
   assert.deepEqual(validation.errors, []);
   assert.equal(validation.simulation.completedLocations.size, 29);
+  assert.equal(validation.simulation.completedLearningLocations.size, 21);
+  assert.equal(validation.simulation.availableLateralLocations.size, 6);
 });

@@ -8,7 +8,11 @@ import {
   evaluateMathAst,
   parseMathExpression,
 } from "./math-expression.js";
-import { meetsRequirements, normalizeRequirements } from "./requirements.js";
+import {
+  isLearningLocation,
+  meetsLearningPrerequisites,
+} from "./knowledge-graph.js";
+import { normalizeRequirements } from "./requirements.js";
 import {
   createWorldIndex,
   deriveUnlockedAreaIds,
@@ -579,6 +583,8 @@ export function simulateFullProgression({ areas = AREAS, locations = LOCATIONS }
   const worldIndex = createWorldIndex(areas);
   const concepts = new Set();
   const completedLocations = new Set();
+  const completedLearningLocations = new Set();
+  const availableLateralLocations = new Set();
   const rewards = new Set(
     Object.entries(REWARDS).flatMap(([type, entries]) =>
       entries.filter((entry) => entry.initial).map((entry) => rewardKey(type, entry.id)),
@@ -596,20 +602,27 @@ export function simulateFullProgression({ areas = AREAS, locations = LOCATIONS }
 
     const unlockedAreas = deriveUnlockedAreaIds({
       areas,
+      locations,
       worldIndex,
-      concepts,
       completedLocations,
-      rewards,
       debugUnlockedAreas,
     });
 
     for (const location of locations) {
-      if (completedLocations.has(location.id)) continue;
       if (!unlockedAreas.has(location.areaId)) continue;
-      const context = { concepts, completedLocations, rewards, unlockedAreas };
-      if (!meetsRequirements(location.requirements, context)) continue;
+      if (!isLearningLocation(location) && !["base", "debug"].includes(location.kind)) {
+        availableLateralLocations.add(location.id);
+      }
+      if (completedLocations.has(location.id)) continue;
+      if (
+        isLearningLocation(location) &&
+        !meetsLearningPrerequisites(location, completedLocations)
+      ) {
+        continue;
+      }
 
       completedLocations.add(location.id);
+      if (isLearningLocation(location)) completedLearningLocations.add(location.id);
       const granted = [];
       for (const conceptId of location.grants?.concepts ?? []) {
         if (!concepts.has(conceptId)) {
@@ -630,16 +643,27 @@ export function simulateFullProgression({ areas = AREAS, locations = LOCATIONS }
 
   const unlockedAreas = deriveUnlockedAreaIds({
     areas,
+    locations,
     worldIndex,
-    concepts,
     completedLocations,
-    rewards,
     debugUnlockedAreas,
   });
+
+  for (const location of locations) {
+    if (
+      unlockedAreas.has(location.areaId) &&
+      !isLearningLocation(location) &&
+      !["base", "debug"].includes(location.kind)
+    ) {
+      availableLateralLocations.add(location.id);
+    }
+  }
 
   return {
     unlockedAreas,
     completedLocations,
+    completedLearningLocations,
+    availableLateralLocations,
     concepts,
     rewards,
     trace,
@@ -653,6 +677,14 @@ export function validateProjectData({ areas = AREAS, locations = LOCATIONS } = {
   const worldIndex = createWorldIndex(areas);
   const knownAreaIds = new Set(areas.map((area) => area.id));
   const knownLocationIds = new Set(locations.map((location) => location.id));
+  const learningLocations = locations.filter(isLearningLocation);
+  const learningLocationIds = new Set(learningLocations.map((location) => location.id));
+  const learningAdjacency = new Map(
+    learningLocations.map((location) => [location.id, []]),
+  );
+  const learningIncoming = new Map(
+    learningLocations.map((location) => [location.id, 0]),
+  );
   const knownConceptIds = new Set(CONCEPTS.map((concept) => concept.id));
   const rewards = knownRewardKeys();
 
@@ -681,6 +713,14 @@ export function validateProjectData({ areas = AREAS, locations = LOCATIONS } = {
   if (!knownAreaIds.has(WORLD_CONFIG.spawnAreaId)) {
     errors.push(`La zona de spawn ${WORLD_CONFIG.spawnAreaId} no existe.`);
   }
+  const learningRoot = locations.find(
+    (location) => location.id === WORLD_CONFIG.learningRootLocationId,
+  );
+  if (!learningRoot || !isLearningLocation(learningRoot)) {
+    errors.push(
+      `La raíz académica ${WORLD_CONFIG.learningRootLocationId} no existe o no es lesson/mission.`,
+    );
+  }
 
   for (const area of areas) {
     if (!Number.isInteger(area.q) || !Number.isInteger(area.r)) {
@@ -691,25 +731,15 @@ export function validateProjectData({ areas = AREAS, locations = LOCATIONS } = {
     }
 
     const requirements = normalizeRequirements(area.requirements);
-    for (const conceptId of requirements.concepts) {
-      if (!knownConceptIds.has(conceptId)) {
-        errors.push(`La zona ${area.id} exige un concepto inexistente: ${conceptId}.`);
-      }
+    if (Object.values(requirements).some((entries) => entries.length > 0)) {
+      errors.push(
+        `La zona ${area.id} no puede declarar prerrequisitos: su apertura se deriva de la Red de aprendizaje y la adyacencia.`,
+      );
     }
-    for (const locationId of requirements.completedLocations) {
-      if (!knownLocationIds.has(locationId)) {
-        errors.push(`La zona ${area.id} exige un lugar inexistente: ${locationId}.`);
-      }
-    }
-    for (const reward of requirements.rewards) {
-      if (!rewards.has(reward)) {
-        errors.push(`La zona ${area.id} exige una recompensa inexistente: ${reward}.`);
-      }
-    }
-    for (const areaId of requirements.areas) {
-      if (!knownAreaIds.has(areaId)) {
-        errors.push(`La zona ${area.id} exige una zona inexistente: ${areaId}.`);
-      }
+    if (!area.initial && !learningLocations.some((location) => location.areaId === area.id)) {
+      errors.push(
+        `La zona ${area.id} no contiene ningún nodo académico que permita derivar su apertura.`,
+      );
     }
   }
 
@@ -724,13 +754,24 @@ export function validateProjectData({ areas = AREAS, locations = LOCATIONS } = {
     }
 
     const requirements = normalizeRequirements(location.requirements);
-    for (const conceptId of requirements.concepts) {
-      if (!knownConceptIds.has(conceptId)) {
-        errors.push(`El lugar ${location.id} exige un concepto inexistente: ${conceptId}.`);
-      }
-      if ((location.grants?.concepts ?? []).includes(conceptId)) {
-        errors.push(`El lugar ${location.id} exige el mismo concepto que concede: ${conceptId}.`);
-      }
+    const usesLegacyRequirement =
+      requirements.concepts.length > 0 ||
+      requirements.rewards.length > 0 ||
+      requirements.areas.length > 0;
+    if (usesLegacyRequirement) {
+      errors.push(
+        isLearningLocation(location)
+          ? `El nodo académico ${location.id} solo puede declarar prerrequisitos completedLocations de la Red de aprendizaje.`
+          : `El lugar lateral ${location.id} se habilita con su zona y no puede declarar prerrequisitos.`,
+      );
+    }
+    if (!isLearningLocation(location) && requirements.completedLocations.length > 0) {
+      errors.push(
+        `El lugar lateral ${location.id} está fuera de la Red de aprendizaje y no puede declarar completedLocations.`,
+      );
+    }
+    for (const duplicate of duplicateValues(requirements.completedLocations)) {
+      errors.push(`El nodo ${location.id} repite el prerrequisito ${duplicate}.`);
     }
     for (const prerequisiteLocationId of requirements.completedLocations) {
       if (!knownLocationIds.has(prerequisiteLocationId)) {
@@ -741,15 +782,22 @@ export function validateProjectData({ areas = AREAS, locations = LOCATIONS } = {
       if (prerequisiteLocationId === location.id) {
         errors.push(`El lugar ${location.id} se exige a sí mismo.`);
       }
-    }
-    for (const reward of requirements.rewards) {
-      if (!rewards.has(reward)) {
-        errors.push(`El lugar ${location.id} exige una recompensa inexistente: ${reward}.`);
+      if (
+        isLearningLocation(location) &&
+        knownLocationIds.has(prerequisiteLocationId) &&
+        !learningLocationIds.has(prerequisiteLocationId)
+      ) {
+        errors.push(
+          `El nodo académico ${location.id} no puede depender del lugar lateral ${prerequisiteLocationId}.`,
+        );
       }
-    }
-    for (const areaId of requirements.areas) {
-      if (!knownAreaIds.has(areaId)) {
-        errors.push(`El lugar ${location.id} exige una zona inexistente: ${areaId}.`);
+      if (
+        isLearningLocation(location) &&
+        learningLocationIds.has(prerequisiteLocationId) &&
+        prerequisiteLocationId !== location.id
+      ) {
+        learningAdjacency.get(prerequisiteLocationId)?.push(location.id);
+        learningIncoming.set(location.id, (learningIncoming.get(location.id) ?? 0) + 1);
       }
     }
     for (const conceptId of location.grants?.concepts ?? []) {
@@ -804,6 +852,63 @@ export function validateProjectData({ areas = AREAS, locations = LOCATIONS } = {
     }
   }
 
+  const learningRoots = learningLocations
+    .filter((location) => learningIncoming.get(location.id) === 0)
+    .map((location) => location.id);
+  if (
+    learningRoots.length !== 1 ||
+    learningRoots[0] !== WORLD_CONFIG.learningRootLocationId
+  ) {
+    errors.push(
+      `La Red de aprendizaje debe tener como única raíz ${WORLD_CONFIG.learningRootLocationId}; raíces detectadas: ${learningRoots.join(", ") || "ninguna"}.`,
+    );
+  }
+
+  const learningVisitState = new Map();
+  const learningPath = [];
+  let learningCycle = null;
+  const visitLearningLocation = (locationId) => {
+    learningVisitState.set(locationId, 1);
+    learningPath.push(locationId);
+    for (const targetId of learningAdjacency.get(locationId) ?? []) {
+      if (learningVisitState.get(targetId) === 1) {
+        const cycleStart = learningPath.indexOf(targetId);
+        learningCycle = [...learningPath.slice(cycleStart), targetId];
+        return;
+      }
+      if (!learningVisitState.has(targetId)) visitLearningLocation(targetId);
+      if (learningCycle) return;
+    }
+    learningPath.pop();
+    learningVisitState.set(locationId, 2);
+  };
+  for (const location of learningLocations) {
+    if (!learningVisitState.has(location.id)) visitLearningLocation(location.id);
+    if (learningCycle) break;
+  }
+  if (learningCycle) {
+    errors.push(`La Red de aprendizaje contiene un ciclo: ${learningCycle.join(" → ")}.`);
+  }
+
+  const reachableLearningLocations = new Set();
+  const learningQueue = learningLocationIds.has(WORLD_CONFIG.learningRootLocationId)
+    ? [WORLD_CONFIG.learningRootLocationId]
+    : [];
+  while (learningQueue.length > 0) {
+    const locationId = learningQueue.shift();
+    if (reachableLearningLocations.has(locationId)) continue;
+    reachableLearningLocations.add(locationId);
+    learningQueue.push(...(learningAdjacency.get(locationId) ?? []));
+  }
+  const disconnectedLearningLocations = learningLocations
+    .map((location) => location.id)
+    .filter((locationId) => !reachableLearningLocations.has(locationId));
+  if (disconnectedLearningLocations.length > 0) {
+    errors.push(
+      `La Red de aprendizaje no alcanza desde ${WORLD_CONFIG.learningRootLocationId}: ${disconnectedLearningLocations.join(", ")}.`,
+    );
+  }
+
   for (const [collectionId, entries] of Object.entries(REFERENCE_COLLECTIONS)) {
     for (const entry of entries) {
       const requirements = normalizeRequirements(entry.requirements);
@@ -855,12 +960,21 @@ export function validateProjectData({ areas = AREAS, locations = LOCATIONS } = {
     }
   }
   for (const location of locations) {
-    const hasProgressionEffect =
-      (location.grants?.concepts?.length ?? 0) > 0 ||
-      (location.grants?.rewards?.length ?? 0) > 0;
-    if (hasProgressionEffect && !simulation.completedLocations.has(location.id)) {
+    if (
+      isLearningLocation(location) &&
+      !simulation.completedLearningLocations.has(location.id)
+    ) {
       errors.push(
-        `El lugar progresivo ${location.id} no puede alcanzarse. Revisa sus prerrequisitos y la zona que lo contiene.`,
+        `El nodo académico ${location.id} no puede completarse desde ${WORLD_CONFIG.learningRootLocationId}. Revisa la red y la apertura territorial.`,
+      );
+    }
+    if (
+      !isLearningLocation(location) &&
+      !["base", "debug"].includes(location.kind) &&
+      !simulation.availableLateralLocations.has(location.id)
+    ) {
+      errors.push(
+        `El lugar lateral ${location.id} no queda disponible al abrir su zona.`,
       );
     }
   }

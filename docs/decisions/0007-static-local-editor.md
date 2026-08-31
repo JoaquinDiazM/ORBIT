@@ -3,6 +3,7 @@
 - Estado: aceptado
 - Fecha: 2026-08-28
 - Ampliado por: [ADR 0008](0008-scoped-appearance-and-local-course-application.md)
+- Enmendado por: [ADR 0009](0009-single-learning-network.md)
 
 ## Contexto
 
@@ -144,10 +145,17 @@ Revisar esta decisión antes de incorporar cualquiera de los siguientes cambios:
 - colaboración simultánea;
 - autenticación o roles;
 - escritura al repositorio, build o despliegue automático;
-- cambio del formato editorial `v1` o de su almacenamiento primario.
+- cambio del formato editorial `v3` o de su almacenamiento primario.
 
-La operación cotidiana se describe en la [Guía de ORBIT Editor](../EDITOR_GUIDE.md). La separación entre grafos continúa regida por [ADR 0002](0002-dual-knowledge-graphs.md) y el estado del estudiante por [ADR 0003](0003-derived-progress-state.md).
+La operación cotidiana se describe en la [Guía de ORBIT Editor](../EDITOR_GUIDE.md). La Red de
+aprendizaje y la apertura territorial se rigen por [ADR 0009](0009-single-learning-network.md), y
+el estado del estudiante por [ADR 0003](0003-derived-progress-state.md).
 
 ADR 0008 amplía esta frontera para el documento editorial `v2`, las preferencias visuales
 personales y una aplicación local recuperable mediante un helper exclusivo de loopback. No
 introduce publicación remota ni convierte al Editor en un backend.
+
+ADR 0009 reemplaza, desde el documento editorial `v3`, las secciones que derivaban el Árbol II
+desde conceptos y recompensas. Spider mantiene una colección explícita única de nodos y
+conexiones académicas; la separación de aplicaciones, Bee, historial y publicación local de este
+ADR continúa vigente.

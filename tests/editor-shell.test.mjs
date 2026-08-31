@@ -5,6 +5,8 @@ import test from "node:test";
 import { APP_CONFIG } from "../src/config.js";
 import {
   fitEditorWorld,
+  getEditorDraftBadge,
+  getEditorImportFeedback,
   getEditorMutationNotice,
   getEditorHistoryAction,
   getReadOnlyCameraPan,
@@ -98,6 +100,8 @@ test("el shell del editor expone Spider, Bee y Bowerbird en menús retractables"
     "editor-bowerbird-palette",
     "editor-bowerbird-motif",
     "editor-bowerbird-contour",
+    "editor-network-membership",
+    "editor-toggle-network-location",
     "editor-ring-one-list",
     "editor-ring-two-list",
     "editor-export",
@@ -143,7 +147,10 @@ test("el shell del editor expone Spider, Bee y Bowerbird en menús retractables"
   assert.match(editor, /Anillo 1 · fundamentos teóricos/);
   assert.match(editor, /Anillo 2 · aplicaciones/);
   assert.match(editor, /Amarillo brillante continuo:/);
-  assert.match(editor, /directa y editable o derivada y de solo lectura/);
+  assert.match(editor, /solo lecciones y misiones pueden pertenecer a la red/);
+  assert.match(editor, />Conexión de aprendizaje</);
+  assert.match(editor, />Retirar de la red|id="editor-toggle-network-location"/);
+  assert.doesNotMatch(editor, /derivada y de solo lectura/);
   assert.doesNotMatch(editor, /Amarillo brillante discontinuo con rombo:/);
   assert.match(
     css,
@@ -203,6 +210,35 @@ test("la UI convierte un fallo de persistencia en error y nunca anuncia guardado
       accepted: false,
       message: "No fue posible guardar el borrador.",
       level: "error",
+    },
+  );
+});
+
+test("la importación distingue un borrador editable de uno académicamente publicable", () => {
+  const result = {
+    ok: true,
+    changed: true,
+    snapshot: {
+      validation: {
+        valid: false,
+        errors: [{ code: "academic-a" }, { code: "academic-b" }],
+      },
+      warnings: [{ code: "draft-warning" }],
+    },
+  };
+
+  assert.deepEqual(getEditorImportFeedback(result), {
+    publishable: false,
+    errorCount: 2,
+    warningCount: 1,
+    message: "Borrador importado como editable, pero no es publicable: la validación académica detectó 2 errores. Revisa el Resumen.",
+    level: "warning",
+  });
+  assert.deepEqual(
+    getEditorDraftBadge({ readOnly: false, snapshot: result.snapshot }),
+    {
+      text: "2 errores · no publicable",
+      title: "La validación académica bloquea la publicación. Abre Resumen para revisar los errores del borrador. También hay 1 advertencia.",
     },
   );
 });
@@ -311,7 +347,18 @@ test("el editor carga la edición activa y reserva aplicación/exportación para
   assert.ok(safeApiStart > 0 && installedApiStart > safeApiStart);
   assert.doesNotMatch(main.slice(safeApiStart, installedApiStart), /exportDocument:/);
   assert.match(main.slice(installedApiStart), /exportDocument: \(\) => model\.exportDocument\(\)/);
+  assert.match(main, /`orbit-editor:v2:\$\{course\.courseId\}`/);
+  assert.match(main, /`orbit-editor:v1:\$\{course\.courseId\}`/);
+  assert.match(main.slice(installedApiStart), /addLocationToLearningNetwork: \(id\) => model\.addLocationToLearningNetwork\(id\)/);
+  assert.match(main.slice(installedApiStart), /removeLocationFromLearningNetwork: \(id\) => model\.removeLocationFromLearningNetwork\(id\)/);
+  assert.doesNotMatch(main, /if \(!modelValidation\.valid\)[\s\S]{0,240}throw new Error/);
   const ui = await readFile(new URL("../src/editor/editor-ui-controller.js", import.meta.url), "utf8");
+  assert.match(ui, /\? this\.model\.removeLocationFromLearningNetwork\(locationId\)/);
+  assert.match(ui, /: this\.model\.addLocationToLearningNetwork\(locationId\)/);
+  assert.match(ui, /\["lesson", "mission"\]\.includes\(location\?\.kind\)/);
+  assert.match(ui, /Este lugar está fuera de la Red:[\s\S]{0,180}no puede pertenecer a la Red de aprendizaje/);
+  assert.match(ui, /remove\.textContent = "Quitar conexión"/);
+  assert.doesNotMatch(ui, /locked\.textContent = "solo lectura"/);
   assert.match(ui, /\[this\.elements\.exportButton, "export"\]/);
   assert.match(
     ui,

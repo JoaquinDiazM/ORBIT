@@ -22,7 +22,7 @@ Añadir en el futuro una práctica opcional y original sobre campos conservativo
 
 - `parentArea`: `origin`
 - `locationKind`: `lesson`
-- `tree`: `II`
+- `learningNetwork`: `member`
 - `requirements`: `{}`
 - `grants`: sin cambios
 - `coordinatesOrOffset`: sin cambios

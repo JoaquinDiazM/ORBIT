@@ -23,19 +23,20 @@
 - [ ] Cámara y zoom mantienen el personaje localizable.
 - [ ] A pie, en carro y en deslizador, la sombra queda abajo-derecha en los ocho rumbos y se recoge al avanzar abajo-derecha.
 
-## Árbol I
+## Zonas
 
-- [ ] Cada requisito de zona existe.
-- [ ] Cada requisito puede obtenerse desde contenido previamente accesible.
-- [ ] Ninguna zona depende de una llave situada solo dentro de ella.
+- [ ] Cada zona no inicial es adyacente a otra zona definida.
+- [ ] Cada zona no inicial contiene al menos un nodo académico elegible desde la red.
+- [ ] La elegibilidad académica se calcula sin exigir que la propia zona ya esté abierta.
 - [ ] La apertura territorial se deriva, no se guarda como segunda verdad.
 - [ ] El panel de conocimiento refleja el estado real.
 
-## Árbol II
+## Red de aprendizaje y exploración lateral
 
 - [ ] Cada lugar se encuentra dentro del margen seguro de su hexágono.
-- [ ] Los lugares visibles e invisibles respetan su política de visibilidad.
-- [ ] Los elementos opcionales no bloquean por accidente el tronco principal.
+- [ ] Solo `lesson` y `mission` pertenecen a la Red de aprendizaje.
+- [ ] `vector-workshop` es la única raíz; los otros veinte nodos tienen predecesor y los 21 son alcanzables.
+- [ ] NPC, gadgets y transportes se habilitan con su zona, requieren interacción y no se autoconceden.
 - [ ] Cada guía visible apunta en dirección prerrequisito → destino; nunca invierte la flecha por contexto.
 - [ ] Una relación `completed → completed/completable` se dibuja amarilla brillante y sólida; una relación `completable → blocked` se dibuja tenue y discontinua.
 - [ ] La distinción entre conexiones brillantes y tenues sigue siendo legible sin color y con reducción de movimiento.
@@ -45,9 +46,8 @@
 - [ ] En **Total** aparecen todas las conexiones elegibles entre lugares visibles, incluidas las que atraviesan más de una frontera.
 - [ ] Cambiar entre **Oculta**, **Directo** y **Total** actualiza el mapa, no concede progreso y no cambia accesibilidad.
 - [ ] Si un destino acaba de habilitarse, solo la arista desde la última finalización causal lleva la etiqueta textual **NUEVO**.
-- [ ] El dataset completo deriva 14 parejas únicas después de agrupar requisitos duplicados;
-      cinco requisitos `completedLocations` son explícitos y los requisitos de área no crean
-      guías.
+- [ ] El dataset completo contiene 30 parejas académicas explícitas y ninguna conexión con un
+      extremo lateral; conceptos, recompensas y requisitos de área no crean guías.
 - [ ] El estado **NUEVO** es efímero y no aparece en el JSON exportado.
 - [ ] Las recompensas se conceden una sola vez.
 - [ ] Los transportes adquiridos se pueden alternar.
@@ -63,8 +63,8 @@
       sesión del panel.
 - [ ] El Explorador no usa un atajo global, un overlay persistente ni una API de activación en el
       debugger; se abre únicamente desde el panel Gadgets.
-- [ ] `smith-chart-station` aparece como lugar opcional después de `transmission-line-bench`,
-      concede `gadgets:smith-chart` y no bloquea la ruta principal.
+- [ ] `smith-chart-station` queda disponible al abrir su zona, concede `gadgets:smith-chart`
+      solo al interactuar y no bloquea la ruta principal.
 - [ ] La Carta de Smith se identifica como esqueleto estático y no simula cálculo RF completo.
 
 ## Ejercicios
@@ -118,7 +118,7 @@
       sobrescribir el raw ni emitir éxito. Un fallo de escritura compatible restaura los selects
       al snapshot.
 - [ ] Los cambios de esquema incluyen migración o decisión documentada.
-- [ ] El documento Docente usa `orbit-editor:v2:electromagnetism-applied`; las preferencias
+- [ ] El documento Docente usa `orbit-editor:v3:electromagnetism-applied`; las preferencias
       Estudiante usan `orbit-bowerbird:v1:electromagnetism-applied:student`; ninguno aparece bajo
       `orbit-progress`.
 - [ ] Progreso, documento, preferencias y edición instalada sobreviven recarga según su alcance y
@@ -155,13 +155,13 @@
 - [ ] Abrir un panel mueve el foco a su cierre; `Esc` o el botón de cierre lo devuelve al control que lo abrió.
 - [ ] En la vista móvil, `Tab` y `Shift` + `Tab` permanecen dentro del panel visible hasta cerrarlo.
 - [ ] La lección principal puede permanecer abierta junto con un panel secundario.
-- [ ] El dock ofrece **Árboles**, **Gadgets**, **Símbolos**, **Constantes**, **Formulario**,
+- [ ] El dock ofrece **Zonas · Red**, **Gadgets**, **Símbolos**, **Constantes**, **Formulario**,
       **Glosario** y **Ajustes**; este último revela **Visual**, **Sonido** y **Ayuda** mediante
       clic, `Enter` o espacio.
 - [ ] Cerrar una vista agrupada devuelve el foco a su acceso visible; un segundo `Esc` colapsa **Ajustes** y enfoca su botón, sin dejar foco en controles ocultos.
 - [ ] Abrir una herramienta sustituye cualquier otro panel secundario abierto.
 - [ ] Las teclas `H` y `M` no abren paneles, no disparan audio y no bloquean su futuro uso.
-- [ ] **Árboles** lista zonas, lugares y recompensas, pero no duplica los controles ni la leyenda de la red del mapamundi.
+- [ ] **Zonas · Red** separa Zonas, Red de aprendizaje y exploración lateral, pero no duplica los controles ni la leyenda del mapamundi.
 - [ ] **Visual** explica sus tres niveles y la semántica brillante/tenue sin depender exclusivamente del color.
 - [ ] Las etapas de una lección anuncian por texto cuál está activa, disponible o bloqueada.
 - [ ] Continuar una lectura y aprobar un ejercicio intermedio desbloquean solamente la etapa siguiente.
@@ -191,23 +191,25 @@
 - [ ] `?profile=debug` muestra un bloqueo enfocable, no crea `EditorModel` ni renderer y no
       expone métodos mutadores en `window.OrbitEditor`.
 - [ ] Spider, Bee y Bowerbird nunca leen o escriben progreso: Docente usa
-      `orbit-editor:v2:electromagnetism-applied`; Estudiante lee ese documento pero guarda solo
+      `orbit-editor:v3:electromagnetism-applied`; Estudiante lee ese documento pero guarda solo
       `orbit-bowerbird:v1:electromagnetism-applied:student`. Solo la aplicación Docente explícita
       inspecciona y reinicia las claves de progreso descritas en su impacto.
 - [ ] Cambiar la query demuestra que estas restricciones son locales y no se presenta como
       autenticación o seguridad real.
-- [ ] El dataset compartido conserva 19 zonas, 20 conceptos, 29 nodos, 14 parejas derivadas y
-      cinco conexiones directas canónicas.
+- [ ] El dataset compartido conserva 19 zonas, 20 conceptos y 29 lugares; la Red de aprendizaje
+      contiene únicamente sus 21 lecciones/misiones y exactamente 30 conexiones explícitas.
 - [ ] Los docks **General** y **Editor** se minimizan y expanden por separado; el control de reapertura nunca desaparece.
 - [ ] `aria-expanded`, foco visible, `Tab`, `Enter` y `Espacio` reflejan el estado real de ambos docks.
 - [ ] Spider muestra todos los nodos sin depender del progreso de ORBIT.
 - [ ] Arrastrar un nodo actualiza `areaId + offset` respecto de la zona correcta aun con zoom o cámara desplazada.
 - [ ] Un nodo trasladado a otra zona queda dentro de su margen seguro y los campos del inspector coinciden con el Canvas.
 - [ ] Flechas y `Shift` + flechas ofrecen ajuste fino y mayor como alternativa al ratón.
-- [ ] Spider crea una relación `fuente → destino` únicamente como requisito `completedLocation`/`completedLocations` del destino.
-- [ ] Spider rechaza self-edge, duplicado, ID desconocido y ciclo sin modificar el último borrador válido.
-- [ ] Las relaciones de conceptos y recompensas se distinguen como derivadas y de solo lectura sin depender solo del color.
-- [ ] Quitar un requisito directo conserva la pareja cuando otra causa conceptual o de recompensa todavía la deriva.
+- [ ] Spider permite **Retirar de la red** y **Añadir a la red** solo para lecciones/misiones;
+      lecturas, personajes, herramientas, transporte y Base no ofrecen ese control.
+- [ ] Retirar un nodo de la Red conserva el lugar y su posición, y elimina atómicamente todas sus
+      conexiones incidentes; volver a añadirlo no inventa conexiones.
+- [ ] Spider crea y elimina una conexión explícita `fuente → destino` entre dos miembros de la Red.
+- [ ] Spider rechaza self-edge, duplicado, ID desconocido, nodo lateral y ciclo sin modificar el borrador.
 - [ ] Bee intercambia dos zonas de `tier 1` y, por separado, dos de `tier 2`.
 - [ ] Bee rechaza un intercambio `tier 1 ↔ tier 2`, comunica **ANILLO INCOMPATIBLE** por texto y no deja cambios parciales.
 - [ ] Campamento Base permanece fijo en `(0,0)`.
@@ -226,11 +228,13 @@
 - [ ] Deshacer y rehacer funcionan mediante botones, `Ctrl`/`Cmd` + `Z`, `Ctrl`/`Cmd` + `Shift` + `Z` y `Ctrl` + `Y`.
 - [ ] Importar o restaurar inicia un historial nuevo; undo/redo nunca cruza esa frontera.
 - [ ] Cada operación Docente válida se autoguarda en
-      `orbit-editor:v2:electromagnetism-applied` y una recarga la recupera.
-- [ ] Exportar produce `orbit-editor-project` esquema `v2` con catálogo, curso, versión base,
-      áreas/apariencias, ubicaciones y conexiones, sin progreso ni preferencias Estudiante.
-- [ ] Un documento `v1` válido migra a `v2` con apariencia canónica, conserva decisiones sobre
-      IDs existentes y restaura entidades canónicas nuevas sin sobrescribir el original inválido.
+      `orbit-editor:v3:electromagnetism-applied` y una recarga la recupera.
+- [ ] Exportar produce `orbit-editor-project` esquema `v3` con catálogo, curso, versión base,
+      áreas/apariencias, ubicaciones y `learningNetwork`, sin progreso ni preferencias Estudiante.
+- [ ] Un documento `v1` o `v2` válido migra a `v3`, conserva mapa/apariencias y materializa las
+      30 conexiones académicas efectivas; las cinco parejas laterales históricas no ingresan a la Red.
+- [ ] Un borrador `v3` semánticamente inválido abre con diagnóstico para que Spider pueda repararlo;
+      una estructura ilegible o futura sigue la recuperación protegida.
 - [ ] Una importación válida reemplaza el borrador solo después de sanearlo; una inválida conserva intacto el estado anterior.
 - [ ] Un borrador persistido ilegible o futuro abre una copia canónica sin sobrescribir el raw y
       bloquea mutaciones ordinarias; solo **Restaurar** o importar un documento válido lo reemplaza

@@ -2,18 +2,18 @@
   "kind": "orbit-course-edition",
   "schemaVersion": 1,
   "courseId": "electromagnetism-applied",
-  "revision": "sha256:9b542c016e1d83772539698307cc3f5020bcaba0719f43950de67b07e96066da",
-  "previousRevision": "sha256:74c5b6f717a1605a07588b9b7192c4869f98029e9db4c5162832e41477cae05d",
+  "revision": "sha256:5232acb4e249e3f6ddb368b3d7792505e45c2543d6e671f4f9d9ae7e99bd0b32",
+  "previousRevision": "sha256:b4d45e3a2fd478b71d6f703ac870494019813464a2140dcb437155312987637d",
   "resetPolicy": "full-reset-v1",
   "acceptsUnversionedProgress": false,
-  "appliedAt": "2026-08-31T02:40:15.757Z",
-  "digest": "9b542c016e1d83772539698307cc3f5020bcaba0719f43950de67b07e96066da",
+  "appliedAt": "2026-08-31T06:29:24.306Z",
+  "digest": "5232acb4e249e3f6ddb368b3d7792505e45c2543d6e671f4f9d9ae7e99bd0b32",
   "document": {
     "kind": "orbit-editor-project",
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "appearanceCatalogVersion": 1,
     "courseId": "electromagnetism-applied",
-    "baseDataVersion": "0.5.0",
+    "baseDataVersion": "0.6.0",
     "areas": [
       {
         "id": "origin",
@@ -57,8 +57,8 @@
       },
       {
         "id": "maxwell",
-        "q": 0,
-        "r": -1,
+        "q": -1,
+        "r": 0,
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -67,8 +67,8 @@
       },
       {
         "id": "waves",
-        "q": -1,
-        "r": 0,
+        "q": 0,
+        "r": -1,
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -219,8 +219,8 @@
         "id": "vector-workshop",
         "areaId": "origin",
         "offset": {
-          "x": -54.98433447756058,
-          "y": -110.63084014014146
+          "x": -83.98471609191995,
+          "y": -103.51502735475052
         }
       },
       {
@@ -243,88 +243,88 @@
         "id": "coulomb-observatory",
         "areaId": "electrostatics",
         "offset": {
-          "x": -42,
-          "y": -28
+          "x": 1.29608484042285,
+          "y": 81.99997168332885
         }
       },
       {
         "id": "gauss-guide-post",
         "areaId": "electrostatics",
         "offset": {
-          "x": 98,
-          "y": 68
+          "x": 1.29608484042285,
+          "y": -115.87627831742316
         }
       },
       {
         "id": "circuit-analysis-bench",
         "areaId": "circuits",
         "offset": {
-          "x": -34,
-          "y": 12
+          "x": -3.8573423828354976,
+          "y": -120.59570794099223
         }
       },
       {
         "id": "differential-equations-lab",
         "areaId": "differential-equations",
         "offset": {
-          "x": 26,
-          "y": -18
+          "x": -102.95655051506381,
+          "y": -74.29358672011756
         }
       },
       {
         "id": "ampere-foundry",
         "areaId": "magnetism",
         "offset": {
-          "x": -52,
-          "y": -30
+          "x": -131.79322183817052,
+          "y": -25.737749685817107
         }
       },
       {
         "id": "electric-cart-depot",
         "areaId": "magnetism",
         "offset": {
-          "x": 100,
-          "y": 66
+          "x": 8.004955094400458,
+          "y": 74.77383725862165
         }
       },
       {
         "id": "faraday-station",
-        "areaId": "maxwell",
+        "areaId": "magnetism",
         "offset": {
-          "x": -82,
-          "y": 48
+          "x": 31.347084061236984,
+          "y": -99.85509962028004
         }
       },
       {
         "id": "maxwell-archive",
         "areaId": "maxwell",
         "offset": {
-          "x": 82,
-          "y": -54
+          "x": -2.5409118573745104,
+          "y": -129.91228125871905
         }
       },
       {
         "id": "hertz-beacon",
         "areaId": "waves",
         "offset": {
-          "x": -42,
-          "y": 22
+          "x": 0.5662364372207662,
+          "y": 115.42776272041326
         }
       },
       {
         "id": "radio-skiff-hangar",
         "areaId": "waves",
         "offset": {
-          "x": 106,
-          "y": -62
+          "x": -4.094456372709885,
+          "y": -125.25405383393732
         }
       },
       {
         "id": "sensor-calibration-lab",
         "areaId": "sensors-instrumentation",
         "offset": {
-          "x": -28,
-          "y": 18
+          "x": 32.169114553315126,
+          "y": -96.50363974888091
         }
       },
       {
@@ -355,32 +355,32 @@
         "id": "spectrum-workshop",
         "areaId": "fourier-analysis",
         "offset": {
-          "x": 18,
-          "y": -12
+          "x": 8.278632146643247,
+          "y": 25.790030053270584
         }
       },
       {
         "id": "optics-bench",
         "areaId": "optics-photonics",
         "offset": {
-          "x": -20,
-          "y": 14
+          "x": 0.8149806684613168,
+          "y": -0.7851529621767384
         }
       },
       {
         "id": "shielding-chamber",
         "areaId": "electromagnetic-compatibility",
         "offset": {
-          "x": 20,
-          "y": -12
+          "x": -68.97155498166444,
+          "y": 89.1440861655496
         }
       },
       {
         "id": "superconductivity-transition-lab",
         "areaId": "electromagnetic-compatibility",
         "offset": {
-          "x": -78,
-          "y": 52
+          "x": 103.43808728383931,
+          "y": 48.37960024864549
         }
       },
       {
@@ -435,43 +435,158 @@
         "id": "lunar-relay",
         "areaId": "origin",
         "offset": {
-          "x": -8.07259758627697,
-          "y": -5.519925787515575
+          "x": -0.09200845747199082,
+          "y": 3.6271651193177377
         }
       }
     ],
-    "treeTwoConnections": [
-      {
-        "sourceId": "ampere-foundry",
-        "targetId": "electric-cart-depot",
-        "kind": "completedLocation"
-      },
-      {
-        "sourceId": "atacama-array",
-        "targetId": "lunar-relay",
-        "kind": "completedLocation"
-      },
-      {
-        "sourceId": "coulomb-observatory",
-        "targetId": "gauss-guide-post",
-        "kind": "completedLocation"
-      },
-      {
-        "sourceId": "hertz-beacon",
-        "targetId": "radio-skiff-hangar",
-        "kind": "completedLocation"
-      },
-      {
-        "sourceId": "transmission-line-bench",
-        "targetId": "smith-chart-station",
-        "kind": "completedLocation"
-      },
-      {
-        "sourceId": "vector-workshop",
-        "targetId": "coulomb-observatory",
-        "kind": "completedLocation"
-      }
-    ],
-    "updatedAt": "2026-08-31T02:31:46.299Z"
+    "learningNetwork": {
+      "nodeIds": [
+        "vector-workshop",
+        "coulomb-observatory",
+        "circuit-analysis-bench",
+        "differential-equations-lab",
+        "ampere-foundry",
+        "faraday-station",
+        "maxwell-archive",
+        "hertz-beacon",
+        "sensor-calibration-lab",
+        "rotating-machine-lab",
+        "power-network-station",
+        "field-solver-lab",
+        "spectrum-workshop",
+        "optics-bench",
+        "superconductivity-transition-lab",
+        "waveguide-mode-gallery",
+        "transmission-line-bench",
+        "antenna-range",
+        "wireless-link-station",
+        "atacama-array",
+        "lunar-relay"
+      ],
+      "connections": [
+        {
+          "sourceId": "ampere-foundry",
+          "targetId": "maxwell-archive"
+        },
+        {
+          "sourceId": "antenna-range",
+          "targetId": "atacama-array"
+        },
+        {
+          "sourceId": "atacama-array",
+          "targetId": "lunar-relay"
+        },
+        {
+          "sourceId": "circuit-analysis-bench",
+          "targetId": "power-network-station"
+        },
+        {
+          "sourceId": "circuit-analysis-bench",
+          "targetId": "rotating-machine-lab"
+        },
+        {
+          "sourceId": "circuit-analysis-bench",
+          "targetId": "transmission-line-bench"
+        },
+        {
+          "sourceId": "coulomb-observatory",
+          "targetId": "circuit-analysis-bench"
+        },
+        {
+          "sourceId": "coulomb-observatory",
+          "targetId": "faraday-station"
+        },
+        {
+          "sourceId": "coulomb-observatory",
+          "targetId": "maxwell-archive"
+        },
+        {
+          "sourceId": "differential-equations-lab",
+          "targetId": "field-solver-lab"
+        },
+        {
+          "sourceId": "differential-equations-lab",
+          "targetId": "maxwell-archive"
+        },
+        {
+          "sourceId": "differential-equations-lab",
+          "targetId": "rotating-machine-lab"
+        },
+        {
+          "sourceId": "differential-equations-lab",
+          "targetId": "spectrum-workshop"
+        },
+        {
+          "sourceId": "differential-equations-lab",
+          "targetId": "superconductivity-transition-lab"
+        },
+        {
+          "sourceId": "faraday-station",
+          "targetId": "ampere-foundry"
+        },
+        {
+          "sourceId": "faraday-station",
+          "targetId": "maxwell-archive"
+        },
+        {
+          "sourceId": "field-solver-lab",
+          "targetId": "lunar-relay"
+        },
+        {
+          "sourceId": "hertz-beacon",
+          "targetId": "antenna-range"
+        },
+        {
+          "sourceId": "hertz-beacon",
+          "targetId": "waveguide-mode-gallery"
+        },
+        {
+          "sourceId": "maxwell-archive",
+          "targetId": "hertz-beacon"
+        },
+        {
+          "sourceId": "maxwell-archive",
+          "targetId": "optics-bench"
+        },
+        {
+          "sourceId": "maxwell-archive",
+          "targetId": "wireless-link-station"
+        },
+        {
+          "sourceId": "optics-bench",
+          "targetId": "lunar-relay"
+        },
+        {
+          "sourceId": "power-network-station",
+          "targetId": "lunar-relay"
+        },
+        {
+          "sourceId": "spectrum-workshop",
+          "targetId": "atacama-array"
+        },
+        {
+          "sourceId": "superconductivity-transition-lab",
+          "targetId": "lunar-relay"
+        },
+        {
+          "sourceId": "superconductivity-transition-lab",
+          "targetId": "sensor-calibration-lab"
+        },
+        {
+          "sourceId": "vector-workshop",
+          "targetId": "coulomb-observatory"
+        },
+        {
+          "sourceId": "vector-workshop",
+          "targetId": "differential-equations-lab"
+        },
+        {
+          "sourceId": "wireless-link-station",
+          "targetId": "lunar-relay"
+        }
+      ]
+    },
+    "updatedAt": "2026-08-31T05:19:58.783Z"
   }
 }

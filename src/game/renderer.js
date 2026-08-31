@@ -21,7 +21,7 @@ const TREE_TWO_EDGE_YELLOW = Object.freeze({
 });
 
 /**
- * Keeps the two Tree II states on one hue. Stroke, opacity and glow carry the
+ * Keeps the two learning-network states on one hue. Stroke, opacity and glow carry the
  * redundant state signal required when color perception is limited.
  */
 export function getTreeTwoEdgeVisualStyle(
@@ -284,12 +284,12 @@ export class CanvasRenderer {
     context.translate(-camera.x, -camera.y);
 
     this.#drawAreas(snapshot, camera.zoom, animationTime, debugState, reducedMotion);
-    if (debugState.showGraph) this.#drawKnowledgeGraphs(snapshot, camera.zoom);
     this.#drawTreeTwoGuides(
       snapshot,
       camera.zoom,
       newlyAccessibleLocationIds,
       unlockSourceLocationId,
+      debugState.showGraph ? "total" : null,
     );
     this.#drawAreaEdges(snapshot, camera.zoom, animationTime);
     this.#drawLocations(snapshot, nearestLocation, camera.zoom, animationTime, debugState);
@@ -494,49 +494,19 @@ export class CanvasRenderer {
     }
   }
 
-  #drawKnowledgeGraphs(snapshot, zoom) {
-    const context = this.context;
-    const lineScale = 1 / zoom;
-    const conceptSourceLocation = new Map();
-    for (const location of this.locations) {
-      for (const conceptId of location.grants?.concepts ?? []) {
-        conceptSourceLocation.set(conceptId, location);
-      }
-    }
-
-    context.save();
-    context.setLineDash([10 * lineScale, 7 * lineScale]);
-    context.lineWidth = 1.6 * lineScale;
-
-    for (const area of this.areas) {
-      for (const conceptId of area.requirements?.concepts ?? []) {
-        const sourceLocation = conceptSourceLocation.get(conceptId);
-        if (!sourceLocation) continue;
-        const sourceArea = this.worldIndex.byId.get(sourceLocation.areaId);
-        const source = axialToPixel(sourceArea.q, sourceArea.r, WORLD_CONFIG.hexSize);
-        const target = axialToPixel(area.q, area.r, WORLD_CONFIG.hexSize);
-        context.strokeStyle = "rgba(120, 227, 255, 0.58)";
-        context.beginPath();
-        context.moveTo(source.x, source.y);
-        context.lineTo(target.x, target.y);
-        context.stroke();
-      }
-    }
-
-    context.restore();
-  }
-
   #drawTreeTwoGuides(
     snapshot,
     zoom,
     newlyAccessibleLocationIds,
     unlockSourceLocationId,
+    visualizationModeOverride = null,
   ) {
     const edges = deriveKnowledgeGraphEdges({
       locations: this.locations,
       areas: this.areas,
       snapshot,
-      visualizationMode: snapshot.state?.settings?.treeTwoVisualizationMode,
+      visualizationMode:
+        visualizationModeOverride ?? snapshot.state?.settings?.treeTwoVisualizationMode,
       newlyAccessibleLocationIds,
       unlockSourceLocationId,
     });

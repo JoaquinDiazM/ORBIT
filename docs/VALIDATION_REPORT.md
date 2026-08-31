@@ -2,6 +2,11 @@
 
 Fecha: 2026-08-28
 
+> **Registro histórico.** Este informe sella exclusivamente la candidata 0.4.0 y conserva sus
+> cifras y contratos tal como se validaron. Para el diseño vigente desde 0.6.0, consulta
+> [ADR 0009](decisions/0009-single-learning-network.md), la
+> [arquitectura](ARCHITECTURE.md) y la [checklist actual](QA_CHECKLIST.md).
+
 ## Estado de la entrega
 
 **APROBADA PARA PUBLICACIÓN.** La candidata incorpora **ORBIT Editor** como aplicación estática separada en `editor.html`. **ORBIT Estudiante** continúa en `index.html`, con sus perfiles normal y debug y sin perder los ocho menús laterales publicados en 0.3.2.

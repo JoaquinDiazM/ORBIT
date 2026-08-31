@@ -35,8 +35,12 @@ function pointerPosition(event, canvas, renderer) {
   };
 }
 
-function isConnectable(location) {
-  return location && !["base", "debug"].includes(location.kind);
+function isConnectable(location, learningNetworkLocationIds) {
+  return Boolean(
+    location
+    && ["lesson", "mission"].includes(location.kind)
+    && learningNetworkLocationIds.has(location.id),
+  );
 }
 
 function failureMessage(result) {
@@ -46,8 +50,10 @@ function failureMessage(result) {
     "ring-mismatch": "Bee rechazó el intercambio: teoría y aplicaciones pertenecen a anillos distintos.",
     "location-outside-safe-margin": "Spider rechazó el destino porque el nodo quedó fuera del margen seguro.",
     "self-connection": "Spider no admite una conexión hacia el mismo nodo.",
-    "duplicate-connection": "Esa pareja ya está conectada por un requisito del curso.",
-    "tree-two-cycle": "Spider rechazó la conexión porque produciría un ciclo.",
+    "duplicate-connection": "Esa pareja ya está conectada en la Red de aprendizaje.",
+    "learning-network-cycle": "Spider rechazó la conexión porque produciría un ciclo en la Red de aprendizaje.",
+    "non-learning-location": "Spider solo incorpora lecciones y misiones a la Red de aprendizaje.",
+    "location-not-in-learning-network": "Añade primero ambos nodos a la Red de aprendizaje.",
     "project-data-invalid": "El cambio dejaría contenido inaccesible en la progresión.",
   };
   return messages[result?.reason] ?? "La operación no superó la validación del editor.";
@@ -180,7 +186,9 @@ export class EditorApp {
       hoveredLocationId: this.hoveredLocationId,
       hoveredAreaId: this.hoveredAreaId,
       gesture: this.gesture?.type ?? null,
-      edges: structuredClone(snapshot.treeTwoTopology ?? []),
+      edges: structuredClone(
+        snapshot.learningNetworkTopology ?? snapshot.treeTwoTopology ?? [],
+      ),
       readOnly: this.readOnly,
       appearanceScope: this.bowerbird?.getSnapshot().scope ?? "course",
     };
@@ -266,7 +274,7 @@ export class EditorApp {
       camera: this.camera,
       areas: snapshot.areas,
       locations: snapshot.locations,
-      edges: snapshot.treeTwoTopology ?? [],
+      edges: snapshot.learningNetworkTopology ?? snapshot.treeTwoTopology ?? [],
       activeTool: this.activeTool,
       selectedLocationId: this.selectedLocationId,
       selectedAreaId: this.selectedAreaId,
@@ -321,10 +329,13 @@ export class EditorApp {
 
   #locationAt(world, scene, { connectableOnly = false } = {}) {
     const radius = POINTER_NODE_RADIUS_PX / this.camera.zoom;
+    const learningNetworkLocationIds = new Set(
+      scene.snapshot.learningNetworkLocationIds ?? [],
+    );
     let nearest = null;
     let nearestDistance = Number.POSITIVE_INFINITY;
     for (const location of scene.snapshot.locations) {
-      if (connectableOnly && !isConnectable(location)) continue;
+      if (connectableOnly && !isConnectable(location, learningNetworkLocationIds)) continue;
       const position = scene.positions.get(location.id);
       const distance = Math.hypot(world.x - position.x, world.y - position.y);
       if (distance <= radius && distance < nearestDistance) {
@@ -510,7 +521,7 @@ export class EditorApp {
       message = "Nodo reubicado por Spider.";
     } else if (gesture.type === "connection" && gesture.targetId) {
       result = this.model.connectLocations(gesture.sourceId, gesture.targetId);
-      message = "Prerrequisito dirigido añadido por Spider.";
+      message = "Conexión dirigida añadida a la Red de aprendizaje.";
     } else if (gesture.type === "area" && gesture.targetValid) {
       result = this.model.swapArea(gesture.sourceId, gesture.targetId);
       message = "Zonas intercambiadas dentro del mismo anillo.";

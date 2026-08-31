@@ -15,10 +15,10 @@ export const LOCATIONS = Object.freeze([
     objective: "Comprender las reglas del mundo y la diferencia entre movimiento físico y progresión conceptual.",
     sections: [
       {
-        title: "Dos capas superpuestas",
+        title: "Red y territorio",
         paragraphs: [
           "El personaje puede caminar libremente por cualquier punto de una zona abierta. Los lugares de aprendizaje no funcionan como casillas ni restringen el movimiento.",
-          "La progresión sí utiliza dos grafos. El Árbol I abre hexágonos completos; el Árbol II revela lugares, transportes, gadgets, personajes y misiones dentro de las zonas disponibles.",
+          "La progresión utiliza una única Red de aprendizaje formada por lecciones y misiones. Cuando un nodo académico de una zona vecina queda elegible, esa zona se abre; sus personajes, gadgets y transportes quedan disponibles para interactuar sin incorporarse a la red.",
         ],
       },
       {
@@ -565,15 +565,15 @@ export const LOCATIONS = Object.freeze([
     offset: { x: 103, y: -72 },
     interactionRadius: 70,
     visibility: "hiddenUntilUnlocked",
-    requirements: { concepts: ["vectors-and-fields"] },
+    requirements: {},
     grants: { rewards: ["gadgets:field-lens"] },
     objective: "Adquirir una herramienta segura para representar campos cartesianos bidimensionales.",
     sections: [
       {
-        title: "Árbol del conocimiento II",
+        title: "Exploración lateral",
         paragraphs: [
-          "Este depósito no abrió una región del mundo. Apareció dentro de una zona ya disponible cuando adquiriste el concepto Vectores y campos.",
-          "El gadget demuestra cómo el segundo árbol puede revelar herramientas opcionales sin alterar el recorrido conceptual principal.",
+          "Este depósito no abre una región del mundo ni forma parte de la Red de aprendizaje. Está disponible porque Campamento Base ya se encuentra abierto.",
+          "El gadget demuestra cómo una zona puede ofrecer herramientas opcionales sin convertirlas en prerrequisitos académicos.",
           "El explorador acepta dos componentes en x e y mediante una gramática matemática restringida. No ejecuta JavaScript ingresado por el usuario.",
         ],
         callout: "Las flechas y líneas de flujo son una representación cualitativa; no sustituyen un cálculo numérico validado.",
@@ -597,7 +597,7 @@ export const LOCATIONS = Object.freeze([
     offset: { x: -42, y: -28 },
     interactionRadius: 78,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: {},
+    requirements: { completedLocations: ["vector-workshop"] },
     grants: { concepts: ["charge-and-superposition"] },
     objective: "Construir el campo eléctrico por superposición, relacionarlo con el potencial y justificar su carácter conservativo fuera de las cargas fuente.",
     prerequisites: [
@@ -980,10 +980,7 @@ export const LOCATIONS = Object.freeze([
     offset: { x: 98, y: 68 },
     interactionRadius: 70,
     visibility: "hiddenUntilUnlocked",
-    requirements: {
-      concepts: ["charge-and-superposition"],
-      completedLocations: ["coulomb-observatory"],
-    },
+    requirements: {},
     grants: { rewards: ["npcs:gauss-guide"] },
     objective: "Registrar un personaje opcional desbloqueado dentro de una zona ya abierta.",
     sections: [
@@ -1013,7 +1010,7 @@ export const LOCATIONS = Object.freeze([
     offset: { x: -34, y: 12 },
     interactionRadius: 78,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: {},
+    requirements: { completedLocations: ["coulomb-observatory"] },
     grants: { concepts: ["circuit-analysis"] },
     objective: "Aplicar un modelo concentrado y verificar potencia, signo y unidades.",
     sections: [
@@ -1061,7 +1058,7 @@ export const LOCATIONS = Object.freeze([
     offset: { x: 26, y: -18 },
     interactionRadius: 78,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: {},
+    requirements: { completedLocations: ["vector-workshop"] },
     grants: { concepts: ["differential-equation-modeling"] },
     objective: "Distinguir ecuación, condiciones auxiliares y escala característica de una solución.",
     sections: [
@@ -1108,7 +1105,7 @@ export const LOCATIONS = Object.freeze([
     offset: { x: -52, y: -30 },
     interactionRadius: 78,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: {},
+    requirements: { completedLocations: ["faraday-station"] },
     grants: { concepts: ["steady-currents"] },
     objective: "Relacionar una corriente rectilínea con la orientación de su campo magnético.",
     sections: [
@@ -1159,10 +1156,7 @@ export const LOCATIONS = Object.freeze([
     offset: { x: 100, y: 66 },
     interactionRadius: 72,
     visibility: "hiddenUntilUnlocked",
-    requirements: {
-      concepts: ["steady-currents"],
-      completedLocations: ["ampere-foundry"],
-    },
+    requirements: {},
     grants: { rewards: ["transports:electric-cart"] },
     objective: "Desbloquear una mejora de desplazamiento sin convertir el viaje en un minijuego.",
     sections: [
@@ -1191,7 +1185,7 @@ export const LOCATIONS = Object.freeze([
     offset: { x: -82, y: 48 },
     interactionRadius: 78,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: {},
+    requirements: { completedLocations: ["coulomb-observatory"] },
     grants: { concepts: ["faraday-induction"] },
     objective: "Calcular la magnitud de una fem inducida por un cambio de flujo.",
     sections: [
@@ -1242,7 +1236,14 @@ export const LOCATIONS = Object.freeze([
     offset: { x: 82, y: -54 },
     interactionRadius: 78,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: { concepts: ["faraday-induction"] },
+    requirements: {
+      completedLocations: [
+        "ampere-foundry",
+        "coulomb-observatory",
+        "differential-equations-lab",
+        "faraday-station",
+      ],
+    },
     grants: { concepts: ["maxwell-synthesis"] },
     objective: "Identificar por qué la corriente de desplazamiento completa la descripción de campos variables.",
     sections: [
@@ -1294,7 +1295,7 @@ export const LOCATIONS = Object.freeze([
     offset: { x: -42, y: 22 },
     interactionRadius: 78,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: {},
+    requirements: { completedLocations: ["maxwell-archive"] },
     grants: { concepts: ["wave-propagation"] },
     objective: "Reconocer la escala de velocidad que emerge de las constantes electromagnéticas del vacío.",
     sections: [
@@ -1340,12 +1341,9 @@ export const LOCATIONS = Object.freeze([
     offset: { x: 106, y: -62 },
     interactionRadius: 72,
     visibility: "hiddenUntilUnlocked",
-    requirements: {
-      concepts: ["wave-propagation"],
-      completedLocations: ["hertz-beacon"],
-    },
+    requirements: {},
     grants: { rewards: ["transports:radio-skiff"] },
-    objective: "Mostrar una segunda recompensa tecnológica dentro del Árbol II.",
+    objective: "Mostrar una recompensa tecnológica lateral fuera de la Red de aprendizaje.",
     sections: [
       {
         title: "Movimiento y significado",
@@ -1372,7 +1370,7 @@ export const LOCATIONS = Object.freeze([
     offset: { x: -28, y: 18 },
     interactionRadius: 78,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: {},
+    requirements: { completedLocations: ["superconductivity-transition-lab"] },
     grants: { concepts: ["electromagnetic-sensing"] },
     objective: "Calcular una respuesta lineal y reconocer sensibilidad, unidad y carga del instrumento.",
     sections: [
@@ -1413,7 +1411,9 @@ export const LOCATIONS = Object.freeze([
     offset: { x: -34, y: 10 },
     interactionRadius: 78,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: {},
+    requirements: {
+      completedLocations: ["circuit-analysis-bench", "differential-equations-lab"],
+    },
     grants: { concepts: ["electromechanical-conversion"] },
     objective: "Relacionar corriente, flujo y torque en un modelo electromecánico elemental.",
     sections: [
@@ -1458,7 +1458,7 @@ export const LOCATIONS = Object.freeze([
     offset: { x: 22, y: -18 },
     interactionRadius: 78,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: {},
+    requirements: { completedLocations: ["circuit-analysis-bench"] },
     grants: { concepts: ["power-system-analysis"] },
     objective: "Distinguir potencia activa, reactiva y aparente en régimen sinusoidal.",
     sections: [
@@ -1504,7 +1504,7 @@ export const LOCATIONS = Object.freeze([
     offset: { x: -24, y: 12 },
     interactionRadius: 78,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: {},
+    requirements: { completedLocations: ["differential-equations-lab"] },
     grants: { concepts: ["computational-electromagnetics"] },
     objective: "Interpretar discretización, convergencia y comparación con un caso verificable.",
     sections: [
@@ -1548,7 +1548,7 @@ export const LOCATIONS = Object.freeze([
     offset: { x: 18, y: -12 },
     interactionRadius: 78,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: {},
+    requirements: { completedLocations: ["differential-equations-lab"] },
     grants: { concepts: ["fourier-analysis"] },
     objective: "Relacionar período, frecuencia, amplitud y fase de una componente sinusoidal.",
     sections: [
@@ -1593,7 +1593,7 @@ export const LOCATIONS = Object.freeze([
     offset: { x: -20, y: 14 },
     interactionRadius: 78,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: {},
+    requirements: { completedLocations: ["maxwell-archive"] },
     grants: { concepts: ["optical-propagation"] },
     objective: "Aplicar continuidad de fase para relacionar ángulos e índices de refracción.",
     sections: [
@@ -1677,7 +1677,7 @@ export const LOCATIONS = Object.freeze([
     offset: { x: -78, y: 52 },
     interactionRadius: 78,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: {},
+    requirements: { completedLocations: ["differential-equations-lab"] },
     grants: { concepts: ["electromagnetic-compatibility"] },
     objective: "Distinguir una transición superconductora de una disminución resistiva gradual mediante el comportamiento cualitativo de R frente a T.",
     prerequisites: [
@@ -1737,7 +1737,7 @@ export const LOCATIONS = Object.freeze([
     offset: { x: -22, y: 14 },
     interactionRadius: 78,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: {},
+    requirements: { completedLocations: ["hertz-beacon"] },
     grants: { concepts: ["guided-wave-modes"] },
     objective: "Calcular una frecuencia de corte y reconocer que una guía admite modos discretos.",
     sections: [
@@ -1782,7 +1782,7 @@ export const LOCATIONS = Object.freeze([
     offset: { x: -26, y: 16 },
     interactionRadius: 78,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: {},
+    requirements: { completedLocations: ["circuit-analysis-bench"] },
     grants: { concepts: ["transmission-line-analysis"] },
     objective: "Calcular un coeficiente de reflexión y vincularlo con adaptación de impedancias.",
     sections: [
@@ -1827,10 +1827,10 @@ export const LOCATIONS = Object.freeze([
     offset: { x: 94, y: -72 },
     interactionRadius: 72,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: { completedLocations: ["transmission-line-bench"] },
+    requirements: {},
     grants: { rewards: ["gadgets:smith-chart"] },
     objective: "Reconocer la carta de Smith como una representación del coeficiente de reflexión normalizado.",
-    prerequisites: ["Banco de Líneas de Transmisión completado"],
+    prerequisites: ["Zona de Líneas de Transmisión abierta"],
     model: "Plano complejo del coeficiente de reflexión Γ dentro de la circunferencia unidad.",
     application: "Referencia visual preliminar para adaptación de impedancias en líneas de transmisión.",
     sections: [
@@ -1865,7 +1865,7 @@ export const LOCATIONS = Object.freeze([
     offset: { x: 24, y: -18 },
     interactionRadius: 78,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: {},
+    requirements: { completedLocations: ["hertz-beacon"] },
     grants: { concepts: ["antenna-radiation"] },
     objective: "Relacionar frecuencia, longitud de onda y escala de una antena resonante.",
     sections: [
@@ -1910,7 +1910,7 @@ export const LOCATIONS = Object.freeze([
     offset: { x: -26, y: 18 },
     interactionRadius: 82,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: {},
+    requirements: { completedLocations: ["maxwell-archive"] },
     grants: { concepts: ["wireless-link-analysis"] },
     objective: "Combinar ganancias y pérdidas en decibel para estimar potencia recibida.",
     sections: [
@@ -1955,7 +1955,7 @@ export const LOCATIONS = Object.freeze([
     offset: { x: -74, y: 48 },
     interactionRadius: 82,
     visibility: "visibleWhenAreaUnlocked",
-    requirements: { concepts: ["antenna-radiation", "fourier-analysis"] },
+    requirements: { completedLocations: ["antenna-range", "spectrum-workshop"] },
     grants: { concepts: ["interferometric-thinking"] },
     objective: "Relacionar fase coherente y combinación de señales con instrumentación astronómica distribuida.",
     sections: [
@@ -2003,15 +2003,14 @@ export const LOCATIONS = Object.freeze([
     interactionRadius: 82,
     visibility: "hiddenUntilUnlocked",
     requirements: {
-      concepts: [
-        "interferometric-thinking",
-        "wireless-link-analysis",
-        "power-system-analysis",
-        "computational-electromagnetics",
-        "optical-propagation",
-        "electromagnetic-compatibility",
+      completedLocations: [
+        "atacama-array",
+        "wireless-link-station",
+        "power-network-station",
+        "field-solver-lab",
+        "optics-bench",
+        "superconductivity-transition-lab",
       ],
-      completedLocations: ["atacama-array"],
     },
     grants: { rewards: ["milestones:lunar-link"] },
     objective: "Cerrar la demostración con un cálculo elemental de tiempo de propagación Tierra–Luna.",

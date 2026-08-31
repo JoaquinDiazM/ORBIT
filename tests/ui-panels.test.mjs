@@ -561,7 +561,7 @@ test("las barras persisten ambiente y efectos de forma independiente", () => {
   });
 });
 
-test("Visual refleja y persiste los tres niveles de la red del Árbol II", () => {
+test("Visual refleja y persiste los tres niveles de la Red de aprendizaje", () => {
   withController((_controller, {
     settings,
     visualInputs,

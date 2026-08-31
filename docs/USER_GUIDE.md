@@ -28,7 +28,9 @@ pueden interactuarse en los otros dos perfiles. Son modos locales, no cuentas au
 
 ## Objetivo de la demostración
 
-Recorre el mundo, interactúa con lugares académicos y adquiere conceptos. Cada concepto principal abre una región vecina; las recompensas opcionales revelan transportes, gadgets y personajes dentro de regiones ya abiertas.
+Recorre el mundo, completa lecciones y misiones y adquiere conceptos. La Red de aprendizaje hace
+elegibles nuevos nodos académicos; una zona vecina se abre cuando contiene uno de ellos. Sus
+personajes, gadgets y transportes quedan disponibles para interactuar sin formar parte de la red.
 
 La edición vigente materializa 19 zonas y 29 lugares. La Estación de la Carta de Smith es
 opcional y no cambia el camino necesario para completar la demostración.
@@ -62,18 +64,20 @@ Las líneas luminosas indican fronteras transitables. Las barreras marcadas con 
 
 También existen recompensas opcionales que no son necesarias para abrir la siguiente zona.
 
-## Árboles de conocimiento
+## Zonas y Red de aprendizaje
 
 Pulsa `K` para revisar:
 
-- **Árbol I:** conceptos que abren regiones completas.
-- **Árbol II:** lugares, transportes, gadgets, personajes y hitos locales.
+- **Zonas:** regiones abiertas o bloqueadas por adyacencia y elegibilidad académica.
+- **Red de aprendizaje:** 21 lecciones y misiones conectadas en dirección prerrequisito → destino.
 
-El panel **Árboles** es un listado del estado de zonas, lugares y recompensas. El mundo no obliga a caminar por sus relaciones: los grafos controlan acceso conceptual, no la trayectoria física dentro de una zona.
+El panel **Zonas · Red** separa además la exploración lateral. El mundo no obliga a caminar por
+las conexiones: la red controla elegibilidad académica, no la trayectoria física dentro de una zona.
 
 ## Visualización de la red
 
-En el menú lateral, **Ajustes → Visual** abre el panel que configura las guías del Árbol II que se superponen sobre el mapamundi:
+En el menú lateral, **Ajustes → Visual** abre el panel que configura las guías de la Red de
+aprendizaje que se superponen sobre el mapamundi:
 
 - **Oculta:** muestra únicamente la conexión que produjo el último desbloqueo de esta sesión. Si todavía no ocurrió uno, no dibuja conexiones.
 - **Directo:** muestra todas las conexiones elegibles dentro de un mismo hexágono o entre dos hexágonos que comparten frontera.
@@ -85,7 +89,7 @@ Las flechas siempre apuntan desde el lugar que aporta el prerrequisito hacia el 
 
 Al interactuar con un lugar, su ventana principal aparece a la derecha. El menú izquierdo puede mantener abierta a la vez una única ventana secundaria:
 
-- **Árboles**;
+- **Zonas · Red**;
 - **Gadgets**;
 - **Símbolos**;
 - **Constantes**;
@@ -103,11 +107,12 @@ Las lecciones extensas se dividen en etapas. Una lectura habilita **Continuar**;
 
 - Abre **Gadgets** desde el menú lateral para usar la calculadora científica, disponible desde el
   inicio, y las herramientas que hayas adquirido.
-- Completar el **Depósito del Explorador de Campos** habilita un explorador cartesiano 2D en ese
+- El **Depósito del Explorador de Campos** queda disponible en Campamento Base; interactuar y
+  completarlo habilita un explorador cartesiano 2D en ese
   panel. Puedes escribir las componentes `Fx(x,y)` y `Fy(x,y)` y ajustar el dominio sin ejecutar
   JavaScript; los parámetros son efímeros y no modifican tu progreso.
-- Completar la **Estación de la Carta de Smith**, un lugar opcional posterior al Banco de Líneas
-  de Transmisión, revela el esqueleto estático de la carta. Esta primera versión sirve como apoyo
+- La **Estación de la Carta de Smith** queda disponible cuando se abre su zona; interactuar con
+  este lugar lateral revela el esqueleto estático de la carta. Esta primera versión sirve como apoyo
   visual y no calcula todavía adaptaciones de impedancia.
 - `T` alterna entre los transportes disponibles.
 
@@ -165,8 +170,8 @@ Cambia a Debug, abre el debugger con `F2` y usa:
 Conserva copias antes de probar cambios incompatibles en el contenido.
 
 Este JSON pertenece al progreso `v4` de ORBIT. No es compatible ni intercambiable con un
-documento `orbit-editor-project` `v2`: el primero contiene logros y preferencias del perfil; el
-segundo contiene cartografía, conexiones directas y apariencias publicables.
+documento `orbit-editor-project` `v3`: el primero contiene logros y preferencias del perfil; el
+segundo contiene cartografía, la Red de aprendizaje y apariencias publicables.
 
 ## Relación con ORBIT Editor
 
@@ -176,14 +181,14 @@ ORBIT Editor se abre en:
 http://127.0.0.1:4173/editor.html
 ```
 
-Sin query, Docente prepara posiciones de nodos, dependencias directas, ordenamiento de zonas y
+Sin query, Docente prepara posiciones de nodos, pertenencia y conexiones de la Red de aprendizaje, ordenamiento de zonas y
 apariencias con **Spider**, **Bee** y **Bowerbird**. Con `?profile=student` permite consultar,
 recorrer, encuadrar y guardar preferencias Bowerbird personales, pero mantiene Spider, Bee,
 historial, exportación, importación, restauración y el documento Docente en solo lectura. Cada
 intento restringido muestra un aviso temporal conciso; no ocupa el mapa con un banner permanente.
 Con `?profile=debug` bloquea la entrada antes de crear el modelo editorial.
 
-El documento Docente se autoguarda bajo `orbit-editor:v2:electromagnetism-applied`; las
+El documento Docente se autoguarda bajo `orbit-editor:v3:electromagnetism-applied`; las
 preferencias Bowerbird Estudiante usan
 `orbit-bowerbird:v1:electromagnetism-applied:student`. Ninguna rama se mezcla con los tres
 avances. En ORBIT, una preferencia personal tiene prioridad sobre la apariencia publicada, pero

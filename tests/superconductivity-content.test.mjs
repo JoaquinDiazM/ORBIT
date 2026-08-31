@@ -19,9 +19,7 @@ test("Superconductividad conserva los IDs, requisitos y orden publicados", () =>
   assert.ok(area);
   assert.equal(area.title, "Estación de Superconductividad");
   assert.equal(area.shortTitle, "Superconductividad");
-  assert.deepEqual(area.requirements, {
-    concepts: ["maxwell-synthesis", "circuit-analysis"],
-  });
+  assert.deepEqual(area.requirements, {});
   assert.equal(area.order, 13);
   assert.deepEqual({ q: area.q, r: area.r, tier: area.tier }, { q: -2, r: 0, tier: 2 });
 
@@ -50,7 +48,9 @@ test("la zona separa el encuentro histórico de Onnes y el punto de aprendizaje"
   assert.equal(onnes.steps, undefined);
 
   assert.equal(lesson.kind, "lesson");
-  assert.deepEqual(lesson.requirements, {});
+  assert.deepEqual(lesson.requirements, {
+    completedLocations: ["differential-equations-lab"],
+  });
   assert.deepEqual(lesson.grants, {
     concepts: [LEGACY_AREA_AND_CONCEPT_ID],
   });

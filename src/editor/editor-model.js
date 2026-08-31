@@ -10,12 +10,14 @@ import { AREAS, WORLD_CONFIG } from "../data/world.js";
 import {
   EDITOR_LOCATION_SAFE_MARGIN,
   EDITOR_DOCUMENT_SCHEMA_VERSION,
-  applyEditorDocument,
   createEditorDocument,
   deriveEditorTreeTwoTopology,
   importEditorDocument,
+  isEditorLearningLocation,
+  materializeEditorDraft,
+  sanitizeEditorDraft,
   sanitizeEditorDocument,
-  serializeEditorDocument,
+  serializeEditorDraft,
 } from "./editor-document.js";
 
 const DEFAULT_HISTORY_LIMIT = 60;
@@ -183,13 +185,19 @@ export class EditorModel {
   }
 
   #refreshCourse() {
-    const applied = applyEditorDocument(this.document, this.documentOptions);
+    const applied = materializeEditorDraft(this.document, this.documentOptions);
     this.areas = applied.areas;
     this.locations = applied.locations;
     this.treeTwoTopology = deriveEditorTreeTwoTopology({
       areas: this.areas,
       locations: this.locations,
     });
+    const validation = sanitizeEditorDocument(this.document, this.documentOptions);
+    this.validation = {
+      valid: validation.ok,
+      errors: structuredClone(validation.errors),
+      warnings: structuredClone(validation.warnings),
+    };
     this.warnings = mergeIssues(this.warnings, applied.warnings);
   }
 
@@ -253,7 +261,7 @@ export class EditorModel {
       );
     }
     candidate.updatedAt = this.#timestamp();
-    const result = sanitizeEditorDocument(candidate, this.documentOptions);
+    const result = sanitizeEditorDraft(candidate, this.documentOptions);
     if (!result.ok) {
       return mutationFailure(
         this,
@@ -291,6 +299,11 @@ export class EditorModel {
       areas: structuredClone(this.areas),
       locations: structuredClone(this.locations),
       treeTwoTopology: structuredClone(this.treeTwoTopology),
+      learningNetworkTopology: structuredClone(this.treeTwoTopology),
+      learningNetworkLocationIds: [
+        ...this.document.learningNetwork.nodeIds,
+      ],
+      validation: structuredClone(this.validation),
       warnings: structuredClone(this.warnings),
       canUndo: this.history.length > 0,
       canRedo: this.future.length > 0,
@@ -517,6 +530,34 @@ export class EditorModel {
         [localIssue("unknown-location", "Spider solo conecta nodos conocidos.")],
       );
     }
+    if (
+      !isEditorLearningLocation(this.baseLocationById.get(sourceId))
+      || !isEditorLearningLocation(this.baseLocationById.get(targetId))
+    ) {
+      return mutationFailure(
+        this,
+        "non-learning-location",
+        [
+          localIssue(
+            "non-learning-location",
+            "La Red de aprendizaje solo conecta lecciones o misiones.",
+          ),
+        ],
+      );
+    }
+    const nodeIds = new Set(this.document.learningNetwork.nodeIds);
+    if (!nodeIds.has(sourceId) || !nodeIds.has(targetId)) {
+      return mutationFailure(
+        this,
+        "location-not-in-learning-network",
+        [
+          localIssue(
+            "location-not-in-learning-network",
+            "Añade ambos nodos a la Red de aprendizaje antes de conectarlos.",
+          ),
+        ],
+      );
+    }
     if (sourceId === targetId) {
       return mutationFailure(
         this,
@@ -525,7 +566,7 @@ export class EditorModel {
       );
     }
     if (
-      this.document.treeTwoConnections.some(
+      this.document.learningNetwork.connections.some(
         (connection) =>
           connection.sourceId === sourceId && connection.targetId === targetId,
       )
@@ -538,16 +579,15 @@ export class EditorModel {
     }
 
     const candidate = structuredClone(this.document);
-    candidate.treeTwoConnections.push({
+    candidate.learningNetwork.connections.push({
       sourceId,
       targetId,
-      kind: "completedLocation",
     });
-    return this.#commit(candidate, "tree-two-connection-added", { sourceId, targetId });
+    return this.#commit(candidate, "learning-network-connection-added", { sourceId, targetId });
   }
 
   disconnectLocations(sourceId, targetId) {
-    const index = this.document.treeTwoConnections.findIndex(
+    const index = this.document.learningNetwork.connections.findIndex(
       (connection) =>
         connection.sourceId === sourceId && connection.targetId === targetId,
     );
@@ -564,8 +604,93 @@ export class EditorModel {
       );
     }
     const candidate = structuredClone(this.document);
-    candidate.treeTwoConnections.splice(index, 1);
-    return this.#commit(candidate, "tree-two-connection-removed", { sourceId, targetId });
+    candidate.learningNetwork.connections.splice(index, 1);
+    return this.#commit(candidate, "learning-network-connection-removed", { sourceId, targetId });
+  }
+
+  removeLocationFromLearningNetwork(locationId) {
+    const location = this.baseLocationById.get(locationId);
+    if (!location) {
+      return mutationFailure(
+        this,
+        "unknown-location",
+        [localIssue("unknown-location", "El lugar no pertenece al curso.")],
+      );
+    }
+    if (!isEditorLearningLocation(location)) {
+      return mutationFailure(
+        this,
+        "non-learning-location",
+        [
+          localIssue(
+            "non-learning-location",
+            "Este lugar está fuera de la Red; solo las lecciones y misiones pueden incorporarse.",
+          ),
+        ],
+      );
+    }
+    if (!this.document.learningNetwork.nodeIds.includes(locationId)) {
+      return this.#success(false, { locationId, removedConnectionCount: 0 });
+    }
+
+    const candidate = structuredClone(this.document);
+    candidate.learningNetwork.nodeIds = candidate.learningNetwork.nodeIds.filter(
+      (id) => id !== locationId,
+    );
+    const previousCount = candidate.learningNetwork.connections.length;
+    candidate.learningNetwork.connections = candidate.learningNetwork.connections.filter(
+      ({ sourceId, targetId }) =>
+        sourceId !== locationId && targetId !== locationId,
+    );
+    return this.#commit(
+      candidate,
+      "learning-network-location-removed",
+      {
+        locationId,
+        removedConnectionCount:
+          previousCount - candidate.learningNetwork.connections.length,
+      },
+    );
+  }
+
+  addLocationToLearningNetwork(locationId) {
+    const location = this.baseLocationById.get(locationId);
+    if (!location) {
+      return mutationFailure(
+        this,
+        "unknown-location",
+        [localIssue("unknown-location", "El lugar no pertenece al curso.")],
+      );
+    }
+    if (!isEditorLearningLocation(location)) {
+      return mutationFailure(
+        this,
+        "non-learning-location",
+        [
+          localIssue(
+            "non-learning-location",
+            "Solo las lecciones y misiones pueden añadirse a la Red de aprendizaje.",
+          ),
+        ],
+      );
+    }
+    if (this.document.learningNetwork.nodeIds.includes(locationId)) {
+      return this.#success(false, { locationId });
+    }
+
+    const order = new Map(
+      [...this.baseLocationById.keys()].map((id, index) => [id, index]),
+    );
+    const candidate = structuredClone(this.document);
+    candidate.learningNetwork.nodeIds.push(locationId);
+    candidate.learningNetwork.nodeIds.sort(
+      (first, second) => order.get(first) - order.get(second),
+    );
+    return this.#commit(
+      candidate,
+      "learning-network-location-added",
+      { locationId },
+    );
   }
 
   undo() {
@@ -586,7 +711,7 @@ export class EditorModel {
     const previous = this.history.at(-1);
     const candidate = structuredClone(previous);
     candidate.updatedAt = this.#timestamp();
-    const result = sanitizeEditorDocument(candidate, this.documentOptions);
+    const result = sanitizeEditorDraft(candidate, this.documentOptions);
     if (!result.ok) {
       return mutationFailure(
         this,
@@ -625,7 +750,7 @@ export class EditorModel {
     const next = this.future.at(-1);
     const candidate = structuredClone(next);
     candidate.updatedAt = this.#timestamp();
-    const result = sanitizeEditorDocument(candidate, this.documentOptions);
+    const result = sanitizeEditorDraft(candidate, this.documentOptions);
     if (!result.ok) {
       return mutationFailure(
         this,
@@ -706,7 +831,7 @@ export class EditorModel {
   }
 
   exportDocument() {
-    return serializeEditorDocument(this.document, this.documentOptions);
+    return serializeEditorDraft(this.document, this.documentOptions);
   }
 
   validate() {

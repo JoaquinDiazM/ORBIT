@@ -6,7 +6,7 @@ import { createEditorDocument } from "../src/editor/editor-document.js";
 import { EditorModel } from "../src/editor/editor-model.js";
 import { LOCATIONS } from "../src/data/locations.js";
 
-const EDITOR_KEY = "orbit-editor:v2:electromagnetism-applied";
+const EDITOR_KEY = "orbit-editor:v3:electromagnetism-applied";
 
 class MemoryStorage {
   constructor(candidate = null) {
@@ -67,7 +67,10 @@ test("inicializa, persiste y entrega snapshots independientes", () => {
   assert.equal(storage.saveCount, 1);
   assert.equal(first.document.areas.length, 19);
   assert.equal(first.document.locations.length, LOCATIONS.length);
-  assert.equal(first.treeTwoTopology.length, 14);
+  assert.equal(first.treeTwoTopology.length, 30);
+  assert.equal(first.learningNetworkTopology.length, 30);
+  assert.equal(first.learningNetworkLocationIds.length, 21);
+  assert.equal(first.validation.valid, true);
   assert.equal(first.canUndo, false);
   assert.equal(first.canRedo, false);
 
@@ -97,6 +100,11 @@ test("el perfil estudiante consulta el borrador sin persistir ni mutar", () => {
       offset: { x: 0, y: 0 },
     }),
     editor.connectLocations("vector-workshop", "circuit-analysis-bench"),
+    editor.disconnectLocations(
+      "differential-equations-lab",
+      "superconductivity-transition-lab",
+    ),
+    editor.removeLocationFromLearningNetwork("superconductivity-transition-lab"),
     editor.moveArea("electrostatics", { q: 0, r: -1 }),
     editor.setAreaAppearance("origin", {
       paletteId: "polar",
@@ -206,10 +214,9 @@ test("Spider mueve nodos dentro de otra zona y rechaza offsets inseguros", () =>
   assert.equal(editor.exportDocument(), beforeInvalid);
 });
 
-test("mover una llave detrás de su propia zona se rechaza sin persistir", () => {
+test("mover la raíz entre zonas solo cambia su ubicación editorial", () => {
   const storage = new MemoryStorage();
   const editor = model(storage);
-  const before = editor.exportDocument();
   const saves = storage.saveCount;
 
   const result = editor.moveLocation("vector-workshop", {
@@ -217,15 +224,15 @@ test("mover una llave detrás de su propia zona se rechaza sin persistir", () =>
     offset: { x: 0, y: 0 },
   });
 
-  assert.equal(result.ok, false);
-  assert.equal(result.reason, "project-data-invalid");
-  assert.equal(editor.exportDocument(), before);
-  assert.equal(storage.saveCount, saves);
+  assert.equal(result.ok, true);
+  assert.equal(result.changed, true);
+  assert.equal(location(editor.getSnapshot(), "vector-workshop").areaId, "electrostatics");
+  assert.equal(storage.saveCount, saves + 1);
 });
 
-test("Spider añade y elimina solo dependencias completedLocation", () => {
+test("Spider añade y elimina dependencias explícitas de la Red de aprendizaje", () => {
   const editor = model();
-  const canonicalConnectionCount = createEditorDocument().treeTwoConnections.length;
+  const canonicalConnectionCount = createEditorDocument().learningNetwork.connections.length;
   const canonicalTopologyCount = editor.getSnapshot().treeTwoTopology.length;
   const connected = editor.connectLocations(
     "vector-workshop",
@@ -233,14 +240,19 @@ test("Spider añade y elimina solo dependencias completedLocation", () => {
   );
 
   assert.equal(connected.ok, true);
-  assert.equal(editor.getSnapshot().document.treeTwoConnections.length, canonicalConnectionCount + 1);
+  assert.equal(
+    editor.getSnapshot().document.learningNetwork.connections.length,
+    canonicalConnectionCount + 1,
+  );
   assert.equal(editor.getSnapshot().treeTwoTopology.length, canonicalTopologyCount + 1);
   assert.deepEqual(
+    new Set(
     editor
       .getSnapshot()
       .locations.find((entry) => entry.id === "circuit-analysis-bench")
       .requirements.completedLocations,
-    ["vector-workshop"],
+    ),
+    new Set(["coulomb-observatory", "vector-workshop"]),
   );
 
   const duplicate = editor.connectLocations(
@@ -249,7 +261,7 @@ test("Spider añade y elimina solo dependencias completedLocation", () => {
   );
   assert.equal(duplicate.reason, "duplicate-connection");
 
-  const derivedOnly = editor.disconnectLocations("faraday-station", "maxwell-archive");
+  const derivedOnly = editor.disconnectLocations("coulomb-observatory", "gauss-guide-post");
   assert.equal(derivedOnly.reason, "unknown-connection");
 
   const disconnected = editor.disconnectLocations(
@@ -257,8 +269,106 @@ test("Spider añade y elimina solo dependencias completedLocation", () => {
     "circuit-analysis-bench",
   );
   assert.equal(disconnected.ok, true);
-  assert.equal(editor.getSnapshot().document.treeTwoConnections.length, canonicalConnectionCount);
+  assert.equal(
+    editor.getSnapshot().document.learningNetwork.connections.length,
+    canonicalConnectionCount,
+  );
   assert.equal(editor.getSnapshot().treeTwoTopology.length, canonicalTopologyCount);
+});
+
+test("Spider conserva un borrador inválido hasta que Docente repara la conexión eliminada", () => {
+  const storage = new MemoryStorage();
+  const editor = model(storage);
+  const removed = editor.disconnectLocations(
+    "differential-equations-lab",
+    "superconductivity-transition-lab",
+  );
+
+  assert.equal(removed.ok, true);
+  assert.equal(removed.changed, true);
+  assert.equal(editor.getSnapshot().validation.valid, false);
+  assert.equal(editor.validate().valid, false);
+  assert.equal(
+    editor.validate().errors.some(({ code }) => code === "missing-learning-predecessor"),
+    true,
+  );
+  assert.equal(
+    storage.value.learningNetwork.connections.some(
+      ({ sourceId, targetId }) =>
+        sourceId === "differential-equations-lab"
+        && targetId === "superconductivity-transition-lab",
+    ),
+    false,
+  );
+
+  const reloaded = new EditorModel({
+    storage: new MemoryStorage(JSON.parse(editor.exportDocument())),
+    clock: tickingClock(),
+  });
+  assert.equal(reloaded.validate().valid, false);
+  const repaired = reloaded.connectLocations(
+    "maxwell-archive",
+    "superconductivity-transition-lab",
+  );
+  assert.equal(repaired.ok, true);
+  assert.equal(reloaded.validate().valid, true);
+  assert.equal(reloaded.getSnapshot().validation.valid, true);
+});
+
+test("retirar un nodo académico borra sus aristas, no el lugar, y participa en undo/redo", () => {
+  const editor = model();
+  const removed = editor.removeLocationFromLearningNetwork(
+    "superconductivity-transition-lab",
+  );
+  let snapshot = editor.getSnapshot();
+
+  assert.equal(removed.ok, true);
+  assert.equal(removed.changed, true);
+  assert.equal(removed.detail.removedConnectionCount, 3);
+  assert.equal(snapshot.learningNetworkLocationIds.includes("superconductivity-transition-lab"), false);
+  assert.notEqual(
+    snapshot.locations.find(({ id }) => id === "superconductivity-transition-lab"),
+    undefined,
+  );
+  assert.deepEqual(
+    snapshot.locations.find(({ id }) => id === "superconductivity-transition-lab")
+      .requirements.completedLocations,
+    [],
+  );
+  assert.equal(snapshot.validation.valid, false);
+  assert.equal(
+    snapshot.validation.errors.some(({ code }) => code === "missing-learning-network-node"),
+    true,
+  );
+  assert.equal(
+    editor.connectLocations("maxwell-archive", "superconductivity-transition-lab").reason,
+    "location-not-in-learning-network",
+  );
+  assert.equal(
+    editor.removeLocationFromLearningNetwork("gauss-guide-post").reason,
+    "non-learning-location",
+  );
+
+  assert.equal(editor.undo().ok, true);
+  assert.equal(editor.validate().valid, true);
+  assert.equal(
+    editor.getSnapshot().learningNetworkLocationIds.includes(
+      "superconductivity-transition-lab",
+    ),
+    true,
+  );
+  assert.equal(editor.redo().ok, true);
+  assert.equal(editor.validate().valid, false);
+
+  const added = editor.addLocationToLearningNetwork("superconductivity-transition-lab");
+  snapshot = editor.getSnapshot();
+  assert.equal(added.ok, true);
+  assert.equal(snapshot.learningNetworkLocationIds.includes("superconductivity-transition-lab"), true);
+  assert.equal(snapshot.validation.valid, false);
+  assert.equal(
+    snapshot.validation.errors.some(({ code }) => code === "missing-learning-predecessor"),
+    true,
+  );
 });
 
 test("Bowerbird Docente persiste apariencia y participa en undo/redo", () => {
@@ -285,8 +395,13 @@ test("Bowerbird Docente persiste apariencia y participa en undo/redo", () => {
   assert.equal(area(editor.getSnapshot(), "origin").appearance.motifId, "waves");
 });
 
-test("Docente persiste como v2 un borrador v1 válido sin alterar su cartografía", () => {
+test("Docente persiste como v3 un borrador v1 válido sin alterar su cartografía", () => {
   const legacy = createEditorDocument({ updatedAt: "2026-08-28T00:00:00.000Z" });
+  legacy.treeTwoConnections = legacy.learningNetwork.connections.map((connection) => ({
+    ...connection,
+    kind: "completedLocation",
+  }));
+  delete legacy.learningNetwork;
   legacy.schemaVersion = 1;
   legacy.baseDataVersion = "0.4.0";
   delete legacy.appearanceCatalogVersion;
@@ -300,13 +415,13 @@ test("Docente persiste como v2 un borrador v1 válido sin alterar su cartografí
   const editor = new EditorModel({ storage, clock: tickingClock() });
 
   assert.equal(storage.saveCount, 1);
-  assert.equal(storage.value.schemaVersion, 2);
+  assert.equal(storage.value.schemaVersion, 3);
   assert.equal(storage.value.appearanceCatalogVersion, 1);
   assert.equal(storage.value.locations.length, LOCATIONS.length);
   assert.equal(editor.validate().valid, true);
 });
 
-test("Spider rechaza autorreferencia, desconocidos y ciclos sobre toda la topología", () => {
+test("Spider rechaza autorreferencia, desconocidos, laterales y ciclos", () => {
   const editor = model();
   const before = editor.exportDocument();
 
@@ -318,9 +433,13 @@ test("Spider rechaza autorreferencia, desconocidos y ciclos sobre toda la topolo
     editor.connectLocations("not-a-location", "vector-workshop").reason,
     "unknown-location",
   );
-  const cyclic = editor.connectLocations("gauss-guide-post", "coulomb-observatory");
+  assert.equal(
+    editor.connectLocations("gauss-guide-post", "coulomb-observatory").reason,
+    "non-learning-location",
+  );
+  const cyclic = editor.connectLocations("coulomb-observatory", "vector-workshop");
   assert.equal(cyclic.ok, false);
-  assert.equal(cyclic.reason, "tree-two-cycle");
+  assert.equal(cyclic.reason, "learning-network-cycle");
   assert.equal(editor.exportDocument(), before);
 });
 
@@ -533,7 +652,7 @@ test("un borrador de esquema futuro exige una recuperación editorial explícita
   const recovery = editor.resetDraft();
   assert.equal(recovery.ok, true);
   assert.equal(editor.getSnapshot().persistenceBlocked, false);
-  assert.equal(storage.value.schemaVersion, 2);
+  assert.equal(storage.value.schemaVersion, 3);
   assert.equal(storage.saveCount, 1);
 
   assert.equal(

@@ -118,13 +118,102 @@ export function getEditorMutationNotice(
   return { accepted: true, message: null, level: null };
 }
 
+function entryCount(entries) {
+  return Array.isArray(entries) ? entries.length : 0;
+}
+
+function issueCountLabel(count, singular, plural) {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
+export function getEditorImportFeedback(result) {
+  if (!result?.ok) {
+    return {
+      publishable: false,
+      errorCount: 0,
+      warningCount: 0,
+      message: null,
+      level: null,
+    };
+  }
+
+  const errorCount = entryCount(result.snapshot?.validation?.errors);
+  const warningCount = entryCount(result.snapshot?.warnings);
+  if (errorCount > 0) {
+    return {
+      publishable: false,
+      errorCount,
+      warningCount,
+      message: `Borrador importado como editable, pero no es publicable: la validación académica detectó ${issueCountLabel(errorCount, "error", "errores")}. Revisa el Resumen.`,
+      level: "warning",
+    };
+  }
+  if (warningCount > 0) {
+    return {
+      publishable: true,
+      errorCount,
+      warningCount,
+      message: `Borrador importado y publicable con ${issueCountLabel(warningCount, "advertencia", "advertencias")}. Revisa el Resumen.`,
+      level: "warning",
+    };
+  }
+  return {
+    publishable: true,
+    errorCount,
+    warningCount,
+    message: "Borrador importado y publicable.",
+    level: "success",
+  };
+}
+
+export function getEditorDraftBadge({
+  readOnly = false,
+  snapshot = {},
+  appearanceSnapshot = {},
+} = {}) {
+  if (readOnly) {
+    const warningCount = entryCount(appearanceSnapshot.warnings);
+    return {
+      text: warningCount > 0
+        ? issueCountLabel(warningCount, "advertencia", "advertencias")
+        : "apariencia personal",
+      title: "Bowerbird guarda una apariencia local separada del borrador Docente.",
+    };
+  }
+
+  const errorCount = entryCount(snapshot.validation?.errors);
+  const warningCount = entryCount(snapshot.warnings);
+  if (errorCount > 0) {
+    const warningDetail = warningCount > 0
+      ? ` También hay ${issueCountLabel(warningCount, "advertencia", "advertencias")}.`
+      : "";
+    return {
+      text: `${issueCountLabel(errorCount, "error", "errores")} · no publicable`,
+      title: `La validación académica bloquea la publicación. Abre Resumen para revisar los errores del borrador.${warningDetail}`,
+    };
+  }
+  if (warningCount > 0) {
+    return {
+      text: issueCountLabel(warningCount, "advertencia", "advertencias"),
+      title: "Abre Resumen para revisar las advertencias del borrador.",
+    };
+  }
+  return {
+    text: "borrador local",
+    title: "Borrador editorial guardado localmente.",
+  };
+}
+
 function edgeKindsLabel(requirementKinds = []) {
+  if (requirementKinds.length === 0) return "dependencia explícita de aprendizaje";
   const labels = {
-    completedLocations: "Spider",
-    concepts: "concepto derivado",
-    rewards: "recompensa derivada",
+    completedLocations: "dependencia explícita de aprendizaje",
   };
   return requirementKinds.map((kind) => labels[kind] ?? kind).join(" + ");
+}
+
+function isAcademicLocation(location) {
+  return ["lesson", "mission"].includes(location?.kind);
 }
 
 function listSummary(entries = []) {
@@ -239,6 +328,8 @@ export class EditorUIController {
       locationX: query("#editor-location-x"),
       locationY: query("#editor-location-y"),
       applyLocation: query("#editor-apply-location"),
+      networkMembership: query("#editor-network-membership"),
+      toggleNetworkLocation: query("#editor-toggle-network-location"),
       sourceSelect: query("#editor-connection-source"),
       targetSelect: query("#editor-connection-target"),
       addConnection: query("#editor-add-connection"),
@@ -411,15 +502,15 @@ export class EditorUIController {
       try {
         const candidate = JSON.parse(await file.text());
         const result = this.model.importDocument(candidate);
-        const accepted = this.#report(result, "Borrador importado y validado.");
-        const warningCount = result?.snapshot?.warnings?.length ?? 0;
-        if (accepted && warningCount > 0) {
+        const feedback = getEditorImportFeedback(result);
+        const accepted = this.#report(
+          result,
+          feedback.message ?? "Borrador importado.",
+          { quietSuccess: feedback.level === "warning" },
+        );
+        if (accepted && feedback.level === "warning") {
           this.showView("overview");
-          this.toast(
-            `Importación completada con ${warningCount} advertencia${warningCount === 1 ? "" : "s"}. Revisa el Resumen.`,
-            "warning",
-            7000,
-          );
+          this.toast(feedback.message, feedback.level, 7000);
         }
       } catch (error) {
         this.toast(`No fue posible importar el JSON: ${error.message}`, "error");
@@ -438,6 +529,23 @@ export class EditorUIController {
       this.app.selectLocation(this.elements.sourceSelect.value),
     );
     this.elements.applyLocation.addEventListener("click", () => this.#applyLocationForm());
+    this.elements.toggleNetworkLocation.addEventListener("click", () => {
+      const snapshot = this.model.getSnapshot();
+      const locationId = this.app.getState().selectedLocationId;
+      const location = snapshot.locations.find((entry) => entry.id === locationId);
+      if (!isAcademicLocation(location)) return;
+      const memberIds = new Set(snapshot.learningNetworkLocationIds ?? []);
+      const removing = memberIds.has(locationId);
+      const result = removing
+        ? this.model.removeLocationFromLearningNetwork(locationId)
+        : this.model.addLocationToLearningNetwork(locationId);
+      this.#report(
+        result,
+        removing
+          ? "Nodo retirado de la Red de aprendizaje."
+          : "Nodo añadido a la Red de aprendizaje.",
+      );
+    });
     for (const button of document.querySelectorAll("[data-nudge-x][data-nudge-y]")) {
       button.addEventListener("click", (event) => {
         const multiplier = event.shiftKey ? 10 : 4;
@@ -1261,8 +1369,10 @@ export class EditorUIController {
       "unknown-location": "El nodo seleccionado no pertenece al curso.",
       "location-outside-safe-margin": "El nodo debe permanecer dentro del margen seguro del hexágono.",
       "self-connection": "Un nodo no puede depender de sí mismo.",
-      "duplicate-connection": "Esa relación ya existe en el grafo.",
-      "tree-two-cycle": "La conexión produciría un ciclo en el Árbol II.",
+      "duplicate-connection": "Esa relación ya existe en la Red de aprendizaje.",
+      "learning-network-cycle": "La conexión produciría un ciclo en la Red de aprendizaje.",
+      "non-learning-location": "Solo las lecciones y misiones pueden pertenecer a la Red de aprendizaje.",
+      "location-not-in-learning-network": "Añade primero ambos nodos a la Red de aprendizaje.",
       "nothing-to-undo": "No hay cambios para deshacer.",
       "nothing-to-redo": "No hay cambios para rehacer.",
       "profile-read-only": "El perfil estudiante no puede modificar el borrador editorial.",
@@ -1298,18 +1408,13 @@ export class EditorUIController {
     this.elements.areaCount.textContent = String(snapshot.areas.length);
     this.elements.locationCount.textContent = String(snapshot.locations.length);
     this.elements.saveStatus.textContent = timestampLabel(appearanceSnapshot.updatedAt);
-    this.elements.draftBadge.textContent = this.readOnly
-      ? appearanceSnapshot.warnings.length
-        ? `${appearanceSnapshot.warnings.length} advertencia${appearanceSnapshot.warnings.length === 1 ? "" : "s"}`
-        : "apariencia personal"
-      : snapshot.warnings.length
-        ? `${snapshot.warnings.length} advertencia${snapshot.warnings.length === 1 ? "" : "s"}`
-        : "borrador local";
-    this.elements.draftBadge.title = this.readOnly
-      ? "Bowerbird guarda una apariencia local separada del borrador Docente."
-      : snapshot.warnings.length
-        ? "Abre Resumen para revisar las advertencias del borrador."
-        : "Borrador editorial guardado localmente.";
+    const draftBadge = getEditorDraftBadge({
+      readOnly: this.readOnly,
+      snapshot,
+      appearanceSnapshot,
+    });
+    this.elements.draftBadge.textContent = draftBadge.text;
+    this.elements.draftBadge.title = draftBadge.title;
     this.elements.undo.disabled = !this.readOnly && !snapshot.canUndo;
     this.elements.redo.disabled = !this.readOnly && !snapshot.canRedo;
 
@@ -1341,6 +1446,8 @@ export class EditorUIController {
     this.#renderWarnings({
       warnings: [
         ...this.courseWarnings,
+        ...(snapshot.validation?.errors ?? []),
+        ...(snapshot.validation?.warnings ?? []),
         ...snapshot.warnings,
         ...appearanceSnapshot.warnings,
       ],
@@ -1357,12 +1464,12 @@ export class EditorUIController {
       spider: {
         panel: this.elements.spiderPanel,
         title: "Spider",
-        eyebrow: "Árbol II · nodos",
+        eyebrow: "Red de aprendizaje · nodos",
       },
       bee: {
         panel: this.elements.beePanel,
         title: "Bee",
-        eyebrow: "Árbol I · zonas",
+        eyebrow: "Zonas · cartografía",
       },
       bowerbird: {
         panel: this.elements.bowerbirdPanel,
@@ -1442,8 +1549,22 @@ export class EditorUIController {
     this.elements.locationX.value = String(Math.round(selected.offset.x * 100) / 100);
     this.elements.locationY.value = String(Math.round(selected.offset.y * 100) / 100);
 
+    const memberIds = new Set(snapshot.learningNetworkLocationIds ?? []);
+    const academic = isAcademicLocation(selected);
+    const isMember = memberIds.has(selected.id);
+    this.elements.networkMembership.textContent = academic
+      ? isMember
+        ? "Este nodo pertenece a la Red de aprendizaje. Al retirarlo también se eliminan sus conexiones incidentes."
+        : "Esta lección o misión está fuera de la Red de aprendizaje y no puede conectarse hasta reincorporarla."
+      : "Este lugar está fuera de la Red: se habilita al abrir su zona y no puede pertenecer a la Red de aprendizaje.";
+    this.elements.toggleNetworkLocation.hidden = !academic;
+    this.elements.toggleNetworkLocation.disabled = this.readOnly;
+    this.elements.toggleNetworkLocation.textContent = isMember
+      ? "Retirar de la red"
+      : "Añadir a la red";
+
     const connectable = snapshot.locations.filter(
-      (location) => !["base", "debug"].includes(location.kind),
+      (location) => isAcademicLocation(location) && memberIds.has(location.id),
     );
     const sourceId = connectable.some((location) => location.id === appState.selectedLocationId)
       ? appState.selectedLocationId
@@ -1454,6 +1575,9 @@ export class EditorUIController {
       : connectable.find((location) => location.id !== sourceId)?.id;
     this.#replaceSelectOptions(this.elements.sourceSelect, connectable, sourceId);
     this.#replaceSelectOptions(this.elements.targetSelect, connectable, targetId);
+    this.elements.sourceSelect.disabled = connectable.length < 2 || this.readOnly;
+    this.elements.targetSelect.disabled = connectable.length < 2 || this.readOnly;
+    this.elements.addConnection.disabled = connectable.length < 2 || this.readOnly;
   }
 
   #renderAreaControls(snapshot, appState) {
@@ -1576,24 +1700,17 @@ export class EditorUIController {
       meta.textContent = edgeKindsLabel(edge.requirementKinds);
       description.append(title, meta);
       item.append(description);
-      if (edge.requirementKinds.includes("completedLocations")) {
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.textContent = "Quitar Spider";
-        remove.disabled = this.readOnly;
-        remove.addEventListener("click", () => {
-          this.#report(
-            this.model.disconnectLocations(edge.sourceId, edge.targetId),
-            "Requisito Spider eliminado.",
-          );
-        });
-        item.append(remove);
-      } else {
-        const locked = document.createElement("span");
-        locked.className = "state-chip";
-        locked.textContent = "solo lectura";
-        item.append(locked);
-      }
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "Quitar conexión";
+      remove.disabled = this.readOnly;
+      remove.addEventListener("click", () => {
+        this.#report(
+          this.model.disconnectLocations(edge.sourceId, edge.targetId),
+          "Conexión de aprendizaje eliminada.",
+        );
+      });
+      item.append(remove);
       return item;
     });
     this.elements.connectionList.replaceChildren(...items);

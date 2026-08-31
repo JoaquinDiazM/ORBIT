@@ -24,19 +24,22 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
 
 - Movimiento continuo en 2D con teclado; el personaje no está restringido a nodos ni caminos.
 - Mundo de 19 hexágonos: Campamento Base, seis fundamentos y doce áreas de aplicación.
-- **Árbol del conocimiento I:** abre zonas completas.
-- **Árbol del conocimiento II:** revela lugares, gadgets, transportes, personajes y misiones
-  dentro de zonas ya accesibles; sus requisitos declarativos producen 14 parejas únicas de guía
-  visual, cinco de ellas declaradas directamente mediante `completedLocations`.
+- **Red de aprendizaje única:** conecta 21 lecciones y misiones mediante 30 relaciones
+  académicas explícitas, con Taller Vectorial como raíz.
+- **Apertura territorial derivada:** una zona vecina se abre cuando contiene al menos un nodo
+  académico elegible; personajes, gadgets y transportes quedan disponibles para interactuar al
+  abrir su zona, fuera de la red.
 - Regla de fronteras: cuando se abre un hexágono, quedan transitables todas sus aristas compartidas con hexágonos previamente abiertos.
 - Veinte conceptos y 29 lugares alcanzables, incluida una misión integradora Tierra–Luna y una estación opcional para la Carta de Smith.
 - Ejercicios de alternativa, respuesta numérica con tolerancia, expresiones equivalentes, secuencias guiadas y actividades de confirmación.
 - Lugares extensos divididos en etapas desbloqueables dentro de la ventana principal; el Taller Vectorial desarrolla ahora seis etapas con andamiaje decreciente.
 - Menú **Gadgets** disponible desde cualquier zona: la calculadora científica segura está siempre activa; el Explorador de campos 2D y la Carta de Smith aparecen al obtener sus recompensas.
 - Explorador cartesiano de campos 2D en SVG nativo, con parámetros efímeros, descripción accesible y evaluación restringida sin ejecutar JavaScript ingresado por el usuario.
-- Esqueleto estático de Carta de Smith, desbloqueado por la estación opcional que sucede al Banco de Líneas de Transmisión; todavía no calcula adaptaciones ni sustituye una herramienta RF completa.
+- Esqueleto estático de Carta de Smith, obtenido al interactuar con una estación opcional
+  disponible desde que se abre la zona de Líneas de Transmisión; todavía no calcula adaptaciones
+  ni sustituye una herramienta RF completa.
 - Política matemática segura para equivalencia numérica, funcional y por gradiente, con parser restringido y evaluación determinista sin ejecutar JavaScript ingresado por el usuario.
-- Menú secundario con accesos primarios a **Árboles**, **Gadgets**, **Símbolos**, **Constantes**, **Formulario**, **Glosario** y **Ajustes**; este último reúne **Visual**, **Sonido** y **Ayuda** sin quitar ninguna capacidad.
+- Menú secundario con accesos primarios a **Zonas · Red**, **Gadgets**, **Símbolos**, **Constantes**, **Formulario**, **Glosario** y **Ajustes**; este último reúne **Visual**, **Sonido** y **Ayuda** sin quitar ninguna capacidad.
 - HUD con una barra nativa de **Progreso** conceptual: muestra un porcentaje entero derivado del
   perfil activo y conserva «X de Y conceptos adquiridos» como equivalente accesible.
 - Las colecciones de referencia conservan sus paneles de consulta; lo que se omite son los cuadros bibliográficos repetidos. Cada procedencia pertinente se anuncia una sola vez al producirse su desbloqueo.
@@ -58,12 +61,12 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
 - Build estático y despliegue preparado para GitHub Pages.
 - Dos entradas estáticas: **ORBIT** en `index.html`, con perfiles Estudiante, Docente y Debug,
   y **ORBIT Editor** en `editor.html`.
-- Editor local con dos docks retractables: Docente usa **Spider** para nodos y dependencias
-  directas, **Bee** para intercambiar zonas dentro de su anillo y **Bowerbird** para preparar la
+- Editor local con dos docks retractables: Docente usa **Spider** para ubicar nodos y editar la
+  pertenencia y conexiones de la Red de aprendizaje, **Bee** para intercambiar zonas dentro de su anillo y **Bowerbird** para preparar la
   apariencia publicada. Estudiante mantiene Spider y Bee en solo lectura, pero dispone de su
   propio Bowerbird personal; Debug queda bloqueado antes de crear el modelo editorial.
-- Documento Docente `v2` con autoguardado, historial, importación y exportación JSON. Incluye
-  cartografía, conexiones directas y apariencias, pero nunca incorpora progreso ni las
+- Documento Docente `v3` con autoguardado, historial, importación y exportación JSON. Incluye
+  cartografía, nodos y conexiones académicas explícitas y apariencias, pero nunca incorpora progreso ni las
   preferencias Bowerbird privadas de Estudiante.
 - Catálogo visual versionado de paletas, motivos y contornos. Las zonas bloqueadas conservan una
   apariencia neutral y los motivos animados respetan `prefers-reduced-motion`.
@@ -265,7 +268,7 @@ local, pero conserva el borrador en una clave editorial separada y no carga prog
 | `E` o espacio | Interactuar con el lugar cercano |
 | Rueda del ratón | Zoom |
 | `T` | Alternar transportes adquiridos |
-| `K` | Ver los dos árboles de progresión |
+| `K` | Ver Zonas y Red de aprendizaje |
 | Botón **Gadgets** | Abrir la calculadora y las herramientas adquiridas |
 | Botón **Ajustes** | Mostrar los accesos a Visual, Sonido y Ayuda |
 | `F2` o `` ` `` | Abrir/cerrar el debugger, solo en el perfil Debug |
@@ -300,10 +303,10 @@ El mundo físico y el currículo son capas relacionadas, pero no equivalentes:
 movimiento continuo del personaje
              │
              ▼
-hexágonos abiertos ───── Árbol I ───── conceptos adquiridos
-             │
-             ▼
-lugares dentro de la zona ─ Árbol II ─ prerrequisitos y recompensas
+Red de aprendizaje ── elegibilidad académica ── zonas vecinas abiertas
+             │                                      │
+             ▼                                      ▼
+lecciones y misiones completadas         exploración lateral disponible
 ```
 
 El estado persistido contiene logros y preferencias. Las zonas y lugares disponibles se **derivan** desde ese estado; no se guardan como una segunda verdad que pueda quedar inconsistente.
@@ -313,16 +316,16 @@ activa. Estudiante recupera claves históricas solo cuando la edición declara e
 Docente y Debug continúan en sus propias claves. Cambiar el selector recarga el modo elegido, no
 copia logros entre perfiles.
 
-ORBIT Editor opera sobre ramas de estado separadas: un documento Docente `v2`, las preferencias
+ORBIT Editor opera sobre ramas de estado separadas: un documento Docente `v3`, las preferencias
 visuales personales de Estudiante y la edición publicada `v1`. El documento Docente conserva
-ubicaciones, coordenadas, dependencias directas y apariencias, pero no respuestas ni logros. El
+ubicaciones, coordenadas, la Red de aprendizaje explícita y apariencias, pero no respuestas ni logros. El
 flujo de aplicación local consume ese documento completo, muestra el impacto y reinicia el
 progreso de los tres perfiles; no mezcla ni elimina el borrador o las preferencias personales.
 
 Más detalles:
 
 - [Arquitectura](docs/ARCHITECTURE.md)
-- [Diseño del mundo y los dos grafos](docs/WORLD_AND_KNOWLEDGE_DESIGN.md)
+- [Diseño del mundo y la Red de aprendizaje](docs/WORLD_AND_KNOWLEDGE_DESIGN.md)
 - [Principios pedagógicos](docs/PEDAGOGICAL_PRINCIPLES.md)
 - [Esqueleto curricular preliminar](docs/CURRICULUM_SKELETON.md)
 - [Autoría de contenido](docs/CONTENT_AUTHORING.md)
@@ -334,6 +337,7 @@ Más detalles:
 - [Bibliografía BibTeX](docs/references/references.bib)
 - [Debugger](docs/DEBUGGING.md)
 - [Guía de ORBIT Editor](docs/EDITOR_GUIDE.md)
+- [ADR 0009: Red única de aprendizaje](docs/decisions/0009-single-learning-network.md)
 - [Informe de validación](docs/VALIDATION_REPORT.md)
 
 ## Estructura del repositorio
@@ -364,7 +368,7 @@ el nodo **Terminal de Cartografía**, el control `F2`, los overlays ni `window.O
 Debug, la interfaz permite:
 
 - ignorar fronteras bloqueadas;
-- mostrar IDs, coordenadas y relaciones de los grafos;
+- mostrar IDs, coordenadas y la Red de aprendizaje completa;
 - teletransportar al personaje;
 - completar el lugar cercano;
 - conceder el siguiente concepto;

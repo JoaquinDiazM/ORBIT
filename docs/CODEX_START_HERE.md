@@ -35,9 +35,9 @@ El producto ya incluye:
 
 - movimiento continuo en Canvas 2D;
 - 19 hexágonos en tres niveles: base, seis fundamentos y doce aplicaciones;
-- fronteras físicas derivadas del Árbol I;
-- 29 lugares y recompensas derivados del Árbol II, con 14 parejas únicas —cinco
-  `completedLocations` explícitas canónicas— y un panel **Visual** separado de Árboles,
+- fronteras físicas derivadas de la apertura de zonas por adyacencia y elegibilidad académica;
+- 29 lugares: 21 lecciones/misiones en una Red de aprendizaje de 30 parejas explícitas y ocho
+  lugares Base/laterales/Debug fuera de ella; un panel **Visual** separado de **Zonas · Red**,
   accesible desde **Ajustes**, con modos **Oculta**, **Directo** y **Total**;
 - ejercicios de alternativa, número, expresión segura, secuencia y confirmación;
 - guardado separado para los perfiles canónicos `student`, `teacher` y `debug` en
@@ -45,7 +45,7 @@ El producto ya incluye:
 - progreso `v4` ligado a `courseId + courseRevision`, con migraciones controladas y lectura del
   prefijo histórico `aea-progress` solo cuando la edición activa lo declara compatible;
 - audio local con cinco recursos verificables y volúmenes independientes `ambience`/`effects`;
-- ventana principal compatible con un panel secundario de Árboles, Gadgets, Símbolos, Constantes,
+- ventana principal compatible con un panel secundario de Zonas · Red, Gadgets, Símbolos, Constantes,
   Formulario o Glosario, más **Ajustes** como acceso agrupado a Visual, Sonido y Ayuda;
 - HUD con barra nativa de **Progreso**, porcentaje conceptual entero y equivalente accesible
   «X de Y», todo derivado del snapshot del perfil sin persistencia adicional;
@@ -67,7 +67,7 @@ El producto ya incluye:
 - Editor con docks **General** y **Editor** retractables: Docente usa Spider, Bee y Bowerbird;
   Estudiante recorre el mapa con Spider/Bee bloqueados y Bowerbird personal; Debug no inicia el
   modelo;
-- documento `orbit-editor-project` `v2`, catálogo visual y preferencias Estudiante aisladas;
+- documento `orbit-editor-project` `v3`, catálogo visual y preferencias Estudiante aisladas;
 - `orbit-course-edition` con revisión/digest y aplicación local recuperable mediante
   `npm run editor:author`, sin backend público ni dependencia nueva;
 - modos locales explícitos: `dev` sirve ORBIT y Editor pero no aplica; `editor:author` bloquea
@@ -83,7 +83,7 @@ figuras/Gadgets, las posiciones de cargas y el contexto
 liga cada clave de progreso al curso/revisión. Una edición distinta reinicia en vez de reactivar
 avance; la compatibilidad histórica es una decisión explícita del artefacto.
 
-El documento Docente usa `orbit-editor:v2:electromagnetism-applied`; Estudiante guarda solo sus
+El documento Docente usa `orbit-editor:v3:electromagnetism-applied`; Estudiante guarda solo sus
 overrides Bowerbird en `orbit-bowerbird:v1:electromagnetism-applied:student`. Importar o exportar
 JSON nunca mezcla ambos. **Resumen** valida, muestra diff/impacto y puede aplicar mediante el
 helper loopback: este escribe el artefacto canónico, ejecuta check/build y coordina un reset
@@ -113,13 +113,13 @@ Antes de implementar una tarea, identifica cuáles puede afectar:
 - movimiento libre;
 - geometría hexagonal;
 - regla de fronteras;
-- separación Árbol I/Árbol II;
+- Red de aprendizaje académica única y apertura territorial derivada;
 - alcanzabilidad de la progresión;
 - IDs persistentes;
 - esquema de guardado;
-- separación entre progreso `v4`, documento Docente `v2`, preferencias Bowerbird `v1` y edición
+- separación entre progreso `v4`, documento Docente `v3`, preferencias Bowerbird `v1` y edición
   de curso `v1`;
-- cinco conexiones directas canónicas frente a catorce parejas derivadas totales;
+- 21 nodos académicos, raíz única y 30 conexiones explícitas frente a lugares laterales fuera de red;
 - revisión de curso, reset específico y bloqueo compartido/exclusivo;
 - permanencia de zonas teóricas y aplicaciones en sus anillos;
 - funcionamiento sin backend;
@@ -138,7 +138,7 @@ Incluye esa evaluación en tu resumen de cambios o en el mensaje de commit.
 | Agregar lugares o ejercicios | `src/data/locations.js` |
 | Agregar referencias académicas | `src/data/reference/`, `docs/references/references.bib` |
 | Reglas de requisitos | `src/core/requirements.js` |
-| Guías declarativas y modos visuales del Árbol II | `src/core/knowledge-graph.js`, `src/ui/ui-controller.js` |
+| Red de aprendizaje y sus modos visuales | `src/core/knowledge-graph.js`, `src/ui/ui-controller.js` |
 | Evaluar expresiones matemáticas | `src/core/math-expression.js`, `src/core/exercises.js` |
 | Calculadora y expresiones científicas de Gadgets | `src/core/scientific-expression.js`, `src/ui/gadget-hub.js` |
 | Avance dentro de una secuencia | `src/core/exercise-sequence.js` |
@@ -190,14 +190,14 @@ Para probar cambios de progresión:
 5. usa el perfil Debug para casos extremos y comprueba su avance independiente;
 6. exporta e importa el estado Debug;
 7. confirma que cada nueva zona abre todas las fronteras compartidas pertinentes;
-8. prueba los elementos opcionales del Árbol II y revisa la consola.
+8. prueba que los lugares laterales se habiliten con su zona, exijan interacción y revisa la consola.
 
 Para probar cambios editoriales:
 
 1. abre `editor.html` sin query y confirma el acceso Docente completo;
 2. confirma que ORBIT y ORBIT Editor conservan claves de almacenamiento separadas;
 3. mueve un nodo con puntero y teclado;
-4. crea y elimina una conexión directa con Spider;
+4. retira y reincorpora una lección/misión a la red; crea y elimina una conexión con Spider;
 5. intercambia zonas del mismo anillo con Bee y fuerza un rechazo entre anillos;
 6. prueba deshacer, rehacer, recarga, exportación e importación inválida;
 7. abre `editor.html?profile=student`, verifica navegación, Spider/Bee bloqueados y Bowerbird
@@ -206,8 +206,8 @@ Para probar cambios editoriales:
 9. valida en Resumen y revisa diff, impacto de los tres perfiles y plan invalidado tras editar;
 10. en `dev`, confirma que Resumen permite editar/validar, identifica **Modo normal** y mantiene
     confirmación/**Aplicar** deshabilitados con una explicación visible;
-11. registra los cambios locales, detén `npm run dev`, cierra las demás pestañas e inicia
-    `npm run editor:author` en el origen fijo `127.0.0.1:4173`,
+11. sin exigir un checkout limpio ni crear commits, detén `npm run dev`, cierra las demás
+    pestañas e inicia `npm run editor:author` en el origen fijo `127.0.0.1:4173`,
     comprueba que todas las entradas ORBIT responden en mantenimiento, aplica y verifica reset,
     conservación de documento/preferencias y concordancia fuente/build;
 12. detén autoría, inicia nuevamente `npm run dev` y vuelve a ORBIT en los tres perfiles para
@@ -226,13 +226,14 @@ No:
   preparada mientras la zona siga bloqueada;
 - presentes el selector local o los bloqueos del Editor como cuentas, autenticación o seguridad;
 - inventes nombres de perfil: los únicos canónicos son `student`, `teacher` y `debug`;
-- añadas una lista paralela de aristas: Spider solo edita `completedLocations` y deja conceptos/recompensas como relaciones derivadas de solo lectura;
+- derives aristas desde conceptos o recompensas, o mantengas una lista paralela: Spider edita la
+  única Red de aprendizaje explícita y solo admite `lesson`/`mission`;
 - permitas que Bee mezcle `tier 1` y `tier 2` o mueva `origin`;
 - afirmes que exportar un borrador actualiza ORBIT, escribe Git o publica automáticamente;
 - presentes el helper loopback como backend, dejes que acepte rutas del navegador o permitas que
   aplique sin revisión coincidente, respaldo de la fuente previa, confirmación o bloqueo exclusivo;
 - sirvas ORBIT durante `editor:author` o habilites **Aplicar** durante `dev`;
-- hagas que una zona dependa de una llave situada únicamente dentro de ella;
+- hagas que una zona dependa de un nodo cuya elegibilidad requiera primero esa misma zona;
 - renombres IDs publicados sin migración;
 - agregues React, Phaser, Vite, un CDN o cualquier paquete “por comodidad” sin ADR;
 - conviertas el visor SVG 2D en un motor 3D o un lenguaje general de gráficos sin una necesidad pedagógica y una decisión de arquitectura explícitas;

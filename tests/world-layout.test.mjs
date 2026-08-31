@@ -2,6 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { APP_CONFIG } from "../src/config.js";
 import { axialDistance, getWorldBounds } from "../src/core/hex.js";
+import { isLearningLocation } from "../src/core/knowledge-graph.js";
+import { normalizeRequirements } from "../src/core/requirements.js";
+import { LOCATIONS } from "../src/data/locations.js";
 import { AREAS, WORLD_CONFIG } from "../src/data/world.js";
 
 test("el mapa forma exactamente una base, seis fundamentos y doce aplicaciones", () => {
@@ -74,4 +77,34 @@ test("el margen de navegación común cubre al menos un hexágono vecino complet
   assert.equal(padding, 460);
   assert.ok(padding >= horizontalCenterStep);
   assert.ok(padding >= verticalCenterStep);
+});
+
+test("las 19 zonas derivan su apertura desde una red académica de raíz única", () => {
+  const learningLocations = LOCATIONS.filter(isLearningLocation);
+  const roots = learningLocations.filter(
+    (location) => normalizeRequirements(location.requirements).completedLocations.length === 0,
+  );
+
+  assert.equal(learningLocations.length, 21);
+  assert.deepEqual(roots.map((location) => location.id), [WORLD_CONFIG.learningRootLocationId]);
+  assert.equal(
+    learningLocations.reduce(
+      (count, location) =>
+        count + normalizeRequirements(location.requirements).completedLocations.length,
+      0,
+    ),
+    30,
+  );
+  assert.ok(
+    AREAS.filter((area) => !area.initial).every((area) =>
+      learningLocations.some((location) => location.areaId === area.id),
+    ),
+  );
+  assert.ok(
+    AREAS.every((area) =>
+      Object.values(normalizeRequirements(area.requirements)).every(
+        (requirements) => requirements.length === 0,
+      ),
+    ),
+  );
 });

@@ -20,9 +20,9 @@ function safeZoom(value) {
 }
 
 /**
- * Confirmed Editor connections share the same bright-yellow hue. Editable and
- * derived relations deliberately share the same stroke; editability belongs
- * to the controls and text, not to a third map appearance.
+ * Confirmed learning-network connections share the same bright-yellow hue.
+ * Membership and editability belong to Spider's controls and text, not to a
+ * third map appearance.
  */
 export function getEditorEdgeVisualStyle({
   editable = true,

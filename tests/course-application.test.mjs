@@ -6,12 +6,14 @@ import { createEditorDocument } from "../src/editor/editor-document.js";
 import {
   applyCourseApplicationPlan,
   createCourseApplicationPlan,
+  diffEditorDocuments,
   inspectLocalProgress,
   progressStorageDescriptors,
 } from "../src/core/course-application.js";
 import {
   courseEditionStorageKey,
   createCourseEdition,
+  digestEditorDocument,
 } from "../src/core/course-edition.js";
 
 class BrowserStorage {
@@ -94,6 +96,99 @@ test("el plan valida primero y describe cambios Spider/Bee/Bowerbird", async () 
   assert.deepEqual(plan.impact.resetProfiles, ["student", "teacher", "debug"]);
   assert.equal(plan.validation.errors.length, 0);
   assert.equal(plan.validation.reachableAreas, candidate.areas.length);
+});
+
+test("el orden de nodeIds queda canónico y no produce una aplicación vacía", async () => {
+  const currentEdition = await publishedEdition();
+  const candidate = structuredClone(currentEdition.document);
+  candidate.learningNetwork.nodeIds.reverse();
+
+  assert.equal(
+    await digestEditorDocument(candidate),
+    await digestEditorDocument(currentEdition.document),
+  );
+
+  const plan = await createCourseApplicationPlan({
+    currentEdition,
+    candidateDocument: candidate,
+    storage: new BrowserStorage(),
+    appliedAt: "2026-08-31T00:00:00.000Z",
+  });
+
+  assert.equal(plan.changed, false);
+  assert.deepEqual(plan.diff, {
+    movedAreas: [],
+    changedAreaAppearances: [],
+    movedLocations: [],
+    addedLearningNodes: [],
+    removedLearningNodes: [],
+    addedConnections: [],
+    removedConnections: [],
+  });
+  assert.deepEqual(
+    plan.edition.document.learningNetwork.nodeIds,
+    currentEdition.document.learningNetwork.nodeIds,
+  );
+});
+
+test("el plan distingue membresía y aristas de la Red de aprendizaje", () => {
+  const current = createEditorDocument();
+  const candidate = structuredClone(current);
+  candidate.learningNetwork.nodeIds = candidate.learningNetwork.nodeIds.filter(
+    (id) => id !== "superconductivity-transition-lab",
+  );
+  candidate.learningNetwork.connections = candidate.learningNetwork.connections.filter(
+    ({ sourceId, targetId }) =>
+      sourceId !== "superconductivity-transition-lab"
+      && targetId !== "superconductivity-transition-lab",
+  );
+
+  const diff = diffEditorDocuments(current, candidate);
+
+  assert.deepEqual(diff.removedLearningNodes, ["superconductivity-transition-lab"]);
+  assert.deepEqual(diff.addedLearningNodes, []);
+  assert.deepEqual(diff.removedConnections, [
+    "differential-equations-lab->superconductivity-transition-lab",
+    "superconductivity-transition-lab->lunar-relay",
+    "superconductivity-transition-lab->sensor-calibration-lab",
+  ]);
+});
+
+test("Aplicar rechaza la arista eliminada hasta que Docente repara el borrador", async () => {
+  const currentEdition = await publishedEdition();
+  const candidate = createEditorDocument();
+  candidate.learningNetwork.connections = candidate.learningNetwork.connections.filter(
+    ({ sourceId, targetId }) =>
+      sourceId !== "differential-equations-lab"
+      || targetId !== "superconductivity-transition-lab",
+  );
+
+  await assert.rejects(
+    () => createCourseApplicationPlan({
+      currentEdition,
+      candidateDocument: candidate,
+      storage: new BrowserStorage(),
+    }),
+    (error) => error.issues?.some(({ code }) => code === "missing-learning-predecessor"),
+  );
+
+  candidate.learningNetwork.connections.push({
+    sourceId: "maxwell-archive",
+    targetId: "superconductivity-transition-lab",
+  });
+  const plan = await createCourseApplicationPlan({
+    currentEdition,
+    candidateDocument: candidate,
+    storage: new BrowserStorage(),
+    appliedAt: "2026-08-31T00:00:00.000Z",
+  });
+  assert.equal(plan.changed, true);
+  assert.deepEqual(plan.diff.removedConnections, [
+    "differential-equations-lab->superconductivity-transition-lab",
+  ]);
+  assert.deepEqual(plan.diff.addedConnections, [
+    "maxwell-archive->superconductivity-transition-lab",
+  ]);
 });
 
 test("aplicar el plan instala la edición y elimina progreso canónico y legado", async () => {

@@ -1,11 +1,10 @@
 import { axialDistance } from "./hex.js";
 import { normalizeRequirements } from "./requirements.js";
 
-const REQUIREMENT_KINDS = Object.freeze([
-  "completedLocations",
-  "concepts",
-  "rewards",
-]);
+const REQUIREMENT_KINDS = Object.freeze(["completedLocations"]);
+
+export const LEARNING_LOCATION_KINDS = Object.freeze(["lesson", "mission"]);
+const LEARNING_LOCATION_KIND_SET = new Set(LEARNING_LOCATION_KINDS);
 
 export const TREE_TWO_VISUALIZATION_MODES = Object.freeze([
   "hidden",
@@ -18,28 +17,19 @@ function toSet(value) {
   return Array.isArray(value) ? new Set(value) : new Set();
 }
 
-function appendGrant(index, grantId, locationId) {
-  if (typeof grantId !== "string" || grantId.length === 0) return;
-  const grantors = index.get(grantId) ?? [];
-  if (!grantors.includes(locationId)) grantors.push(locationId);
-  index.set(grantId, grantors);
+export function isLearningLocation(location) {
+  return Boolean(location && LEARNING_LOCATION_KIND_SET.has(location.kind));
 }
 
-function createGrantIndexes(locations) {
-  const conceptGrantors = new Map();
-  const rewardGrantors = new Map();
+export function learningPrerequisiteIds(location) {
+  if (!isLearningLocation(location)) return [];
+  return normalizeRequirements(location.requirements).completedLocations;
+}
 
-  for (const location of locations) {
-    if (!location || typeof location.id !== "string") continue;
-    for (const conceptId of location.grants?.concepts ?? []) {
-      appendGrant(conceptGrantors, conceptId, location.id);
-    }
-    for (const rewardId of location.grants?.rewards ?? []) {
-      appendGrant(rewardGrantors, rewardId, location.id);
-    }
-  }
-
-  return { conceptGrantors, rewardGrantors };
+export function meetsLearningPrerequisites(location, completedLocationIds) {
+  if (!isLearningLocation(location)) return false;
+  const completed = toSet(completedLocationIds);
+  return learningPrerequisiteIds(location).every((locationId) => completed.has(locationId));
 }
 
 function appendEdge(edgesByPair, sourceId, targetId, requirementKind) {
@@ -87,10 +77,13 @@ function isDirectConnection(source, target, areaById) {
 }
 
 /**
- * Deriva las conexiones visibles del Árbol II sin almacenar aristas manuales.
+ * Deriva las conexiones visibles de la Red de aprendizaje explícita.
  *
  * La apariencia expresa el estado pedagógico de los extremos y es independiente
- * de `isNew`, que marca exclusivamente el último desbloqueo causal de la sesión:
+ * de `isNew`, que marca exclusivamente el último desbloqueo causal de la sesión.
+ * En modo `hidden` se conserva únicamente la arista causal cuyo destino acaba
+ * de quedar accesible y cuyo origen es el último lugar completado. Esa misma
+ * arista recibe `isNew` y, por tanto, la etiqueta NUEVO:
  * - completed -> completed/completable: bright
  * - completable -> blocked: muted
  * Cualquier otra combinación, incluidos los extremos ocultos, queda fuera.
@@ -114,7 +107,10 @@ export function deriveKnowledgeGraphEdges({
   const newlyAccessibleIds = toSet(newlyAccessibleLocationIds);
   const locationById = new Map(
     locations
-      .filter((location) => location && typeof location.id === "string")
+      .filter(
+        (location) =>
+          location && typeof location.id === "string" && isLearningLocation(location),
+      )
       .map((location) => [location.id, location]),
   );
   const areaById = new Map(
@@ -122,28 +118,13 @@ export function deriveKnowledgeGraphEdges({
       .filter((area) => area && typeof area.id === "string")
       .map((area) => [area.id, area]),
   );
-  const { conceptGrantors, rewardGrantors } = createGrantIndexes(locations);
   const edgesByPair = new Map();
 
   for (const target of locations) {
-    if (!target || typeof target.id !== "string") continue;
-    const requirements = normalizeRequirements(target.requirements);
-
-    for (const sourceId of requirements.completedLocations) {
+    if (!isLearningLocation(target) || typeof target.id !== "string") continue;
+    for (const sourceId of learningPrerequisiteIds(target)) {
       if (!locationById.has(sourceId)) continue;
       appendEdge(edgesByPair, sourceId, target.id, "completedLocations");
-    }
-
-    for (const conceptId of requirements.concepts) {
-      for (const sourceId of conceptGrantors.get(conceptId) ?? []) {
-        appendEdge(edgesByPair, sourceId, target.id, "concepts");
-      }
-    }
-
-    for (const rewardId of requirements.rewards) {
-      for (const sourceId of rewardGrantors.get(rewardId) ?? []) {
-        appendEdge(edgesByPair, sourceId, target.id, "rewards");
-      }
     }
   }
 

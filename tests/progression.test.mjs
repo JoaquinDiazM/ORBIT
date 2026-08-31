@@ -31,6 +31,7 @@ test("el perfil nuevo comienza solamente con el Campamento Base abierto", () => 
   const progression = model();
   assert.deepEqual([...progression.getUnlockedAreaIds()], ["origin"]);
   assert.equal(progression.isLocationAccessible("vector-workshop"), true);
+  assert.equal(progression.isLocationAccessible("field-lens-cache"), true);
   assert.equal(progression.isLocationAccessible("coulomb-observatory"), false);
 });
 
@@ -51,15 +52,35 @@ test("la Terminal de Cartografía solo existe en el perfil debug", () => {
   assert.equal(debug.isLocationAccessible("debug-terminal"), true);
 });
 
-test("completar Vectores abre las tres rutas fundamentales iniciales y revela el gadget", () => {
+test("completar Vectores abre las zonas con nodos académicos elegibles", () => {
   const progression = model();
   const result = progression.completeLocation("vector-workshop");
   assert.equal(result.ok, true);
   assert.equal(progression.isAreaUnlocked("electrostatics"), true);
-  assert.equal(progression.isAreaUnlocked("circuits"), true);
   assert.equal(progression.isAreaUnlocked("differential-equations"), true);
+  assert.equal(progression.isAreaUnlocked("circuits"), false);
+  assert.equal(progression.isLocationAccessible("coulomb-observatory"), true);
   assert.equal(progression.isLocationAccessible("field-lens-cache"), true);
   assert.equal(progression.isLocationVisible("field-lens-cache"), true);
+});
+
+test("conceptos e inventario no constituyen una segunda vía de apertura", () => {
+  const progression = model();
+  assert.equal(progression.grantConcept("vectors-and-fields"), true);
+  assert.deepEqual([...progression.getUnlockedAreaIds()], ["origin"]);
+  assert.equal(progression.isLocationAccessible("coulomb-observatory"), false);
+});
+
+test("los lugares laterales se habilitan con su zona y conceden solo al interactuar", () => {
+  const progression = model();
+  assert.equal(progression.isLocationAccessible("field-lens-cache"), true);
+  assert.equal(progression.ownsReward("gadgets:field-lens"), false);
+  assert.equal(progression.completeLocation("field-lens-cache").ok, true);
+  assert.equal(progression.ownsReward("gadgets:field-lens"), true);
+
+  progression.completeLocation("vector-workshop");
+  assert.equal(progression.isLocationAccessible("gauss-guide-post"), true);
+  assert.equal(progression.ownsReward("npcs:gauss-guide"), false);
 });
 
 test("una zona nueva abre todas sus fronteras compartidas con zonas previas", () => {
@@ -69,15 +90,15 @@ test("una zona nueva abre todas sus fronteras compartidas con zonas previas", ()
 
   const unlocked = progression.getUnlockedAreaIds();
   const worldIndex = createWorldIndex(AREAS);
-  const magnetism = worldIndex.byId.get("magnetism");
-  const openNeighbors = getAreaNeighbors(magnetism, worldIndex).filter((neighbor) =>
+  const maxwell = worldIndex.byId.get("maxwell");
+  const openNeighbors = getAreaNeighbors(maxwell, worldIndex).filter((neighbor) =>
     unlocked.has(neighbor.id),
   );
 
-  assert.equal(unlocked.has("magnetism"), true);
+  assert.equal(unlocked.has("maxwell"), true);
   assert.deepEqual(
     new Set(openNeighbors.map((area) => area.id)),
-    new Set(["origin", "electrostatics", "differential-equations"]),
+    new Set(["origin", "differential-equations"]),
   );
 });
 
@@ -88,18 +109,17 @@ test("la cadena académica completa alcanza la misión lunar", () => {
     "coulomb-observatory",
     "circuit-analysis-bench",
     "differential-equations-lab",
-    "ampere-foundry",
     "faraday-station",
+    "ampere-foundry",
     "maxwell-archive",
     "hertz-beacon",
+    "superconductivity-transition-lab",
     "sensor-calibration-lab",
     "rotating-machine-lab",
     "power-network-station",
     "field-solver-lab",
     "spectrum-workshop",
     "optics-bench",
-    "shielding-chamber",
-    "superconductivity-transition-lab",
     "waveguide-mode-gallery",
     "transmission-line-bench",
     "antenna-range",
@@ -122,4 +142,6 @@ test("el validador demuestra que no hay zonas o recompensas progresivas inalcanz
   const validation = validateProjectData();
   assert.deepEqual(validation.errors, []);
   assert.equal(validation.simulation.unlockedAreas.size, AREAS.length);
+  assert.equal(validation.simulation.completedLearningLocations.size, 21);
+  assert.equal(validation.simulation.availableLateralLocations.size, 6);
 });

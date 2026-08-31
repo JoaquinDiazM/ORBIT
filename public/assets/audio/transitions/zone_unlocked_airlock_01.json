@@ -2,7 +2,7 @@
   "asset_id": "zone_unlocked_airlock_01",
   "runtime_file": "zone_unlocked_airlock_01.ogg",
   "category": "transitions",
-  "intended_use": "Efecto único de compuerta cuando una acción del usuario desbloquea por primera vez una o más zonas del Árbol I.",
+  "intended_use": "Efecto único de compuerta cuando una acción del usuario desbloquea por primera vez una o más zonas.",
   "playback": {
     "loop": false,
     "suggested_volume": 0.65

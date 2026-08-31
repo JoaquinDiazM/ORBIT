@@ -77,9 +77,9 @@ avance publicado hacia `student`.
 ## Añadir una zona
 
 1. Define la zona en `src/data/world.js` con coordenadas axiales enteras únicas.
-2. Declara requisitos del Árbol I.
-3. Asegura al menos una arista compartida con otra zona definida.
-4. Añade contenido previo capaz de conceder sus prerrequisitos.
+2. Asegura al menos una arista compartida con otra zona definida.
+3. Sitúa dentro una lección o misión cuya elegibilidad provenga de la Red de aprendizaje.
+4. Conecta ese nodo desde una zona alcanzable sin crear una segunda raíz.
 5. Ejecuta `npm run validate`; el simulador debe demostrar alcanzabilidad.
 6. Añade una prueba específica de fronteras si la topología es nueva.
 
@@ -87,7 +87,8 @@ avance publicado hacia `student`.
 
 1. Define el lugar en `src/data/locations.js`.
 2. Comprueba que su `offset` quede dentro del margen seguro del hexágono.
-3. Declara requisitos del Árbol II y concesiones.
+3. Si es `lesson` o `mission`, incorpóralo a la Red de aprendizaje y declara al menos un
+   predecesor, salvo la raíz `vector-workshop`; si es lateral, conserva una interacción propia.
 4. Incluye objetivo, explicación, aplicación, ejercicio y fuentes.
 5. Verifica que no se exija a sí mismo ni el concepto que concede.
 6. Prueba el desbloqueo con Estudiante, el autocompletado evaluable con Docente y el avance

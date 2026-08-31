@@ -353,7 +353,7 @@ test("el recorrido editorial completo sincroniza fuente, dist y navegador con re
   assert.deepEqual(plan.diff.movedAreas, ["electrostatics", "magnetism"]);
   assert.deepEqual(plan.diff.movedLocations, ["vector-workshop"]);
   assert.deepEqual(plan.diff.addedConnections, [
-    "vector-workshop->circuit-analysis-bench:completedLocation",
+    "vector-workshop->circuit-analysis-bench",
   ]);
   assert.deepEqual(plan.diff.changedAreaAppearances, ["electrostatics"]);
   assert.deepEqual(plan.impact.resetProfiles, ["student", "teacher", "debug"]);

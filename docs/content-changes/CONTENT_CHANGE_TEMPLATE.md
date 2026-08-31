@@ -20,8 +20,9 @@ Una frase observable que describa el cambio mínimo.
 
 - `parentArea`:
 - `locationKind`: `base | lesson | mission | gadget | transport | npc | debug`
-- `tree`: `I | II | none`
-- `requirements`:
+- `learningNetwork`: `member | outside | not-applicable`
+- `learningConnections`: `prerequisite-id -> target-id`
+- `requirements`: solo para contratos no territoriales; los lugares fuera de la red usan `{}`
 - `grants`:
 - `coordinatesOrOffset`:
 

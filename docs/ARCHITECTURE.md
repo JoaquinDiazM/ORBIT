@@ -43,8 +43,7 @@ Define:
 - tamaño de hexágono;
 - zona de spawn;
 - coordenadas axiales `(q, r)`;
-- metadatos de regiones;
-- requisitos del Árbol I.
+- metadatos de regiones.
 
 ### `src/data/knowledge.js`
 
@@ -57,7 +56,11 @@ Define conceptos y recompensas:
 
 ### `src/data/locations.js`
 
-Define lugares, secciones, actividades, requisitos y concesiones del Árbol II. Los ejercicios declarativos admiten alternativas, números, expresiones y secuencias de intervenciones atómicas; una presentación especializada puede asociar tarjetas con descriptores de campos 2D sin importar funciones desde `ui/`.
+Define lugares, secciones, actividades, requisitos y concesiones. Las lecciones y misiones forman
+la Red de aprendizaje; NPC, gadgets y transportes son lugares laterales habilitados por su zona.
+Los ejercicios declarativos admiten alternativas, números, expresiones y secuencias de
+intervenciones atómicas; una presentación especializada puede asociar tarjetas con descriptores
+de campos 2D sin importar funciones desde `ui/`.
 
 Los lugares pueden declarar `steps`; la UI normaliza el formato anterior como una sola etapa. La navegación de etapas, el avance dentro de `sequence`, la selección visual y los parámetros de figuras son estado efímero de interfaz. Solo la finalización del lugar pasa por `ProgressionModel`; el esquema persistido vigente y sus migraciones se declaran en `APP_CONFIG` y `src/core/progress-migrations.js`.
 
@@ -67,7 +70,12 @@ El Observatorio de Coulomb conserva `coulomb-observatory` y se organiza en cinco
 
 ### `src/data/reference/`
 
-Define simbología, constantes, fórmulas y glosario. Cada entrada tiene requisitos del Árbol II y, cuando corresponde, una fuente trazable. La disponibilidad se calcula desde el snapshot; no se persisten IDs de referencia desbloqueados. Las colecciones siguen sometidas al validador y se consultan en los paneles permanentes **Símbolos**, **Constantes**, **Formulario** y **Glosario**. Esos paneles no renderizan cuadros bibliográficos repetidos: la UI compara snapshots y comunica la fuente pertinente una sola vez en la transición que desbloquea la entrada.
+Define simbología, constantes, fórmulas y glosario. Cada entrada tiene requisitos declarativos y,
+cuando corresponde, una fuente trazable. La disponibilidad se calcula desde el snapshot; no se
+persisten IDs de referencia desbloqueados. Las colecciones siguen sometidas al validador y se
+consultan en los paneles permanentes **Símbolos**, **Constantes**, **Formulario** y **Glosario**.
+Esos paneles no renderizan cuadros bibliográficos repetidos: la UI compara snapshots y comunica
+la fuente pertinente una sola vez en la transición que desbloquea la entrada.
 
 ## Núcleo
 
@@ -86,12 +94,11 @@ Define simbología, constantes, fórmulas y glosario. Cada entrada tiene requisi
 declara las capacidades de depuración y Editor y decide qué lugares participan en cada perfil.
 Es una política de interfaz y ejecución local, no una identidad autenticada.
 
-`src/core/knowledge-graph.js` deriva las guías del Árbol II desde `completedLocations`,
-`concepts` y `rewards`. Resuelve conceptos y recompensas al lugar que los concede, agrupa
-requisitos repetidos por pareja y conserva una única dirección semántica: prerrequisito →
-destino. Los requisitos de área no crean estas aristas. El dataset vigente produce 14 parejas
-únicas; cinco relaciones `completedLocations` están declaradas explícitamente y pueden coincidir
-con causas conceptuales en una misma pareja.
+`src/core/knowledge-graph.js` deriva las guías visibles desde las conexiones académicas
+`completedLocations` de la Red de aprendizaje. Solo acepta extremos `lesson` o `mission`, agrupa
+duplicados y conserva una única dirección semántica: prerrequisito → destino. Conceptos,
+recompensas, requisitos de área y lugares laterales no crean aristas. La ruta vigente contiene
+30 parejas académicas explícitas.
 
 Primero se clasifica cada extremo visible como `completed`, `completable` o `blocked`. Una conexión `completed → completed/completable` usa apariencia `bright`; una conexión `completable → blocked` usa apariencia `muted`. Las demás combinaciones y cualquier extremo oculto quedan fuera. El renderer expresa además esa distinción mediante trazo sólido luminoso frente a trazo tenue discontinuo, de modo que no dependa solo del color.
 
@@ -110,9 +117,9 @@ La preferencia persistida `treeTwoVisualizationMode` filtra esas conexiones eleg
 - sanea el estado cargado;
 - completa lugares;
 - concede conceptos y recompensas;
-- deriva zonas abiertas;
+- deriva zonas abiertas por adyacencia y elegibilidad académica;
 - controla transportes y gadgets;
-- sanea y persiste el modo de visualización del Árbol II;
+- sanea y persiste el modo de visualización de la Red de aprendizaje;
 - expone snapshots inmutables para game/UI;
 - exporta e importa perfiles.
 
@@ -141,7 +148,7 @@ edición activa.
 
 Los demás contratos persistidos permanecen separados:
 
-- documento Docente: `orbit-editor:v2:electromagnetism-applied`;
+- documento Docente: `orbit-editor:v3:electromagnetism-applied`;
 - preferencias visuales Estudiante: `orbit-bowerbird:v1:electromagnetism-applied:student`;
 - edición instalada en el navegador: `orbit-course-edition:v1:electromagnetism-applied`;
 - edición canónica publicada: `public/data/courses/electromagnetism-applied.edition.json`.
@@ -166,10 +173,10 @@ los selects Bowerbird cuando una escritura compatible falla.
 ### Edición de curso y aplicación
 
 `src/core/course-edition.js` define `orbit-course-edition` `v1`. El artefacto contiene el
-documento Docente `v2`, revisión anterior, revisión nueva, política de reset, fecha y digest
+documento Docente `v3`, revisión anterior, revisión nueva, política de reset, fecha y digest
 SHA-256. Al arrancar, ORBIT y Editor validan la fuente publicada, materializan sobre los módulos
-canónicos únicamente coordenadas/apariencias de zonas, `areaId + offset` de lugares y requisitos
-directos `completedLocations`, y rechazan una edición local que no descienda de la publicada.
+canónicos únicamente coordenadas/apariencias de zonas, `areaId + offset` de lugares y la
+`learningNetwork` explícita, y rechazan una edición local que no descienda de la publicada.
 Contenido, conceptos, recompensas, IDs y anillos siguen en los datos canónicos.
 
 `src/core/course-application.js` calcula el diff y el impacto legible de los tres perfiles,
@@ -257,7 +264,7 @@ Dibuja el mundo en Canvas 2D:
 - hexágonos;
 - fronteras;
 - lugares;
-- guías direccionales derivadas del Árbol II;
+- guías direccionales de la Red de aprendizaje;
 - overlays de depuración;
 - apariencia Bowerbird resuelta para zonas abiertas;
 - personaje.
@@ -283,12 +290,12 @@ emite una sola señal de finalización; no superpone el cue ordinario de interac
 
 `src/ui/ui-controller.js` controla la barra de estado, el selector de perfiles locales, la
 ventana principal del lugar, un único panel secundario, etapas, secuencias, ejercicios,
-árboles, Gadgets, visualización, referencias, sonido, ayuda, avisos y debugger. La ventana principal y
-la secundaria pueden coexistir en escritorio. El dock ofrece **Árboles**, **Gadgets**, **Símbolos**,
+Zonas y Red de aprendizaje, Gadgets, visualización, referencias, sonido, ayuda, avisos y debugger. La ventana principal y
+la secundaria pueden coexistir en escritorio. El dock ofrece **Zonas · Red**, **Gadgets**, **Símbolos**,
 **Constantes**, **Formulario**, **Glosario** y el disclosure nativo **Ajustes**. Este último
 revela los accesos a **Visual**, **Sonido** y **Ayuda** sin convertirse en otro panel ni estado
-persistido; abrir una de esas vistas sustituye al panel secundario anterior. **Árboles** lista
-la progresión, mientras **Visual** controla la red del mapa y las vistas de referencia consultan
+persistido; abrir una de esas vistas sustituye al panel secundario anterior. **Zonas · Red** lista
+la progresión territorial y académica, mientras **Visual** controla la red del mapa y las vistas de referencia consultan
 el contenido desbloqueado sin volver a mostrar su bibliografía. Cambiar el selector recarga
 ORBIT con el perfil canónico y propaga ese modo al enlace del Editor. Los controles y ayudas de
 depuración se ocultan fuera de Debug. La UI construye contenido mediante APIs DOM y
@@ -327,27 +334,37 @@ materializada. Con `?profile=student` crea Spider/Bee de solo lectura y una sesi
 personal mutable; permite recorrer, encuadrar, consultar y exportar. Con `?profile=debug` muestra
 el bloqueo y no crea el modelo editorial.
 
-El documento editorial `orbit-editor-project` usa esquema `v2` y contiene:
+El documento editorial `orbit-editor-project` usa esquema `v3` y contiene:
 
 - coordenadas axiales y apariencias de las 19 zonas;
 - `areaId + offset` de los 29 lugares;
-- las cinco conexiones explícitas canónicas de tipo `completedLocation`;
+- la pertenencia de 21 lecciones/misiones y 30 conexiones académicas explícitas;
 - curso, versión de datos base, versión del catálogo y fecha de actualización.
 
-No incluye respuestas, conceptos adquiridos, recompensas ni posición de un estudiante. Se sanea antes de importarse, guardarse o materializarse y se valida nuevamente contra los contratos del mundo y la progresión. Una importación inválida no reemplaza el último borrador válido.
+No incluye respuestas, conceptos adquiridos, recompensas ni posición de un estudiante. Antes de
+importarse, guardarse o materializarse pasa por saneamiento estructural de esquema, referencias,
+coordenadas y conexiones. Ese saneamiento admite una red académicamente incompleta para que
+Spider pueda repararla; **Validar** y **Aplicar** ejecutan aparte la validación publicable de raíz
+única, pertenencia completa y alcanzabilidad territorial. Un documento que falla el saneamiento
+no reemplaza el último borrador válido.
 Si el valor ya persistido es ilegible o pertenece a un esquema futuro, ninguna mutación implícita
 lo sobrescribe: Restaurar o importar un documento válido son las dos fronteras explícitas de
 recuperación del borrador Docente.
 
-**Spider** opera sobre nodos y requisitos directos. Convierte coordenadas de pantalla a mundo, permite cambiar `areaId + offset`, mantiene el marcador dentro del margen seguro del hexágono y materializa una flecha `A → B` como `A` dentro de `B.requirements.completedLocations`. Conceptos y recompensas siguen produciendo relaciones derivadas de solo lectura. Requisitos propios, duplicados o cíclicos se rechazan antes de modificar el borrador.
+**Spider** opera sobre lugares y la Red de aprendizaje. Convierte coordenadas de pantalla a
+mundo, permite cambiar `areaId + offset` y mantiene el marcador dentro del margen seguro del
+hexágono. Solo `lesson` y `mission` pueden añadirse a la red; retirar uno conserva la entidad y
+elimina sus aristas incidentes. Toda flecha confirmada es explícita y editable. IDs desconocidos,
+extremos fuera de la red, autorrelaciones, duplicados y ciclos se rechazan estructuralmente;
+raíces adicionales y topologías académicamente inalcanzables se rechazan al usar **Validar** o
+**Aplicar**.
 
 **Bee** opera sobre zonas. Como las posiciones de los anillos están completas, un gesto válido intercambia `(q,r)` entre dos zonas del mismo `tier`; no crea huecos. `origin` permanece en `(0,0)`, las zonas teóricas mantienen distancia axial 1 y las aplicaciones distancia 2. El intercambio conserva IDs, contenido, `tier`, `order` y los offsets locales de sus lugares.
 
 **Bowerbird** opera sobre el triple `paletteId + motifId + contourId`. En Docente modifica el
 documento común y participa en historial/exportación/aplicación; en Estudiante modifica solo el
-documento de preferencias. La migración de un borrador `v1` añade apariencia canónica y restaura
-entidades nuevas desde la edición base sin reactivar conexiones que el autor retiró
-deliberadamente entre IDs existentes.
+documento de preferencias. Las migraciones `v1 → v2 → v3` añaden apariencia canónica y convierten
+la topología efectiva anterior en la red académica explícita sin reactivar lugares laterales.
 
 En acceso Docente, el menú **General** y el menú **Editor** son docks retractables
 independientes. Pointer Events proporcionan arrastre y cancelación; listas, campos, botones y
@@ -365,7 +382,8 @@ tras verificar la sesión de autoría. Los rechazos aparecen junto al botón y e
 y el éxito exige reiniciar `dev` para revisar ORBIT. La frontera está
 descrita en la [Guía de ORBIT Editor](EDITOR_GUIDE.md) y decidida por [ADR
 0007](decisions/0007-static-local-editor.md) y [ADR
-0008](decisions/0008-scoped-appearance-and-local-course-application.md).
+0008](decisions/0008-scoped-appearance-and-local-course-application.md), enmendados por [ADR
+0009](decisions/0009-single-learning-network.md).
 
 ## Audio
 
@@ -418,7 +436,7 @@ unlockedAreaIds
 openBorders
 accessibleLocationIds
 visibleLocationIds
-knowledgeGraphEdges
+learningNetworkEdges
 ownedTransports
 nextMission
 ```
@@ -434,19 +452,22 @@ posiciones y valores de las tres cargas
 destinos recién accesibles y fuente usados por la guía NUEVO
 ```
 
-La separación evita inconsistencias como “zona guardada como abierta aunque ya no se cumplen sus requisitos”.
+La separación evita inconsistencias como “zona guardada como abierta aunque ya no existe un nodo
+académico elegible en una zona vecina”.
 
 Persistido por Editor, de forma completamente separada:
 
 ```text
 kind: orbit-editor-project
-schemaVersion: 2
+schemaVersion: 3
 appearanceCatalogVersion: 1
 courseId
 baseDataVersion
 areas[]: id + q + r + appearance
 locations[]: id + areaId + offset
-treeTwoConnections[]: sourceId + targetId + completedLocation
+learningNetwork
+  nodeIds[]
+  connections[]: sourceId + targetId
 updatedAt
 ```
 
@@ -491,7 +512,7 @@ La arquitectura admite, sin exigirlos todavía:
 - migraciones de progreso;
 - pruebas de integración en navegador.
 
-La ampliación de Editor 0.5.0 no implica todavía edición de contenido académico, creación de
+La ampliación vigente del Editor no implica todavía edición de contenido académico, creación de
 entidades, colaboración, autenticación, varias rutas ni publicación remota. El helper local es un
 puente de mantenimiento para una ruta y un archivo fijo, no un backend.
 

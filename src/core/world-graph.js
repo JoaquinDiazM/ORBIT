@@ -5,7 +5,10 @@ import {
   axialToPixel,
   pixelToHex,
 } from "./hex.js";
-import { meetsRequirements } from "./requirements.js";
+import {
+  isLearningLocation,
+  meetsLearningPrerequisites,
+} from "./knowledge-graph.js";
 
 export function createWorldIndex(areas) {
   const byId = new Map();
@@ -57,12 +60,18 @@ export function getLocationWorldPosition(location, worldIndex, hexSize) {
 
 export function deriveUnlockedAreaIds({
   areas,
+  locations,
   worldIndex,
-  concepts,
   completedLocations,
-  rewards,
   debugUnlockedAreas = new Set(),
 }) {
+  const learningLocationsByArea = new Map();
+  for (const location of Array.isArray(locations) ? locations : []) {
+    if (!isLearningLocation(location)) continue;
+    const entries = learningLocationsByArea.get(location.areaId) ?? [];
+    entries.push(location);
+    learningLocationsByArea.set(location.areaId, entries);
+  }
   const unlockedAreas = new Set(
     areas.filter((area) => area.initial).map((area) => area.id),
   );
@@ -79,8 +88,11 @@ export function deriveUnlockedAreaIds({
     for (const area of orderedAreas) {
       if (unlockedAreas.has(area.id)) continue;
 
-      const context = { concepts, completedLocations, rewards, unlockedAreas };
-      if (!meetsRequirements(area.requirements, context)) continue;
+      const hasEligibleLearningLocation =
+        learningLocationsByArea.get(area.id)?.some((location) =>
+          meetsLearningPrerequisites(location, completedLocations),
+        ) ?? false;
+      if (!hasEligibleLearningLocation) continue;
 
       const hasOpenNeighbor = getAreaNeighbors(area, worldIndex).some((neighbor) =>
         unlockedAreas.has(neighbor.id),

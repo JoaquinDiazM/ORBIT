@@ -51,8 +51,7 @@ En `src/data/world.js`:
   color: "#334455",
   accent: "#ccddee",
   order: 7,
-  requirements: { concepts: ["maxwell-synthesis"] },
-  unlockHint: "...",
+  unlockHint: "Se abre cuando un nodo académico interior queda elegible desde una zona vecina.",
 }
 ```
 
@@ -60,7 +59,7 @@ Criterios:
 
 - `(q, r)` enteros y no duplicados;
 - al menos un vecino existente;
-- requisitos alcanzables fuera de la zona;
+- al menos una lección o misión interior conectada desde la Red de aprendizaje;
 - color y texto no usados como único indicador de estado.
 
 ## Agregar un lugar
@@ -78,9 +77,7 @@ Esqueleto mínimo:
   offset: { x: 20, y: -55 },
   interactionRadius: 76,
   visibility: "visibleWhenAreaUnlocked",
-  requirements: {
-    concepts: ["charge-and-superposition"],
-  },
+  requirements: {},
   grants: {
     concepts: ["electric-flux"],
   },
@@ -115,9 +112,14 @@ Esqueleto mínimo:
 
 Las ecuaciones usan TeX compatible con KaTeX y siempre incluyen una descripción visible. La UI genera DOM y MathML mediante `katex.render`; no introduzcas HTML, delimitadores `$$...$$` ni comandos que requieran `trust: true`. `npm test` compila todas las expresiones con la configuración de producción.
 
+Crear una entidad `lesson` o `mission` no la incorpora por sí solo a la Red de aprendizaje:
+añádela mediante Spider y declara al menos una conexión entrante, salvo que una futura decisión
+arquitectónica autorice otra raíz.
+
 ## Requisitos
 
-Campos admitidos:
+Los requisitos declarativos completos siguen disponibles para colecciones de referencia y otros
+contratos no territoriales:
 
 ```js
 requirements: {
@@ -128,13 +130,17 @@ requirements: {
 }
 ```
 
-Todos los elementos de una categoría y todas las categorías declaradas son obligatorios.
+Todos los elementos de una categoría y todas las categorías declaradas son obligatorios en el
+contrato que los consume.
 
-Las guías visuales del Árbol II se derivan automáticamente de `completedLocations`, `concepts` y
-`rewards`; no declares una segunda lista manual de aristas. Conceptos y recompensas se resuelven
-al lugar que los concede y los requisitos repetidos por pareja se agrupan. `areas` controla
-acceso, pero no crea estas guías. Si un cambio altera las 14 parejas únicas actuales, actualiza
-la prueba del derivador y verifica que la nueva topología sea intencional.
+La progresión académica usa una única Red de aprendizaje explícita del documento Editor `v3`.
+Solo `lesson` y `mission` pueden pertenecer a ella; al materializarse, una conexión `A → B`
+produce `A` en `B.requirements.completedLocations`. En los lugares académicos no declares
+`concepts`, `rewards` ni `areas` como requisitos: no son otra vía de acceso. Los lugares
+`base`, `debug`, `npc`, `gadget` y `transport` permanecen fuera de la red y deben usar
+`requirements: {}`; su disponibilidad procede de la política de Base/Debug o de la apertura de
+su zona. Si un cambio altera las 30 parejas actuales, actualiza las pruebas de red, raíz única,
+DAG, apertura por adyacencia y alcanzabilidad integral.
 
 ## Concesiones
 
@@ -145,7 +151,8 @@ grants: {
 }
 ```
 
-Un lugar no puede exigir el mismo concepto que concede.
+Las concesiones son resultados o inventario y nunca crean un prerrequisito implícito en la Red de
+aprendizaje.
 
 ## Ejercicios admitidos
 
@@ -245,7 +252,11 @@ steps: [
 
 La simbología, las constantes, las fórmulas y el glosario viven en `src/data/reference/`. Cada entrada declara un ID y requisitos. `source` es opcional: se reserva para datos numéricos, adaptaciones, afirmaciones históricas y teoremas específicos que realmente necesitan trazabilidad.
 
-Su disponibilidad se deriva mediante las mismas categorías de requisitos del Árbol II. No guardes listas de fórmulas o definiciones desbloqueadas. Las colecciones se consultan en los paneles permanentes **Símbolos**, **Constantes**, **Formulario** y **Glosario**; esos paneles muestran solo las entradas habilitadas o su condición de desbloqueo. Consulta [Nomenclatura e IDs](CONTENT_NAMING.md).
+Su disponibilidad se deriva mediante requisitos declarativos sobre el snapshot. No guardes
+listas de fórmulas o definiciones desbloqueadas. Las colecciones se consultan en los paneles
+permanentes **Símbolos**, **Constantes**, **Formulario** y **Glosario**; esos paneles muestran
+solo las entradas habilitadas o su condición de desbloqueo. Consulta [Nomenclatura e
+IDs](CONTENT_NAMING.md).
 
 No añadas una cita repetida a definiciones, operaciones algebraicas o identidades rutinarias. Cuando una fórmula, propiedad o colección con fuente se desbloquee, la interfaz debe comunicar esa referencia una sola vez y de forma agrupada. La consulta posterior permanece disponible en su menú, pero no debe crear un cuadro bibliográfico repetido por tarjeta o entrada. La procedencia del material docente que inspira globalmente el proyecto permanece centralizada en el `README` y no se repite en los datos runtime.
 

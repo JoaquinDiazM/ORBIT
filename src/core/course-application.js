@@ -125,16 +125,18 @@ function changedIds(firstEntries, secondEntries, projection) {
 }
 
 function connectionKey(connection) {
-  return `${connection.sourceId}->${connection.targetId}:${connection.kind}`;
+  return `${connection.sourceId}->${connection.targetId}`;
 }
 
 export function diffEditorDocuments(currentDocument, candidateDocument) {
   const currentConnections = new Set(
-    currentDocument.treeTwoConnections.map(connectionKey),
+    currentDocument.learningNetwork.connections.map(connectionKey),
   );
   const candidateConnections = new Set(
-    candidateDocument.treeTwoConnections.map(connectionKey),
+    candidateDocument.learningNetwork.connections.map(connectionKey),
   );
+  const currentNodes = new Set(currentDocument.learningNetwork.nodeIds);
+  const candidateNodes = new Set(candidateDocument.learningNetwork.nodeIds);
   return {
     movedAreas: changedIds(currentDocument.areas, candidateDocument.areas, ({ q, r }) => ({ q, r })),
     changedAreaAppearances: changedIds(
@@ -147,6 +149,12 @@ export function diffEditorDocuments(currentDocument, candidateDocument) {
       candidateDocument.locations,
       ({ areaId, offset }) => ({ areaId, offset }),
     ),
+    addedLearningNodes: [...candidateNodes]
+      .filter((id) => !currentNodes.has(id))
+      .sort((first, second) => first.localeCompare(second)),
+    removedLearningNodes: [...currentNodes]
+      .filter((id) => !candidateNodes.has(id))
+      .sort((first, second) => first.localeCompare(second)),
     addedConnections: [...candidateConnections]
       .filter((key) => !currentConnections.has(key))
       .sort((first, second) => first.localeCompare(second)),

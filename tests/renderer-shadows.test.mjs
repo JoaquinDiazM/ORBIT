@@ -60,7 +60,7 @@ test("los perfiles de sombra cubren a pie, carro y deslizador", () => {
   assert.ok(skiff.radiusY >= cart.radiusY);
 });
 
-test("los conectores del Árbol II comparten amarillo y distinguen estado sin depender del color", () => {
+test("los conectores de la Red de aprendizaje comparten amarillo y distinguen estado sin depender del color", () => {
   const bright = getTreeTwoEdgeVisualStyle("bright", { zoom: 1 });
   const muted = getTreeTwoEdgeVisualStyle("muted", { zoom: 1 });
 

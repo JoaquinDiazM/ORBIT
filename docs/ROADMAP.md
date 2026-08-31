@@ -102,6 +102,12 @@ Estado: `0.5.1` publicada; las herramientas y la edición versionada están oper
 
 ## 0.6 — Curso mínimo utilizable
 
+- Reemplazar los dos árboles históricos por una Red de aprendizaje única de lecciones/misiones
+  y apertura territorial derivada por elegibilidad y adyacencia.
+- Migrar ORBIT Editor a documento `v3`: Spider administra pertenencia y conexiones académicas,
+  mientras NPC, gadgets y transportes permanecen laterales e interactivos.
+- Validar raíz única, DAG, 21 nodos académicos, 30 conexiones explícitas, 19 zonas alcanzables y
+  disponibilidad de todos los lugares laterales.
 - Cinco regiones principales completas.
 - Al menos treinta problemas originales revisados.
 - Consulta temática funcional.

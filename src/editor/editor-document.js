@@ -1,4 +1,8 @@
-import { deriveKnowledgeGraphEdges } from "../core/knowledge-graph.js";
+import {
+  LEARNING_LOCATION_KINDS,
+  deriveKnowledgeGraphEdges,
+  isLearningLocation,
+} from "../core/knowledge-graph.js";
 import { axialDistance, axialKey, pointInHex } from "../core/hex.js";
 import { normalizeRequirements } from "../core/requirements.js";
 import { validateProjectData } from "../core/validator.js";
@@ -11,10 +15,26 @@ import { LOCATIONS } from "../data/locations.js";
 import { AREAS, WORLD_CONFIG } from "../data/world.js";
 
 export const EDITOR_DOCUMENT_KIND = "orbit-editor-project";
-export const EDITOR_DOCUMENT_SCHEMA_VERSION = 2;
+export const EDITOR_DOCUMENT_SCHEMA_VERSION = 3;
 export const EDITOR_COURSE_ID = "electromagnetism-applied";
-export const EDITOR_BASE_DATA_VERSION = "0.5.0";
+export const EDITOR_BASE_DATA_VERSION = "0.6.0";
 export const EDITOR_LOCATION_SAFE_MARGIN = 28;
+export const EDITOR_LEARNING_NETWORK_ROOT_ID = "vector-workshop";
+export const EDITOR_LEARNING_LOCATION_KINDS = LEARNING_LOCATION_KINDS;
+
+const LEGACY_ACADEMIC_DERIVED_CONNECTIONS = Object.freeze([
+  ["antenna-range", "atacama-array"],
+  ["spectrum-workshop", "atacama-array"],
+  ["wireless-link-station", "lunar-relay"],
+  ["power-network-station", "lunar-relay"],
+  ["field-solver-lab", "lunar-relay"],
+  ["optics-bench", "lunar-relay"],
+  ["superconductivity-transition-lab", "lunar-relay"],
+]);
+
+export function isEditorLearningLocation(location) {
+  return isLearningLocation(location);
+}
 
 function issue(code, message, path = null) {
   return { code, message, path };
@@ -61,7 +81,7 @@ function compareConnections(first, second) {
   return (
     first.sourceId.localeCompare(second.sourceId) ||
     first.targetId.localeCompare(second.targetId) ||
-    first.kind.localeCompare(second.kind)
+    String(first.kind ?? "").localeCompare(String(second.kind ?? ""))
   );
 }
 
@@ -79,6 +99,18 @@ function canonicalConnections(baseLocations) {
         kind: "completedLocation",
       })),
     )
+    .sort(compareConnections);
+}
+
+function academicLocationIds(locations) {
+  return locations.filter(isEditorLearningLocation).map((location) => location.id);
+}
+
+function academicConnections(locations) {
+  const ids = new Set(academicLocationIds(locations));
+  return canonicalConnections(locations)
+    .filter(({ sourceId, targetId }) => ids.has(sourceId) && ids.has(targetId))
+    .map(({ sourceId, targetId }) => ({ sourceId, targetId }))
     .sort(compareConnections);
 }
 
@@ -106,7 +138,10 @@ export function createEditorDocument(options = {}) {
         y: normalizeZero(location.offset.y),
       },
     })),
-    treeTwoConnections: canonicalConnections(context.baseLocations),
+    learningNetwork: {
+      nodeIds: academicLocationIds(context.baseLocations),
+      connections: academicConnections(context.baseLocations),
+    },
     updatedAt,
   };
 }
@@ -419,17 +454,98 @@ function rebaseConnections(
   return connections.sort(compareConnections);
 }
 
+function migrateLegacyLearningNetwork(connections, context) {
+  const academicIds = new Set(academicLocationIds(context.baseLocations));
+  const byPair = new Map();
+  for (const connection of connections) {
+    if (!academicIds.has(connection.sourceId) || !academicIds.has(connection.targetId)) continue;
+    byPair.set(connection.sourceId + "->" + connection.targetId, {
+      sourceId: connection.sourceId,
+      targetId: connection.targetId,
+    });
+  }
+  for (const [sourceId, targetId] of LEGACY_ACADEMIC_DERIVED_CONNECTIONS) {
+    if (!academicIds.has(sourceId) || !academicIds.has(targetId)) continue;
+    byPair.set(sourceId + "->" + targetId, { sourceId, targetId });
+  }
+  return {
+    nodeIds: [...academicIds],
+    connections: [...byPair.values()].sort(compareConnections),
+  };
+}
+
+function sanitizeLearningNetwork(candidate, context, errors) {
+  if (!isRecord(candidate)) {
+    errors.push(issue("missing-learning-network", "El documento v3 debe declarar learningNetwork.", "learningNetwork"));
+    return { nodeIds: [], connections: [] };
+  }
+  if (!Array.isArray(candidate.nodeIds)) {
+    errors.push(issue("invalid-learning-network-nodes", "nodeIds debe ser una lista.", "learningNetwork.nodeIds"));
+  }
+  if (!Array.isArray(candidate.connections)) {
+    errors.push(issue("invalid-connections", "connections debe ser una lista.", "learningNetwork.connections"));
+  }
+  if (errors.length > 0) return { nodeIds: [], connections: [] };
+
+  const academicIdsInCatalogOrder = academicLocationIds(context.baseLocations);
+  const academicIds = new Set(academicIdsInCatalogOrder);
+  const nodeSet = new Set();
+  for (const [index, nodeId] of candidate.nodeIds.entries()) {
+    const path = "learningNetwork.nodeIds[" + index + "]";
+    if (!context.locationById.has(nodeId)) {
+      errors.push(issue("unknown-learning-network-node", "Nodo desconocido: " + String(nodeId) + ".", path));
+    } else if (!academicIds.has(nodeId)) {
+      errors.push(issue("lateral-learning-network-node", nodeId + " no es lesson ni mission.", path));
+    } else if (nodeSet.has(nodeId)) {
+      errors.push(issue("duplicate-learning-network-node", "Nodo repetido: " + nodeId + ".", path));
+    } else {
+      nodeSet.add(nodeId);
+    }
+  }
+
+  const connections = [];
+  const pairs = new Set();
+  for (const [index, entry] of candidate.connections.entries()) {
+    const path = "learningNetwork.connections[" + index + "]";
+    if (!isRecord(entry) || typeof entry.sourceId !== "string" || typeof entry.targetId !== "string") {
+      errors.push(issue("invalid-connection", "Cada conexión requiere sourceId y targetId.", path));
+      continue;
+    }
+    if (!academicIds.has(entry.sourceId) || !academicIds.has(entry.targetId)) {
+      errors.push(issue("lateral-learning-network-connection", "La red solo conecta lesson o mission.", path));
+      continue;
+    }
+    if (!nodeSet.has(entry.sourceId) || !nodeSet.has(entry.targetId)) {
+      errors.push(issue("connection-endpoint-outside-network", "Una conexión usa un nodo retirado.", path));
+      continue;
+    }
+    if (entry.sourceId === entry.targetId) {
+      errors.push(issue("self-connection", "Un nodo no puede depender de sí mismo.", path));
+      continue;
+    }
+    const key = entry.sourceId + "->" + entry.targetId;
+    if (pairs.has(key)) errors.push(issue("duplicate-connection", "Conexión repetida: " + key + ".", path));
+    else {
+      pairs.add(key);
+      connections.push({ sourceId: entry.sourceId, targetId: entry.targetId });
+    }
+  }
+  const canonicalNodeIds = academicIdsInCatalogOrder.filter((nodeId) => nodeSet.has(nodeId));
+  return { nodeIds: canonicalNodeIds, connections: connections.sort(compareConnections) };
+}
+
 function materializeEditorDocument(document, context) {
   const areaPlacement = new Map(document.areas.map((area) => [area.id, area]));
   const locationPlacement = new Map(
     document.locations.map((location) => [location.id, location]),
   );
   const completedByTarget = new Map();
-  for (const connection of document.treeTwoConnections) {
+  for (const connection of document.learningNetwork.connections) {
     const sources = completedByTarget.get(connection.targetId) ?? [];
     sources.push(connection.sourceId);
     completedByTarget.set(connection.targetId, sources);
   }
+  const learningNodeIds = new Set(document.learningNetwork.nodeIds);
 
   const areas = structuredClone(context.baseAreas).map((area) => {
     const placement = areaPlacement.get(area.id);
@@ -445,6 +561,11 @@ function materializeEditorDocument(document, context) {
   const locations = structuredClone(context.baseLocations).map((location) => {
     const placement = locationPlacement.get(location.id);
     const requirements = normalizeRequirements(location.requirements);
+    const completedLocations = isEditorLearningLocation(location)
+      ? learningNodeIds.has(location.id)
+        ? [...(completedByTarget.get(location.id) ?? [])]
+        : []
+      : [...requirements.completedLocations];
     return {
       ...location,
       areaId: placement?.areaId ?? location.areaId,
@@ -452,7 +573,7 @@ function materializeEditorDocument(document, context) {
       requirements: {
         ...(isRecord(location.requirements) ? location.requirements : {}),
         concepts: [...requirements.concepts],
-        completedLocations: [...(completedByTarget.get(location.id) ?? [])],
+        completedLocations,
         rewards: [...requirements.rewards],
         areas: [...requirements.areas],
       },
@@ -517,7 +638,7 @@ function findTopologyCycle(locations, areas) {
   return null;
 }
 
-function validateNormalizedDocument(document, context) {
+function validateDraftStructure(document, context) {
   const errors = [];
   const warnings = [];
   const coordinateOwners = new Map();
@@ -582,14 +703,98 @@ function validateNormalizedDocument(document, context) {
   if (cycle) {
     errors.push(
       issue(
-        "tree-two-cycle",
-        `La edición crea un ciclo en el Árbol II: ${cycle.join(" → ")}.`,
-        "treeTwoConnections",
+        "learning-network-cycle",
+        `La edición crea un ciclo en la Red de aprendizaje: ${cycle.join(" → ")}.`,
+        "learningNetwork.connections",
       ),
     );
     return { errors, warnings };
   }
 
+  return { errors, warnings };
+}
+
+function validatePublishableDocument(document, context) {
+  const errors = [];
+  const warnings = [];
+  const academicIds = academicLocationIds(context.baseLocations);
+  const nodeIds = new Set(document.learningNetwork.nodeIds);
+  const incoming = new Map(academicIds.map((id) => [id, 0]));
+  const adjacency = new Map(academicIds.map((id) => [id, []]));
+  for (const connection of document.learningNetwork.connections) {
+    incoming.set(
+      connection.targetId,
+      (incoming.get(connection.targetId) ?? 0) + 1,
+    );
+    adjacency.get(connection.sourceId)?.push(connection.targetId);
+  }
+
+  for (const id of academicIds) {
+    if (!nodeIds.has(id)) {
+      errors.push(
+        issue(
+          "missing-learning-network-node",
+          "El nodo académico " + id + " fue retirado de la Red de aprendizaje.",
+          "learningNetwork.nodeIds",
+        ),
+      );
+    }
+  }
+  if (!nodeIds.has(EDITOR_LEARNING_NETWORK_ROOT_ID)) {
+    errors.push(
+      issue(
+        "missing-learning-network-root",
+        "La raíz " + EDITOR_LEARNING_NETWORK_ROOT_ID + " debe pertenecer a la red.",
+        "learningNetwork.nodeIds",
+      ),
+    );
+  }
+  for (const id of academicIds) {
+    if (!nodeIds.has(id)) continue;
+    const predecessorCount = incoming.get(id) ?? 0;
+    if (id === EDITOR_LEARNING_NETWORK_ROOT_ID && predecessorCount !== 0) {
+      errors.push(
+        issue(
+          "invalid-learning-network-root",
+          "La raíz " + id + " no puede tener predecesores.",
+          "learningNetwork.connections",
+        ),
+      );
+    } else if (id !== EDITOR_LEARNING_NETWORK_ROOT_ID && predecessorCount === 0) {
+      errors.push(
+        issue(
+          "missing-learning-predecessor",
+          "El nodo académico " + id + " debe tener al menos un predecesor.",
+          "learningNetwork.connections",
+        ),
+      );
+    }
+  }
+
+  const reachable = new Set();
+  const pending = nodeIds.has(EDITOR_LEARNING_NETWORK_ROOT_ID)
+    ? [EDITOR_LEARNING_NETWORK_ROOT_ID]
+    : [];
+  while (pending.length > 0) {
+    const id = pending.shift();
+    if (reachable.has(id)) continue;
+    reachable.add(id);
+    pending.push(...(adjacency.get(id) ?? []));
+  }
+  for (const id of academicIds) {
+    if (nodeIds.has(id) && !reachable.has(id)) {
+      errors.push(
+        issue(
+          "unreachable-learning-network-node",
+          "El nodo académico " + id + " no es alcanzable desde la raíz.",
+          "learningNetwork.connections",
+        ),
+      );
+    }
+  }
+  if (errors.length > 0) return { errors, warnings };
+
+  const course = materializeEditorDocument(document, context);
   const projectValidation = validateProjectData(course);
   for (const message of projectValidation.errors) {
     errors.push(issue("project-data-invalid", message));
@@ -600,7 +805,7 @@ function validateNormalizedDocument(document, context) {
   return { errors, warnings };
 }
 
-export function sanitizeEditorDocument(candidate, options = {}) {
+export function sanitizeEditorDraft(candidate, options = {}) {
   const context = canonicalContext(options);
   const parsed = parseCandidate(candidate);
   if (parsed.errors.length > 0) {
@@ -628,17 +833,17 @@ export function sanitizeEditorDocument(candidate, options = {}) {
     );
   }
   const sourceSchemaVersion = source.schemaVersion;
-  if (![1, EDITOR_DOCUMENT_SCHEMA_VERSION].includes(sourceSchemaVersion)) {
+  if (![1, 2, EDITOR_DOCUMENT_SCHEMA_VERSION].includes(sourceSchemaVersion)) {
     errors.push(
       issue(
         "unsupported-editor-schema",
-        `Se esperaba schemaVersion 1 o ${EDITOR_DOCUMENT_SCHEMA_VERSION}.`,
+        `Se esperaba schemaVersion 1, 2 o ${EDITOR_DOCUMENT_SCHEMA_VERSION}.`,
         "schemaVersion",
       ),
     );
   }
   if (
-    sourceSchemaVersion === EDITOR_DOCUMENT_SCHEMA_VERSION
+    [2, EDITOR_DOCUMENT_SCHEMA_VERSION].includes(sourceSchemaVersion)
     && source.appearanceCatalogVersion !== AREA_APPEARANCE_CATALOG_VERSION
   ) {
     errors.push(
@@ -670,11 +875,11 @@ export function sanitizeEditorDocument(candidate, options = {}) {
   if (errors.length > 0) {
     return { ok: false, document: null, errors, warnings };
   }
-  if (sourceSchemaVersion === 1) {
+  if (sourceSchemaVersion < EDITOR_DOCUMENT_SCHEMA_VERSION) {
     warnings.push(
       issue(
         "editor-schema-migrated",
-        `El documento editorial v1 se migró a v${EDITOR_DOCUMENT_SCHEMA_VERSION} con apariencias canónicas.`,
+        `El documento editorial v${sourceSchemaVersion} se migró a v${EDITOR_DOCUMENT_SCHEMA_VERSION} con la topología académica efectiva explícita.`,
         "schemaVersion",
       ),
     );
@@ -691,21 +896,40 @@ export function sanitizeEditorDocument(candidate, options = {}) {
       .map((location) => location.id)
       .filter((locationId) => !declaredLocationIds.has(locationId)),
   );
+  const areas = rebaseAreas(
+    source.areas,
+    context,
+    errors,
+    warnings,
+    { sourceSchemaVersion },
+  );
+  const locations = rebaseLocations(
+    source.locations,
+    context,
+    errors,
+    warnings,
+  );
+  const learningNetwork = sourceSchemaVersion < EDITOR_DOCUMENT_SCHEMA_VERSION
+    ? migrateLegacyLearningNetwork(
+        rebaseConnections(
+          source.treeTwoConnections,
+          context,
+          errors,
+          warnings,
+          { restoredLocationIds },
+        ),
+        context,
+      )
+    : sanitizeLearningNetwork(source.learningNetwork, context, errors);
   const document = {
     kind: EDITOR_DOCUMENT_KIND,
     schemaVersion: EDITOR_DOCUMENT_SCHEMA_VERSION,
     appearanceCatalogVersion: AREA_APPEARANCE_CATALOG_VERSION,
     courseId: context.courseId,
     baseDataVersion: context.baseDataVersion,
-    areas: rebaseAreas(source.areas, context, errors, warnings, { sourceSchemaVersion }),
-    locations: rebaseLocations(source.locations, context, errors, warnings),
-    treeTwoConnections: rebaseConnections(
-      source.treeTwoConnections,
-      context,
-      errors,
-      warnings,
-      { restoredLocationIds },
-    ),
+    areas,
+    locations,
+    learningNetwork,
     updatedAt: dateString(source.updatedAt, fallbackTimestamp),
   };
   if (source.updatedAt !== document.updatedAt) {
@@ -717,12 +941,25 @@ export function sanitizeEditorDocument(candidate, options = {}) {
     return { ok: false, document: null, errors, warnings };
   }
 
-  const validation = validateNormalizedDocument(document, context);
+  const validation = validateDraftStructure(document, context);
   return {
     ok: validation.errors.length === 0,
     document: validation.errors.length === 0 ? document : null,
     errors: validation.errors,
     warnings: [...warnings, ...validation.warnings],
+  };
+}
+
+export function sanitizeEditorDocument(candidate, options = {}) {
+  const context = canonicalContext(options);
+  const draft = sanitizeEditorDraft(candidate, options);
+  if (!draft.ok) return draft;
+  const validation = validatePublishableDocument(draft.document, context);
+  return {
+    ok: validation.errors.length === 0,
+    document: validation.errors.length === 0 ? draft.document : null,
+    errors: validation.errors,
+    warnings: [...draft.warnings, ...validation.warnings],
   };
 }
 
@@ -736,7 +973,7 @@ export function validateEditorDocument(candidate, options = {}) {
 }
 
 export function importEditorDocument(candidate, options = {}) {
-  return sanitizeEditorDocument(candidate, options);
+  return sanitizeEditorDraft(candidate, options);
 }
 
 export class EditorDocumentError extends Error {
@@ -745,6 +982,22 @@ export class EditorDocumentError extends Error {
     this.name = "EditorDocumentError";
     this.issues = structuredClone(issues);
   }
+}
+
+export function materializeEditorDraft(candidate, options = {}) {
+  const context = canonicalContext(options);
+  const result = sanitizeEditorDraft(candidate, options);
+  if (!result.ok) {
+    throw new EditorDocumentError(
+      "El borrador del editor no superó el saneamiento estructural.",
+      result.errors,
+    );
+  }
+  return {
+    document: structuredClone(result.document),
+    ...materializeEditorDocument(result.document, context),
+    warnings: structuredClone(result.warnings),
+  };
 }
 
 export function applyEditorDocument(candidate, options = {}) {
@@ -761,6 +1014,17 @@ export function applyEditorDocument(candidate, options = {}) {
     ...materializeEditorDocument(result.document, context),
     warnings: structuredClone(result.warnings),
   };
+}
+
+export function serializeEditorDraft(candidate, options = {}) {
+  const result = sanitizeEditorDraft(candidate, options);
+  if (!result.ok) {
+    throw new EditorDocumentError(
+      "El borrador del editor no puede exportarse porque su estructura es inválida.",
+      result.errors,
+    );
+  }
+  return JSON.stringify(result.document, null, 2) + "\n";
 }
 
 export function serializeEditorDocument(candidate, options = {}) {

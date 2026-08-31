@@ -35,7 +35,8 @@ Estudiante o Docente y esos perfiles tampoco publican `window.OrbitDebug`.
 
 - **Noclip:** permite cruzar fronteras bloqueadas.
 - **Mostrar IDs:** añade identificadores técnicos.
-- **Mostrar grafo:** dibuja relaciones conceptuales de depuración.
+- **Mostrar red completa:** fuerza la vista **Total** de la Red de aprendizaje sin cambiar la
+  preferencia guardada.
 - **Mostrar coordenadas:** presenta coordenadas axiales y del mundo.
 - **Teletransportar a zona:** mueve al centro de una región.
 - **Completar cercano:** fuerza el lugar progresivo incompleto más próximo.
@@ -129,7 +130,7 @@ Spider y Bee bloqueados, pero permite preferencias Bowerbird personales; `?profi
 un bloqueo sin crear el modelo. `?debug=1` no concede privilegios editoriales. Ningún modo del
 Editor carga `window.OrbitDebug` o crea un `ProgressionModel`; solo la aplicación Docente
 explícita inspecciona y reinicia progreso. El documento Docente reside en
-`orbit-editor:v2:electromagnetism-applied`, las preferencias Estudiante en una clave
+`orbit-editor:v3:electromagnetism-applied`, las preferencias Estudiante en una clave
 `orbit-bowerbird:v1:` separada y Debug conserva progreso `v4` ligado a la revisión activa. La
 query no constituye autenticación.
 
@@ -153,8 +154,8 @@ despliegue manual.
 1. Reinicia.
 2. Confirma seis fronteras bloqueadas en la base.
 3. Completa Taller Vectorial.
-4. Verifica que solo se abre la frontera compartida con Electrostática.
-5. Concede todos los conceptos.
+4. Verifica que Coulomb queda elegible y se abre la frontera compartida con Electrostática.
+5. Completa sucesivamente la Red de aprendizaje sin noclip.
 6. Recorre el anillo y comprueba que una zona nueva abre todas sus aristas compartidas con zonas ya abiertas.
 
 ### Seguridad de noclip
@@ -180,21 +181,22 @@ solo deben conservar logros si la edición activa acepta progreso no versionado.
 resultado se guarda bajo `orbit-progress:v4:student`, que Docente y Debug permanecen aislados y
 que una revisión distinta reinicia el perfil en vez de reactivar logros incompatibles.
 
-### Grafo II
+### Red de aprendizaje
 
-1. Abre una zona principal.
-2. Verifica que un elemento `hiddenUntilUnlocked` no se vea antes de sus requisitos.
-3. Completa el prerrequisito.
-4. Confirma aparición y acceso del elemento lateral.
+1. Abre una zona mediante un nodo académico elegible.
+2. Confirma que sus NPC, gadgets y transportes están disponibles para interactuar, pero no
+   completados ni concedidos automáticamente.
+3. Completa un prerrequisito académico y confirma que el destino correspondiente queda elegible.
+4. Verifica que ningún lugar lateral produzca una flecha de red.
 5. En **Ajustes → Visual**, selecciona **Oculta** y verifica una única flecha brillante en dirección prerrequisito → destino con la etiqueta textual **NUEVO**.
 6. Selecciona **Directo** y confirma que aparecen conexiones elegibles dentro del mismo hexágono o entre hexágonos que comparten frontera, pero no conexiones más lejanas.
 7. Selecciona **Total** y confirma que se añaden las conexiones elegibles de mayor alcance.
 8. Comprueba que `completed → completed/completable` usa flecha brillante y sólida, mientras `completable → blocked` usa flecha tenue y discontinua.
 9. Confirma que un extremo oculto no produzca aristas y que cambiar el nivel no modifique requisitos ni progreso.
-10. Revisa que **Árboles** se limite al listado de zonas, lugares y recompensas; la configuración y la leyenda permanecen en **Ajustes → Visual**.
+10. Revisa que **Zonas · Red** separe Zonas, Red de aprendizaje y exploración lateral; la configuración y la leyenda permanecen en **Ajustes → Visual**.
 
-El dataset completo deriva 14 parejas únicas después de agrupar requisitos duplicados; cinco
-relaciones `completedLocations` se declaran explícitamente. `newlyAccessibleLocationIds` y el
+El dataset completo contiene 30 parejas académicas explícitas y ningún extremo lateral.
+`newlyAccessibleLocationIds` y el
 lugar fuente de la transición son estado efímero del evento y no deben aparecer en el JSON
 exportado. En un destino con varios prerrequisitos, solo la arista desde la última finalización
 causal lleva **NUEVO**. `treeTwoVisualizationMode`, en cambio, es una preferencia saneada y sí
@@ -208,8 +210,9 @@ debe sobrevivir a recarga, exportación e importación.
    desbloqueo, sin atajo global de teclado ni overlay persistente sobre el mapa.
 3. Completa `field-lens-cache` y confirma que aparece el explorador bajo la recompensa estable
    `gadgets:field-lens`; prueba expresiones cartesianas válidas e inválidas.
-4. Completa `transmission-line-bench`, luego el lugar opcional `smith-chart-station`, y comprueba
-   que se habilita `gadgets:smith-chart` sin alterar la ruta principal.
+4. Al abrir la zona de Líneas de Transmisión, verifica que `smith-chart-station` ya está
+   disponible antes de completar `transmission-line-bench`; interactúa con la estación y
+   comprueba que se habilita `gadgets:smith-chart` sin alterar la ruta principal.
 
 ### Coulomb y tres cargas
 

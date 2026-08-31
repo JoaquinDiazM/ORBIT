@@ -132,7 +132,10 @@ if (editorAccess === "blocked") {
   const editorStorage = new ProgressStorage(
     storageKey,
     undefined,
-    [`orbit-editor:v1:${course.courseId}`],
+    [
+      `orbit-editor:v2:${course.courseId}`,
+      `orbit-editor:v1:${course.courseId}`,
+    ],
   );
   const documentOptions = {
     baseAreas: course.areas,
@@ -147,8 +150,10 @@ if (editorAccess === "blocked") {
   });
   const modelValidation = model.validate();
   if (!modelValidation.valid) {
-    console.error("El borrador editorial no superó la validación:", modelValidation.errors);
-    throw new Error("El borrador editorial no pudo materializarse de forma segura.");
+    console.warn(
+      "El borrador editorial contiene problemas semánticos y se abrió para poder repararlos:",
+      modelValidation.errors,
+    );
   }
 
   const personalPreferences = editorAccess === "read-only"
@@ -207,6 +212,8 @@ if (editorAccess === "blocked") {
               "resetAreaAppearance(areaId)",
               "moveLocation(id, placement)",
               "swapAreas(firstId, secondId)",
+              "addLocationToLearningNetwork(id)",
+              "removeLocationFromLearningNetwork(id)",
               "connect(sourceId, targetId)",
               "disconnect(sourceId, targetId)",
               "undo()",
@@ -253,6 +260,8 @@ if (editorAccess === "blocked") {
           selectTool: (tool) => app.setActiveTool(tool),
           moveLocation: (id, placement) => model.moveLocation(id, placement),
           swapAreas: (firstId, secondId) => model.swapArea(firstId, secondId),
+          addLocationToLearningNetwork: (id) => model.addLocationToLearningNetwork(id),
+          removeLocationFromLearningNetwork: (id) => model.removeLocationFromLearningNetwork(id),
           connect: (sourceId, targetId) => model.connectLocations(sourceId, targetId),
           disconnect: (sourceId, targetId) => model.disconnectLocations(sourceId, targetId),
           undo: () => model.undo(),

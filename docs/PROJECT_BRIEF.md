@@ -41,10 +41,10 @@ La experiencia combina dos modos que deberán coexistir en una versión futura:
 - **Modo Expedición:** progresión narrativa y desbloqueos espaciales.
 - **Modo consulta temática:** acceso académico directo por tema, útil para repasar antes de una evaluación.
 
-La versión `0.5.1` conserva las 19 zonas y 20 conceptos y amplía el dataset a 29
-lugares, 14 parejas derivadas del Árbol II y cinco requisitos `completedLocations` explícitos. El
-nuevo lugar es una estación opcional que desbloquea el esqueleto de Carta de Smith; no bloquea el
-tronco. El Taller Vectorial sigue siendo el primer nodo desarrollado con mayor profundidad:
+La ruta conserva 19 zonas, 20 conceptos y 29 lugares. Veintiuna lecciones o misiones forman una
+Red de aprendizaje explícita de 30 parejas académicas; los ocho lugares restantes —Base, seis
+laterales y Debug— quedan fuera de ella y no bloquean el tronco. El Taller Vectorial sigue siendo
+el primer nodo desarrollado con mayor profundidad:
 reúne elementos diferenciales, una comparación visual de campos en SVG, un ejemplo cartesiano
 guiado y una evaluación cilíndrica independiente. El modo de consulta temática con acceso
 directo, la profundidad curricular completa y la conexión entre cursos siguen siendo hitos
@@ -71,45 +71,48 @@ queda bloqueado antes de crear el modelo. Mantiene una interfaz análoga, pero n
 sesión de aprendizaje ni concede progreso.
 
 Dos docks retractables separan operaciones generales y herramientas editoriales. **Spider**
-mueve lugares y edita únicamente dependencias directas `completedLocations`; conceptos y
-recompensas continúan como causas derivadas de solo lectura. **Bee** intercambia zonas dentro de
+mueve lugares, incorpora o retira lecciones/misiones y edita todas las conexiones académicas
+explícitas. **Bee** intercambia zonas dentro de
 su mismo anillo, sin mover la Base ni mezclar fundamentos de `tier 1` con aplicaciones de
 `tier 2`. **Bowerbird** selecciona paletas, motivos y contornos versionados sin alterar geometría
 o progreso.
 
-El documento Docente usa esquema editorial `v2`, autoguardado local, importación/exportación JSON
+El documento Docente usa esquema editorial `v3`, autoguardado local, importación/exportación JSON
 e historial. Es independiente de los tres avances `v4`; las apariencias personales Estudiante
 usan otro contrato y no se exportan. **Resumen** puede validar, mostrar el diff y el impacto, y
 aplicar la edición mediante un helper exclusivo de loopback con respaldo y recuperación. Esa
 operación reinicia los tres progresos, conserva documento/preferencias y construye `dist/`, pero
 no muta Git ni despliega.
 
-## Dos grafos de conocimiento
+## Red de aprendizaje y apertura territorial
 
-### Árbol del conocimiento I: regiones
+### Red de aprendizaje
 
-Abre hexágonos completos. Una zona se desbloquea cuando se satisfacen sus prerrequisitos conceptuales y existe una conexión geométrica con una zona ya abierta.
+Conecta únicamente lugares `lesson` y `mission`. Taller Vectorial es la única raíz de la ruta
+actual; los demás nodos académicos tienen al menos un predecesor. Conceptos y recompensas siguen
+siendo resultados o inventario, no conexiones implícitas.
+
+Una zona vecina se abre cuando contiene al menos un nodo académico elegible. Esa elegibilidad se
+calcula sin exigir que la propia zona ya esté abierta, para evitar bloqueos autocausados.
 
 Regla de fronteras:
 
 > Una arista compartida es transitable si y solo si los dos hexágonos adyacentes están abiertos. Cuando se abre un nuevo hexágono, se abren todas sus aristas compartidas con hexágonos previamente abiertos.
 
-No se debe diseñar una región cuya única llave se encuentre dentro de esa misma región.
+No se debe diseñar una región sin una entrada académica alcanzable desde la red y una zona
+adyacente abierta.
 
-### Árbol del conocimiento II: contenido local
+### Contenido lateral
 
-Controla elementos específicos dentro de zonas ya abiertas:
+Al abrir una zona quedan disponibles para interactuar:
 
-- lugares académicos;
-- rutas laterales;
-- problemas opcionales;
 - personajes secundarios;
 - gadgets;
 - transportes;
-- misiones integradoras;
-- tecnologías y hitos narrativos.
+- otras rutas laterales.
 
-Abrir una región no implica revelar ni habilitar todo lo que contiene. La disponibilidad local se deriva de conceptos, lugares completados y recompensas.
+Estos lugares quedan fuera de la red, no se autocompletan y no conceden automáticamente sus
+recompensas.
 
 ## Estructura deseada de un nodo académico maduro
 
@@ -182,7 +185,7 @@ El proyecto debe privilegiar contenido y ejercicios sobre producción audiovisua
 
 La cohorte `0.5.1` no añade backend público, autenticación, gráficos 3D, telemetría ni
 dependencias. El avance dentro de etapas, los parámetros de figuras y las respuestas parciales
-siguen siendo estado de sesión. Progreso `v4`, documento Editor `v2`, preferencias Bowerbird `v1`
+siguen siendo estado de sesión. Progreso `v4`, documento Editor `v3`, preferencias Bowerbird `v1`
 y edición de curso `v1` usan claves y migraciones distintas.
 
 La entrada Editor estática no puede escribir el repositorio. Solo el helper local iniciado
@@ -196,8 +199,8 @@ La interfaz debe verse suficientemente clara para probar la experiencia, pero la
 
 ## Definición del producto
 
-**Recurso educativo abierto e interactivo, con una experiencia de aprendizaje basada en dos
-grafos de conocimiento y una base local de autoría cartográfica y visual.**
+**Recurso educativo abierto e interactivo, con una Red de aprendizaje explícita, apertura
+territorial derivada y una base local de autoría cartográfica y visual.**
 
 No se presenta todavía como MOOC, videojuego completo, LMS ni plataforma multicurso operativa. Técnicamente son dos entradas web estáticas sobre la misma primera ruta: ORBIT y ORBIT Editor. El segundo no es aún un editor completo de contenido ni un sistema de publicación.
 

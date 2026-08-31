@@ -249,13 +249,13 @@ Sin propuestas pendientes de clasificar.
 
 ### UPD-015 — Red única de aprendizaje y apertura territorial derivada
 
-- Estado: `autorizado`
+- Estado: `en-revision`
 - Tipo: `épica`
 - Versión objetivo: `0.6.0`
 - Impacto sugerido: `Y`; reemplaza el contrato central de progresión, el documento editorial y
   la representación de ambos productos.
-- Próximo responsable: agente de desarrollo, que ejecuta el preflight de 0.6.0 y comienza la
-  implementación.
+- Próximo responsable: JoaquinDiazM, que revisa en Microsoft Edge el borrador inválido reparable,
+  su validación y la aplicación local con reinicio total.
 
 #### Solicitud original
 
@@ -285,6 +285,12 @@ ser dorados sólidos o dorados tenues discontinuos, tanto en ORBIT como en ORBIT
   académicas efectivas; no debe limitarse a las 23 conexiones académicas explícitas. Las 5
   parejas con extremos laterales se descartan. La normalización visual se resolvió en UPD-017:
   esta épica cambia semántica y topología, no vuelve a diseñar la apariencia.
+- Decisiones editoriales confirmadas: «borrar un nodo» en Spider significa retirarlo de la Red de
+  aprendizaje, no eliminar el lugar, su contenido ni su ID. Retirarlo elimina también sus aristas
+  incidentes; puede volver a añadirse. Spider permite autoguardar, recargar y deshacer borradores
+  estructuralmente bien formados pero académicamente incompletos para probar el flujo solicitado;
+  **Validar** y **Aplicar** siguen bloqueando raíces adicionales, nodos académicos ausentes,
+  inalcanzabilidad, ciclos o una apertura territorial incompleta.
 - Criterios de aceptación: las conexiones académicas tienen como extremos únicamente `lesson` o
   `mission` y una sola fuente explícita de verdad; completar Taller Vectorial convierte Coulomb
   en completable y abre Electroestática por adyacencia; conceptos y recompensas siguen siendo
@@ -317,16 +323,43 @@ ser dorados sólidos o dorados tenues discontinuos, tanto en ORBIT como en ORBIT
 
 #### Implementación y revisión
 
-- Base revisada: arquitectura candidata de 0.5.0; implementación no iniciada.
+- Base revisada: ORBIT 0.5.1 publicado en `095e80e`; revisión aplicada
+  `sha256:b4d45e3a2fd478b71d6f703ac870494019813464a2140dcb437155312987637d` preservada como semilla;
+  preflight confirmó checkout sincronizado y únicamente esa fuente editorial modificada, sin
+  staged, helper, puerto, lock, journal ni tombstone residual.
 - Rutas propias: datos de mundo/lugares, grafos y progresión, validador, documento/modelo/renderer
   Editor, renderer/UI de ORBIT, edición de curso, ADR, documentación y pruebas.
-- Resultado: no iniciada; decisiones materiales resueltas, pero 0.6.0 espera la publicación de
-  la cohorte inmediata 0.5.1.
-- Pruebas: pendientes para implementación; deberán demostrar DAG, raíz académica única,
-  migración de las 30 parejas efectivas, elegibilidad sin dependencia circular de la zona,
-  apertura por adyacencia y alcanzabilidad del 100 % de lugares académicos y laterales.
-- Cómo revisar para JoaquinDiazM: cuando 0.6.0 llegue a `en-revision`, repetir el recorrido
-  validación errónea → corrección → validación aprobada → aplicación y revisar los tres perfiles.
+- Resultado: implementada una única Red de aprendizaje de 21 nodos y 30 conexiones explícitas,
+  con `vector-workshop` como raíz, apertura territorial derivada y seis lugares laterales
+  interactivos. Spider edita membresía y aristas, conserva borradores estructuralmente sanos pero
+  todavía no publicables y bloquea **Validar/Aplicar** hasta recuperar la alcanzabilidad integral.
+  La edición aplicada migró de v2 a v3 sin alterar sus 19 zonas, 29 posiciones ni apariencias:
+  revisión activa
+  `sha256:5232acb4e249e3f6ddb368b3d7792505e45c2543d6e671f4f9d9ae7e99bd0b32`, con
+  `previousRevision` b4d45e3a2fd4. La fuente anterior quedó respaldada de forma verificable en
+  `.orbit-editor-backups/2026-08-31T06-29-24-306Z-b4d45e3a2fd4-cdaa23ce.edition.json`.
+- Pruebas automáticas: `validate-content` aprobado con 19 zonas, 20 conceptos y 29 lugares
+  alcanzables; `node --test` aprobó 411 de 413 casos y omitió solo dos pruebas de enlaces
+  simbólicos por `EPERM` de Windows; `repo-check` aprobó 123 archivos JavaScript y 41 Markdown;
+  build estático aprobado; `git diff --check` limpio. Las pruebas cubren migración exacta de las
+  30 parejas efectivas, raíz única/DAG, apertura por elegibilidad y adyacencia, lugares laterales,
+  borrador inválido reparable, rechazo estricto de aplicación y ausencia de reinicios por un mero
+  reordenamiento de `nodeIds`.
+- Preflight del entorno: fuente, `dist` y `build-info.json` coinciden en la revisión 5232ac; no
+  hay helper, proceso en el puerto 4173, lock, journal ni tombstone residual. El agente no abrió
+  Edge ni sustituyó la revisión manual humana.
+- Revisión manual humana: pendiente — pasos para JoaquinDiazM:
+  1. Desde un terminal visible de VS Code en la raíz canónica, inicia `npm run dev` y abre en Edge
+     externo `http://127.0.0.1:4173/editor.html` con perfil Docente.
+  2. En Spider, elimina la conexión **Laboratorio de Ecuaciones Diferenciales → Laboratorio de
+     Transición Superconductora**; recarga y confirma que el borrador incompleto persiste.
+  3. En Resumen, pulsa **Validar edición e impacto** y confirma que detecta la ausencia de
+     predecesor/alcanzabilidad y mantiene **Aplicar** bloqueado.
+  4. Añade la conexión alternativa **Archivo de Maxwell → Laboratorio de Transición
+     Superconductora** y confirma que la validación alcanza 19 zonas, 29 lugares y 20 conceptos.
+  5. Detén `dev`, inicia `npm run editor:author`, vuelve a validar el mismo digest, confirma el
+     reinicio de Estudiante/Docente/Debug y aplica. Detén el helper, reinicia `npm run dev` y revisa
+     los tres perfiles. Comunica el resultado antes de aprobar o publicar 0.6.0.
 - Observaciones del usuario: 1.- Nada de nodos especiales, una zona se abre cuando existe dentro
   de ella un nodo accesible y hay adyacencia, revisa la politica de validacion del editor para
   verificar que las propuestas de redes permiten la completacion del 100% del contenido del

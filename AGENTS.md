@@ -13,7 +13,7 @@ abierto y transversal que combine:
 2. historia de la ciencia usada como estructura causal y pedagógica;
 3. ejercicios originales con retroalimentación progresiva;
 4. exploración libre en un mundo 2D;
-5. progresión transparente mediante dos grafos de conocimiento.
+5. progresión transparente mediante una Red de aprendizaje y apertura territorial derivada.
 
 La ruta implementada actualmente es **Electromagnetismo**. En el futuro ORBIT
 pretende migrar y conectar rutas de cursos diferentes, pero el prototipo todavía no debe
@@ -25,12 +25,17 @@ La interfaz narrativa apoya el aprendizaje. No es el objetivo principal ni debe 
 ## Invariantes no negociables
 
 1. **Movimiento libre:** dentro de una zona abierta, el personaje puede ocupar cualquier punto válido. No lo confines a nodos, caminos o una cuadrícula de movimiento.
-2. **Árbol I separado del Árbol II:**
-   - Árbol I abre zonas hexagonales completas.
-   - Árbol II abre lugares específicos, transportes, gadgets, personajes, rutas laterales y misiones.
+2. **Una Red de aprendizaje:**
+   - solo lecciones y misiones forman su grafo académico explícito;
+   - una zona vecina se abre cuando contiene un nodo académico elegible;
+   - personajes, gadgets y transportes quedan fuera de la red y se habilitan para interactuar al
+     abrir su zona.
 3. **Regla de aristas:** una frontera es transitable si y solo si los dos hexágonos que comparte están abiertos. Al abrir una zona, se abren automáticamente todas sus aristas compartidas con zonas previamente abiertas.
 4. **Sin bloqueos autocausados:** ningún lugar puede requerir un concepto que él mismo concede. Ninguna zona puede depender únicamente de contenido situado detrás de su propia frontera.
-5. **Estado derivado:** zonas y lugares disponibles se calculan a partir de conceptos, lugares completados, recompensas y overrides de depuración. No guardes disponibilidad duplicada como fuente de verdad.
+5. **Estado derivado:** zonas y lugares disponibles se calculan a partir de la Red de aprendizaje,
+   los lugares completados, la apertura de su zona y los overrides de depuración. Conceptos y
+   recompensas son resultados o inventario, no una segunda vía territorial. No guardes
+   disponibilidad duplicada como fuente de verdad.
 6. **IDs estables:** los IDs de zonas, conceptos, lugares y recompensas forman parte del formato de guardado. No los renombres después de una versión publicada sin una migración explícita.
 7. **Progreso versionado:** cualquier cambio incompatible en el estado persistido exige incrementar el esquema y añadir migración o una decisión documentada de reinicio.
 8. **Sitio estático:** el prototipo debe seguir funcionando sin backend, cuentas, base de datos ni instalación del usuario final.

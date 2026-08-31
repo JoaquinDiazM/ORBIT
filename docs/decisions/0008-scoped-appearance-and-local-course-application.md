@@ -3,6 +3,7 @@
 - Estado: aceptado
 - Fecha: 2026-08-30
 - Enmienda: [ADR 0007](0007-static-local-editor.md)
+- Enmendado por: [ADR 0009](0009-single-learning-network.md)
 
 ## Contexto
 
@@ -215,4 +216,9 @@ contrato de edición y pérdida de progreso es reutilizable, pero 0.5.0 opera so
 Revisar este ADR antes de incorporar publicación remota, cuentas, varias rutas, colaboración,
 resolución de conflictos, resets parciales, assets Bowerbird cargados por usuarios, edición de
 contenido académico o cualquier operación del helper fuera de loopback. ADR 0007 continúa
-vigente para la separación de aplicaciones y grafos salvo en las fronteras enmendadas aquí.
+vigente para la separación de aplicaciones y responsabilidades salvo en las fronteras
+enmendadas aquí.
+
+ADR 0009 conserva el helper, Bowerbird, la edición desplegable y el reinicio recuperable, pero
+avanza el documento Docente a `v3` y reemplaza las conexiones `completedLocations` del contrato
+`v2` por la Red de aprendizaje académica explícita.

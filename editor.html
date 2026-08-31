@@ -148,7 +148,7 @@
       >
         <header class="panel-header">
           <div>
-            <p id="editor-inspector-eyebrow" class="eyebrow">Árbol II · nodos</p>
+            <p id="editor-inspector-eyebrow" class="eyebrow">Red de aprendizaje · nodos</p>
             <h2 id="editor-inspector-title">Spider</h2>
           </div>
           <button id="editor-close-inspector" class="icon-button" type="button" aria-label="Ocultar inspector">×</button>
@@ -167,6 +167,11 @@
             <label class="field-label" for="editor-location-select">Nodo seleccionado</label>
             <select id="editor-location-select"></select>
 
+            <div class="editor-network-membership">
+              <p id="editor-network-membership" class="callout" role="status"></p>
+              <button id="editor-toggle-network-location" type="button"></button>
+            </div>
+
             <div class="editor-coordinate-grid">
               <label>Zona<select id="editor-location-area"></select></label>
               <label>Offset x<input id="editor-location-x" type="number" step="1" /></label>
@@ -181,7 +186,7 @@
               <button type="button" data-nudge-x="1" data-nudge-y="0" aria-label="Mover nodo a la derecha">→</button>
             </div>
 
-            <h3>Conexión explícita</h3>
+            <h3>Conexión de aprendizaje</h3>
             <div class="editor-connection-form">
               <label>Fuente<select id="editor-connection-source"></select></label>
               <span aria-hidden="true">→</span>
@@ -190,7 +195,7 @@
             </div>
             <div class="editor-legend" aria-label="Leyenda de conexiones">
               <p><span class="editor-line-swatch" aria-hidden="true"></span><strong>Amarillo brillante continuo:</strong> apariencia común de todas las conexiones visibles.</p>
-              <p><span class="editor-legend-label">Texto</span><strong>Editabilidad:</strong> Spider y la lista indican si la relación es directa y editable o derivada y de solo lectura.</p>
+              <p><span class="editor-legend-label">Red</span><strong>Alcance:</strong> solo lecciones y misiones pueden pertenecer a la red y todas sus conexiones son editables.</p>
             </div>
             <h3>Red seleccionada</h3>
             <ul id="editor-connection-list" class="editor-connection-list"></ul>
@@ -245,8 +250,8 @@
             <h3>Base editorial de ORBIT</h3>
             <p>El borrador se guarda únicamente en este navegador y permanece separado del progreso de aprendizaje guardado por ORBIT.</p>
             <dl class="editor-summary-list">
-              <div><dt>Spider</dt><dd>Ubica nodos y añade dependencias explícitas del Árbol II.</dd></div>
-              <div><dt>Bee</dt><dd>Reordena zonas mediante intercambios dentro de cada anillo.</dd></div>
+              <div><dt>Spider</dt><dd>Ubica lecciones y misiones, decide su pertenencia y edita la Red de aprendizaje.</dd></div>
+              <div><dt>Bee</dt><dd>Reordena las Zonas mediante intercambios dentro de cada anillo.</dd></div>
               <div><dt>Bowerbird</dt><dd>Configura presets visuales por zona sin modificar geometría ni progreso.</dd></div>
               <div><dt>Publicación</dt><dd>Exporta el JSON para revisarlo e integrarlo durante el mantenimiento del sitio.</dd></div>
             </dl>

@@ -52,7 +52,9 @@ test("Coulomb conserva su ID y declara exactamente las cinco etapas implementada
   assert.ok(coulomb);
   assert.equal(coulomb.id, COULOMB_ID);
   assert.equal(coulomb.areaId, "electrostatics");
-  assert.deepEqual(coulomb.requirements, {});
+  assert.deepEqual(coulomb.requirements, {
+    completedLocations: ["vector-workshop"],
+  });
   assert.deepEqual(coulomb.grants, { concepts: ["charge-and-superposition"] });
   assert.equal(coulomb.steps.length, 5);
   assert.deepEqual(coulomb.steps.map((entry) => entry.id), EXPECTED_STEP_IDS);
