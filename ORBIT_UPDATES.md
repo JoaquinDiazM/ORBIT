@@ -342,7 +342,7 @@ opciones de colores, dibujos estáticos o móviles y contornos.
 
 ### UPD-014 — Aplicar una edición del curso
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `infraestructura`
 - Versión objetivo: `0.5.0`
 - Impacto sugerido: `Y` si se limita a una aplicación local; una publicación remota depende de
@@ -496,6 +496,104 @@ perfil.
   que el proceso de validacion de los cambios sale positivo.
 - Observaciones del usuario (3):  Abri el servidor en mantenimiento, pero aun asi aparece el mensaje de "Servicio local no identificado: puedes editar y validar, pero aplicar permanece bloqueado" y tambien esta bloqueada la casilla de confimacion. Ya cerre el servidor en mi terminal para que puedas hacer tus pruebas, pero recuerda tambien cerrar ese proceso en tu terminal para que pueda revisar sin problema.
 
+### UPD-016 — Corregir desborde del rótulo Bowerbird
+
+- Estado: `propuesto`
+- Tipo: `bug`
+- Versión objetivo: `0.5.1`
+- Impacto sugerido: `Z`; corrección visual compatible y acotada al dock de ORBIT Editor.
+- Próximo responsable: JoaquinDiazM, que autoriza la corrección cuando quiera abrir la cohorte
+  posterior a 0.5.0.
+
+#### Solicitud original
+
+En el menú de ORBIT Editor, la opción Bowerbird desborda su contenedor por la última letra
+cuando el dock muestra el texto completo. El modo minimizado `BW` se ve correctamente.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: el rótulo completo **Bowerbird** cabe dentro de su botón en el dock
+  expandido sin recorte, desborde ni invasión de controles vecinos; `BW` permanece intacto al
+  minimizar.
+- Decisiones confirmadas: conservar nombre, orden, comportamiento y abreviatura; corregir solo
+  las restricciones de layout necesarias.
+- Criterios de aceptación: el texto cabe en anchos normal y compacto, con zoom y fuentes de
+  reserva razonables; el botón conserva foco visible, área interactiva y nombre accesible; los
+  rótulos Spider y Bee no retroceden; una comprobación automatizada protege el contrato CSS o
+  estructural y la revisión manual cubre dock expandido/minimizado.
+- Fuera de alcance: rediseñar los docks, abreviar Bowerbird, alterar presets, permisos, guardado
+  o cualquier apariencia de las zonas.
+- Dependencias, invariantes o ADR: solo afecta layout y accesibilidad de ORBIT Editor; no cambia
+  IDs, esquemas, progreso, cartografía, dependencias ni requiere ADR.
+
+#### Preguntas bloqueantes
+
+- Ninguna; la solicitud delimita un defecto visual reproducible.
+
+#### Implementación y revisión
+
+- Base revisada: 0.5.0 en revisión/aprobación local; implementación no iniciada.
+- Rutas propias: estilos y, si corresponde, prueba del shell de ORBIT Editor.
+- Resultado: no iniciado.
+- Pruebas: no aplican todavía.
+- Cómo revisar para JoaquinDiazM: expandir y minimizar el dock Editor en anchos normal y
+  compacto, comprobando que **Bowerbird** y `BW` permanezcan contenidos.
+- Observaciones del usuario: ninguna posterior a la solicitud original.
+
+### UPD-017 — Unificar la apariencia de conectores
+
+- Estado: `propuesto`
+- Tipo: `bug`
+- Versión objetivo: `0.5.1`
+- Impacto sugerido: `Z`; normaliza la representación visual sin cambiar la topología.
+- Próximo responsable: JoaquinDiazM, que autoriza la corrección cuando quiera abrir la cohorte
+  posterior a 0.5.0.
+
+#### Solicitud original
+
+ORBIT debe mostrar solo dos apariencias para las flechas entre nodos: amarillo brillante para
+conexiones entre nodos completados o desde un nodo completado hacia uno completable, y amarillo
+tenue para orientar desde un nodo completable hacia otro todavía bloqueado. Deben desaparecer
+formatos legados como la línea gris tenue entre Faraday y Maxwell. ORBIT Editor debe mostrar
+todas sus conexiones en amarillo brillante porque allí todo está disponible. Este alcance debe
+resolverse antes y quedar fuera de UPD-015.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: los conectores persistentes de ORBIT usan únicamente el estilo amarillo
+  brillante o el amarillo tenue definido en **Visual**, mientras ORBIT Editor representa todas
+  las relaciones visibles con el estilo amarillo brillante.
+- Decisiones confirmadas: en ORBIT el estado de los extremos elige brillante para
+  `completado → completado/completable` y tenue para `completable → bloqueado`; el modo Editor no
+  comunica editabilidad mediante un tercer color; la semántica editable/derivada sigue
+  disponible en controles y texto.
+- Criterios de aceptación: desaparecen líneas grises, cianes u otros tratamientos legados en
+  Oculta, Directo y Total; el caso Faraday → Maxwell usa amarillo tenue antes de que Maxwell sea
+  completable y brillante después; Editor usa amarillo brillante para conexiones editables y
+  derivadas; opacidad/trazo y leyendas aportan una señal adicional al color donde el estado de
+  ORBIT lo exige; selección, dirección, puntas de flecha y alcance de cada modo no cambian.
+- Fuera de alcance: añadir, eliminar o convertir conexiones; cambiar requisitos, progresión,
+  apertura territorial, modos de Visual o el documento editorial; las decisiones estructurales
+  de UPD-015.
+- Dependencias, invariantes o ADR: conserva la matriz de estados y los grafos vigentes; afecta
+  renderers, leyendas y pruebas visuales/accesibles, sin esquema persistente, dependencia o ADR
+  nuevo.
+
+#### Preguntas bloqueantes
+
+- Ninguna; reutiliza los dos estados visuales ya aprobados y separa expresamente este trabajo de
+  la futura red única.
+
+#### Implementación y revisión
+
+- Base revisada: 0.5.0 en revisión/aprobación local; implementación no iniciada.
+- Rutas propias: renderers y leyendas de conexiones en ORBIT/Editor, más pruebas de estado.
+- Resultado: no iniciado.
+- Pruebas: no aplican todavía.
+- Cómo revisar para JoaquinDiazM: comparar Faraday → Maxwell antes/después del desbloqueo en los
+  tres modos de Visual y abrir Editor para confirmar que ninguna conexión use un tercer color.
+- Observaciones del usuario: ninguna posterior a la solicitud original.
+
 ### UPD-015 — Red única de aprendizaje y apertura territorial derivada
 
 - Estado: `faltan-detalles`
@@ -524,17 +622,17 @@ ser dorados sólidos o dorados tenues discontinuos, tanto en ORBIT como en ORBIT
 - Decisiones confirmadas: el actual Árbol II pasa a ser la red maestra; el actual Árbol I deja de
   presentarse y modelarse como grafo independiente; `vector-workshop → coulomb-observatory`
   reemplaza la relación de Vectores con el gadget; NPC secundarios y gadgets quedan disponibles
-  al abrir su zona; los conectores persistentes usan solo dorado sólido o dorado tenue
-  discontinuo según su estado.
+  al abrir su zona. La normalización visual de conectores se adelanta a UPD-017 y queda fuera de
+  esta épica; UPD-015 modifica su semántica y topología, no vuelve a rediseñar su apariencia.
 - Criterios de aceptación: las conexiones académicas tienen como extremos únicamente `lesson` o
   `mission` y una sola fuente explícita de verdad; completar Taller Vectorial convierte Coulomb
   en completable y abre Electroestática por adyacencia; conceptos y recompensas siguen siendo
   resultados e inventario, pero no otra vía de apertura; NPC, gadgets y la política por confirmar
   de transportes permanecen fuera de la red; Base y Debug permanecen fuera de la red; Spider
-  rechaza tipos laterales, duplicados, autorrelaciones, ciclos y zonas sin entrada posible; ORBIT
-  conserva los modos Oculta, Directo y Total y su matriz brillante/tenue; ORBIT Editor elimina la
-  distinción cian de relaciones derivadas; los nombres visibles pasan a **Zonas** y **Red de
-  aprendizaje** sin cambiar IDs solo por presentación; el documento Docente migra de
+  rechaza tipos laterales, duplicados, autorrelaciones, ciclos y zonas sin entrada posible; los
+  modos Oculta, Directo y Total consumen sin redefinir el contrato visual establecido por
+  UPD-017; los nombres visibles pasan a **Zonas** y **Red de aprendizaje** sin cambiar IDs solo
+  por presentación; el documento Docente migra de
   `orbit-editor-project` v2 a v3 preservando cartografía, apariencias y conexiones académicas
   válidas; las 19 zonas y los 21 nodos académicos actuales permanecen alcanzables; una edición
   aplicada usa el reinicio total de perfiles definido en 0.5.0.
@@ -543,9 +641,10 @@ ser dorados sólidos o dorados tenues discontinuos, tanto en ORBIT como en ORBIT
   geometría axial, adyacencia o Bowerbird; conceder automáticamente recompensas sin interacción
   salvo decisión expresa.
 - Dependencias, invariantes o ADR: requiere 0.5.0 publicada y consume el documento v2 y la
-  aplicación local de UPD-013/UPD-014; exige ADR 0009 que sustituya deliberadamente ADR 0002 y
-  actualizar el invariante de dos árboles en `AGENTS.md`; conserva estado derivado, IDs estables,
-  sitio estático, adyacencia axial y validación integral.
+  aplicación local de UPD-013/UPD-014; asume el contrato visual previo de UPD-017 sin absorber su
+  implementación; exige ADR 0009 que sustituya deliberadamente ADR 0002 y actualizar el
+  invariante de dos árboles en `AGENTS.md`; conserva estado derivado, IDs estables, sitio
+  estático, adyacencia axial y validación integral.
 
 #### Preguntas bloqueantes
 
