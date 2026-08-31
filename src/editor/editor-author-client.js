@@ -23,7 +23,7 @@ export class EditorAuthorClient {
     if (typeof fetchImpl !== "function") {
       throw new TypeError("El cliente de autoría requiere fetch.");
     }
-    this.fetch = fetchImpl;
+    this.fetch = (...args) => fetchImpl(...args);
     this.sessionEndpoint = sessionEndpoint;
     this.session = null;
   }

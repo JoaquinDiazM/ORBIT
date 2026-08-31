@@ -19,6 +19,20 @@ const session = {
   endpoints: { shutdown: "/__orbit/local/shutdown" },
 };
 
+test("el cliente invoca fetch sin convertirlo en un método propio", async () => {
+  let receiver = "sin invocar";
+  const client = new EditorLocalServiceClient({
+    async fetchImpl() {
+      receiver = this;
+      return response(session);
+    },
+  });
+
+  await client.connect();
+
+  assert.equal(receiver, undefined);
+});
+
 test("el cliente negocia una sesión separada y solicita un apagado same-origin", async () => {
   const calls = [];
   const client = new EditorLocalServiceClient({

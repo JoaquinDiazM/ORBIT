@@ -20,7 +20,7 @@ export class EditorLocalServiceClient {
     if (typeof fetchImpl !== "function") {
       throw new TypeError("El control del servicio local requiere fetch.");
     }
-    this.fetch = fetchImpl;
+    this.fetch = (...args) => fetchImpl(...args);
     this.sessionEndpoint = sessionEndpoint;
     this.session = null;
   }

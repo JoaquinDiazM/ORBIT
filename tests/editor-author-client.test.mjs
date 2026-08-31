@@ -23,6 +23,20 @@ const session = {
   pending: null,
 };
 
+test("el cliente invoca fetch sin convertirlo en un método propio", async () => {
+  let receiver = "sin invocar";
+  const client = new EditorAuthorClient({
+    async fetchImpl() {
+      receiver = this;
+      return response(session);
+    },
+  });
+
+  await client.connect();
+
+  assert.equal(receiver, undefined);
+});
+
 test("el cliente negocia sesión y envía revisión optimista con token same-origin", async () => {
   const calls = [];
   const client = new EditorAuthorClient({
