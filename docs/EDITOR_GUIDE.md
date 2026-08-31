@@ -132,6 +132,12 @@ Spider edita únicamente requisitos directos `completedLocations`: crear `A → 
 
 Las relaciones derivadas de `concepts` o `rewards` se muestran para comprender la red, pero son de solo lectura. Si una misma pareja deriva de más de una causa, eliminar su requisito directo no elimina las causas conceptuales o de recompensa; por ello la flecha puede seguir visible con una explicación distinta.
 
+Todas las conexiones confirmadas se dibujan en amarillo brillante. La forma conserva la
+misma apariencia continua tanto para requisitos directos como para relaciones derivadas. La
+editabilidad no introduce un tercer tratamiento en el mapa: Spider, la lista y sus textos
+identifican qué relación directa puede retirarse y cuál es derivada de solo lectura. Las puntas
+mantienen siempre la dirección prerrequisito → destino.
+
 Spider rechaza y anuncia:
 
 - conexiones de un nodo consigo mismo;

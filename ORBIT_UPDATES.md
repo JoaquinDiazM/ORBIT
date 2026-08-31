@@ -239,12 +239,12 @@ Sin propuestas pendientes de clasificar.
 
 ### UPD-016 — Corregir desborde del rótulo Bowerbird
 
-- Estado: `autorizado`
+- Estado: `en-revision`
 - Tipo: `bug`
 - Versión objetivo: `0.5.1`
 - Impacto sugerido: `Z`; corrección visual compatible y acotada al dock de ORBIT Editor.
-- Próximo responsable: agente de desarrollo, que implementa el alcance autorizado de la cohorte
-  inmediata 0.5.1.
+- Próximo responsable: JoaquinDiazM, que realiza la revisión manual en Edge y aprueba o solicita
+  correcciones.
 
 #### Solicitud original
 
@@ -273,24 +273,32 @@ cuando el dock muestra el texto completo. El modo minimizado `BW` se ve correcta
 
 #### Implementación y revisión
 
-- Base revisada: `8f75450650ab0bdeed568036e2f5267a79bee0d2` (ORBIT 0.5.0 publicada);
-  implementación no iniciada.
-- Rutas propias: estilos y, si corresponde, prueba del shell de ORBIT Editor.
-- Resultado: no iniciado.
-- Pruebas automáticas: no aplican todavía.
-- Preflight del entorno: pendiente.
-- Revisión manual humana: pendiente — expandir y minimizar el dock Editor en anchos normal y
-  compacto, comprobando que **Bowerbird** y `BW` permanezcan contenidos.
+- Base revisada: `61a229e626104cff28c541366f33552ac53832a9` (ORBIT 0.5.0 archivada y
+  cohorte 0.5.1 abierta).
+- Rutas propias: ancho del dock editorial y regresión estructural de su shell.
+- Resultado: el dock de herramientas usa el mismo ancho `8.75rem` de General, de modo que
+  **Bowerbird** completo queda contenido sin cambiar nombre, orden, foco, área interactiva ni la
+  abreviatura `BW` de los estados colapsado y responsive.
+- Pruebas automáticas: regresión CSS/HTML de ancho, contenido y colapso; pruebas focales de
+  cabecera y shell 19/19. Check integral de la cohorte: 393 pruebas, 391 aprobadas, 0 fallos y 2
+  skips EPERM esperados de symlink; validate 19 zonas/20 conceptos/29 lugares, repo-check y build
+  correctos.
+- Preflight del entorno: solo rutas intencionales de 0.5.1 y de la metodología solicitada
+  modificadas; puerto 4173 libre, sin procesos de agente, helper, lock, journal o tombstone;
+  fuente/build concordantes. Ninguna prueba usó el perfil, almacenamiento o caché reales de Edge.
+- Revisión manual humana: `pendiente` — en Edge externo y con `npm run dev` iniciado desde un
+  terminal visible de VS Code, comprobar Bowerbird expandido a 100 % y 125 %, `BW` minimizado
+  y a 200 %/viewport ≤760 px, foco visible y ausencia de regresiones en Spider/Bee.
 - Observaciones del usuario: ninguna posterior a la solicitud original.
 
 ### UPD-017 — Unificar la apariencia de conectores
 
-- Estado: `autorizado`
+- Estado: `en-revision`
 - Tipo: `bug`
 - Versión objetivo: `0.5.1`
 - Impacto sugerido: `Z`; normaliza la representación visual sin cambiar la topología.
-- Próximo responsable: agente de desarrollo, que implementa el alcance autorizado de la cohorte
-  inmediata 0.5.1.
+- Próximo responsable: JoaquinDiazM, que realiza la revisión manual en Edge y aprueba o solicita
+  correcciones.
 
 #### Solicitud original
 
@@ -329,14 +337,28 @@ resolverse antes y quedar fuera de UPD-015.
 
 #### Implementación y revisión
 
-- Base revisada: `8f75450650ab0bdeed568036e2f5267a79bee0d2` (ORBIT 0.5.0 publicada);
-  implementación no iniciada.
-- Rutas propias: renderers y leyendas de conexiones en ORBIT/Editor, más pruebas de estado.
-- Resultado: no iniciado.
-- Pruebas automáticas: no aplican todavía.
-- Preflight del entorno: pendiente.
-- Revisión manual humana: pendiente — comparar Faraday → Maxwell antes/después del desbloqueo en los
-  tres modos de Visual y abrir Editor para confirmar que ninguna conexión use un tercer color.
+- Base revisada: `61a229e626104cff28c541366f33552ac53832a9` (ORBIT 0.5.0 archivada y
+  cohorte 0.5.1 abierta).
+- Rutas propias: estilos puros y renderers Canvas de conexiones, leyendas de ORBIT/Editor, guía
+  editorial y regresiones de estado y trazado.
+- Resultado: ORBIT usa una única tonalidad amarilla: brillante, sólida, gruesa y con resplandor
+  para `completed → completed/completable`; tenue, discontinua, fina y sin resplandor para
+  `completable → blocked`. Editor dibuja todas las conexiones confirmadas con la misma flecha
+  amarilla brillante y sólida; la distinción editable/derivada permanece solo en controles,
+  lista y texto. No cambian topología, dirección, puntas, selección ni modos de Visual.
+- Pruebas automáticas: Faraday → Maxwell protegido antes/después en Oculta, Directo y Total;
+  harness Canvas verifica color, opacidad, trazo, ancho y dos puntas idénticas en Editor; leyendas
+  sin estilos heredados. Pruebas focales 33/33. Check integral de la cohorte: 393 pruebas, 391
+  aprobadas, 0 fallos y 2 skips EPERM esperados de symlink; validate 19 zonas/20 conceptos/29
+  lugares, repo-check y build correctos.
+- Preflight del entorno: solo rutas intencionales de 0.5.1 y de la metodología solicitada
+  modificadas; puerto 4173 libre, sin procesos de agente, helper, lock, journal o tombstone;
+  fuente/build concordantes. Ninguna prueba usó el perfil, almacenamiento o caché reales de Edge.
+- Revisión manual humana: `pendiente` — con el grafo Debug apagado, comprobar Faraday → Maxwell
+  ausente antes y brillante/sólida después de completar Faraday en Oculta; tenue/discontinua antes
+  y brillante/sólida después en Directo y Total. En Editor confirmar que relaciones Spider y
+  derivadas comparten la misma flecha brillante y que la lista conserva su texto editable/solo
+  lectura.
 - Observaciones del usuario: ninguna posterior a la solicitud original.
 
 ### UPD-015 — Red única de aprendizaje y apertura territorial derivada

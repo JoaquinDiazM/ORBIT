@@ -15,6 +15,41 @@ import {
   getNeighborArea,
 } from "../core/world-graph.js";
 
+const TREE_TWO_EDGE_YELLOW = Object.freeze({
+  bright: "rgba(255, 209, 102, 0.96)",
+  muted: "rgba(255, 209, 102, 0.42)",
+});
+
+/**
+ * Keeps the two Tree II states on one hue. Stroke, opacity and glow carry the
+ * redundant state signal required when color perception is limited.
+ */
+export function getTreeTwoEdgeVisualStyle(
+  appearance,
+  { isNew = false, zoom = 1 } = {},
+) {
+  const safeZoom = Math.max(0.01, Number.isFinite(zoom) ? zoom : 1);
+  const lineScale = 1 / safeZoom;
+  if (appearance === "muted") {
+    return {
+      color: TREE_TWO_EDGE_YELLOW.muted,
+      lineWidth: 1.5 * lineScale,
+      lineDash: [10 * lineScale, 7 * lineScale],
+      shadowColor: "rgba(255, 209, 102, 0)",
+      shadowBlur: 0,
+    };
+  }
+  return {
+    color: TREE_TWO_EDGE_YELLOW.bright,
+    lineWidth: 3.4 * lineScale,
+    lineDash: [],
+    shadowColor: isNew
+      ? "rgba(255, 209, 102, 0.9)"
+      : "rgba(255, 209, 102, 0.58)",
+    shadowBlur: (isNew ? 8 : 4) * lineScale,
+  };
+}
+
 function seededRandom(seed) {
   let state = seed >>> 0;
   return () => {
@@ -531,26 +566,28 @@ export class CanvasRenderer {
       const unitY = (target.y - source.y) / distance;
       const start = { x: source.x + unitX * 25, y: source.y + unitY * 25 };
       const end = { x: target.x - unitX * 29, y: target.y - unitY * 29 };
+      const style = getTreeTwoEdgeVisualStyle(edge.appearance, {
+        isNew: edge.isNew,
+        zoom,
+      });
 
       context.save();
       context.lineCap = "round";
       context.lineJoin = "round";
+      context.setLineDash(style.lineDash);
+      context.shadowColor = style.shadowColor;
+      context.shadowBlur = style.shadowBlur;
+      drawArrow(
+        context,
+        start.x,
+        start.y,
+        end.x - start.x,
+        end.y - start.y,
+        style.color,
+        style.lineWidth,
+      );
+      context.shadowBlur = 0;
       if (edge.appearance === "bright") {
-        context.setLineDash([]);
-        context.shadowColor = edge.isNew
-          ? "rgba(255, 221, 116, 0.9)"
-          : "rgba(255, 221, 116, 0.58)";
-        context.shadowBlur = (edge.isNew ? 8 : 4) * lineScale;
-        drawArrow(
-          context,
-          start.x,
-          start.y,
-          end.x - start.x,
-          end.y - start.y,
-          "rgba(255, 226, 132, 0.96)",
-          3.4 * lineScale,
-        );
-        context.shadowBlur = 0;
         if (edge.isNew) {
           const midpointX = (start.x + end.x) / 2;
           const midpointY = (start.y + end.y) / 2;
@@ -571,17 +608,6 @@ export class CanvasRenderer {
           context.fillStyle = "rgba(255, 237, 178, 1)";
           context.fillText("NUEVO", midpointX, midpointY);
         }
-      } else {
-        context.setLineDash([10 * lineScale, 7 * lineScale]);
-        drawArrow(
-          context,
-          start.x,
-          start.y,
-          end.x - start.x,
-          end.y - start.y,
-          "rgba(219, 199, 141, 0.4)",
-          1.5 * lineScale,
-        );
       }
       context.restore();
     }

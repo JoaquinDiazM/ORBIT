@@ -14,6 +14,7 @@ import {
 import { canUseEditorTool } from "../src/editor/editor-app.js";
 
 const EDITOR_PATH = new URL("../editor.html", import.meta.url);
+const EDITOR_CSS_PATH = new URL("../src/editor/editor.css", import.meta.url);
 const ORBIT_PATH = new URL("../index.html", import.meta.url);
 const EDITOR_MAIN_PATH = new URL("../src/editor/editor-main.js", import.meta.url);
 
@@ -78,7 +79,10 @@ test("ORBIT enlaza una entrada editorial independiente", async () => {
 });
 
 test("el shell del editor expone Spider, Bee y Bowerbird en menús retractables", async () => {
-  const editor = await readFile(EDITOR_PATH, "utf8");
+  const [editor, css] = await Promise.all([
+    readFile(EDITOR_PATH, "utf8"),
+    readFile(EDITOR_CSS_PATH, "utf8"),
+  ]);
   const requiredIds = [
     "editor-general-dock",
     "editor-tools-dock",
@@ -138,6 +142,13 @@ test("el shell del editor expone Spider, Bee y Bowerbird en menús retractables"
   assert.doesNotMatch(editor, /ORBIT\s+Estudiante/i);
   assert.match(editor, /Anillo 1 · fundamentos teóricos/);
   assert.match(editor, /Anillo 2 · aplicaciones/);
+  assert.match(editor, /Amarillo brillante continuo:/);
+  assert.match(editor, /directa y editable o derivada y de solo lectura/);
+  assert.doesNotMatch(editor, /Amarillo brillante discontinuo con rombo:/);
+  assert.match(
+    css,
+    /\.editor-line-swatch,\s*\.editor-legend-label\s*\{[\s\S]*?grid-row:\s*1\s*\/\s*span\s*2\s*;/,
+  );
   assert.match(editor, /src\/editor\/editor-bootstrap\.js/);
   assert.match(
     editor,

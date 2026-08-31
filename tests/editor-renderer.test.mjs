@@ -6,6 +6,7 @@ import {
   EditorRenderer,
   findAreaAtWorldPoint,
   findLocationAtWorldPoint,
+  getEditorEdgeVisualStyle,
 } from "../src/editor/editor-renderer.js";
 
 const areas = [
@@ -100,13 +101,42 @@ test("cuando los radios se solapan se elige el nodo más cercano", () => {
   );
 });
 
-function createCanvasHarness() {
+test("Editor usa amarillo brillante para aristas editables y derivadas", () => {
+  const editable = getEditorEdgeVisualStyle({ editable: true });
+  const derived = getEditorEdgeVisualStyle({ editable: false });
+
+  assert.deepEqual(editable, {
+    color: "rgba(255, 209, 102, 0.96)",
+    lineWidth: 3,
+    lineDash: [],
+  });
+  assert.deepEqual(derived, editable);
+});
+
+function createCanvasHarness(trace = null) {
   const gradient = { addColorStop() {} };
+  let lineDash = [];
   const context = new Proxy({}, {
     get(target, property) {
       if (property === "createRadialGradient") return () => gradient;
       if (property === "measureText") {
         return (value) => ({ width: String(value).length * 6 });
+      }
+      if (property === "setLineDash") {
+        return (value) => {
+          lineDash = [...value];
+        };
+      }
+      if (property === "stroke") {
+        return () => trace?.push({
+          type: "stroke",
+          color: target.strokeStyle,
+          lineWidth: target.lineWidth,
+          lineDash: [...lineDash],
+        });
+      }
+      if (property === "fill") {
+        return () => trace?.push({ type: "fill", color: target.fillStyle });
       }
       if (!(property in target)) target[property] = () => {};
       return target[property];
@@ -207,4 +237,47 @@ test("EditorRenderer acepta la escena y todos los overlays de la API pública", 
   }));
   assert.equal(canvas.width, 960);
   assert.equal(canvas.height, 640);
+});
+
+test("Canvas dibuja igual las conexiones persistentes editables y derivadas", () => {
+  const trace = [];
+  const canvas = createCanvasHarness(trace);
+  const renderer = new EditorRenderer(canvas);
+  const sceneAreas = areas.map((area, index) => ({
+    ...area,
+    tier: index,
+    shortTitle: area.id,
+    color: "#214765",
+    accent: "#8bdcf7",
+  }));
+  const locations = [
+    { id: "source", areaId: "origin", offset: { x: -40, y: 0 }, marker: "S" },
+    { id: "middle", areaId: "origin", offset: { x: 40, y: 0 }, marker: "M" },
+    { id: "target", areaId: "east", offset: { x: 0, y: 0 }, marker: "T" },
+  ];
+
+  renderer.render({
+    camera: { x: 0, y: 0, zoom: 1 },
+    areas: sceneAreas,
+    locations,
+    edges: [
+      { sourceId: "source", targetId: "middle", requirementKinds: ["concepts"] },
+      { sourceId: "middle", targetId: "target", requirementKinds: ["completedLocations"] },
+    ],
+    activeTool: "spider",
+  });
+
+  const edgeStrokes = trace.filter(
+    (operation) => operation.type === "stroke"
+      && operation.color === "rgba(255, 209, 102, 0.96)",
+  );
+  const arrowheads = trace.filter(
+    (operation) => operation.type === "fill"
+      && operation.color === "rgba(255, 209, 102, 0.96)",
+  );
+  assert.deepEqual(edgeStrokes, [
+    { type: "stroke", color: "rgba(255, 209, 102, 0.96)", lineWidth: 3, lineDash: [] },
+    { type: "stroke", color: "rgba(255, 209, 102, 0.96)", lineWidth: 3, lineDash: [] },
+  ]);
+  assert.equal(arrowheads.length, 2);
 });

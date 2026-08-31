@@ -467,10 +467,19 @@ function validateRegistry(markdown, historyMarkdown, publishedVersion = "0.4.0")
       requireSingleMatch(entry.review, /^- Base revisada: .+$/gm, entry.id);
       requireSingleMatch(entry.review, /^- Rutas propias: .+$/gm, entry.id);
       requireSingleMatch(entry.review, /^- Resultado: .+$/gm, entry.id);
-      requireSingleMatch(entry.review, /^- Pruebas: .+$/gm, entry.id);
       requireSingleMatch(
         entry.review,
-        /^- Cómo revisar para JoaquinDiazM: .+$/gm,
+        /^- Pruebas automáticas: .+$/gm,
+        entry.id,
+      );
+      requireSingleMatch(
+        entry.review,
+        /^- Preflight del entorno: .+$/gm,
+        entry.id,
+      );
+      requireSingleMatch(
+        entry.review,
+        /^- Revisión manual humana: .+$/gm,
         entry.id,
       );
     }

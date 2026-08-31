@@ -174,6 +174,56 @@ test("hidden conserva solo el último desbloqueo causal", () => {
   assert.equal(edges[0].isNew, true);
 });
 
+test("Faraday → Maxwell pasa de amarillo tenue a brillante según la progresión", () => {
+  const locationIds = ["faraday-station", "maxwell-archive"];
+  for (const visualizationMode of ["direct", "total"]) {
+    const before = deriveKnowledgeGraphEdges({
+      locations: LOCATIONS,
+      areas: WORLD_AREAS,
+      snapshot: snapshot({ visible: locationIds, accessible: ["faraday-station"] }),
+      visualizationMode,
+    }).find((edge) => edge.id === "faraday-station->maxwell-archive");
+    const after = deriveKnowledgeGraphEdges({
+      locations: LOCATIONS,
+      areas: WORLD_AREAS,
+      snapshot: snapshot({
+        visible: locationIds,
+        accessible: ["maxwell-archive"],
+        completed: ["faraday-station"],
+      }),
+      visualizationMode,
+    }).find((edge) => edge.id === "faraday-station->maxwell-archive");
+
+    assert.equal(before?.appearance, "muted", visualizationMode);
+    assert.equal(after?.appearance, "bright", visualizationMode);
+  }
+  const hiddenBeforeUnlock = deriveKnowledgeGraphEdges({
+    locations: LOCATIONS,
+    areas: WORLD_AREAS,
+    snapshot: snapshot({ visible: locationIds, accessible: ["faraday-station"] }),
+    visualizationMode: "hidden",
+  });
+  const newlyUnlocked = deriveKnowledgeGraphEdges({
+    locations: LOCATIONS,
+    areas: WORLD_AREAS,
+    snapshot: snapshot({
+      visible: locationIds,
+      accessible: ["maxwell-archive"],
+      completed: ["faraday-station"],
+    }),
+    visualizationMode: "hidden",
+    newlyAccessibleLocationIds: ["maxwell-archive"],
+    unlockSourceLocationId: "faraday-station",
+  }).find((edge) => edge.id === "faraday-station->maxwell-archive");
+
+  assert.equal(
+    hiddenBeforeUnlock.some((edge) => edge.id === "faraday-station->maxwell-archive"),
+    false,
+  );
+  assert.equal(newlyUnlocked?.appearance, "bright");
+  assert.equal(newlyUnlocked?.isNew, true);
+});
+
 test("direct limita conexiones al mismo hexágono o a una frontera axial", () => {
   const locations = [
     { id: "source", areaId: "same", grants: {}, requirements: {} },

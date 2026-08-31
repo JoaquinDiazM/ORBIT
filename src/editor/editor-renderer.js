@@ -9,8 +9,7 @@ import { WORLD_CONFIG } from "../data/world.js";
 const TWO_PI = Math.PI * 2;
 const DEFAULT_LOCATION_HIT_RADIUS_PX = 28;
 const LOCATION_RADIUS_PX = 18;
-const EDITABLE_EDGE_COLOR = "rgba(255, 215, 112, 0.96)";
-const DERIVED_EDGE_COLOR = "rgba(107, 222, 255, 0.82)";
+const EDITOR_EDGE_COLOR = "rgba(255, 209, 102, 0.96)";
 
 function finite(value, fallback = 0) {
   return Number.isFinite(value) ? value : fallback;
@@ -18,6 +17,32 @@ function finite(value, fallback = 0) {
 
 function safeZoom(value) {
   return Math.max(0.01, finite(value, 1));
+}
+
+/**
+ * Confirmed Editor connections share the same bright-yellow hue. Editable and
+ * derived relations deliberately share the same stroke; editability belongs
+ * to the controls and text, not to a third map appearance.
+ */
+export function getEditorEdgeVisualStyle({
+  editable = true,
+  preview = false,
+  valid = true,
+  zoom = 1,
+} = {}) {
+  const lineScale = 1 / safeZoom(zoom);
+  if (!preview) {
+    return {
+      color: EDITOR_EDGE_COLOR,
+      lineWidth: 3 * lineScale,
+      lineDash: [],
+    };
+  }
+  return {
+    color: valid ? "rgba(255, 230, 146, 0.98)" : "rgba(255, 116, 132, 0.96)",
+    lineWidth: 3 * lineScale,
+    lineDash: [6 * lineScale, 5 * lineScale],
+  };
 }
 
 function withAlpha(color, alpha) {
@@ -536,24 +561,16 @@ export class EditorRenderer {
     };
     const drawDistance = Math.hypot(end.x - start.x, end.y - start.y);
     if (drawDistance < 4 * lineScale) return;
-    const color = preview
-      ? valid ? "rgba(255, 230, 146, 0.98)" : "rgba(255, 116, 132, 0.96)"
-      : editable ? EDITABLE_EDGE_COLOR : DERIVED_EDGE_COLOR;
+    const style = getEditorEdgeVisualStyle({ editable, preview, valid, zoom });
     const headLength = (preview ? 12 : 10) * lineScale;
 
     context.save();
     context.lineCap = "round";
     context.lineJoin = "round";
-    context.strokeStyle = color;
-    context.fillStyle = color;
-    context.lineWidth = (editable || preview ? 3 : 2) * lineScale;
-    context.setLineDash(
-      preview
-        ? [6 * lineScale, 5 * lineScale]
-        : editable
-          ? []
-          : [10 * lineScale, 7 * lineScale],
-    );
+    context.strokeStyle = style.color;
+    context.fillStyle = style.color;
+    context.lineWidth = style.lineWidth;
+    context.setLineDash(style.lineDash);
     context.beginPath();
     context.moveTo(start.x, start.y);
     context.lineTo(end.x, end.y);
@@ -573,20 +590,6 @@ export class EditorRenderer {
     context.closePath();
     context.fill();
 
-    if (!editable && !preview) {
-      const midpoint = {
-        x: (start.x + end.x) / 2,
-        y: (start.y + end.y) / 2,
-      };
-      const size = 5.5 * lineScale;
-      context.translate(midpoint.x, midpoint.y);
-      context.rotate(Math.PI / 4);
-      context.fillStyle = "rgba(5, 18, 31, 0.94)";
-      context.strokeStyle = DERIVED_EDGE_COLOR;
-      context.lineWidth = 1.8 * lineScale;
-      context.fillRect(-size, -size, size * 2, size * 2);
-      context.strokeRect(-size, -size, size * 2, size * 2);
-    }
     context.restore();
   }
 

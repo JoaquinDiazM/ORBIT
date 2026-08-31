@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const EDITOR_CSS_PATH = new URL("../src/editor/editor.css", import.meta.url);
+const EDITOR_HTML_PATH = new URL("../editor.html", import.meta.url);
 const SHARED_CSS_PATH = new URL("../src/styles.css", import.meta.url);
 
 function declarationsFor(css, selector) {
@@ -50,4 +51,33 @@ test("la cabecera conserva sus cortes responsive alrededor del ancho reproducido
     css,
     /@media\s*\(max-width:\s*820px\)[\s\S]*?\.editor-stats\s*\{\s*display:\s*none\s*;/,
   );
+});
+
+test("el dock editorial contiene Bowerbird expandido y conserva BW al minimizar", async () => {
+  const [css, editor] = await Promise.all([
+    readFile(EDITOR_CSS_PATH, "utf8"),
+    readFile(EDITOR_HTML_PATH, "utf8"),
+  ]);
+  const shell = declarationsFor(css, ".editor-shell");
+  const collapsedButton = declarationsFor(css, ".editor-dock.is-collapsed .dock-button");
+  const generalWidth = Number(shell.match(/--editor-general-width:\s*([\d.]+)rem\s*;/)?.[1]);
+  const toolsWidth = Number(shell.match(/--editor-tools-width:\s*([\d.]+)rem\s*;/)?.[1]);
+
+  assert.ok(Number.isFinite(generalWidth));
+  assert.ok(Number.isFinite(toolsWidth));
+  assert.ok(
+    toolsWidth >= 8.75,
+    `El dock editorial (${toolsWidth}rem) debe conservar el mínimo que contiene Bowerbird.`,
+  );
+  assert.ok(
+    toolsWidth >= generalWidth,
+    `El dock editorial (${toolsWidth}rem) no debe ser más estrecho que General (${generalWidth}rem).`,
+  );
+  assert.match(
+    editor,
+    /id="editor-open-bowerbird"[\s\S]*?data-mark="BW"[\s\S]*?>Bowerbird<\/button>/,
+  );
+  assert.match(collapsedButton, /\boverflow\s*:\s*hidden\s*;/);
+  assert.match(collapsedButton, /\bfont-size\s*:\s*0\s*;/);
+  assert.match(css, /\.editor-dock\.is-collapsed \.dock-button::before\s*\{[\s\S]*?font-size:\s*0\.65rem\s*;/);
 });

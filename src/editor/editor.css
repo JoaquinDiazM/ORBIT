@@ -1,6 +1,6 @@
 .editor-shell {
   --editor-general-width: 8.75rem;
-  --editor-tools-width: 7.4rem;
+  --editor-tools-width: 8.75rem;
 }
 
 #hud.editor-hud {
@@ -381,8 +381,18 @@
   border-top: 3px solid var(--gold);
 }
 
-.editor-line-swatch.derived {
-  border-top: 2px dashed var(--accent);
+.editor-line-swatch,
+.editor-legend-label {
+  grid-row: 1 / span 2;
+}
+
+.editor-legend-label {
+  color: var(--text);
+  font-size: 0.62rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 .editor-connection-list {

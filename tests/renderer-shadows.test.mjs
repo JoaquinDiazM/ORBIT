@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { REWARDS } from "../src/data/knowledge.js";
-import { getPlayerShadowGeometry } from "../src/game/renderer.js";
+import {
+  getPlayerShadowGeometry,
+  getTreeTwoEdgeVisualStyle,
+} from "../src/game/renderer.js";
 
 const DIRECTIONS = Object.freeze([
   ["derecha", 0],
@@ -55,4 +58,16 @@ test("los perfiles de sombra cubren a pie, carro y deslizador", () => {
   assert.ok(cart.radiusY > walk.radiusY);
   assert.ok(skiff.radiusX > cart.radiusX);
   assert.ok(skiff.radiusY >= cart.radiusY);
+});
+
+test("los conectores del Árbol II comparten amarillo y distinguen estado sin depender del color", () => {
+  const bright = getTreeTwoEdgeVisualStyle("bright", { zoom: 1 });
+  const muted = getTreeTwoEdgeVisualStyle("muted", { zoom: 1 });
+
+  assert.equal(bright.color, "rgba(255, 209, 102, 0.96)");
+  assert.equal(muted.color, "rgba(255, 209, 102, 0.42)");
+  assert.deepEqual(bright.lineDash, []);
+  assert.deepEqual(muted.lineDash, [10, 7]);
+  assert.ok(bright.lineWidth > muted.lineWidth);
+  assert.ok(bright.shadowBlur > muted.shadowBlur);
 });
