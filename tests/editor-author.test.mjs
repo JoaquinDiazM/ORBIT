@@ -176,7 +176,7 @@ async function createPendingReplacement(root, runner = successfulRunner()) {
   return { first, second, target, previousSource };
 }
 
-test("el helper aplica a una ruta fija y exige finalize tras la fase navegador", async (t) => {
+test("el helper aplica sin consultar Git y exige finalize tras la fase navegador", async (t) => {
   const root = await fixture();
   t.after(() => rm(root, { recursive: true, force: true }));
   const calls = [];
@@ -185,7 +185,6 @@ test("el helper aplica a una ruta fija y exige finalize tras la fase navegador",
     document: createEditorDocument(),
     expectedPreviousRevision: null,
     runner: successfulRunner(calls),
-    requireClean: false,
     appliedAt: "2026-08-30T00:00:00.000Z",
   });
   const target = resolve(
@@ -197,6 +196,7 @@ test("el helper aplica a una ruta fija y exige finalize tras la fase navegador",
   assert.equal(result.protocol.next, "apply-browser-transaction");
   assert.equal(JSON.parse(await readFile(target, "utf8")).revision, result.edition.revision);
   assert.equal(calls.some((call) => call.args?.includes("check")), true);
+  assert.equal(calls.some((call) => call.command === "git"), false);
   const journal = JSON.parse(
     await readFile(resolve(root, ".orbit-editor", "repository-transaction.json"), "utf8"),
   );
@@ -207,6 +207,29 @@ test("el helper aplica a una ruta fija y exige finalize tras la fase navegador",
     rollbackToken: result.rollbackToken,
   });
   assert.equal(finalized.action, "finalized");
+});
+
+test("Aplicar conserva una copia persistente de la fuente reemplazada", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const { second, previousSource } = await createPendingReplacement(root);
+
+  assert.match(second.sourceBackup.path, /^\.orbit-editor-backups\//);
+  assert.equal(second.sourceBackup.revision, second.edition.previousRevision);
+  assert.match(second.sourceBackup.sourceHash, /^sha256:[a-f0-9]{64}$/);
+  assert.equal(
+    await readFile(resolve(root, second.sourceBackup.path), "utf8"),
+    previousSource,
+  );
+  await rollbackRepositoryApplication({
+    root,
+    rollbackToken: second.rollbackToken,
+    runner: successfulRunner(),
+  });
+  assert.equal(
+    await readFile(resolve(root, second.sourceBackup.path), "utf8"),
+    previousSource,
+  );
 });
 
 test("el recorrido editorial completo sincroniza fuente, dist y navegador con reset total", async (t) => {

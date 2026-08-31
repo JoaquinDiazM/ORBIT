@@ -95,14 +95,16 @@ aparece autoría, vuelve inerte la interfaz, detiene juego/audio, libera el bloq
 recarga; la nueva solicitud recibe la barrera de mantenimiento. El sondeo solo coordina pestañas
 del mismo navegador y origen local: no equivale a cuentas, bloqueo de otros equipos ni backend.
 
-Antes de aplicar exige un checkout limpio mediante una inspección de `git status` y compara la
-revisión anterior con el plan validado. Escribe atómicamente solo
+Antes de aplicar compara la revisión anterior con el plan validado. No inspecciona ni muta Git:
+los demás cambios del checkout permanecen intactos y la fuente reemplazada se copia con fecha y
+hash en `.orbit-editor-backups/`. Después escribe atómicamente solo
 `public/data/courses/electromagnetism-applied.edition.json`, ejecuta `npm run check` y conserva
-journal y respaldo hasta que el navegador complete el reset. Si falla, restaura la fuente y el
-build. Autoría mantiene ORBIT bloqueado durante toda su vida, no solo mientras exista el journal;
+journal y respaldo transaccional hasta que el navegador complete el reset. Si falla, restaura la
+fuente y el build. Autoría mantiene ORBIT bloqueado durante toda su vida, no solo mientras exista
+el journal;
 en `dev`, un journal pendiente también activa la barrera. `editor.html` sigue disponible para
 recuperar. El arranque de ORBIT también recupera o bloquea cualquier journal del navegador antes
-de crear progreso. El helper no muta Git: no crea commits, no prepara el índice y no hace push.
+de crear progreso. El helper tampoco crea commits, prepara el índice ni hace push.
 
 ### `npm test`
 

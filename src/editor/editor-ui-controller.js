@@ -902,7 +902,12 @@ export class EditorUIController {
           ? "Fuente y dist verificados por npm run check (incluye build)."
           : "Fuente y navegador aplicados; el helper no informó evidencia completa del check.",
         profiles: confirmedPlan.impact.resetProfiles.map(profileLabel).join(", "),
-        preserved: "Borrador Docente y preferencias Bowerbird personales de Estudiante.",
+        preserved: [
+          "Borrador Docente y preferencias Bowerbird personales de Estudiante.",
+          result.repository.sourceBackup?.path
+            ? `Fuente previa respaldada en ${result.repository.sourceBackup.path}.`
+            : null,
+        ].filter(Boolean).join(" "),
         nextStep: "Detén el modo mantenimiento e inicia `npm run dev` para revisar ORBIT con la edición nueva.",
       };
       this.helperStatusText = "Mantenimiento conectado · transacción finalizada";

@@ -119,7 +119,9 @@ Esta coordinación pertenece al mismo navegador, origen loopback y equipo. No co
 en otro navegador o máquina y no reemplaza el mantenimiento multiusuario de UPD-002.
 
 El helper no acepta rutas del cliente, no crea commits, no prepara el índice, no hace push y no
-se copia a `dist`. Solo inspecciona `git status` para exigir un checkout limpio; no muta Git. El
+se copia a `dist`. No consulta ni muta Git: acepta otros cambios locales porque solo reemplaza la
+ruta canónica y conserva antes una copia persistente con fecha y hash en
+`.orbit-editor-backups/`; el respaldo transaccional separado cubre rollback. El
 sitio construido continúa siendo estático; esta herramienta no es el backend ni la publicación
 remota de UPD-002.
 
@@ -204,8 +206,8 @@ contrato de edición y pérdida de progreso es reutilizable, pero 0.5.0 opera so
   de recargar hacia la barrera `503`.
 - El apagado web solo cierra el servicio ORBIT que emitió su token, responde antes del cierre y
   nunca interrumpe una operación o journal de autoría.
-- El helper solo escucha en loopback, solo escribe la ruta canónica y no muta Git; su única
-  operación Git es inspeccionar `git status`.
+- El helper solo escucha en loopback, solo escribe la ruta canónica y no consulta ni muta Git;
+  deja intactos los demás cambios locales y respalda la fuente reemplazada.
 - `dist` contiene el mismo artefacto y digest registrados por `build-info.json`.
 
 ## Regla de revisión

@@ -265,6 +265,9 @@ export class CourseApplicationCoordinator {
           browser: browserResult,
           repository: {
             checkPassed: repositoryResult?.check?.code === 0,
+            sourceBackup: repositoryResult?.sourceBackup
+              ? structuredClone(repositoryResult.sourceBackup)
+              : null,
           },
         };
       },

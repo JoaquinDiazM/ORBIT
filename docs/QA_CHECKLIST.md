@@ -255,8 +255,8 @@
       de construir `ProgressionModel` o escribir progreso.
 - [ ] El helper escucha solo en `127.0.0.1`, exige same-origin y token de sesión, limita el cuerpo
       y no acepta rutas proporcionadas por el cliente.
-- [ ] El helper rechaza un checkout sucio y una `expectedPreviousRevision` obsoleta; solo
-      inspecciona `git status` y no muta Git.
+- [ ] El helper acepta un checkout con cambios sin consultar ni mutar Git, deja intactas las rutas
+      ajenas, respalda la fuente reemplazada y rechaza una `expectedPreviousRevision` obsoleta.
 - [ ] Validar materializa 19 zonas y 29 lugares, calcula SHA-256 y muestra diff de zonas, nodos,
       conexiones y apariencias.
 - [ ] La tabla de impacto cubre Estudiante, Docente y Debug e informa guardado legible, lugares

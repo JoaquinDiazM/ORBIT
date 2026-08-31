@@ -34,6 +34,7 @@ import {
 
 const SOURCE_RELATIVE_PATH = COURSE_EDITION_SOURCE_URL.replace(/^\.\//, "");
 const AUTHOR_STATE_DIRECTORY = ".orbit-editor";
+const AUTHOR_SAFETY_BACKUP_DIRECTORY = ".orbit-editor-backups";
 const AUTHOR_TOMBSTONE_DIRECTORY = ".orbit-editor-tombstone";
 const AUTHOR_HELPER_LOCK_DIRECTORY = ".orbit-editor-helper-lock";
 const AUTHOR_HELPER_LOCK_OWNER = "owner.json";
@@ -255,6 +256,24 @@ function sourceBytesHash(bytes) {
   return `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
 }
 
+async function preserveSourceSafetyBackup(root, sourceBytes, { appliedAt, revision }) {
+  if (sourceBytes === null) return null;
+  const directory = resolve(root, AUTHOR_SAFETY_BACKUP_DIRECTORY);
+  const timestamp = appliedAt.replace(/[^0-9A-Za-z-]/g, "-");
+  const sourceHash = sourceBytesHash(sourceBytes);
+  const revisionSlug = revision?.replace(/^sha256:/, "").slice(0, 12) ?? "unversioned";
+  const filename = `${timestamp}-${revisionSlug}-${token().slice(0, 8)}.edition.json`;
+  const path = resolve(directory, filename);
+  await mkdir(directory, { recursive: true });
+  await atomicWrite(path, sourceBytes.toString("utf8"));
+  return {
+    path: relative(root, path).split(sep).join("/"),
+    revision,
+    sourceHash,
+    savedAt: appliedAt,
+  };
+}
+
 async function atomicWrite(path, text) {
   const temporary = `${path}.${process.pid}.${Date.now()}.tmp`;
   const handle = await open(temporary, "wx");
@@ -321,26 +340,6 @@ async function assertRepositoryRoot(root) {
     throw new EditorAuthorError(
       "wrong-repository",
       "La herramienta de autoría solo puede operar en la raíz del repositorio ORBIT.",
-    );
-  }
-}
-
-async function assertCleanWorkingTree(root, runner) {
-  const result = await runner({
-    command: "git",
-    args: ["status", "--porcelain", "--untracked-files=all"],
-    cwd: root,
-  });
-  if (result.code !== 0) {
-    throw new EditorAuthorError(
-      "git-status-failed",
-      `No fue posible auditar el checkout antes de aplicar. ${result.stderr.trim()}`,
-    );
-  }
-  if (result.stdout.trim()) {
-    throw new EditorAuthorError(
-      "dirty-working-tree",
-      "El checkout contiene cambios; confirma o guarda el trabajo antes de aplicar una edición.",
     );
   }
 }
@@ -684,7 +683,6 @@ export async function applyEditionToRepository({
   document,
   expectedPreviousRevision,
   runner = defaultRunner,
-  requireClean = true,
   appliedAt = new Date().toISOString(),
 } = {}) {
   const repositoryRoot = resolve(root ?? process.cwd());
@@ -696,7 +694,6 @@ export async function applyEditionToRepository({
       "Existe una edición aplicada a fuentes que espera finalizar o revertir su transacción del navegador.",
     );
   }
-  if (requireClean) await assertCleanWorkingTree(repositoryRoot, runner);
   const paths = transactionPaths(repositoryRoot);
   const previousSourceBytes = await readOptionalBytes(paths.target);
   const current = previousSourceBytes === null
@@ -724,6 +721,11 @@ export async function applyEditionToRepository({
   const targetSourceBytes = Buffer.from(targetText, "utf8");
   const rollbackToken = token();
   const previousExisted = previousSourceBytes !== null;
+  const sourceBackup = await preserveSourceSafetyBackup(
+    repositoryRoot,
+    previousSourceBytes,
+    { appliedAt, revision: currentRevision },
+  );
   await mkdir(paths.directory, { recursive: true });
   if (previousExisted) {
     await atomicWrite(paths.backup, previousSourceBytes.toString("utf8"));
@@ -766,6 +768,7 @@ export async function applyEditionToRepository({
       ok: true,
       edition,
       rollbackToken,
+      sourceBackup,
       protocol: {
         next: "apply-browser-transaction",
         success: "finalize",
@@ -953,7 +956,6 @@ export async function createEditorAuthorServer({
   root = process.cwd(),
   port = EDITOR_AUTHOR_CANONICAL_PORT,
   runner = defaultRunner,
-  requireClean = true,
   sessionToken = token(),
   localServiceToken = createLocalServiceToken(),
 } = {}) {
@@ -1094,7 +1096,6 @@ export async function createEditorAuthorServer({
               document: body.document,
               expectedPreviousRevision: body.expectedPreviousRevision,
               runner,
-              requireClean,
             });
           } else if (url.pathname === "/__orbit/author/finalize") {
             result = await finalizeRepositoryApplication({

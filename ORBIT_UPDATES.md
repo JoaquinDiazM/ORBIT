@@ -149,9 +149,11 @@ alterando silenciosamente el borrador Docente validado.
 
 Durante una validación y aplicación humana el checkout queda **congelado**: ningún agente modifica
 fuente, build, cola operativa o Git hasta que el desarrollador comunique el resultado. Para
-**Aplicar**, `git status --porcelain` debe estar vacío antes de validar y la revisión/digest no
-puede cambiar entre validar y aplicar. Si aparece una diferencia, se informa y se vuelve a
-preparar el handoff; nunca se sustituye el borrador validado por otra edición.
+**Aplicar**, el helper no exige que `git status --porcelain` esté vacío: deja intactas las demás
+rutas locales y conserva en `.orbit-editor-backups/` una copia verificable de la fuente que
+reemplaza. La revisión/digest sí debe permanecer idéntica entre validar y aplicar. Si cambia, se
+informa y se vuelve a preparar el handoff; nunca se sustituye el borrador validado por otra
+edición.
 
 ## Versionado y publicación
 

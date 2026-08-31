@@ -5,7 +5,7 @@ ORBIT distingue dos aplicaciones que comparten la cartografía y el lenguaje vis
 - **ORBIT** se abre desde `index.html` y ofrece exactamente los perfiles locales Estudiante,
   Docente y Debug, con avances separados.
 - **ORBIT Editor** se abre desde `editor.html` y permite preparar la disposición y apariencia
-  del curso. En un checkout local limpio, su helper de autoría puede validar y aplicar esa
+  del curso. Su helper de autoría puede validar y aplicar esa
   edición a la fuente y al build; el despliegue y Git siguen siendo pasos externos.
 
 El Editor es una herramienta local para docentes y responsables de contenido. No es un panel de
@@ -227,8 +227,10 @@ personal separada.
 
 ## Validar, revisar impacto y aplicar localmente
 
-La aplicación asistida requiere un checkout limpio y el helper local. Confirma o guarda cualquier
-cambio del repositorio, cierra las demás pestañas de ORBIT y ejecuta desde la raíz:
+La aplicación asistida requiere el helper local, pero no un checkout limpio. Los demás cambios
+del repositorio permanecen intactos y la fuente canónica que será reemplazada se guarda
+automáticamente en `.orbit-editor-backups/`. Cierra las demás pestañas de ORBIT y ejecuta desde
+la raíz:
 
 ```bash
 npm run editor:author
@@ -277,7 +279,7 @@ En **Resumen**, el flujo seguro es:
    `npm run check` y prepara el build. Después el navegador instala la edición y reinicia los tres
    perfiles; el helper cierra el journal solo al completar ambas partes.
 
-Los rechazos de sesión, checkout, revisión o bloqueo aparecen junto al control y también como
+Los rechazos de sesión, revisión o bloqueo aparecen junto al control y también como
 alerta temporal; una respuesta positiva ya no puede quedar visualmente como un botón inerte.
 
 El reinicio total elimina logros, posición, transporte activo, ajustes y overrides de depuración
@@ -288,8 +290,9 @@ Docente `v2`, las preferencias Bowerbird Estudiante y cualquier dato no relacion
 Si falla la validación, la comprobación o el build, no se instala la edición. Si una interrupción
 ocurre entre sistema de archivos y navegador, el journal y el respaldo permiten que Resumen
 continúe la aplicación pendiente o restaure fuente y build. No inicies otra aplicación mientras
-exista una recuperación pendiente. El helper inspecciona `git status` para exigir un checkout
-limpio, pero no muta Git: no crea commits, no ejecuta `git add` y no hace push.
+exista una recuperación pendiente. El helper no consulta ni muta Git: no crea commits, no ejecuta
+`git add` y no hace push. Cada aplicación conserva además la copia persistente anterior; puedes
+eliminar respaldos antiguos después de confirmar el cambio en Git.
 
 Después de aplicar, detén `editor:author`, inicia `npm run dev`, recorre ORBIT en Estudiante,
 Docente y Debug, revisa `dist/build-info.json` y publica mediante el flujo normal del repositorio.

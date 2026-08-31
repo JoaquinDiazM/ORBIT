@@ -360,6 +360,7 @@ test("la aplicación distingue modo normal de mantenimiento y explica cada bloqu
   assert.match(ui, /La edición coincide con la revisión activa; no hay cambios que aplicar/);
   assert.match(ui, /this\.toast\(message, "error", 7000\)/);
   assert.match(ui, /Detén el modo mantenimiento e inicia `npm run dev`/);
+  assert.match(ui, /Fuente previa respaldada en/);
 });
 
 test("el Resumen explica el alcance local, el reset y los datos preservados", async () => {

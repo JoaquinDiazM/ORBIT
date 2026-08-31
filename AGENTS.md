@@ -111,8 +111,9 @@ una ruta futura deberá declarar con igual precisión su público, convenciones 
     desarrollador, que la realizará en Edge externo con el servicio iniciado desde un terminal
     visible de Visual Studio Code.
 12. Antes de solicitar esa revisión, confirma el preflight prístino definido en
-    `ORBIT_UPDATES.md`. Para una aplicación canónica exige checkout completamente limpio y
-    congela toda escritura del agente desde la validación hasta recibir el resultado humano.
+    `ORBIT_UPDATES.md`. La aplicación canónica no exige un checkout limpio: registra sus cambios,
+    preserva automáticamente la fuente reemplazada y congela toda escritura del agente desde la
+    validación hasta recibir el resultado humano.
 13. Registra por separado pruebas automáticas, preflight y revisión manual humana; cambia el
     punto a `en-revision` y crea de preferencia un commit local coherente. En este estado no
     actualices versión o changelog ni hagas push: espera que el usuario lo marque `aprobado` y

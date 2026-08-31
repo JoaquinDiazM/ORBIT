@@ -72,6 +72,12 @@ test("aplicar exige plan vigente, instala navegador y finaliza el helper", async
       calls.push(["apply", expectedPreviousRevision]);
       return {
         rollbackToken: "rollback-token",
+        sourceBackup: {
+          path: ".orbit-editor-backups/previous.edition.json",
+          revision: expectedPreviousRevision,
+          sourceHash: `sha256:${"a".repeat(64)}`,
+          savedAt: "2026-08-31T00:00:00.000Z",
+        },
         edition: await edition(document, {
           previousRevision: expectedPreviousRevision,
           acceptsUnversionedProgress: false,
@@ -109,6 +115,10 @@ test("aplicar exige plan vigente, instala navegador y finaliza el helper", async
 
   assert.equal(result.edition.revision, plan.targetRevision);
   assert.equal(result.repository.checkPassed, true);
+  assert.equal(
+    result.repository.sourceBackup.path,
+    ".orbit-editor-backups/previous.edition.json",
+  );
   assert.equal(
     JSON.parse(storage.getItem(courseEditionStorageKey())).revision,
     plan.targetRevision,

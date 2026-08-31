@@ -186,8 +186,9 @@ siguen siendo estado de sesión. Progreso `v4`, documento Editor `v2`, preferenc
 y edición de curso `v1` usan claves y migraciones distintas.
 
 La entrada Editor estática no puede escribir el repositorio. Solo el helper local iniciado
-explícitamente puede escribir la ruta canónica de la edición y construir; inspecciona Git para
-exigir un checkout limpio, pero no lo muta. Los bloqueos por query no constituyen control de
+explícitamente puede escribir la ruta canónica de la edición y construir; no inspecciona ni muta
+Git, deja intactos los demás cambios locales y respalda la fuente reemplazada. Los bloqueos por
+query no constituyen control de
 acceso; la publicación sigue siendo externa y cualquier restricción real debe proporcionarla la
 infraestructura.
 

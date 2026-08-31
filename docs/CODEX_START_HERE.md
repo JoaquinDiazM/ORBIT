@@ -170,7 +170,7 @@ npm install
 npm run dev # modo normal: ORBIT + Editor; aplicar bloqueado
 # usa el selector para Estudiante/Docente; para Debug abre ?debug=1&profile=debug
 # abre editor.html sin query para autoría docente o con ?profile=student para Bowerbird personal
-# detén dev y usa editor:author solo para aplicar en mantenimiento sobre un checkout limpio
+# detén dev y usa editor:author para aplicar en mantenimiento con respaldo automático de fuente
 
 npm run check
 ```
@@ -206,7 +206,7 @@ Para probar cambios editoriales:
 9. valida en Resumen y revisa diff, impacto de los tres perfiles y plan invalidado tras editar;
 10. en `dev`, confirma que Resumen permite editar/validar, identifica **Modo normal** y mantiene
     confirmación/**Aplicar** deshabilitados con una explicación visible;
-11. con un checkout de prueba limpio, detén `npm run dev`, cierra las demás pestañas, inicia
+11. registra los cambios locales, detén `npm run dev`, cierra las demás pestañas e inicia
     `npm run editor:author` en el origen fijo `127.0.0.1:4173`,
     comprueba que todas las entradas ORBIT responden en mantenimiento, aplica y verifica reset,
     conservación de documento/preferencias y concordancia fuente/build;
@@ -230,7 +230,7 @@ No:
 - permitas que Bee mezcle `tier 1` y `tier 2` o mueva `origin`;
 - afirmes que exportar un borrador actualiza ORBIT, escribe Git o publica automáticamente;
 - presentes el helper loopback como backend, dejes que acepte rutas del navegador o permitas que
-  aplique sin revisión coincidente, checkout limpio, confirmación o bloqueo exclusivo;
+  aplique sin revisión coincidente, respaldo de la fuente previa, confirmación o bloqueo exclusivo;
 - sirvas ORBIT durante `editor:author` o habilites **Aplicar** durante `dev`;
 - hagas que una zona dependa de una llave situada únicamente dentro de ella;
 - renombres IDs publicados sin migración;

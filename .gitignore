@@ -5,6 +5,7 @@ node_modules/
 dist/
 coverage/
 .orbit-editor/
+.orbit-editor-backups/
 .orbit-editor-tombstone/
 .orbit-editor-helper-lock*/
 *.log
