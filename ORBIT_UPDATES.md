@@ -240,9 +240,9 @@ Sin propuestas pendientes de clasificar.
 ## Cohorte inmediata
 
 - Versión: `0.5.1`
-- Estado de la cohorte: `abierta`
+- Estado de la cohorte: `cerrada`
 - IDs: `UPD-016`, `UPD-017`, `UPD-018`
-- Apertura confirmada por JoaquinDiazM: 2026-08-31.
+- Cierre confirmado por JoaquinDiazM: 2026-08-31.
 
 ## Actualizaciones activas
 
@@ -370,7 +370,7 @@ resolverse antes y quedar fuera de UPD-015.
 
 ### UPD-018 — Aplicar con trabajo local respaldado
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `bug`
 - Versión objetivo: `0.5.1`
 - Impacto sugerido: `Z`; corrige un bloqueo local sin alterar el formato de edición, el reset
@@ -413,15 +413,16 @@ protección era necesaria, guardar automáticamente el trabajo al usar el botón
 - Pruebas automáticas: check integral 394 pruebas, 392 aprobadas, 0 fallos y 2 skips EPERM
   esperados; validate, repo-check y build correctos. Las pruebas verifican ausencia de Git,
   persistencia exacta del respaldo y propagación de su ruta al Resumen.
-- Preflight del entorno: aplicación real finalizada sin helper, lock, journal o tombstone;
-  puerto 4173 libre. Fuente, dist y build-info coinciden en
-  `sha256:1d5ae1476dc498a4201daa1a4b20e37f7c8c1b92594e3d61a4528a95df698084`;
-  la fuente anterior `sha256:1e4d69ce9d220d30b45400904e92fbb20daae7e4d8c4adf4b893f05da87fb611`
-  permanece en `.orbit-editor-backups/`.
-- Revisión manual humana: `completada` — JoaquinDiazM ejecutó el procedimiento en Edge desde
-  VS Code y comunicó que terminó correctamente.
-- Observaciones del usuario: «El procedimiento fue completado, te toca a ti, activa tu flujo
-  normal». La aprobación formal del ID sigue reservada al usuario.
+- Preflight del entorno: aplicaciones reales finalizadas sin helper, lock, journal o tombstone;
+  puerto 4173 libre. Fuente, dist y build-info coinciden actualmente en
+  `sha256:b4d45e3a2fd478b71d6f703ac870494019813464a2140dcb437155312987637d`;
+  las fuentes previas `sha256:1d5ae1476dc498a4201daa1a4b20e37f7c8c1b92594e3d61a4528a95df698084`
+  y `sha256:1e4d69ce9d220d30b45400904e92fbb20daae7e4d8c4adf4b893f05da87fb611`
+  permanecen en `.orbit-editor-backups/`.
+- Revisión manual humana: `aprobada` — JoaquinDiazM ejecutó el procedimiento en Edge desde
+  VS Code, comunicó que terminó correctamente y cambió explícitamente el ID a `aprobado`.
+- Observaciones del usuario: el 2026-08-31 confirmó el cierre y la publicación de la cohorte
+  0.5.1, compuesta únicamente por UPD-016, UPD-017 y UPD-018.
 
 ### UPD-015 — Red única de aprendizaje y apertura territorial derivada
 
@@ -455,7 +456,7 @@ ser dorados sólidos o dorados tenues discontinuos, tanto en ORBIT como en ORBIT
   zona se abre cuando cualquier nodo académico de su interior es elegible y hay adyacencia.
   NPC, gadgets y transportes quedan fuera de la red, disponibles para interactuar al abrir su
   zona y nunca autocompletados ni concedidos automáticamente. La revisión aplicada
-  `sha256:1d5ae1476dc498a4201daa1a4b20e37f7c8c1b92594e3d61a4528a95df698084`
+  `sha256:b4d45e3a2fd478b71d6f703ac870494019813464a2140dcb437155312987637d`
   es la semilla editorial de topología. La migración v2 → v3 debe materializar también las
   dependencias vigentes de conceptos/recompensas, fusionar duplicados y conservar las 30 parejas
   académicas efectivas; no debe limitarse a las 23 conexiones académicas explícitas. Las 5
@@ -509,13 +510,13 @@ ser dorados sólidos o dorados tenues discontinuos, tanto en ORBIT como en ORBIT
   curso. 2.- Disponibles para interactuar, podra parecer un paso inutil, pero en futuras
   versiones pretendo poner etapas en esos nodos para para darle un tutorial al usuario de como
   usar lo adquirido. 3.- Exacto, misma politica que gadgets y NPC. 4.- Acabo de aplicar un
-  formato de edicion de prueba que deberia estar completamente valido excepto porque el nodo de
-  transicion superconductora no es desbloqueable, no tiene ningun nodo que lo desbloquee y por
+  formato de edicion de prueba que deberia estar completamente valido, pero quiero que el nodo de
+  transicion superconductora no es desbloqueable, quitar el nodo que lo desbloquee y por
   politica de ORBIT todos los nodos deben desbloquearse por al menos un nodo previo. Esto tambien
   deja inaxesible el nodo de aprendizaje y zona de sensores que cuyo requisito es el de
-  superconductores. Lo anterior lo estoy haciendo adrede para comprobar que el proceso,
+  superconductores. Lo anterior lo haria adrede para comprobar que el proceso,
   validacion erronea -> correccion -> validacion pasada -> aplicacion funciona, funciona como
-  deberia. YO me encargare de esa prueba, tu solo puedes abrir el servidor para leer data y
+  deberia (Pero para hacerlo requiero que tambien actualizes spider para que me deje borrar conexiones y nodos). YO me encargare de esa prueba, tu solo puedes abrir el servidor para leer data y
   siempre cerrar sesiones, si quieres actualiza el md de updates para que sepas siempre tu nuevo
   privilegio.
 
