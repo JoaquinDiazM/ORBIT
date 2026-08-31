@@ -134,6 +134,13 @@ registrar su PID, terminarlo dentro de la misma prueba y demostrar que liberó s
 agente tampoco adopta o detiene procesos ajenos ni cambia la configuración global de Git para
 resolver diferencias de entorno o propietario.
 
+Por autorización explícita de JoaquinDiazM del 2026-08-31, un agente puede iniciar el servicio
+canónico únicamente para leer datos o endpoints de diagnóstico, siempre que 4173 esté libre.
+Debe ejecutarlo en primer plano, no usar Edge ni perfiles persistentes, no pulsar **Aplicar**,
+cerrarlo dentro de la misma intervención y verificar después puerto, PID, lock y journals.
+Este permiso no convierte una inspección del agente en revisión manual ni autoriza mantener
+sesiones entre turnos.
+
 Antes de solicitar una prueba manual, el agente debe entregar un estado prístino y comprobar:
 
 - checkout y rutas staged/unstaged explícitas;
@@ -234,14 +241,14 @@ Sin propuestas pendientes de clasificar.
 
 - Versión: `0.5.1`
 - Estado de la cohorte: `abierta`
-- IDs: `UPD-016`, `UPD-017`
+- IDs: `UPD-016`, `UPD-017`, `UPD-018`
 - Apertura confirmada por JoaquinDiazM: 2026-08-31.
 
 ## Actualizaciones activas
 
 ### UPD-016 — Corregir desborde del rótulo Bowerbird
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `bug`
 - Versión objetivo: `0.5.1`
 - Impacto sugerido: `Z`; corrección visual compatible y acotada al dock de ORBIT Editor.
@@ -288,14 +295,14 @@ cuando el dock muestra el texto completo. El modo minimizado `BW` se ve correcta
 - Preflight del entorno: solo rutas intencionales de 0.5.1 y de la metodología solicitada
   modificadas; puerto 4173 libre, sin procesos de agente, helper, lock, journal o tombstone;
   fuente/build concordantes. Ninguna prueba usó el perfil, almacenamiento o caché reales de Edge.
-- Revisión manual humana: `pendiente` — en Edge externo y con `npm run dev` iniciado desde un
-  terminal visible de VS Code, comprobar Bowerbird expandido a 100 % y 125 %, `BW` minimizado
-  y a 200 %/viewport ≤760 px, foco visible y ausencia de regresiones en Spider/Bee.
-- Observaciones del usuario: ninguna posterior a la solicitud original.
+- Revisión manual humana: `aprobada` — JoaquinDiazM cambió explícitamente el estado a
+  `aprobado` después de completar el procedimiento en Edge con el servicio de VS Code.
+- Observaciones del usuario: el 2026-08-31 confirmó que el procedimiento fue completado y
+  devolvió el flujo al agente.
 
 ### UPD-017 — Unificar la apariencia de conectores
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `bug`
 - Versión objetivo: `0.5.1`
 - Impacto sugerido: `Z`; normaliza la representación visual sin cambiar la topología.
@@ -356,21 +363,75 @@ resolverse antes y quedar fuera de UPD-015.
 - Preflight del entorno: solo rutas intencionales de 0.5.1 y de la metodología solicitada
   modificadas; puerto 4173 libre, sin procesos de agente, helper, lock, journal o tombstone;
   fuente/build concordantes. Ninguna prueba usó el perfil, almacenamiento o caché reales de Edge.
-- Revisión manual humana: `pendiente` — con el grafo Debug apagado, comprobar Faraday → Maxwell
-  ausente antes y brillante/sólida después de completar Faraday en Oculta; tenue/discontinua antes
-  y brillante/sólida después en Directo y Total. En Editor confirmar que relaciones Spider y
-  derivadas comparten la misma flecha brillante y que la lista conserva su texto editable/solo
-  lectura.
-- Observaciones del usuario: ninguna posterior a la solicitud original.
+- Revisión manual humana: `aprobada` — JoaquinDiazM cambió explícitamente el estado a
+  `aprobado` después de completar el procedimiento en Edge con el servicio de VS Code.
+- Observaciones del usuario: el 2026-08-31 confirmó que el procedimiento fue completado y
+  devolvió el flujo al agente.
+
+### UPD-018 — Aplicar con trabajo local respaldado
+
+- Estado: `en-revision`
+- Tipo: `bug`
+- Versión objetivo: `0.5.1`
+- Impacto sugerido: `Z`; corrige un bloqueo local sin alterar el formato de edición, el reset
+  ni la publicación remota.
+- Próximo responsable: JoaquinDiazM, que aprueba o solicita correcciones y decide el cierre de
+  la cohorte 0.5.1.
+
+#### Solicitud original
+
+Eliminar el aviso «El checkout contiene cambios» porque detenía el flujo de Aplicar. Si la
+protección era necesaria, guardar automáticamente el trabajo al usar el botón.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: **Aplicar** acepta un checkout con cambios locales, no exige operaciones
+  Git previas y conserva de forma recuperable la fuente canónica que reemplaza.
+- Decisiones confirmadas: el helper no crea commits, stashes ni modifica el índice; deja
+  intactas las demás rutas, guarda una copia persistente con fecha/revisión/SHA-256 en
+  `.orbit-editor-backups/` y mantiene separado el respaldo transaccional de rollback. La ruta
+  del respaldo aparece en Resumen.
+- Criterios de aceptación: desaparecen `dirty-working-tree`, la aplicación no invoca Git, una
+  edición previa queda respaldada byte a byte aun después de rollback/finalize, los conflictos
+  de revisión siguen fallando cerrados y check/build/reset conservan su protocolo.
+- Fuera de alcance: confirmar o publicar automáticamente, versionar cambios arbitrarios,
+  eliminar el control optimista de revisión o sustituir la revisión humana en Edge.
+- Dependencias, invariantes o ADR: conserva ruta fija, same-origin, token, bloqueo exclusivo,
+  reset total y recuperación de fuente/build; enmienda ADR 0008 sin dependencia nueva.
+
+#### Preguntas bloqueantes
+
+- Ninguna.
+
+#### Implementación y revisión
+
+- Base revisada: `e2098fb87fdcdff5cb9e8b2a88305a65bfe611d6`.
+- Rutas propias: helper de autoría, coordinador/UI de aplicación, política y documentación,
+  `.gitignore` y pruebas del protocolo.
+- Resultado: implementado en `b86db165abea8cbd17b917c3610110e8eb4da8aa`; el bloqueo por
+  checkout sucio desapareció y la aplicación real creó el respaldo automático esperado.
+- Pruebas automáticas: check integral 394 pruebas, 392 aprobadas, 0 fallos y 2 skips EPERM
+  esperados; validate, repo-check y build correctos. Las pruebas verifican ausencia de Git,
+  persistencia exacta del respaldo y propagación de su ruta al Resumen.
+- Preflight del entorno: aplicación real finalizada sin helper, lock, journal o tombstone;
+  puerto 4173 libre. Fuente, dist y build-info coinciden en
+  `sha256:1d5ae1476dc498a4201daa1a4b20e37f7c8c1b92594e3d61a4528a95df698084`;
+  la fuente anterior `sha256:1e4d69ce9d220d30b45400904e92fbb20daae7e4d8c4adf4b893f05da87fb611`
+  permanece en `.orbit-editor-backups/`.
+- Revisión manual humana: `completada` — JoaquinDiazM ejecutó el procedimiento en Edge desde
+  VS Code y comunicó que terminó correctamente.
+- Observaciones del usuario: «El procedimiento fue completado, te toca a ti, activa tu flujo
+  normal». La aprobación formal del ID sigue reservada al usuario.
 
 ### UPD-015 — Red única de aprendizaje y apertura territorial derivada
 
-- Estado: `faltan-detalles`
+- Estado: `autorizado`
 - Tipo: `épica`
 - Versión objetivo: `0.6.0`
 - Impacto sugerido: `Y`; reemplaza el contrato central de progresión, el documento editorial y
   la representación de ambos productos.
-- Próximo responsable: JoaquinDiazM, que confirma las cuatro decisiones bloqueantes.
+- Próximo responsable: agente de desarrollo, solo después de publicar 0.5.1 y convertir 0.6.0
+  en la cohorte inmediata.
 
 #### Solicitud original
 
@@ -386,25 +447,35 @@ ser dorados sólidos o dorados tenues discontinuos, tanto en ORBIT como en ORBIT
 
 - Objetivo observable: ORBIT usa una única **Red de aprendizaje** explícita, dirigida y acíclica,
   formada exclusivamente por lugares `lesson` y `mission`. Una zona no mantiene un segundo grafo
-  de requisitos: se abre cuando al menos un nodo académico de su interior tiene satisfechos todos
-  sus prerrequisitos y comparte frontera con una zona ya abierta.
+  de requisitos: se abre cuando al menos un nodo académico de su interior es académicamente
+  elegible —todos sus predecesores están completados, sin exigir que su propia zona ya esté
+  abierta— y comparte frontera con una zona ya abierta.
 - Decisiones confirmadas: el actual Árbol II pasa a ser la red maestra; el actual Árbol I deja de
-  presentarse y modelarse como grafo independiente; `vector-workshop → coulomb-observatory`
-  reemplaza la relación de Vectores con el gadget; NPC secundarios y gadgets quedan disponibles
-  al abrir su zona. La normalización visual de conectores se adelanta a UPD-017 y queda fuera de
-  esta épica; UPD-015 modifica su semántica y topología, no vuelve a rediseñar su apariencia.
+  presentarse y modelarse como grafo independiente. No existen nodos de entrada especiales: una
+  zona se abre cuando cualquier nodo académico de su interior es elegible y hay adyacencia.
+  NPC, gadgets y transportes quedan fuera de la red, disponibles para interactuar al abrir su
+  zona y nunca autocompletados ni concedidos automáticamente. La revisión aplicada
+  `sha256:1d5ae1476dc498a4201daa1a4b20e37f7c8c1b92594e3d61a4528a95df698084`
+  es la semilla editorial de topología. La migración v2 → v3 debe materializar también las
+  dependencias vigentes de conceptos/recompensas, fusionar duplicados y conservar las 30 parejas
+  académicas efectivas; no debe limitarse a las 23 conexiones académicas explícitas. Las 5
+  parejas con extremos laterales se descartan. La normalización visual se resolvió en UPD-017:
+  esta épica cambia semántica y topología, no vuelve a diseñar la apariencia.
 - Criterios de aceptación: las conexiones académicas tienen como extremos únicamente `lesson` o
   `mission` y una sola fuente explícita de verdad; completar Taller Vectorial convierte Coulomb
   en completable y abre Electroestática por adyacencia; conceptos y recompensas siguen siendo
-  resultados e inventario, pero no otra vía de apertura; NPC, gadgets y la política por confirmar
-  de transportes permanecen fuera de la red; Base y Debug permanecen fuera de la red; Spider
+  resultados e inventario, pero no otra vía de apertura; NPC, gadgets y transportes permanecen
+  fuera de la red y requieren interacción; Base y Debug permanecen fuera de la red; Spider
   rechaza tipos laterales, duplicados, autorrelaciones, ciclos y zonas sin entrada posible; los
+  21 nodos académicos forman un solo componente alcanzable, con `vector-workshop` como única raíz
+  permitida y al menos un predecesor para cada uno de los otros 20; los
   modos Oculta, Directo y Total consumen sin redefinir el contrato visual establecido por
   UPD-017; los nombres visibles pasan a **Zonas** y **Red de aprendizaje** sin cambiar IDs solo
   por presentación; el documento Docente migra de
   `orbit-editor-project` v2 a v3 preservando cartografía, apariencias y conexiones académicas
-  válidas; las 19 zonas y los 21 nodos académicos actuales permanecen alcanzables; una edición
-  aplicada usa el reinicio total de perfiles definido en 0.5.0.
+  válidas; el 100 % estructural exige 19 zonas abiertas, 21 nodos académicos completables y todos
+  los lugares laterales disponibles para interacción, conservando la política especial de Base
+  y Debug; una edición aplicada usa el reinicio total de perfiles definido en 0.5.0.
 - Fuera de alcance: servidor, cuentas, base de datos o cualquier parte de UPD-002; contenido o
   ejercicios nuevos; crear o eliminar zonas/lugares; cambiar IDs publicados; alterar movimiento,
   geometría axial, adyacencia o Bowerbird; conceder automáticamente recompensas sin interacción
@@ -417,28 +488,36 @@ ser dorados sólidos o dorados tenues discontinuos, tanto en ORBIT como en ORBIT
 
 #### Preguntas bloqueantes
 
-1. ¿Una zona se abre cuando cualquier `lesson` o `mission` de su interior ya puede realizarse, o
-   quieres designar nodos de entrada especiales? Recomendación: cualquier nodo académico elegible
-   más adyacencia; evita una segunda tabla de puertas y hace que Spider actualice la política.
-2. Cuando una zona se abre, ¿NPC y gadgets quedan solo disponibles para interactuar o sus
-   recompensas se conceden automáticamente? Recomendación: disponibles, pero no completados;
-   hablar con Onnes o adquirir un gadget sigue requiriendo la interacción correspondiente.
-3. ¿Qué ocurre con los dos transportes? Recomendación: la misma política lateral que gadgets y
-   NPC: disponibles con la zona, fuera de la red y con la recompensa concedida al interactuar.
-4. ¿Convertimos cada requisito conceptual vigente en una conexión desde su único lugar otorgante
-   o quieres rediseñar toda la topología? Recomendación: conversión completa y verificable como
-   primera base, sin reducción transitiva; después puede ajustarse con Spider.
+- Ninguna. JoaquinDiazM confirmó ausencia de nodos especiales, interacción obligatoria para
+  NPC/gadgets/transportes y uso de la topología editorial aplicada como base validable.
 
 #### Implementación y revisión
 
 - Base revisada: arquitectura candidata de 0.5.0; implementación no iniciada.
 - Rutas propias: datos de mundo/lugares, grafos y progresión, validador, documento/modelo/renderer
   Editor, renderer/UI de ORBIT, edición de curso, ADR, documentación y pruebas.
-- Resultado: no iniciada; espera respuestas.
-- Pruebas: no aplican todavía.
-- Cómo revisar para JoaquinDiazM: responder las cuatro preguntas y confirmar especialmente la
-  política de transportes y la conversión de topología.
-- Observaciones del usuario: ninguna posterior a la solicitud original.
+- Resultado: no iniciada; decisiones materiales resueltas, pero 0.6.0 espera la publicación de
+  la cohorte inmediata 0.5.1.
+- Pruebas: pendientes para implementación; deberán demostrar DAG, raíz académica única,
+  migración de las 30 parejas efectivas, elegibilidad sin dependencia circular de la zona,
+  apertura por adyacencia y alcanzabilidad del 100 % de lugares académicos y laterales.
+- Cómo revisar para JoaquinDiazM: cuando 0.6.0 llegue a `en-revision`, repetir el recorrido
+  validación errónea → corrección → validación aprobada → aplicación y revisar los tres perfiles.
+- Observaciones del usuario: 1.- Nada de nodos especiales, una zona se abre cuando existe dentro
+  de ella un nodo accesible y hay adyacencia, revisa la politica de validacion del editor para
+  verificar que las propuestas de redes permiten la completacion del 100% del contenido del
+  curso. 2.- Disponibles para interactuar, podra parecer un paso inutil, pero en futuras
+  versiones pretendo poner etapas en esos nodos para para darle un tutorial al usuario de como
+  usar lo adquirido. 3.- Exacto, misma politica que gadgets y NPC. 4.- Acabo de aplicar un
+  formato de edicion de prueba que deberia estar completamente valido excepto porque el nodo de
+  transicion superconductora no es desbloqueable, no tiene ningun nodo que lo desbloquee y por
+  politica de ORBIT todos los nodos deben desbloquearse por al menos un nodo previo. Esto tambien
+  deja inaxesible el nodo de aprendizaje y zona de sensores que cuyo requisito es el de
+  superconductores. Lo anterior lo estoy haciendo adrede para comprobar que el proceso,
+  validacion erronea -> correccion -> validacion pasada -> aplicacion funciona, funciona como
+  deberia. YO me encargare de esa prueba, tu solo puedes abrir el servidor para leer data y
+  siempre cerrar sesiones, si quieres actualiza el md de updates para que sepas siempre tu nuevo
+  privilegio.
 
 ### UPD-002 — Sistema de servidor online
 
