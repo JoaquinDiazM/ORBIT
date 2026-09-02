@@ -240,22 +240,23 @@ Sin propuestas pendientes de clasificar.
 ## Cohorte inmediata
 
 - Versión: `0.6.0`
-- Estado de la cohorte: `abierta`
+- Estado de la cohorte: `cerrada`
 - IDs: `UPD-015`
 - Apertura confirmada por JoaquinDiazM: 2026-08-31.
+- Cierre confirmado por JoaquinDiazM: 2026-09-02.
 
 ## Actualizaciones activas
 
 
 ### UPD-015 — Red única de aprendizaje y apertura territorial derivada
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `épica`
 - Versión objetivo: `0.6.0`
 - Impacto sugerido: `Y`; reemplaza el contrato central de progresión, el documento editorial y
   la representación de ambos productos.
-- Próximo responsable: JoaquinDiazM, que revisa en Microsoft Edge el borrador inválido reparable,
-  su validación y la aplicación local con reinicio total.
+- Próximo responsable: agente de publicación, que revalida, versiona y publica la cohorte cerrada
+  sin mezclar las propuestas posteriores.
 
 #### Solicitud original
 
@@ -329,15 +330,16 @@ ser dorados sólidos o dorados tenues discontinuos, tanto en ORBIT como en ORBIT
   staged, helper, puerto, lock, journal ni tombstone residual.
 - Rutas propias: datos de mundo/lugares, grafos y progresión, validador, documento/modelo/renderer
   Editor, renderer/UI de ORBIT, edición de curso, ADR, documentación y pruebas.
-- Resultado: implementada una única Red de aprendizaje de 21 nodos y 30 conexiones explícitas,
-  con `vector-workshop` como raíz, apertura territorial derivada y seis lugares laterales
-  interactivos. Spider edita membresía y aristas, conserva borradores estructuralmente sanos pero
-  todavía no publicables y bloquea **Validar/Aplicar** hasta recuperar la alcanzabilidad integral.
-  La edición aplicada migró de v2 a v3 sin alterar sus 19 zonas, 29 posiciones ni apariencias:
-  revisión activa
-  `sha256:5232acb4e249e3f6ddb368b3d7792505e45c2543d6e671f4f9d9ae7e99bd0b32`, con
-  `previousRevision` b4d45e3a2fd4. La fuente anterior quedó respaldada de forma verificable en
-  `.orbit-editor-backups/2026-08-31T06-29-24-306Z-b4d45e3a2fd4-cdaa23ce.edition.json`.
+- Resultado: implementada una única Red de aprendizaje de 21 nodos, con `vector-workshop` como
+  raíz, apertura territorial derivada y seis lugares laterales interactivos. La migración v2 → v3
+  preservó las 30 conexiones académicas efectivas de la semilla; después, JoaquinDiazM usó
+  Spider/Bee para aprobar una edición propia válida de 29 conexiones, con 15 aristas añadidas y
+  16 retiradas, 7 zonas y 22 lugares movidos. Spider conserva borradores estructuralmente sanos
+  pero todavía no publicables y bloquea **Validar/Aplicar** hasta recuperar la alcanzabilidad
+  integral. La revisión final aplicada es
+  `sha256:bc5258ae59ba60f97b1de809d00e602efa62ca2da9ce15ca735d8636451a0fc2`, con
+  `previousRevision` ef0d04f9d466; esa fuente previa está respaldada de forma verificable en
+  `.orbit-editor-backups/2026-08-31T07-30-39-805Z-ef0d04f9d466-727b444d.edition.json`.
 - Pruebas automáticas: `validate-content` aprobado con 19 zonas, 20 conceptos y 29 lugares
   alcanzables; `node --test` aprobó 411 de 413 casos y omitió solo dos pruebas de enlaces
   simbólicos por `EPERM` de Windows; `repo-check` aprobó 123 archivos JavaScript y 41 Markdown;
@@ -345,21 +347,15 @@ ser dorados sólidos o dorados tenues discontinuos, tanto en ORBIT como en ORBIT
   30 parejas efectivas, raíz única/DAG, apertura por elegibilidad y adyacencia, lugares laterales,
   borrador inválido reparable, rechazo estricto de aplicación y ausencia de reinicios por un mero
   reordenamiento de `nodeIds`.
-- Preflight del entorno: fuente, `dist` y `build-info.json` coinciden en la revisión 5232ac; no
+- Preflight del entorno: fuente, `dist` y `build-info.json` coinciden en la revisión bc5258ae; no
   hay helper, proceso en el puerto 4173, lock, journal ni tombstone residual. El agente no abrió
   Edge ni sustituyó la revisión manual humana.
-- Revisión manual humana: pendiente — pasos para JoaquinDiazM:
-  1. Desde un terminal visible de VS Code en la raíz canónica, inicia `npm run dev` y abre en Edge
-     externo `http://127.0.0.1:4173/editor.html` con perfil Docente.
-  2. En Spider, elimina la conexión **Laboratorio de Ecuaciones Diferenciales → Laboratorio de
-     Transición Superconductora**; recarga y confirma que el borrador incompleto persiste.
-  3. En Resumen, pulsa **Validar edición e impacto** y confirma que detecta la ausencia de
-     predecesor/alcanzabilidad y mantiene **Aplicar** bloqueado.
-  4. Añade la conexión alternativa **Archivo de Maxwell → Laboratorio de Transición
-     Superconductora** y confirma que la validación alcanza 19 zonas, 29 lugares y 20 conceptos.
-  5. Detén `dev`, inicia `npm run editor:author`, vuelve a validar el mismo digest, confirma el
-     reinicio de Estudiante/Docente/Debug y aplica. Detén el helper, reinicia `npm run dev` y revisa
-     los tres perfiles. Comunica el resultado antes de aprobar o publicar 0.6.0.
+- Revisión manual humana: `aprobada` — JoaquinDiazM completó en Edge el recorrido de borrador
+  inválido → rechazo → reparación → validación → aplicación, retiró
+  `differential-equations-lab → superconductivity-transition-lab`, añadió
+  `maxwell-archive → superconductivity-transition-lab`, aplicó la revisión bc5258ae y cambió
+  explícitamente el estado a `aprobado`. La aprobación comprende el documento completo aplicado,
+  no únicamente esas dos aristas.
 - Observaciones del usuario: 1.- Nada de nodos especiales, una zona se abre cuando existe dentro
   de ella un nodo accesible y hay adyacencia, revisa la politica de validacion del editor para
   verificar que las propuestas de redes permiten la completacion del 100% del contenido del
@@ -375,6 +371,141 @@ ser dorados sólidos o dorados tenues discontinuos, tanto en ORBIT como en ORBIT
   deberia (Pero para hacerlo requiero que tambien actualizes spider para que me deje borrar conexiones y nodos). YO me encargare de esa prueba, tu solo puedes abrir el servidor para leer data y
   siempre cerrar sesiones, si quieres actualiza el md de updates para que sepas siempre tu nuevo
   privilegio.
+
+### UPD-019 — Bee: nombres de zonas y etiquetas configurables de niveles
+
+- Estado: `propuesto`
+- Tipo: `feature`
+- Versión objetivo: `0.7.0`
+- Impacto sugerido: `Y`; amplía el contrato editorial y requiere migrar el documento Docente de
+  v3 a v4.
+- Próximo responsable: JoaquinDiazM, que puede autorizarla después de publicar 0.6.0 o añadirla a
+  una cohorte todavía abierta.
+
+#### Solicitud original
+
+Bee debe permitir cambiar el nombre de las zonas/hexágonos y modificar tanto el texto como la
+posición de las etiquetas de los anillos. ORBIT no debe imponer para otros cursos los nombres
+«teoría» y «aplicaciones»: debe conservar la idea más general de dos niveles de profundidad. Un
+clic debe poder seleccionar hexágonos y cuadros de etiqueta; hover y selección pueden destacarse
+con una animación adecuada.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: Bee permite renombrar las zonas sin alterar sus IDs y editar el texto y la
+  posición de las etiquetas visuales de los dos niveles del mapa.
+- Decisiones confirmadas: cada zona conserva `id`, `tier`, coordenadas y contenido. Bee expone
+  `title` como nombre completo y `shortTitle` como etiqueta breve del hexágono. Los niveles
+  estructurales siguen siendo `tier 1` y `tier 2`, pero sus nombres dejan de estar fijados a teoría
+  y aplicaciones. Cada nivel guarda texto y desplazamiento bidimensional respecto de un anclaje
+  calculado. La migración v3 → v4 conserva como valores iniciales `ANILLO 1 · TEORÍA` y
+  `ANILLO 2 · APLICACIONES`, con desplazamiento cero. Estas etiquetas pertenecen al mapa del
+  Editor; esta entrega no añade una superposición nueva al mapamundi Estudiante.
+- Criterios de aceptación: clic y teclado seleccionan zona o etiqueta sin disparar intercambios;
+  arrastrar conserva el intercambio Bee para hexágonos y mueve la etiqueta cuando ella es el
+  objetivo; inspector DOM, flechas y controles numéricos ofrecen alternativa accesible; hover,
+  foco y selección se distinguen sin depender solo del color y respetan
+  `prefers-reduced-motion`; los textos son planos, no vacíos y acotados, y las posiciones finitas
+  permanecen en los límites navegables; restaurar, deshacer, rehacer, recargar, importar y exportar
+  conservan texto y posición; aplicar materializa `title`/`shortTitle` en ORBIT e incorpora los
+  metadatos de nivel a digest, diff y respaldo; Estudiante conserva Bee de solo lectura; pruebas
+  cubren migración, saneamiento, historial, selección, zoom/cámara, aplicación y accesibilidad.
+- Fuera de alcance: cambiar IDs; crear, eliminar o duplicar zonas; alterar `tier`, cantidad de
+  niveles, geometría axial o regla de intercambio; mezclar niveles o mover `origin`; editar
+  contenido académico, nodos o Bowerbird; añadir etiquetas de nivel a ORBIT Estudiante; backend,
+  multicurso o publicación remota.
+- Dependencias, invariantes o ADR: requiere 0.6.0 publicada; documento `orbit-editor-project` v4
+  con migración no destructiva desde v3 y continuidad v1/v2; materialización, almacenamiento,
+  edición aplicada, diff, digest y recuperación incluyen los metadatos nuevos; enmienda ADR 0007
+  y 0008, mientras ADR 0009 y la Red de aprendizaje no cambian.
+
+#### Preguntas bloqueantes
+
+- Ninguna. El alcance mínimo conserva dos niveles estructurales, distingue nombre completo y
+  breve y limita las etiquetas de nivel a ORBIT Editor.
+
+#### Implementación y revisión
+
+- Resultado: no iniciada; propuesta clasificada para una cohorte posterior a 0.6.0.
+- Pruebas automáticas: no aplican todavía.
+- Preflight del entorno: pendiente.
+- Revisión manual humana: pendiente.
+- Observaciones del usuario: ninguna adicional.
+
+### UPD-020 — Spider: autoría de nodos, contenido inicial e inventario
+
+- Estado: `faltan-detalles`
+- Tipo: `épica`
+- Versión objetivo: `0.8.0`
+- Impacto sugerido: `Y`; amplía Spider desde cartografía/red hacia autoría de entidades y
+  contenido, y requiere una autoridad editorial nueva para lugares creados.
+- Próximo responsable: JoaquinDiazM, que resuelve las tres decisiones de ciclo de vida antes de
+  autorizar; UPD-019 queda primero por establecer el documento Editor v4.
+
+#### Solicitud original
+
+Spider debe adoptar submenús análogos a Ajustes: **Mover**, **Conectar**, **Modificar**,
+**Crear** e **Inventario**. Modificar cambia etiqueta/título y deja la edición interior bloqueada
+como «Próximamente». Crear usa un template con texto, una pregunta de elección múltiple, una
+etapa y título genéricos, asigna un ID interno y permite posicionar con clic; Importar nodo queda
+bloqueado para otra actualización. Inventario guarda nodos fuera del mapa, permite reponerlos con
+clic o borrarlos definitivamente. Solo se crean o modifican lugares de aprendizaje, misiones y
+personajes secundarios; gadgets y transportes siguen reservados a desarrolladores.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: Spider organiza una sola vista activa en cinco submenús accesibles con
+  ratón y teclado. **Mover** y **Conectar** conservan íntegramente las capacidades actuales.
+  **Modificar** muestra el ID estable como solo lectura y edita `title` y `shortTitle` de
+  `lesson`, `mission` y `npc`; cuerpo, etapas, preguntas, fuentes y concesiones aparecen
+  deshabilitados como **Próximamente**. **Crear** admite esos tres tipos, asigna un ID monotónico
+  como `new-node-0001` que no cambia ni se reutiliza, ofrece un template adecuado al tipo y exige
+  un clic de colocación; **Importar nodo** permanece deshabilitado sin afectar la importación del
+  proyecto completo. **Inventario** diferencia retirar de la Red, sacar del mapamundi activo y
+  borrar definitivamente; permite buscar, filtrar y reinsertar con clic.
+- Decisiones confirmadas: `lesson`/`mission` creados entran a la Red pero mantienen bloqueado
+  **Aplicar** hasta recibir una conexión válida; `npc` permanece lateral y nunca contiene una
+  pregunta evaluativa. Crear/modificar/inventariar/borrar excluye `gadget`, `transport`, `base` y
+  `debug`; Mover conserva el alcance actual sobre lugares existentes. Toda operación participa en
+  autoguardado, exportación/importación, diff e historial atómico. Validar rechaza IDs duplicados,
+  referencias colgantes, placeholders no autorizados, contenido inválido, ciclos, raíces
+  adicionales o territorio inalcanzable. Resumen distingue creados, renombrados, inventariados,
+  restaurados y eliminados.
+- Criterios de aceptación: cada submenú preserva foco, selección y estado al cambiar de vista;
+  la creación/colocación y reinserción tienen alternativa de teclado; un nodo fuera del mapa no
+  aparece ni progresa en runtime; un nodo reinsertado conserva ID/contenido y debe reconectarse;
+  borrado muestra impacto y confirmación; IDs nunca se reciclan; el documento migra v4 → v5 sin
+  alterar los 29 lugares y 29 conexiones de la edición 0.6.0 aprobada; pruebas cubren ciclo de
+  vida, referencias, persistencia, undo/redo, aplicación, reset y accesibilidad.
+- Fuera de alcance: editor completo de párrafos, etapas, ejercicios, fuentes, conceptos,
+  recompensas o multimedia; importación individual; zonas o Bee/Bowerbird; gadgets y transportes;
+  renombrar IDs publicados; backend, cuentas, Git automático o UPD-002.
+- Dependencias, invariantes o ADR: requiere 0.6.0 y, por secuencia propuesta, UPD-019/0.7.0;
+  documento Editor v5 con definiciones/overrides de lugares, inventario y tombstones; recomienda
+  ADR 0010 para autoridad de datos, IDs monotónicos, eliminación/referencias, migración, digest,
+  diff, respaldo y reset, enmendando ADR 0007–0009. Conserva sitio estático, helper loopback,
+  aplicación transaccional y revisión manual externa.
+
+#### Preguntas bloqueantes
+
+1. ¿Un nodo con texto/pregunta genéricos puede aplicarse antes de existir el editor de contenido?
+   Recomendación: permitir guardarlo, exportarlo y posicionarlo, pero bloquear **Aplicar** mientras
+   conserve la marca de placeholder.
+2. Al inventariar un nodo académico, ¿se descartan sus conexiones o se conservan suspendidas?
+   Recomendación: excluirlas de runtime/validación activa, guardarlas como metadato recuperable y
+   restaurar solo las que sigan siendo válidas, con confirmación.
+3. ¿El borrado definitivo alcanza cualquier lugar publicado o solo nodos creados por el Editor?
+   Recomendación: en la primera entrega, borrar definitivamente solo nodos creados por el Editor;
+   los canónicos pueden inventariarse, pero no eliminarse ni liberar su ID.
+
+#### Implementación y revisión
+
+- Resultado: no iniciada; requiere resolver ciclo de placeholder, conexiones suspendidas y
+  alcance del borrado antes de dividir o autorizar la épica.
+- Pruebas automáticas: no aplican todavía.
+- Preflight del entorno: pendiente.
+- Revisión manual humana: pendiente.
+- Observaciones del usuario: ninguna adicional.
 
 ### UPD-002 — Sistema de servidor online
 
