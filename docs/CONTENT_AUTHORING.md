@@ -139,8 +139,9 @@ produce `A` en `B.requirements.completedLocations`. En los lugares académicos n
 `concepts`, `rewards` ni `areas` como requisitos: no son otra vía de acceso. Los lugares
 `base`, `debug`, `npc`, `gadget` y `transport` permanecen fuera de la red y deben usar
 `requirements: {}`; su disponibilidad procede de la política de Base/Debug o de la apertura de
-su zona. Si un cambio altera las 30 parejas actuales, actualiza las pruebas de red, raíz única,
-DAG, apertura por adyacencia y alcanzabilidad integral.
+su zona. Si un cambio altera las conexiones aplicadas —29 en la edición vigente—, actualiza las
+pruebas de red, raíz única, DAG, apertura por adyacencia y alcanzabilidad integral. La base
+canónica de migración conserva por separado sus 30 parejas.
 
 ## Concesiones
 

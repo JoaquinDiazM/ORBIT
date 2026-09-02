@@ -42,7 +42,7 @@ La experiencia combina dos modos que deberán coexistir en una versión futura:
 - **Modo consulta temática:** acceso académico directo por tema, útil para repasar antes de una evaluación.
 
 La ruta conserva 19 zonas, 20 conceptos y 29 lugares. Veintiuna lecciones o misiones forman una
-Red de aprendizaje explícita de 30 parejas académicas; los ocho lugares restantes —Base, seis
+Red de aprendizaje aplicada de 29 parejas académicas; los ocho lugares restantes —Base, seis
 laterales y Debug— quedan fuera de ella y no bloquean el tronco. El Taller Vectorial sigue siendo
 el primer nodo desarrollado con mayor profundidad:
 reúne elementos diferenciales, una comparación visual de campos en SVG, un ejemplo cartesiano
@@ -183,7 +183,7 @@ El proyecto debe privilegiar contenido y ejercicios sobre producción audiovisua
 - assets costosos;
 - animaciones largas.
 
-La cohorte `0.5.1` no añade backend público, autenticación, gráficos 3D, telemetría ni
+La cohorte `0.6.0` no añade backend público, autenticación, gráficos 3D, telemetría ni
 dependencias. El avance dentro de etapas, los parámetros de figuras y las respuestas parciales
 siguen siendo estado de sesión. Progreso `v4`, documento Editor `v3`, preferencias Bowerbird `v1`
 y edición de curso `v1` usan claves y migraciones distintas.

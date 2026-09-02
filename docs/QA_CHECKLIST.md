@@ -46,8 +46,9 @@
 - [ ] En **Total** aparecen todas las conexiones elegibles entre lugares visibles, incluidas las que atraviesan más de una frontera.
 - [ ] Cambiar entre **Oculta**, **Directo** y **Total** actualiza el mapa, no concede progreso y no cambia accesibilidad.
 - [ ] Si un destino acaba de habilitarse, solo la arista desde la última finalización causal lleva la etiqueta textual **NUEVO**.
-- [ ] El dataset completo contiene 30 parejas académicas explícitas y ninguna conexión con un
-      extremo lateral; conceptos, recompensas y requisitos de área no crean guías.
+- [ ] La base canónica contiene 30 parejas académicas explícitas y la edición aplicada las que
+      declara —29 actualmente—; ninguna conexión usa un extremo lateral y conceptos, recompensas
+      o requisitos de área no crean guías.
 - [ ] El estado **NUEVO** es efímero y no aparece en el JSON exportado.
 - [ ] Las recompensas se conceden una sola vez.
 - [ ] Los transportes adquiridos se pueden alternar.
@@ -197,7 +198,8 @@
 - [ ] Cambiar la query demuestra que estas restricciones son locales y no se presenta como
       autenticación o seguridad real.
 - [ ] El dataset compartido conserva 19 zonas, 20 conceptos y 29 lugares; la Red de aprendizaje
-      contiene únicamente sus 21 lecciones/misiones y exactamente 30 conexiones explícitas.
+      contiene únicamente sus 21 lecciones/misiones y todas sus conexiones explícitas validadas
+      —29 en la edición aplicada, 30 en la base canónica—.
 - [ ] Los docks **General** y **Editor** se minimizan y expanden por separado; el control de reapertura nunca desaparece.
 - [ ] `aria-expanded`, foco visible, `Tab`, `Enter` y `Espacio` reflejan el estado real de ambos docks.
 - [ ] Spider muestra todos los nodos sin depender del progreso de ORBIT.

@@ -22,7 +22,7 @@ En este orden:
 
 ## 2. Estado actual
 
-La base publicada es `0.5.1` y la siguiente cohorte operativa se controla en
+La base publicada es `0.6.0` y la siguiente cohorte operativa se controla en
 `ORBIT_UPDATES.md`. El prototipo sigue siendo estático, conserva una dependencia local
 respaldada por ADR, dos entradas
 deliberadamente separadas y un flujo por cohortes con autorización y revisión humana:
@@ -36,7 +36,7 @@ El producto ya incluye:
 - movimiento continuo en Canvas 2D;
 - 19 hexágonos en tres niveles: base, seis fundamentos y doce aplicaciones;
 - fronteras físicas derivadas de la apertura de zonas por adyacencia y elegibilidad académica;
-- 29 lugares: 21 lecciones/misiones en una Red de aprendizaje de 30 parejas explícitas y ocho
+- 29 lugares: 21 lecciones/misiones en una Red de aprendizaje aplicada de 29 parejas explícitas y ocho
   lugares Base/laterales/Debug fuera de ella; un panel **Visual** separado de **Zonas · Red**,
   accesible desde **Ajustes**, con modos **Oculta**, **Directo** y **Total**;
 - ejercicios de alternativa, número, expresión segura, secuencia y confirmación;
@@ -119,7 +119,8 @@ Antes de implementar una tarea, identifica cuáles puede afectar:
 - esquema de guardado;
 - separación entre progreso `v4`, documento Docente `v3`, preferencias Bowerbird `v1` y edición
   de curso `v1`;
-- 21 nodos académicos, raíz única y 30 conexiones explícitas frente a lugares laterales fuera de red;
+- 21 nodos académicos, raíz única y conexiones explícitas validadas —29 en la edición aplicada—
+  frente a lugares laterales fuera de red;
 - revisión de curso, reset específico y bloqueo compartido/exclusivo;
 - permanencia de zonas teóricas y aplicaciones en sus anillos;
 - funcionamiento sin backend;

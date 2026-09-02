@@ -250,7 +250,7 @@ Sin propuestas pendientes de clasificar.
 
 ### UPD-015 — Red única de aprendizaje y apertura territorial derivada
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `épica`
 - Versión objetivo: `0.6.0`
 - Impacto sugerido: `Y`; reemplaza el contrato central de progresión, el documento editorial y

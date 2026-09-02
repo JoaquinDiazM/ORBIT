@@ -93,8 +93,9 @@ altera la definición de la Red de aprendizaje o la apertura territorial.
 
 ### Guías direccionales
 
-`src/core/knowledge-graph.js` consume las 30 parejas académicas explícitas y nunca resuelve
-conceptos, recompensas o lugares laterales como conexiones adicionales.
+`src/core/knowledge-graph.js` consume las parejas académicas explícitas de la edición activa —29
+en la revisión aplicada vigente; 30 en la base canónica— y nunca resuelve conceptos, recompensas
+o lugares laterales como conexiones adicionales.
 
 Las aristas elegibles se clasifican por el estado de sus extremos visibles:
 

@@ -195,7 +195,8 @@ que una revisión distinta reinicia el perfil en vez de reactivar logros incompa
 9. Confirma que un extremo oculto no produzca aristas y que cambiar el nivel no modifique requisitos ni progreso.
 10. Revisa que **Zonas · Red** separe Zonas, Red de aprendizaje y exploración lateral; la configuración y la leyenda permanecen en **Ajustes → Visual**.
 
-El dataset completo contiene 30 parejas académicas explícitas y ningún extremo lateral.
+La base canónica contiene 30 parejas académicas explícitas; la edición aplicada vigente contiene
+29. Ninguna admite un extremo lateral.
 `newlyAccessibleLocationIds` y el
 lugar fuente de la transición son estado efímero del evento y no deben aparecer en el JSON
 exportado. En un destino con varios prerrequisitos, solo la arista desde la última finalización

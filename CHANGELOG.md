@@ -2,6 +2,49 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [0.6.0] - 2026-09-02
+
+### Añadido
+
+- Una única **Red de aprendizaje** explícita para las 21 lecciones y misiones, con
+  `vector-workshop` como raíz, validación de DAG y apertura territorial derivada de elegibilidad
+  académica más adyacencia.
+- Spider permite añadir o retirar nodos académicos de la Red y editar todas sus conexiones; los
+  borradores incompletos pueden guardarse y repararse, mientras **Validar** y **Aplicar** siguen
+  exigiendo raíz única y alcanzabilidad integral.
+- ADR 0009 documenta la sustitución del antiguo modelo de dos árboles y la migración editorial.
+
+### Cambiado
+
+- Personajes, gadgets y transportes quedan fuera de la Red, disponibles al abrir su zona y con
+  interacción obligatoria antes de conceder contexto, herramientas o transporte.
+- El documento Docente avanza a `v3`, materializa exactamente la topología académica efectiva de
+  borradores v1/v2 y separa saneamiento estructural de validación publicable.
+- ORBIT y ORBIT Editor presentan **Zonas** y **Red de aprendizaje** sin alterar los IDs históricos
+  ni la preferencia persistida de Visual.
+- La edición aprobada por el autor publica la revisión `bc5258ae…`: 19 zonas, 29 lugares, 21 nodos
+  académicos y 29 conexiones; frente a la semilla inicial mueve 7 zonas y 22 lugares y sustituye
+  16 conexiones por 15 alternativas sin perder alcanzabilidad.
+
+### Corregido
+
+- Importar un borrador académicamente incompleto ya no se anuncia como publicable y el badge
+  muestra sus errores hasta repararlo.
+- El orden de `learningNetwork.nodeIds` queda canónico, evitando revisiones y reinicios totales por
+  un mero reordenamiento sin cambio semántico.
+- **Oculta** conserva exactamente una arista causal del último desbloqueo, sin ampliar el contrato
+  visual publicado en 0.5.1.
+
+### Verificación y alcance
+
+- La cohorte corresponde únicamente a `UPD-015`. El check integral ejecuta 413 pruebas: 411
+  aprobadas, 0 fallos y 2 omisiones EPERM esperadas de symlink; valida 19 zonas, 20 conceptos y 29
+  lugares alcanzables, 123 archivos JavaScript, 41 Markdown y el build estático.
+- JoaquinDiazM verificó en Edge externo el flujo inválido → rechazo → reparación → aplicación,
+  aprobó el documento completo `bc5258ae…` y confirmó el cierre de la cohorte.
+- Se conservan el sitio estático, los perfiles locales, el reset total, cinco audios y KaTeX
+  0.18.1. No se añaden backend, cuentas, autenticación, telemetría, CDN ni dependencias.
+
 ## [0.5.1] - 2026-08-31
 
 ### Cambiado

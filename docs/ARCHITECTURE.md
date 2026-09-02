@@ -97,8 +97,8 @@ Es una política de interfaz y ejecución local, no una identidad autenticada.
 `src/core/knowledge-graph.js` deriva las guías visibles desde las conexiones académicas
 `completedLocations` de la Red de aprendizaje. Solo acepta extremos `lesson` o `mission`, agrupa
 duplicados y conserva una única dirección semántica: prerrequisito → destino. Conceptos,
-recompensas, requisitos de área y lugares laterales no crean aristas. La ruta vigente contiene
-30 parejas académicas explícitas.
+recompensas, requisitos de área y lugares laterales no crean aristas. La base canónica contiene
+30 parejas; la edición aplicada vigente declara 29 después de la reorganización aprobada.
 
 Primero se clasifica cada extremo visible como `completed`, `completable` o `blocked`. Una conexión `completed → completed/completable` usa apariencia `bright`; una conexión `completable → blocked` usa apariencia `muted`. Las demás combinaciones y cualquier extremo oculto quedan fuera. El renderer expresa además esa distinción mediante trazo sólido luminoso frente a trazo tenue discontinuo, de modo que no dependa solo del color.
 
@@ -338,7 +338,8 @@ El documento editorial `orbit-editor-project` usa esquema `v3` y contiene:
 
 - coordenadas axiales y apariencias de las 19 zonas;
 - `areaId + offset` de los 29 lugares;
-- la pertenencia de 21 lecciones/misiones y 30 conexiones académicas explícitas;
+- la pertenencia de 21 lecciones/misiones y una lista de conexiones académicas explícitas —29 en
+  la edición aplicada vigente—;
 - curso, versión de datos base, versión del catálogo y fecha de actualización.
 
 No incluye respuestas, conceptos adquiridos, recompensas ni posición de un estudiante. Antes de
