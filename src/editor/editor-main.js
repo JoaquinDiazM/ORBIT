@@ -60,7 +60,7 @@ function configureProfileShell(profile, editorAccess) {
     }
     canvas?.setAttribute(
       "aria-label",
-      "Mapa de ORBIT Editor con Bowerbird personal. Selecciona zonas para decorarlas; Spider y Bee están bloqueados.",
+      "Mapa de ORBIT Editor. Spider y Bee permiten consultar nodos, zonas y rótulos sin modificarlos; Bowerbird guarda una apariencia personal.",
     );
   } else if (editorAccess === "blocked") {
     if (draftBadge) {
@@ -113,6 +113,7 @@ if (editorAccess === "blocked") {
   const validation = validateProjectData({
     areas: course.areas,
     locations: course.locations,
+    allowContentSubset: true,
   });
   if (validation.errors.length > 0) {
     console.error("La edición activa del curso contiene errores:", validation.errors);
@@ -133,15 +134,16 @@ if (editorAccess === "blocked") {
     storageKey,
     undefined,
     [
+      `orbit-editor:v4:${course.courseId}`,
+      `orbit-editor:v3:${course.courseId}`,
       `orbit-editor:v2:${course.courseId}`,
       `orbit-editor:v1:${course.courseId}`,
     ],
   );
   const documentOptions = {
-    baseAreas: course.areas,
-    baseLocations: course.locations,
     courseId: course.courseId,
-    baseDataVersion: course.edition.document.baseDataVersion,
+    baseDataVersion: course.editorDocument.baseDataVersion,
+    baseDocument: course.editorDocument,
   };
   const model = EditorModel.create({
     storage: editorStorage,
@@ -212,6 +214,14 @@ if (editorAccess === "blocked") {
               "resetAreaAppearance(areaId)",
               "moveLocation(id, placement)",
               "swapAreas(firstId, secondId)",
+              "renameArea(areaId, { title, shortTitle })",
+              "setTierLabel(tier, { text, offset })",
+              "resetTierLabel(tier)",
+              "renameLocation(id, { title, shortTitle })",
+              "createLocation({ kind, areaId, offset, title, shortTitle })",
+              "inventoryLocation(id)",
+              "restoreLocation(id, placement)",
+              "deleteInventoryLocation(id)",
               "addLocationToLearningNetwork(id)",
               "removeLocationFromLearningNetwork(id)",
               "connect(sourceId, targetId)",
@@ -227,6 +237,7 @@ if (editorAccess === "blocked") {
               "snapshot()",
               "validate()",
               "appearanceSnapshot()",
+              "selectTool('spider' | 'bee' | 'bowerbird')",
               "selectBowerbird()",
               "setAreaAppearance(areaId, appearance)",
               "resetAreaAppearance(areaId)",
@@ -248,6 +259,7 @@ if (editorAccess === "blocked") {
       source: course.source,
     }),
     appearanceSnapshot: () => bowerbird.getSnapshot(),
+    selectTool: (tool) => app.setActiveTool(tool),
     selectBowerbird: () => app.setActiveTool("bowerbird"),
     setAreaAppearance: (areaId, appearance) => bowerbird.setAreaAppearance(areaId, appearance),
     resetAreaAppearance: (areaId) => bowerbird.resetAreaAppearance(areaId),
@@ -257,9 +269,16 @@ if (editorAccess === "blocked") {
     editorAccess === "full"
       ? {
           ...safeApi,
-          selectTool: (tool) => app.setActiveTool(tool),
           moveLocation: (id, placement) => model.moveLocation(id, placement),
           swapAreas: (firstId, secondId) => model.swapArea(firstId, secondId),
+          renameArea: (areaId, names) => model.renameArea(areaId, names),
+          setTierLabel: (tier, changes) => model.setTierLabel(tier, changes),
+          resetTierLabel: (tier) => model.resetTierLabel(tier),
+          renameLocation: (id, names) => model.renameLocation(id, names),
+          createLocation: (options) => model.createLocation(options),
+          inventoryLocation: (id) => model.inventoryLocation(id),
+          restoreLocation: (id, placement) => model.restoreLocation(id, placement),
+          deleteInventoryLocation: (id) => model.deleteInventoryLocation(id),
           addLocationToLearningNetwork: (id) => model.addLocationToLearningNetwork(id),
           removeLocationFromLearningNetwork: (id) => model.removeLocationFromLearningNetwork(id),
           connect: (sourceId, targetId) => model.connectLocations(sourceId, targetId),

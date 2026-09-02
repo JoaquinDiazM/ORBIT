@@ -67,7 +67,11 @@ async function startOrbitRuntime() {
     });
 
     const course = await loadCourseEdition({ courseId: APP_CONFIG.activeCourseId });
-    const validation = validateProjectData({ areas: course.areas, locations: course.locations });
+    const validation = validateProjectData({
+      areas: course.areas,
+      locations: course.locations,
+      allowContentSubset: true,
+    });
     if (validation.errors.length > 0) {
       console.error("La definición del mundo contiene errores:", validation.errors);
       throw new Error("La cartografía no superó la validación. Revisa la consola.");

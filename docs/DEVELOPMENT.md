@@ -174,7 +174,7 @@ ORBIT dispone exactamente de estas sesiones locales:
 
 Cada perfil conserva un avance separado. Estudiante migra la clave `normal` compatible; no
 uses sufijos arbitrarios para crear sesiones nuevas. Editor usa el perfil solo como política de
-capacidad. Docente mantiene `orbit-editor:v3:electromagnetism-applied`; Estudiante usa además
+capacidad. Docente mantiene `orbit-editor:v5:electromagnetism-applied`; Estudiante usa además
 `orbit-bowerbird:v1:electromagnetism-applied:student` para sus apariencias personales. Exporta
 una copia antes de restaurar, importar o aplicar durante pruebas destructivas.
 
@@ -195,7 +195,7 @@ una copia antes de restaurar, importar o aplicar durante pruebas destructivas.
 - `ProgressStorage` es el único acceso directo a las claves de progreso en `localStorage`.
 - `profile-policy.js` resuelve los tres perfiles y su matriz de capacidades; no representa
   autenticación.
-- El documento editorial `v3`, las preferencias Bowerbird `v1`, la edición de curso `v1` y el
+- El documento editorial `v5`, las preferencias Bowerbird `v1`, la edición de curso `v1` y el
   progreso `v4` tienen claves y ciclos de migración distintos.
 - El progreso identifica `courseId + courseRevision`; una revisión diferente no reutiliza logros.
 - El helper no consulta ni muta Git; aplica solo la ruta canónica, conserva intactos los demás
@@ -211,10 +211,11 @@ Prefiere pruebas pequeñas sobre funciones puras. Para cambios de contenido, agr
 
 Para Editor, prueba por separado:
 
-- saneamiento, migración `v1/v2 → v3` y round-trip del documento `v3`;
+- saneamiento, migraciones `v1 → v2 → v3 → v4 → v5` y round-trip del documento `v5`;
 - movimiento de nodos y margen seguro;
 - pertenencia a la Red de aprendizaje, conexiones explícitas, duplicados, self-edge y ciclos;
-- intercambio Bee dentro del anillo y rechazo cruzado;
+- nombres de zona, rótulos de nivel, intercambio Bee dentro del nivel y rechazo cruzado;
+- creación, nombres, IDs monotónicos, inventario, reinserción, borrado protegido y tombstones;
 - catálogo y precedencia Bowerbird, aislamiento Estudiante/Docente y reducción de movimiento;
 - artefacto de edición, digest/revisión, diff e impacto por los tres perfiles;
 - transacción local, bloqueo compartido/exclusivo, rollback y recuperación pendiente;
@@ -260,11 +261,12 @@ no reemplaza esta revisión con una sesión propia ni modifica el checkout mient
 - Entrada Editor sin query con ambos docks retractables, Spider, Bee y Bowerbird operativos para
   Docente.
 - Entrada Editor Estudiante navegable, sin importación/exportación del curso, con Spider/Bee
-  bloqueados y Bowerbird personal operativo.
+  consultables pero sin controles mutantes y Bowerbird personal operativo.
 - Entrada Editor Debug bloqueada sin crear el modelo editorial.
 - Movimiento de nodo por puntero y teclado, incluida transferencia de zona válida.
 - Retiro/reincorporación de una lección o misión y conexión explícita en la Red de aprendizaje.
-- Intercambio Bee dentro del mismo anillo y rechazo entre anillos.
+- Modificar/crear/inventariar/reinsertar/borrar un nodo permitido y comprobar las protecciones.
+- Intercambio Bee dentro del mismo nivel, nombres/rótulos configurables y rechazo entre niveles.
 - Apariencia Docente en historial/exportación y apariencia Estudiante fuera de ambos.
 - Deshacer/rehacer, recarga, exportación e importación inválida sin pérdida del borrador válido.
 - Resumen con validación, diff, impacto legible, confirmación ligada al digest y plan invalidado

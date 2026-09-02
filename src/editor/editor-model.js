@@ -8,12 +8,18 @@ import {
 import { LOCATIONS } from "../data/locations.js";
 import { AREAS, WORLD_CONFIG } from "../data/world.js";
 import {
+  DEFAULT_EDITOR_TIER_LABELS,
+  EDITOR_EDITABLE_LOCATION_KINDS,
   EDITOR_LOCATION_SAFE_MARGIN,
   EDITOR_DOCUMENT_SCHEMA_VERSION,
   createEditorDocument,
+  createGenericLocationContent,
   deriveEditorTreeTwoTopology,
+  formatEditorCreatedLocationId,
   importEditorDocument,
+  isEditorEditableLocation,
   isEditorLearningLocation,
+  isEditorProtectedLocationId,
   materializeEditorDraft,
   sanitizeEditorDraft,
   sanitizeEditorDocument,
@@ -21,6 +27,7 @@ import {
 } from "./editor-document.js";
 
 const DEFAULT_HISTORY_LIMIT = 60;
+const EDITABLE_LOCATION_KINDS = new Set(EDITOR_EDITABLE_LOCATION_KINDS);
 
 function localIssue(code, message, path = null) {
   return { code, message, path };
@@ -73,6 +80,8 @@ export class EditorModel {
     worldConfig = WORLD_CONFIG,
     courseId,
     baseDataVersion,
+    baseDocument,
+    editorDocument,
     clock = () => new Date(),
     historyLimit = DEFAULT_HISTORY_LIMIT,
     readOnly = false,
@@ -101,7 +110,11 @@ export class EditorModel {
       worldConfig,
       ...(courseId === undefined ? {} : { courseId }),
       ...(baseDataVersion === undefined ? {} : { baseDataVersion }),
+      ...((baseDocument ?? editorDocument) == null
+        ? {}
+        : { baseDocument: structuredClone(baseDocument ?? editorDocument) }),
     };
+    this.baseDocument = structuredClone(baseDocument ?? editorDocument ?? null);
     this.baseAreaById = new Map(baseAreas.map((area) => [area.id, area]));
     this.baseLocationById = new Map(baseLocations.map((location) => [location.id, location]));
     this.listeners = new Set();
@@ -109,6 +122,16 @@ export class EditorModel {
     this.future = [];
     this.warnings = [];
     this.persistenceBlocked = false;
+    this.locationSequenceHighWater = 1;
+    this.locationTombstones = new Map();
+
+    if (this.baseDocument) {
+      const baseState = importEditorDocument(this.baseDocument, this.#validationOptions());
+      if (baseState.ok) {
+        this.#adoptHighWater(baseState.document);
+        this.#adoptTombstones(baseState.document);
+      }
+    }
 
     const loadResult = typeof this.storage.loadResult === "function"
       ? this.storage.loadResult()
@@ -116,24 +139,20 @@ export class EditorModel {
     const loaded = loadResult ? loadResult.value : this.storage.load();
     if (loadResult?.error || (loadResult?.found && loaded === null)) {
       this.persistenceBlocked = true;
-      this.document = createEditorDocument({
-        ...this.documentOptions,
-        updatedAt: this.#timestamp(),
-      });
+      this.document = this.#createBaselineDocument();
+      this.#adoptHighWater(this.document);
       this.warnings = [
         localIssue(
           "stored-document-unreadable",
-          "El borrador persistido no pudo interpretarse; se abrió una copia canónica sin sobrescribir el valor local.",
+          "El borrador persistido no pudo interpretarse; se abrió una copia de la edición base sin sobrescribir el valor local.",
         ),
       ];
       this.#refreshCourse();
       return;
     }
     if (loaded === null || loaded === undefined) {
-      this.document = createEditorDocument({
-        ...this.documentOptions,
-        updatedAt: this.#timestamp(),
-      });
+      this.document = this.#createBaselineDocument();
+      this.#adoptHighWater(this.document);
       this.#refreshCourse();
       if (!this.readOnly) {
         const persistenceIssue = this.#persist(this.document);
@@ -142,10 +161,31 @@ export class EditorModel {
       return;
     }
 
-    const imported = importEditorDocument(loaded, this.documentOptions);
+    const imported = importEditorDocument(loaded, this.#validationOptions());
     if (imported.ok) {
-      this.document = imported.document;
-      this.warnings = imported.warnings;
+      const monotonicWarnings = this.#preserveMonotonicState(imported.document);
+      const guarded = sanitizeEditorDraft(imported.document, this.#validationOptions());
+      if (!guarded.ok) {
+        this.document = this.#createBaselineDocument();
+        this.#adoptHighWater(this.document);
+        this.#adoptTombstones(this.document);
+        this.warnings = [
+          localIssue(
+            "stored-document-rejected",
+            "El borrador persistido era inválido tras preservar sus IDs eliminados; se abrió una copia base sin sobrescribirlo.",
+          ),
+          ...guarded.errors,
+          ...imported.warnings,
+          ...monotonicWarnings,
+        ];
+        this.persistenceBlocked = true;
+        this.#refreshCourse();
+        return;
+      }
+      this.document = guarded.document;
+      this.#adoptHighWater(this.document);
+      this.#adoptTombstones(this.document);
+      this.warnings = mergeIssues(imported.warnings, guarded.warnings, monotonicWarnings);
       this.#refreshCourse();
       const loadedFromLegacyKey = Boolean(
         loadResult?.key
@@ -153,21 +193,23 @@ export class EditorModel {
         && loadResult.key !== this.storage.key,
       );
       const migratedSchema = loaded?.schemaVersion !== EDITOR_DOCUMENT_SCHEMA_VERSION;
-      if (!this.readOnly && (loadedFromLegacyKey || migratedSchema)) {
+      if (
+        !this.readOnly
+        && (loadedFromLegacyKey || migratedSchema || monotonicWarnings.length > 0)
+      ) {
         const persistenceIssue = this.#persist(this.document);
         if (persistenceIssue) this.warnings = mergeIssues(this.warnings, [persistenceIssue]);
       }
       return;
     }
 
-    this.document = createEditorDocument({
-      ...this.documentOptions,
-      updatedAt: this.#timestamp(),
-    });
+    this.document = this.#createBaselineDocument();
+    this.#adoptHighWater(this.document);
+    this.#adoptTombstones(this.document);
     this.warnings = [
       localIssue(
         "stored-document-rejected",
-        "El borrador persistido era inválido; se abrió una copia canónica sin sobrescribirlo.",
+        "El borrador persistido era inválido; se abrió una copia de la edición base sin sobrescribirlo.",
       ),
       ...imported.errors,
       ...imported.warnings,
@@ -180,19 +222,104 @@ export class EditorModel {
     return new EditorModel(options);
   }
 
+  #createBaselineDocument() {
+    const document = createEditorDocument({
+      ...this.documentOptions,
+      ...(this.baseDocument ? { baseDocument: this.baseDocument } : {}),
+      updatedAt: this.#timestamp(),
+    });
+    this.#preserveMonotonicState(document);
+    return document;
+  }
+
+  #adoptHighWater(document) {
+    const next = Number.isSafeInteger(document?.nextLocationSequence)
+      ? document.nextLocationSequence
+      : 1;
+    this.locationSequenceHighWater = Math.max(this.locationSequenceHighWater, next);
+    document.nextLocationSequence = this.locationSequenceHighWater;
+  }
+
+  #preserveHighWater(document) {
+    document.nextLocationSequence = Math.max(
+      this.locationSequenceHighWater,
+      Number.isSafeInteger(document.nextLocationSequence) ? document.nextLocationSequence : 1,
+    );
+  }
+
+  #validationOptions() {
+    return {
+      ...this.documentOptions,
+      trustedNextLocationSequence: this.locationSequenceHighWater,
+    };
+  }
+
+  #adoptTombstones(document) {
+    for (const record of document?.locations ?? []) {
+      if (record.lifecycle !== "deleted") continue;
+      if (!this.locationTombstones.has(record.id)) {
+        this.locationTombstones.set(record.id, structuredClone(record));
+      }
+    }
+  }
+
+  #preserveTombstones(document) {
+    const revivalIds = [];
+    if (!Array.isArray(document?.locations)) return revivalIds;
+    for (const [locationId, tombstone] of this.locationTombstones) {
+      const index = document.locations.findIndex(({ id }) => id === locationId);
+      if (index < 0) {
+        document.locations.push(structuredClone(tombstone));
+        revivalIds.push(locationId);
+      } else {
+        const current = document.locations[index];
+        if (
+          current.lifecycle !== "deleted"
+          || semanticDocument({ record: current }) !== semanticDocument({ record: tombstone })
+        ) {
+          document.locations[index] = structuredClone(tombstone);
+          revivalIds.push(locationId);
+        }
+      }
+      if (document.learningNetwork) {
+        document.learningNetwork.nodeIds = document.learningNetwork.nodeIds.filter(
+          (id) => id !== locationId,
+        );
+        document.learningNetwork.connections = document.learningNetwork.connections.filter(
+          ({ sourceId, targetId }) => sourceId !== locationId && targetId !== locationId,
+        );
+      }
+    }
+    return revivalIds;
+  }
+
+  #preserveMonotonicState(document) {
+    this.#preserveHighWater(document);
+    return this.#preserveTombstones(document).map((locationId) =>
+      localIssue(
+        "deleted-location-revival-blocked",
+        `El ID eliminado ${locationId} permanece reservado y no puede reactivarse.`,
+        "locations",
+      ));
+  }
+
   #timestamp() {
     return normalizeTimestamp(this.clock());
   }
 
   #refreshCourse() {
-    const applied = materializeEditorDraft(this.document, this.documentOptions);
+    const applied = materializeEditorDraft(this.document, this.#validationOptions());
     this.areas = applied.areas;
     this.locations = applied.locations;
+    this.tierLabels = applied.tierLabels;
+    this.locationRecordById = new Map(
+      this.document.locations.map((location) => [location.id, location]),
+    );
     this.treeTwoTopology = deriveEditorTreeTwoTopology({
       areas: this.areas,
       locations: this.locations,
     });
-    const validation = sanitizeEditorDocument(this.document, this.documentOptions);
+    const validation = sanitizeEditorDocument(this.document, this.#validationOptions());
     this.validation = {
       valid: validation.ok,
       errors: structuredClone(validation.errors),
@@ -261,7 +388,8 @@ export class EditorModel {
       );
     }
     candidate.updatedAt = this.#timestamp();
-    const result = sanitizeEditorDraft(candidate, this.documentOptions);
+    const monotonicWarnings = this.#preserveMonotonicState(candidate);
+    const result = sanitizeEditorDraft(candidate, this.#validationOptions());
     if (!result.ok) {
       return mutationFailure(
         this,
@@ -270,12 +398,15 @@ export class EditorModel {
         result.warnings,
       );
     }
+    result.warnings = mergeIssues(result.warnings, monotonicWarnings);
     if (semanticDocument(result.document) === semanticDocument(this.document)) {
       return this.#success(false, detail);
     }
 
     const persistenceIssue = this.#persist(result.document);
     if (persistenceIssue) return this.#persistenceFailure(persistenceIssue, result.warnings);
+    this.#adoptHighWater(result.document);
+    this.#adoptTombstones(result.document);
     this.#pushHistory(this.document);
     this.future = [];
     this.document = result.document;
@@ -294,10 +425,22 @@ export class EditorModel {
   }
 
   getSnapshot() {
+    const inventoryLocations = this.document.locations.filter(
+      ({ lifecycle }) => lifecycle === "inventory",
+    );
     return {
       document: structuredClone(this.document),
       areas: structuredClone(this.areas),
       locations: structuredClone(this.locations),
+      tierLabels: structuredClone(this.tierLabels),
+      inventoryLocations: structuredClone(inventoryLocations),
+      activeLocationIds: this.document.locations
+        .filter(({ lifecycle }) => lifecycle === "active")
+        .map(({ id }) => id),
+      deletedLocationIds: this.document.locations
+        .filter(({ lifecycle }) => lifecycle === "deleted")
+        .map(({ id }) => id),
+      nextLocationSequence: this.document.nextLocationSequence,
       treeTwoTopology: structuredClone(this.treeTwoTopology),
       learningNetworkTopology: structuredClone(this.treeTwoTopology),
       learningNetworkLocationIds: [
@@ -421,6 +564,89 @@ export class EditorModel {
     return this.#commit(candidate, "areas-swapped", { firstAreaId, secondAreaId });
   }
 
+  renameArea(areaId, namesOrTitle, optionalShortTitle) {
+    const current = this.document.areas.find((area) => area.id === areaId);
+    if (!current || !this.baseAreaById.has(areaId)) {
+      return mutationFailure(
+        this,
+        "unknown-area",
+        [localIssue("unknown-area", `No existe la zona ${String(areaId)}.`)],
+      );
+    }
+    const names = typeof namesOrTitle === "object" && namesOrTitle !== null
+      ? namesOrTitle
+      : { title: namesOrTitle, shortTitle: optionalShortTitle };
+    const title = names.title ?? current.title;
+    const shortTitle = names.shortTitle ?? current.shortTitle;
+    if (title === current.title && shortTitle === current.shortTitle) {
+      return this.#success(false, { areaId, title, shortTitle });
+    }
+    const candidate = structuredClone(this.document);
+    const target = candidate.areas.find((area) => area.id === areaId);
+    target.title = title;
+    target.shortTitle = shortTitle;
+    return this.#commit(candidate, "area-renamed", { areaId, title, shortTitle });
+  }
+
+  setTierLabel(tier, changes = {}) {
+    const current = this.document.tierLabels.find((label) => label.tier === tier);
+    if (!current) {
+      return mutationFailure(
+        this,
+        "unknown-tier-label",
+        [localIssue("unknown-tier-label", "Solo existen rótulos para los anillos 1 y 2.")],
+      );
+    }
+    const text = changes.text ?? current.text;
+    const offset = changes.offset ?? (
+      changes.x === undefined && changes.y === undefined
+        ? current.offset
+        : {
+            x: changes.x ?? current.offset.x,
+            y: changes.y ?? current.offset.y,
+          }
+    );
+    if (
+      text === current.text
+      && offset?.x === current.offset.x
+      && offset?.y === current.offset.y
+    ) {
+      return this.#success(false, { tier, text, offset });
+    }
+    const candidate = structuredClone(this.document);
+    const target = candidate.tierLabels.find((label) => label.tier === tier);
+    target.text = text;
+    target.offset = { x: offset?.x, y: offset?.y };
+    return this.#commit(candidate, "tier-label-updated", {
+      tier,
+      text,
+      offset: target.offset,
+    });
+  }
+
+  setTierLabelText(tier, text) {
+    return this.setTierLabel(tier, { text });
+  }
+
+  setTierLabelOffset(tier, offset) {
+    return this.setTierLabel(tier, { offset });
+  }
+
+  resetTierLabel(tier) {
+    const canonical = DEFAULT_EDITOR_TIER_LABELS.find((label) => label.tier === tier);
+    if (!canonical) {
+      return mutationFailure(
+        this,
+        "unknown-tier-label",
+        [localIssue("unknown-tier-label", "Solo existen rótulos para los anillos 1 y 2.")],
+      );
+    }
+    return this.setTierLabel(tier, {
+      text: canonical.text,
+      offset: { ...canonical.offset },
+    });
+  }
+
   setAreaAppearance(areaId, candidateAppearance) {
     if (this.readOnly) {
       return mutationFailure(
@@ -469,13 +695,264 @@ export class EditorModel {
     return this.setAreaAppearance(areaId, DEFAULT_AREA_APPEARANCE);
   }
 
-  moveLocation(locationId, placement) {
-    const current = this.document.locations.find((location) => location.id === locationId);
-    if (!current || !this.baseLocationById.has(locationId)) {
+  getLocationRecord(locationId) {
+    const record = this.document.locations.find(({ id }) => id === locationId);
+    return record ? structuredClone(record) : null;
+  }
+
+  getInventoryLocations() {
+    return this.document.locations
+      .filter(({ lifecycle }) => lifecycle === "inventory")
+      .map((record) => structuredClone(record));
+  }
+
+  getLocationLifecycleImpact(locationId) {
+    const record = this.document.locations.find(({ id }) => id === locationId);
+    if (!record) return null;
+    const incidentConnections = this.document.learningNetwork.connections.filter(
+      ({ sourceId, targetId }) => sourceId === locationId || targetId === locationId,
+    );
+    const canonical = this.baseLocationById.get(locationId);
+    return {
+      location: structuredClone(record),
+      incidentConnections: structuredClone(incidentConnections),
+      removedConnectionCount: incidentConnections.length,
+      grantedConceptIds: [...(canonical?.grants?.concepts ?? record.content?.grants?.concepts ?? [])],
+      grantedRewardIds: [...(canonical?.grants?.rewards ?? record.content?.grants?.rewards ?? [])],
+      protected: isEditorProtectedLocationId(locationId),
+    };
+  }
+
+  renameLocation(locationId, namesOrTitle, optionalShortTitle) {
+    const current = this.document.locations.find(({ id }) => id === locationId);
+    if (!current) {
       return mutationFailure(
         this,
         "unknown-location",
         [localIssue("unknown-location", `No existe el nodo ${String(locationId)}.`)],
+      );
+    }
+    if (!isEditorEditableLocation(current) || current.lifecycle === "deleted") {
+      return mutationFailure(
+        this,
+        "location-not-editable",
+        [localIssue("location-not-editable", "Solo se renombran lecciones, misiones y personajes activos o inventariados.")],
+      );
+    }
+    const names = typeof namesOrTitle === "object" && namesOrTitle !== null
+      ? namesOrTitle
+      : { title: namesOrTitle, shortTitle: optionalShortTitle };
+    const title = names.title ?? current.title;
+    const shortTitle = names.shortTitle ?? current.shortTitle;
+    if (title === current.title && shortTitle === current.shortTitle) {
+      return this.#success(false, { locationId, title, shortTitle });
+    }
+    const candidate = structuredClone(this.document);
+    const target = candidate.locations.find(({ id }) => id === locationId);
+    target.title = title;
+    target.shortTitle = shortTitle;
+    if (target.provenance === "editor-created") {
+      target.content = createGenericLocationContent(target.kind, title);
+    }
+    return this.#commit(candidate, "location-renamed", { locationId, title, shortTitle });
+  }
+
+  createLocation({ kind, areaId, offset = { x: 0, y: 0 }, title, shortTitle } = {}) {
+    if (!EDITABLE_LOCATION_KINDS.has(kind)) {
+      return mutationFailure(
+        this,
+        "non-editable-location-kind",
+        [localIssue("non-editable-location-kind", "Spider solo crea lesson, mission o npc.")],
+      );
+    }
+    if (!this.baseAreaById.has(areaId)) {
+      return mutationFailure(
+        this,
+        "unknown-location-area",
+        [localIssue("unknown-location-area", `No existe la zona ${String(areaId)}.`)],
+      );
+    }
+    let sequence = this.locationSequenceHighWater;
+    if (sequence >= Number.MAX_SAFE_INTEGER - 1) {
+      return mutationFailure(
+        this,
+        "location-sequence-exhausted",
+        [localIssue(
+          "location-sequence-exhausted",
+          "La secuencia segura de IDs está agotada; no se creó ningún nodo.",
+          "nextLocationSequence",
+        )],
+      );
+    }
+    let locationId = formatEditorCreatedLocationId(sequence);
+    const knownIds = new Set([
+      ...this.baseLocationById.keys(),
+      ...this.document.locations.map(({ id }) => id),
+    ]);
+    while (knownIds.has(locationId)) {
+      sequence += 1;
+      locationId = formatEditorCreatedLocationId(sequence);
+    }
+    const kindLabel = kind === "lesson" ? "Nueva lección" : kind === "mission" ? "Nueva misión" : "Nuevo personaje";
+    const resolvedTitle = title ?? `${kindLabel} ${String(sequence).padStart(4, "0")}`;
+    const resolvedShortTitle = shortTitle ?? resolvedTitle;
+    const record = {
+      id: locationId,
+      kind,
+      title: resolvedTitle,
+      shortTitle: resolvedShortTitle,
+      areaId,
+      offset: { x: offset?.x, y: offset?.y },
+      lifecycle: "active",
+      provenance: "editor-created",
+      content: createGenericLocationContent(kind, resolvedTitle),
+    };
+    const candidate = structuredClone(this.document);
+    candidate.locations.push(record);
+    candidate.nextLocationSequence = sequence + 1;
+    if (isEditorLearningLocation(record)) {
+      candidate.learningNetwork.nodeIds.push(locationId);
+    }
+    return this.#commit(candidate, "location-created", {
+      locationId,
+      location: record,
+    });
+  }
+
+  inventoryLocation(locationId) {
+    const current = this.document.locations.find(({ id }) => id === locationId);
+    if (!current) {
+      return mutationFailure(
+        this,
+        "unknown-location",
+        [localIssue("unknown-location", `No existe el nodo ${String(locationId)}.`)],
+      );
+    }
+    if (!isEditorEditableLocation(current)) {
+      return mutationFailure(
+        this,
+        "location-not-editable",
+        [localIssue("location-not-editable", "Este tipo de lugar no participa en el inventario Spider.")],
+      );
+    }
+    if (current.lifecycle === "deleted") {
+      return mutationFailure(
+        this,
+        "location-deleted",
+        [localIssue("location-deleted", "Un ID eliminado queda reservado y no se puede restaurar.")],
+      );
+    }
+    if (current.lifecycle === "inventory") {
+      return this.#success(false, {
+        locationId,
+        incidentConnections: [],
+        removedConnectionCount: 0,
+      });
+    }
+    const incidentConnections = this.document.learningNetwork.connections.filter(
+      ({ sourceId, targetId }) => sourceId === locationId || targetId === locationId,
+    );
+    const candidate = structuredClone(this.document);
+    candidate.locations.find(({ id }) => id === locationId).lifecycle = "inventory";
+    candidate.learningNetwork.nodeIds = candidate.learningNetwork.nodeIds.filter(
+      (id) => id !== locationId,
+    );
+    candidate.learningNetwork.connections = candidate.learningNetwork.connections.filter(
+      ({ sourceId, targetId }) => sourceId !== locationId && targetId !== locationId,
+    );
+    return this.#commit(candidate, "location-inventoried", {
+      locationId,
+      incidentConnections,
+      removedConnectionCount: incidentConnections.length,
+    });
+  }
+
+  restoreLocation(locationOrId, placement = {}) {
+    const request = typeof locationOrId === "object" && locationOrId !== null
+      ? locationOrId
+      : { id: locationOrId, ...placement };
+    const locationId = request.id;
+    const current = this.document.locations.find(({ id }) => id === locationId);
+    if (!current) {
+      return mutationFailure(
+        this,
+        "unknown-location",
+        [localIssue("unknown-location", `No existe el nodo ${String(locationId)}.`)],
+      );
+    }
+    if (current.lifecycle !== "inventory") {
+      return mutationFailure(
+        this,
+        current.lifecycle === "deleted" ? "location-deleted" : "location-not-in-inventory",
+        [localIssue("location-not-in-inventory", "Solo se restauran lugares actualmente inventariados.")],
+      );
+    }
+    const areaId = request.areaId ?? current.areaId;
+    const offset = request.offset ?? (
+      request.x === undefined && request.y === undefined
+        ? current.offset
+        : { x: request.x ?? current.offset.x, y: request.y ?? current.offset.y }
+    );
+    const candidate = structuredClone(this.document);
+    const target = candidate.locations.find(({ id }) => id === locationId);
+    target.lifecycle = "active";
+    target.areaId = areaId;
+    target.offset = { x: offset?.x, y: offset?.y };
+    if (isEditorLearningLocation(target)) {
+      candidate.learningNetwork.nodeIds.push(locationId);
+    }
+    return this.#commit(candidate, "location-restored", {
+      locationId,
+      areaId,
+      offset: target.offset,
+    });
+  }
+
+  deleteInventoryLocation(locationId) {
+    const current = this.document.locations.find(({ id }) => id === locationId);
+    if (!current) {
+      return mutationFailure(
+        this,
+        "unknown-location",
+        [localIssue("unknown-location", `No existe el nodo ${String(locationId)}.`)],
+      );
+    }
+    if (isEditorProtectedLocationId(locationId)) {
+      return mutationFailure(
+        this,
+        "protected-location-delete",
+        [localIssue("protected-location-delete", `${locationId} es un nodo académico protegido.`)],
+      );
+    }
+    if (current.lifecycle !== "inventory") {
+      return mutationFailure(
+        this,
+        "location-not-in-inventory",
+        [localIssue("location-not-in-inventory", "La eliminación permanente solo se inicia desde el inventario.")],
+      );
+    }
+    const candidate = structuredClone(this.document);
+    candidate.locations.find(({ id }) => id === locationId).lifecycle = "deleted";
+    return this.#commit(candidate, "inventory-location-deleted", {
+      locationId,
+      tombstone: true,
+    });
+  }
+
+  moveLocation(locationId, placement) {
+    const current = this.document.locations.find((location) => location.id === locationId);
+    if (!current) {
+      return mutationFailure(
+        this,
+        "unknown-location",
+        [localIssue("unknown-location", `No existe el nodo ${String(locationId)}.`)],
+      );
+    }
+    if (current.lifecycle !== "active") {
+      return mutationFailure(
+        this,
+        "location-not-active",
+        [localIssue("location-not-active", "Restaura el lugar desde el inventario antes de moverlo.")],
       );
     }
     const areaId = placement?.areaId ?? current.areaId;
@@ -523,7 +1000,9 @@ export class EditorModel {
   }
 
   connectLocations(sourceId, targetId) {
-    if (!this.baseLocationById.has(sourceId) || !this.baseLocationById.has(targetId)) {
+    const source = this.locationRecordById.get(sourceId);
+    const target = this.locationRecordById.get(targetId);
+    if (!source || !target) {
       return mutationFailure(
         this,
         "unknown-location",
@@ -531,8 +1010,10 @@ export class EditorModel {
       );
     }
     if (
-      !isEditorLearningLocation(this.baseLocationById.get(sourceId))
-      || !isEditorLearningLocation(this.baseLocationById.get(targetId))
+      source.lifecycle !== "active"
+      || target.lifecycle !== "active"
+      || !isEditorLearningLocation(source)
+      || !isEditorLearningLocation(target)
     ) {
       return mutationFailure(
         this,
@@ -609,7 +1090,7 @@ export class EditorModel {
   }
 
   removeLocationFromLearningNetwork(locationId) {
-    const location = this.baseLocationById.get(locationId);
+    const location = this.locationRecordById.get(locationId);
     if (!location) {
       return mutationFailure(
         this,
@@ -627,6 +1108,13 @@ export class EditorModel {
             "Este lugar está fuera de la Red; solo las lecciones y misiones pueden incorporarse.",
           ),
         ],
+      );
+    }
+    if (location.lifecycle !== "active") {
+      return mutationFailure(
+        this,
+        "location-not-active",
+        [localIssue("location-not-active", "El nodo debe estar activo para editar su pertenencia a la Red.")],
       );
     }
     if (!this.document.learningNetwork.nodeIds.includes(locationId)) {
@@ -654,7 +1142,7 @@ export class EditorModel {
   }
 
   addLocationToLearningNetwork(locationId) {
-    const location = this.baseLocationById.get(locationId);
+    const location = this.locationRecordById.get(locationId);
     if (!location) {
       return mutationFailure(
         this,
@@ -674,12 +1162,19 @@ export class EditorModel {
         ],
       );
     }
+    if (location.lifecycle !== "active") {
+      return mutationFailure(
+        this,
+        "location-not-active",
+        [localIssue("location-not-active", "Restaura el nodo antes de añadirlo a la Red.")],
+      );
+    }
     if (this.document.learningNetwork.nodeIds.includes(locationId)) {
       return this.#success(false, { locationId });
     }
 
     const order = new Map(
-      [...this.baseLocationById.keys()].map((id, index) => [id, index]),
+      this.document.locations.map(({ id }, index) => [id, index]),
     );
     const candidate = structuredClone(this.document);
     candidate.learningNetwork.nodeIds.push(locationId);
@@ -711,7 +1206,8 @@ export class EditorModel {
     const previous = this.history.at(-1);
     const candidate = structuredClone(previous);
     candidate.updatedAt = this.#timestamp();
-    const result = sanitizeEditorDraft(candidate, this.documentOptions);
+    const monotonicWarnings = this.#preserveMonotonicState(candidate);
+    const result = sanitizeEditorDraft(candidate, this.#validationOptions());
     if (!result.ok) {
       return mutationFailure(
         this,
@@ -720,9 +1216,12 @@ export class EditorModel {
         result.warnings,
       );
     }
+    result.warnings = mergeIssues(result.warnings, monotonicWarnings);
 
     const persistenceIssue = this.#persist(result.document);
     if (persistenceIssue) return this.#persistenceFailure(persistenceIssue, result.warnings);
+    this.#adoptHighWater(result.document);
+    this.#adoptTombstones(result.document);
     this.history.pop();
     this.future.push(structuredClone(this.document));
     this.document = result.document;
@@ -750,7 +1249,8 @@ export class EditorModel {
     const next = this.future.at(-1);
     const candidate = structuredClone(next);
     candidate.updatedAt = this.#timestamp();
-    const result = sanitizeEditorDraft(candidate, this.documentOptions);
+    const monotonicWarnings = this.#preserveMonotonicState(candidate);
+    const result = sanitizeEditorDraft(candidate, this.#validationOptions());
     if (!result.ok) {
       return mutationFailure(
         this,
@@ -759,9 +1259,12 @@ export class EditorModel {
         result.warnings,
       );
     }
+    result.warnings = mergeIssues(result.warnings, monotonicWarnings);
 
     const persistenceIssue = this.#persist(result.document);
     if (persistenceIssue) return this.#persistenceFailure(persistenceIssue, result.warnings);
+    this.#adoptHighWater(result.document);
+    this.#adoptTombstones(result.document);
     this.future.pop();
     this.#pushHistory(this.document);
     this.document = result.document;
@@ -779,13 +1282,12 @@ export class EditorModel {
         [localIssue("profile-read-only", "El perfil estudiante no puede restaurar el borrador editorial.")],
       );
     }
-    const canonical = createEditorDocument({
-      ...this.documentOptions,
-      updatedAt: this.#timestamp(),
-    });
+    const canonical = this.#createBaselineDocument();
     const changed = semanticDocument(canonical) !== semanticDocument(this.document);
     const persistenceIssue = this.#persist(canonical, { allowRecovery: true });
     if (persistenceIssue) return this.#persistenceFailure(persistenceIssue);
+    this.#adoptHighWater(canonical);
+    this.#adoptTombstones(canonical);
     this.document = canonical;
     this.history = [];
     this.future = [];
@@ -807,7 +1309,7 @@ export class EditorModel {
         [localIssue("profile-read-only", "El perfil estudiante no puede importar borradores editoriales.")],
       );
     }
-    const result = importEditorDocument(candidate, this.documentOptions);
+    const result = importEditorDocument(candidate, this.#validationOptions());
     if (!result.ok) {
       return mutationFailure(
         this,
@@ -816,26 +1318,73 @@ export class EditorModel {
         result.warnings,
       );
     }
-    const imported = structuredClone(result.document);
-    imported.updatedAt = this.#timestamp();
+    const currentRecords = new Map([
+      ...this.document.locations.map((record) => [record.id, record]),
+      ...this.locationTombstones,
+    ]);
+    for (const record of result.document.locations) {
+      if (record.provenance !== "editor-created") continue;
+      const authority = currentRecords.get(record.id);
+      if (authority && authority.kind !== record.kind) {
+        return mutationFailure(
+          this,
+          "invalid-location-kind",
+          [localIssue(
+            "invalid-location-kind",
+            `El tipo de ${record.id} no puede cambiar después de reservar su identidad.`,
+            "locations",
+          )],
+          result.warnings,
+        );
+      }
+      const sequence = Number(record.id.slice("new-node-".length));
+      if (!authority && sequence < this.locationSequenceHighWater) {
+        return mutationFailure(
+          this,
+          "reused-created-location-id",
+          [localIssue(
+            "reused-created-location-id",
+            `El ID ${record.id} pertenece a una secuencia ya consumida en esta sesión.`,
+            "locations",
+          )],
+          result.warnings,
+        );
+      }
+    }
+    const candidateDocument = structuredClone(result.document);
+    candidateDocument.updatedAt = this.#timestamp();
+    const monotonicWarnings = this.#preserveMonotonicState(candidateDocument);
+    const guarded = sanitizeEditorDraft(candidateDocument, this.#validationOptions());
+    if (!guarded.ok) {
+      return mutationFailure(
+        this,
+        guarded.errors[0]?.code ?? "invalid-editor-document",
+        guarded.errors,
+        mergeIssues(result.warnings, guarded.warnings, monotonicWarnings),
+      );
+    }
+    guarded.warnings = mergeIssues(result.warnings, guarded.warnings, monotonicWarnings);
+    const imported = guarded.document;
     const changed = semanticDocument(imported) !== semanticDocument(this.document);
     const persistenceIssue = this.#persist(imported, { allowRecovery: true });
-    if (persistenceIssue) return this.#persistenceFailure(persistenceIssue, result.warnings);
+    if (persistenceIssue) return this.#persistenceFailure(persistenceIssue, guarded.warnings);
+    this.#adoptHighWater(imported);
+    this.#adoptTombstones(imported);
     this.document = imported;
     this.history = [];
     this.future = [];
-    this.warnings = result.warnings;
+    this.warnings = guarded.warnings;
     this.#refreshCourse();
     this.#emit("editor-document-imported", { changed });
     return this.#success(changed, { imported: true });
   }
 
   exportDocument() {
-    return serializeEditorDraft(this.document, this.documentOptions);
+    return serializeEditorDraft(this.document, this.#validationOptions());
   }
 
   validate() {
-    const result = sanitizeEditorDocument(this.document, this.documentOptions);
+    const result = sanitizeEditorDocument(this.document, this.#validationOptions());
     return {
       valid: result.ok,
       errors: structuredClone(result.errors),

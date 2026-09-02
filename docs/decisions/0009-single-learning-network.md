@@ -145,3 +145,8 @@ esos lugares.
 Revisar esta decisión antes de permitir más de una raíz académica, incorporar tipos laterales a
 la red, cambiar la regla de adyacencia, crear o eliminar entidades desde Spider, mezclar anillos
 mediante Bee o sustituir el sitio estático por el servidor multiusuario de UPD-002.
+
+ADR 0010 realiza la revisión prevista para entidades: Spider puede crear, inventariar y eliminar
+`lesson`, `mission` y `npc`, pero la Red sigue conteniendo solo nodos académicos activos, conserva
+raíz única, DAG y alcance integral. Inventariar elimina aristas incidentes; no crea una segunda
+red ni permite mezclar niveles mediante Bee.

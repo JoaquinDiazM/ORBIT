@@ -44,6 +44,22 @@ export function getEditorHistoryAction(event) {
   return null;
 }
 
+export function getEditorHistorySuccessMessage(action, result = {}) {
+  const warnings = [
+    ...(result.snapshot?.warnings ?? []),
+    ...(result.snapshot?.validation?.warnings ?? []),
+  ];
+  const preservesPermanentDeletion = warnings.some(({ code } = {}) =>
+    ["deleted-location-revival-blocked", "baseline-tombstone-restored"].includes(code)
+  );
+  if (preservesPermanentDeletion) {
+    return action === "redo"
+      ? "El borrado definitivo sigue vigente; se rehicieron los demás cambios disponibles."
+      : "El borrado definitivo es irreversible; se deshicieron los demás cambios disponibles.";
+  }
+  return action === "redo" ? "Cambio rehecho." : "Cambio deshecho.";
+}
+
 export function getReadOnlyCameraPan(event) {
   const directions = {
     ArrowLeft: [-1, 0],
@@ -60,9 +76,85 @@ export function getReadOnlyCameraPan(event) {
   };
 }
 
+export function getCreateStatus(pendingPlacement) {
+  return pendingPlacement?.type === "create"
+    ? "Colocación activa: haz clic dentro de una zona; Esc cancela."
+    : "El nuevo ID será estable, monotónico y no se reutilizará.";
+}
+
+export function resolveEditorFormValue({
+  currentValue,
+  lastRenderedValue,
+  modelValue,
+  selectionChanged = false,
+} = {}) {
+  const current = String(currentValue ?? "");
+  const previous = lastRenderedValue === undefined
+    ? undefined
+    : String(lastRenderedValue);
+  const next = String(modelValue ?? "");
+  const hasUnappliedInput = !selectionChanged
+    && previous !== undefined
+    && next === previous
+    && current !== previous;
+  return hasUnappliedInput ? current : next;
+}
+
+const RENDER_FOCUS_FALLBACKS = Object.freeze({
+  connection: [
+    "editor-connection-list",
+    "editor-add-connection",
+    "editor-connection-source",
+    "editor-connect-location",
+  ],
+  inventory: ["editor-inventory-search", "editor-inventory-kind"],
+  area: ["editor-tier-label-select"],
+});
+
+export function restoreEditorRenderFocus(
+  snapshot,
+  { root, documentRef = globalThis.document } = {},
+) {
+  if (!snapshot) return null;
+  if (snapshot.element?.isConnected) return snapshot.element;
+
+  let target = snapshot.id ? documentRef?.getElementById?.(snapshot.id) : null;
+  if (!target && snapshot.key) {
+    target = [...(root?.querySelectorAll?.("[data-editor-focus-key]") ?? [])]
+      .find((candidate) => candidate.dataset.editorFocusKey === snapshot.key);
+  }
+  if (!target && snapshot.key) {
+    const group = snapshot.key.split(":", 1)[0];
+    target = (RENDER_FOCUS_FALLBACKS[group] ?? [])
+      .map((id) => documentRef?.getElementById?.(id))
+      .find((candidate) => candidate && !candidate.disabled);
+  }
+  target?.focus?.({ preventScroll: true });
+  return target ?? null;
+}
+
+export function restoreInventoryDialogFocus(
+  snapshot,
+  {
+    root,
+    documentRef = globalThis.document,
+    fallback = null,
+  } = {},
+) {
+  if (snapshot?.element?.isConnected && !snapshot.element.disabled) {
+    snapshot.element.focus?.({ preventScroll: true });
+    return snapshot.element;
+  }
+  const restored = restoreEditorRenderFocus(snapshot, { root, documentRef });
+  if (restored) return restored;
+  if (fallback && !fallback.disabled) {
+    fallback.focus?.({ preventScroll: true });
+    return fallback;
+  }
+  return null;
+}
+
 const READ_ONLY_RESTRICTION_MESSAGES = Object.freeze({
-  spider: "Spider requiere el perfil Docente.",
-  bee: "Bee requiere el perfil Docente.",
   undo: "Deshacer cambios requiere el perfil Docente.",
   redo: "Rehacer cambios requiere el perfil Docente.",
   export: "Exportar el borrador requiere el perfil Docente.",
@@ -122,6 +214,22 @@ function entryCount(entries) {
   return Array.isArray(entries) ? entries.length : 0;
 }
 
+function mergeIssueEntries(...collections) {
+  const seen = new Set();
+  const merged = [];
+  for (const entries of collections) {
+    for (const entry of Array.isArray(entries) ? entries : []) {
+      const key = typeof entry === "string"
+        ? `text:${entry}`
+        : `issue:${String(entry?.code ?? "")}\u0000${String(entry?.path ?? "")}\u0000${String(entry?.message ?? "")}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      merged.push(entry);
+    }
+  }
+  return merged;
+}
+
 function issueCountLabel(count, singular, plural) {
   return `${count} ${count === 1 ? singular : plural}`;
 }
@@ -138,7 +246,10 @@ export function getEditorImportFeedback(result) {
   }
 
   const errorCount = entryCount(result.snapshot?.validation?.errors);
-  const warningCount = entryCount(result.snapshot?.warnings);
+  const warningCount = mergeIssueEntries(
+    result.snapshot?.warnings,
+    result.snapshot?.validation?.warnings,
+  ).length;
   if (errorCount > 0) {
     return {
       publishable: false,
@@ -182,7 +293,10 @@ export function getEditorDraftBadge({
   }
 
   const errorCount = entryCount(snapshot.validation?.errors);
-  const warningCount = entryCount(snapshot.warnings);
+  const warningCount = mergeIssueEntries(
+    snapshot.warnings,
+    snapshot.validation?.warnings,
+  ).length;
   if (errorCount > 0) {
     const warningDetail = warningCount > 0
       ? ` También hay ${issueCountLabel(warningCount, "advertencia", "advertencias")}.`
@@ -214,6 +328,103 @@ function edgeKindsLabel(requirementKinds = []) {
 
 function isAcademicLocation(location) {
   return ["lesson", "mission"].includes(location?.kind);
+}
+
+const EDITABLE_LOCATION_KINDS = new Set(["lesson", "mission", "npc"]);
+const PROTECTED_LOCATION_IDS = new Set(["vector-workshop", "coulomb-observatory"]);
+
+function normalizeEdgeIds(edge) {
+  return {
+    sourceId: edge?.sourceId ?? edge?.sourceLocationId ?? edge?.from ?? null,
+    targetId: edge?.targetId ?? edge?.targetLocationId ?? edge?.to ?? null,
+  };
+}
+
+export function getInventoryLocations(snapshot = {}) {
+  if (Array.isArray(snapshot.inventoryLocations)) {
+    return snapshot.inventoryLocations.filter((location) => location?.lifecycle !== "deleted");
+  }
+  const entries = Array.isArray(snapshot.document?.locations)
+    ? snapshot.document.locations
+    : [];
+  return entries.filter((location) =>
+    ["inventory", "inventoried"].includes(location?.lifecycle ?? location?.state ?? location?.status)
+  );
+}
+
+export function getEditableActiveLocations(snapshot = {}) {
+  return (Array.isArray(snapshot.locations) ? snapshot.locations : []).filter((location) =>
+    EDITABLE_LOCATION_KINDS.has(location?.kind)
+  );
+}
+
+export function getIncidentConnectionLabels(locationId, edges = []) {
+  return (Array.isArray(edges) ? edges : [])
+    .map(normalizeEdgeIds)
+    .filter((edge) => edge.sourceId === locationId || edge.targetId === locationId)
+    .map((edge) => `${edge.sourceId} → ${edge.targetId}`)
+    .sort((first, second) => first.localeCompare(second));
+}
+
+export function refreshInventoryImpact(action, impact) {
+  const incidentConnections = getIncidentConnectionLabels(
+    action?.locationId,
+    impact?.incidentConnections,
+  );
+  return {
+    available: Boolean(impact?.location),
+    changed: JSON.stringify(incidentConnections)
+      !== JSON.stringify(action?.incidentConnections ?? []),
+    incidentConnections,
+  };
+}
+
+export function getInventoryImpactMessages(confirmation) {
+  if (!confirmation) return [];
+  const kindPhrase = {
+    lesson: "de la lección",
+    mission: "de la misión",
+    npc: "del personaje",
+  }[confirmation.kind] ?? `del ${confirmation.kind ?? "nodo"}`;
+  const connections = (confirmation.incidentConnections ?? []).map(
+    (label) => `Se eliminará la conexión ${label}.`,
+  );
+  if (confirmation.type !== "delete") {
+    return connections.length > 0
+      ? connections
+      : ["No hay conexiones incidentes que retirar."];
+  }
+  return [
+    `El contenido ${kindPhrase} dejará definitivamente el curso activo; el ID permanecerá reservado como tombstone.`,
+    ...(confirmation.grantedConceptIds ?? []).map(
+      (id) => `La concesión del concepto ${id} dejará de proceder de este nodo.`,
+    ),
+    ...(confirmation.grantedRewardIds ?? []).map(
+      (id) => `La concesión de la recompensa ${id} dejará de proceder de este nodo.`,
+    ),
+    ...connections,
+  ];
+}
+
+function getTierLabels(snapshot = {}) {
+  const defaults = [
+    { tier: 1, text: "NIVEL 1", offset: { x: 0, y: 0 } },
+    { tier: 2, text: "NIVEL 2", offset: { x: 0, y: 0 } },
+  ];
+  const entries = snapshot.tierLabels ?? snapshot.document?.tierLabels ?? [];
+  return defaults.map((fallback) => {
+    const entry = Array.isArray(entries)
+      ? entries.find((candidate) => Number(candidate?.tier) === fallback.tier)
+      : null;
+    return {
+      tier: fallback.tier,
+      text: String(entry?.text ?? entry?.label ?? fallback.text),
+      offset: {
+        x: Number.isFinite(entry?.offset?.x) ? entry.offset.x : 0,
+        y: Number.isFinite(entry?.offset?.y) ? entry.offset.y : 0,
+      },
+    };
+  });
 }
 
 function listSummary(entries = []) {
@@ -272,6 +483,13 @@ export class EditorUIController {
     this.applicationEvidence = null;
     this.reloadRequired = false;
     this.helperStatusText = "Sin comprobar";
+    this.selectedInventoryLocationId = null;
+    this.pendingInventoryAction = null;
+    this.inventoryDialogReturnFocus = null;
+    this.lastRenderedLocationId = null;
+    this.lastRenderedInventoryLocationId = null;
+    this.lastRenderedAreaId = null;
+    this.lastRenderedTier = null;
     this.destroyed = false;
 
     this.elements = {
@@ -305,6 +523,15 @@ export class EditorUIController {
       diffAreas: query("#editor-diff-areas"),
       diffLocations: query("#editor-diff-locations"),
       diffAppearances: query("#editor-diff-appearances"),
+      diffRenamedAreas: query("#editor-diff-renamed-areas"),
+      diffTierLabels: query("#editor-diff-tier-labels"),
+      diffCreatedLocations: query("#editor-diff-created-locations"),
+      diffRenamedLocations: query("#editor-diff-renamed-locations"),
+      diffInventoriedLocations: query("#editor-diff-inventoried-locations"),
+      diffRestoredLocations: query("#editor-diff-restored-locations"),
+      diffDeletedLocations: query("#editor-diff-deleted-locations"),
+      diffAddedLearningNodes: query("#editor-diff-added-learning-nodes"),
+      diffRemovedLearningNodes: query("#editor-diff-removed-learning-nodes"),
       diffAddedConnections: query("#editor-diff-added-connections"),
       diffRemovedConnections: query("#editor-diff-removed-connections"),
       validationReachability: query("#editor-validation-reachability"),
@@ -324,6 +551,8 @@ export class EditorUIController {
       beeButton: query("#editor-open-bee"),
       bowerbirdButton: query("#editor-open-bowerbird"),
       locationSelect: query("#editor-location-select"),
+      connectLocation: query("#editor-connect-location"),
+      modifyLocation: query("#editor-modify-location"),
       locationArea: query("#editor-location-area"),
       locationX: query("#editor-location-x"),
       locationY: query("#editor-location-y"),
@@ -334,11 +563,54 @@ export class EditorUIController {
       targetSelect: query("#editor-connection-target"),
       addConnection: query("#editor-add-connection"),
       connectionList: query("#editor-connection-list"),
+      locationId: query("#editor-location-id"),
+      locationTitle: query("#editor-location-title"),
+      locationShortTitle: query("#editor-location-short-title"),
+      applyLocationName: query("#editor-apply-location-name"),
+      createKind: query("#editor-create-kind"),
+      createArea: query("#editor-create-area"),
+      createX: query("#editor-create-x"),
+      createY: query("#editor-create-y"),
+      createLocation: query("#editor-create-location"),
+      armCreateLocation: query("#editor-arm-create-location"),
+      createStatus: query("#editor-create-status"),
+      openCreatedModify: query("#editor-open-created-modify"),
+      openCreatedMove: query("#editor-open-created-move"),
+      inventorySearch: query("#editor-inventory-search"),
+      inventoryKind: query("#editor-inventory-kind"),
+      activeLocationList: query("#editor-active-location-list"),
+      inventoryLocationList: query("#editor-inventory-location-list"),
+      inventoryRestoreControls: query("#editor-inventory-restore-controls"),
+      inventoryArea: query("#editor-inventory-area"),
+      inventoryX: query("#editor-inventory-x"),
+      inventoryY: query("#editor-inventory-y"),
+      restoreLocation: query("#editor-restore-location"),
+      armRestoreLocation: query("#editor-arm-restore-location"),
+      deleteLocation: query("#editor-delete-location"),
+      inventoryConfirmation: query("#editor-inventory-confirmation"),
+      inventoryConfirmationDetail: query("#editor-inventory-confirmation-detail"),
+      inventoryImpactList: query("#editor-inventory-impact-list"),
+      confirmInventoryAction: query("#editor-confirm-inventory-action"),
+      cancelInventoryAction: query("#editor-cancel-inventory-action"),
+      inventoryStatus: query("#editor-inventory-status"),
+      baseList: query("#editor-base-list"),
       ringOneList: query("#editor-ring-one-list"),
       ringTwoList: query("#editor-ring-two-list"),
+      ringOneHeading: query("#editor-ring-one-heading"),
+      ringTwoHeading: query("#editor-ring-two-heading"),
       selectedAreaSummary: query("#editor-selected-area-summary"),
       previousArea: query("#editor-area-previous"),
       nextArea: query("#editor-area-next"),
+      areaId: query("#editor-area-id"),
+      areaTitle: query("#editor-area-title"),
+      areaShortTitle: query("#editor-area-short-title"),
+      applyAreaName: query("#editor-apply-area-name"),
+      tierLabelSelect: query("#editor-tier-label-select"),
+      tierLabelText: query("#editor-tier-label-text"),
+      tierLabelX: query("#editor-tier-label-x"),
+      tierLabelY: query("#editor-tier-label-y"),
+      applyTierLabel: query("#editor-apply-tier-label"),
+      resetTierLabel: query("#editor-reset-tier-label"),
       bowerbirdArea: query("#editor-bowerbird-area"),
       bowerbirdPalette: query("#editor-bowerbird-palette"),
       bowerbirdMotif: query("#editor-bowerbird-motif"),
@@ -404,14 +676,8 @@ export class EditorUIController {
   }
 
   #applyReadOnlyControls() {
-    for (const [button, action] of [
-      [this.elements.spiderButton, "spider"],
-      [this.elements.beeButton, "bee"],
-    ]) {
-      button.setAttribute("aria-disabled", "true");
-      button.disabled = false;
-      button.title = getReadOnlyRestrictionMessage(action);
-    }
+    this.elements.spiderButton.title = "Abrir Spider en modo consulta.";
+    this.elements.beeButton.title = "Abrir Bee en modo consulta.";
     for (const [button, action] of [
       [this.elements.undo, "undo"],
       [this.elements.redo, "redo"],
@@ -428,11 +694,25 @@ export class EditorUIController {
     this.elements.importControl.setAttribute("role", "button");
     this.elements.importControl.setAttribute("tabindex", "0");
     this.elements.importControl.title = getReadOnlyRestrictionMessage("import");
+    const consultationControlIds = new Set([
+      "editor-location-select",
+      "editor-connect-location",
+      "editor-modify-location",
+      "editor-location-id",
+      "editor-inventory-search",
+      "editor-inventory-kind",
+      "editor-area-id",
+      "editor-tier-label-select",
+    ]);
     for (const panel of [this.elements.spiderPanel, this.elements.beePanel]) {
-      panel.inert = true;
-      panel.setAttribute("aria-disabled", "true");
+      panel.inert = false;
+      panel.removeAttribute("aria-disabled");
       for (const control of panel.querySelectorAll("button, input, select")) {
-        control.disabled = true;
+        const isConsultationControl = control.hasAttribute("data-spider-view")
+          || consultationControlIds.has(control.id);
+        control.disabled = !isConsultationControl;
+        if (isConsultationControl) control.removeAttribute("aria-disabled");
+        else control.setAttribute("aria-disabled", "true");
       }
     }
   }
@@ -464,11 +744,13 @@ export class EditorUIController {
     );
     on("#editor-undo", "click", () => {
       if (this.readOnly) return this.#announceReadOnlyRestriction("undo");
-      return this.#report(this.model.undo(), "Cambio deshecho.");
+      const result = this.model.undo();
+      return this.#report(result, getEditorHistorySuccessMessage("undo", result));
     });
     on("#editor-redo", "click", () => {
       if (this.readOnly) return this.#announceReadOnlyRestriction("redo");
-      return this.#report(this.model.redo(), "Cambio rehecho.");
+      const result = this.model.redo();
+      return this.#report(result, getEditorHistorySuccessMessage("redo", result));
     });
     on("#editor-export", "click", () => {
       if (this.readOnly) {
@@ -517,13 +799,22 @@ export class EditorUIController {
       }
     });
 
-    for (const radio of document.querySelectorAll('input[name="editor-spider-mode"]')) {
-      radio.addEventListener("change", () => {
-        if (radio.checked) this.app.setSpiderMode(radio.value);
+    for (const button of document.querySelectorAll("[data-spider-view]")) {
+      button.addEventListener("click", () => {
+        this.app.clearPendingPlacement?.();
+        this.app.setSpiderMode(button.dataset.spiderView);
+        this.pendingInventoryAction = null;
+        this.render();
       });
     }
     this.elements.locationSelect.addEventListener("change", () =>
       this.app.selectLocation(this.elements.locationSelect.value),
+    );
+    this.elements.connectLocation.addEventListener("change", () =>
+      this.app.selectLocation(this.elements.connectLocation.value),
+    );
+    this.elements.modifyLocation.addEventListener("change", () =>
+      this.app.selectLocation(this.elements.modifyLocation.value),
     );
     this.elements.sourceSelect.addEventListener("change", () =>
       this.app.selectLocation(this.elements.sourceSelect.value),
@@ -562,8 +853,103 @@ export class EditorUIController {
       );
       this.#report(result, "Conexión Spider añadida.");
     });
+    this.elements.applyLocationName.addEventListener("click", () => {
+      const locationId = this.app.getState().selectedLocationId;
+      this.#report(
+        this.model.renameLocation(locationId, {
+          title: this.elements.locationTitle.value,
+          shortTitle: this.elements.locationShortTitle.value,
+        }),
+        "Nombres del nodo actualizados sin cambiar su ID.",
+      );
+    });
+    this.elements.createLocation.addEventListener("click", () => {
+      this.#createLocationAt({
+        areaId: this.elements.createArea.value,
+        offset: {
+          x: Number(this.elements.createX.value),
+          y: Number(this.elements.createY.value),
+        },
+      });
+    });
+    this.elements.createKind.addEventListener("change", () => {
+      if (this.app.getState().pendingPlacement?.type !== "create") return;
+      this.app.clearPendingPlacement?.();
+      this.app.beginCreateLocation(this.elements.createKind.value);
+      this.render();
+    });
+    this.elements.armCreateLocation.addEventListener("click", () => {
+      const armed = this.app.beginCreateLocation(this.elements.createKind.value);
+      if (armed) this.toast("Haz clic dentro de una zona para crear el nodo.", "info");
+      this.render();
+    });
+    this.elements.openCreatedModify.addEventListener("click", () => {
+      this.app.setSpiderMode("modify");
+      this.render();
+      this.elements.modifyLocation.focus({ preventScroll: false });
+    });
+    this.elements.openCreatedMove.addEventListener("click", () => {
+      this.app.setSpiderMode("move");
+      this.render();
+      this.elements.locationSelect.focus({ preventScroll: false });
+    });
+    for (const filter of [this.elements.inventorySearch, this.elements.inventoryKind]) {
+      filter.addEventListener(filter === this.elements.inventorySearch ? "input" : "change", () =>
+        this.render(),
+      );
+    }
+    this.elements.restoreLocation.addEventListener("click", () => this.#restoreInventoryLocation());
+    this.elements.armRestoreLocation.addEventListener("click", () => {
+      if (!this.selectedInventoryLocationId) return;
+      const armed = this.app.beginRestoreLocation(this.selectedInventoryLocationId);
+      if (armed) this.toast("Haz clic dentro de una zona para reinsertar el nodo.", "info");
+      this.render();
+    });
+    this.elements.deleteLocation.addEventListener("click", () => {
+      if (this.selectedInventoryLocationId) {
+        this.#requestInventoryAction("delete", this.selectedInventoryLocationId);
+      }
+    });
+    this.elements.confirmInventoryAction.addEventListener("click", () =>
+      this.#confirmInventoryAction(),
+    );
+    this.elements.cancelInventoryAction.addEventListener("click", () => {
+      this.#cancelInventoryAction();
+    });
+    this.elements.inventoryConfirmation.addEventListener("cancel", (event) => {
+      event.preventDefault();
+      this.#cancelInventoryAction();
+    });
     this.elements.previousArea.addEventListener("click", () => this.#swapSelectedArea(-1));
     this.elements.nextArea.addEventListener("click", () => this.#swapSelectedArea(1));
+    this.elements.applyAreaName.addEventListener("click", () => {
+      const areaId = this.app.getState().selectedAreaId;
+      this.#report(
+        this.model.renameArea(areaId, {
+          title: this.elements.areaTitle.value,
+          shortTitle: this.elements.areaShortTitle.value,
+        }),
+        "Nombres de la zona actualizados sin cambiar su ID.",
+      );
+    });
+    this.elements.tierLabelSelect.addEventListener("change", () => {
+      this.app.selectTierLabel(Number(this.elements.tierLabelSelect.value));
+      this.render();
+    });
+    this.elements.applyTierLabel.addEventListener("click", () => this.#applyTierLabelForm());
+    this.elements.resetTierLabel.addEventListener("click", () => {
+      const tier = Number(this.elements.tierLabelSelect.value);
+      this.#report(this.model.resetTierLabel(tier), `Rótulo del nivel ${tier} restaurado.`);
+    });
+    for (const button of document.querySelectorAll("[data-tier-label-nudge-x][data-tier-label-nudge-y]")) {
+      button.addEventListener("click", (event) => {
+        const multiplier = event.shiftKey ? 10 : 4;
+        this.#nudgeTierLabel(
+          Number(button.dataset.tierLabelNudgeX) * multiplier,
+          Number(button.dataset.tierLabelNudgeY) * multiplier,
+        );
+      });
+    }
     this.elements.bowerbirdArea.addEventListener("change", () => {
       this.app.selectArea(this.elements.bowerbirdArea.value);
       this.render();
@@ -637,7 +1023,7 @@ export class EditorUIController {
       return;
     }
     this.#disarmDraftReset();
-    this.#report(this.model.reset(), "Borrador restaurado a la cartografía canónica.");
+    this.#report(this.model.reset(), "Borrador restaurado a la edición base.");
   }
 
   #disarmDraftReset() {
@@ -1174,6 +1560,17 @@ export class EditorUIController {
       this.elements.diffAreas.textContent = listSummary(diff.movedAreas);
       this.elements.diffLocations.textContent = listSummary(diff.movedLocations);
       this.elements.diffAppearances.textContent = listSummary(diff.changedAreaAppearances);
+      this.elements.diffRenamedAreas.textContent = listSummary(diff.renamedAreas);
+      this.elements.diffTierLabels.textContent = listSummary(
+        (diff.changedTierLabels ?? []).map((tier) => `nivel ${tier}`),
+      );
+      this.elements.diffCreatedLocations.textContent = listSummary(diff.createdLocations);
+      this.elements.diffRenamedLocations.textContent = listSummary(diff.renamedLocations);
+      this.elements.diffInventoriedLocations.textContent = listSummary(diff.inventoriedLocations);
+      this.elements.diffRestoredLocations.textContent = listSummary(diff.restoredLocations);
+      this.elements.diffDeletedLocations.textContent = listSummary(diff.deletedLocations);
+      this.elements.diffAddedLearningNodes.textContent = listSummary(diff.addedLearningNodes);
+      this.elements.diffRemovedLearningNodes.textContent = listSummary(diff.removedLearningNodes);
       this.elements.diffAddedConnections.textContent = listSummary(diff.addedConnections);
       this.elements.diffRemovedConnections.textContent = listSummary(diff.removedConnections);
       this.elements.validationReachability.textContent = `${validation.reachableAreas} zonas · ${validation.reachableLocations} lugares · ${validation.reachableConcepts} conceptos`;
@@ -1244,6 +1641,11 @@ export class EditorUIController {
 
   #handleKeyDown(event) {
     if (this.applicationBusy) return;
+    if (event.code === "Escape" && this.pendingInventoryAction) {
+      event.preventDefault();
+      this.#cancelInventoryAction();
+      return;
+    }
     if (event.code === "Escape") {
       if (this.app.cancelGesture()) event.preventDefault();
       return;
@@ -1256,7 +1658,7 @@ export class EditorUIController {
         return;
       }
       const result = historyAction === "redo" ? this.model.redo() : this.model.undo();
-      this.#report(result, historyAction === "redo" ? "Cambio rehecho." : "Cambio deshecho.");
+      this.#report(result, getEditorHistorySuccessMessage(historyAction, result));
       return;
     }
     if (isTextEntry(event.target) || document.activeElement !== this.elements.canvas) return;
@@ -1275,9 +1677,15 @@ export class EditorUIController {
       return;
     }
     if (this.app.getState().activeTool === "bee") {
-      this.#swapSelectedArea(direction[0] + direction[1] < 0 ? -1 : 1);
+      if (this.app.getState().selectedTierLabel) {
+        const step = event.shiftKey ? 10 : 1;
+        this.#nudgeTierLabel(direction[0] * step, direction[1] * step);
+      } else {
+        this.#swapSelectedArea(direction[0] + direction[1] < 0 ? -1 : 1);
+      }
       return;
     }
+    if (this.app.getState().spiderMode !== "move") return;
     const step = event.shiftKey ? 10 : 1;
     this.#nudgeSelected(direction[0] * step, direction[1] * step);
   }
@@ -1293,6 +1701,168 @@ export class EditorUIController {
       },
     });
     this.#report(result, "Posición del nodo actualizada.");
+  }
+
+  #createLocationAt({ areaId, offset }) {
+    const result = this.model.createLocation({
+      kind: this.elements.createKind.value,
+      areaId,
+      offset,
+    });
+    if (this.#report(result, "Nodo creado con contenido inicial y un ID estable.")) {
+      const locationId = result?.detail?.locationId
+        ?? result?.locationId
+        ?? result?.detail?.location?.id;
+      if (locationId) this.app.selectLocation(locationId);
+      this.app.clearPendingPlacement?.();
+      this.render();
+    }
+  }
+
+  #requestInventoryAction(type, locationId) {
+    const snapshot = this.model.getSnapshot();
+    const location = [
+      ...getEditableActiveLocations(snapshot),
+      ...getInventoryLocations(snapshot),
+    ].find((entry) => entry.id === locationId);
+    if (!location) return;
+    if (type === "delete" && PROTECTED_LOCATION_IDS.has(locationId)) {
+      this.toast(`${locationId} es un nodo académico protegido y no puede borrarse.`, "warning");
+      return;
+    }
+    const impact = this.model.getLocationLifecycleImpact?.(locationId);
+    const incidentConnections = getIncidentConnectionLabels(
+      locationId,
+      impact?.incidentConnections ?? this.app.getState().edges,
+    );
+    this.inventoryDialogReturnFocus = this.#captureRenderFocus();
+    this.pendingInventoryAction = {
+      type,
+      locationId,
+      title: location.shortTitle ?? location.title ?? location.id,
+      incidentConnections,
+      kind: impact?.location?.kind ?? location.kind,
+      provenance: impact?.location?.provenance ?? location.provenance,
+      grantedConceptIds: [...(impact?.grantedConceptIds ?? [])],
+      grantedRewardIds: [...(impact?.grantedRewardIds ?? [])],
+    };
+    this.render();
+    this.elements.inventoryConfirmation.focus({ preventScroll: false });
+  }
+
+  #cancelInventoryAction({ announce = true } = {}) {
+    if (!this.pendingInventoryAction) return false;
+    const returnFocus = this.inventoryDialogReturnFocus;
+    this.pendingInventoryAction = null;
+    this.inventoryDialogReturnFocus = null;
+    if (this.elements.inventoryConfirmation.open) {
+      this.elements.inventoryConfirmation.close();
+    }
+    if (announce) this.toast("Operación de Inventario cancelada.", "info");
+    this.render();
+
+    restoreInventoryDialogFocus(returnFocus, {
+      root: this.elements.shell,
+      documentRef: document,
+      fallback: this.elements.inventorySearch,
+    });
+    return true;
+  }
+
+  #confirmInventoryAction() {
+    const action = this.pendingInventoryAction;
+    if (!action) return;
+    const refreshed = refreshInventoryImpact(
+      action,
+      this.model.getLocationLifecycleImpact?.(action.locationId),
+    );
+    if (!refreshed.available) {
+      this.pendingInventoryAction = null;
+      this.inventoryDialogReturnFocus = null;
+      this.toast("El nodo cambió o dejó de estar disponible; inicia nuevamente la operación.", "warning");
+      this.render();
+      this.elements.inventorySearch.focus({ preventScroll: false });
+      return;
+    }
+    if (refreshed.changed) {
+      this.pendingInventoryAction = {
+        ...action,
+        incidentConnections: refreshed.incidentConnections,
+      };
+      this.toast("Las conexiones cambiaron. Revisa el impacto actualizado y confirma otra vez.", "warning");
+      this.render();
+      this.elements.confirmInventoryAction.focus({ preventScroll: false });
+      return;
+    }
+    this.pendingInventoryAction = null;
+    this.inventoryDialogReturnFocus = null;
+    const result = action.type === "delete"
+      ? this.model.deleteInventoryLocation(action.locationId)
+      : this.model.inventoryLocation(action.locationId);
+    const accepted = this.#report(
+      result,
+      action.type === "delete"
+        ? `${action.locationId} fue borrado definitivamente; su ID no se reutilizará.`
+        : `${action.locationId} fue guardado en Inventario y sus conexiones incidentes se retiraron.`,
+    );
+    if (accepted) {
+      this.app.reconcileLocationSelection?.();
+      this.selectedInventoryLocationId = action.type === "delete" ? null : action.locationId;
+      this.app.clearPendingPlacement?.();
+    }
+    this.render();
+    this.elements.inventorySearch.focus({ preventScroll: false });
+  }
+
+  #restoreInventoryLocation() {
+    if (!this.selectedInventoryLocationId) return;
+    const locationId = this.selectedInventoryLocationId;
+    const result = this.model.restoreLocation(locationId, {
+      areaId: this.elements.inventoryArea.value,
+      offset: {
+        x: Number(this.elements.inventoryX.value),
+        y: Number(this.elements.inventoryY.value),
+      },
+    });
+    if (this.#report(result, `${locationId} fue reinsertado; reconecta el nodo antes de aplicar.`)) {
+      this.selectedInventoryLocationId = null;
+      this.app.selectLocation(locationId);
+      this.app.clearPendingPlacement?.();
+      this.render();
+    }
+  }
+
+  #applyTierLabelForm() {
+    const tier = Number(this.elements.tierLabelSelect.value);
+    const changes = {
+      text: this.elements.tierLabelText.value,
+      offset: {
+        x: Number(this.elements.tierLabelX.value),
+        y: Number(this.elements.tierLabelY.value),
+      },
+    };
+    this.app.selectTierLabel(tier);
+    this.#report(
+      this.model.setTierLabel(tier, changes),
+      `Rótulo del nivel ${tier} actualizado.`,
+    );
+  }
+
+  #nudgeTierLabel(dx, dy) {
+    const snapshot = this.model.getSnapshot();
+    const tier = this.app.getState().selectedTierLabel
+      ?? Number(this.elements.tierLabelSelect.value);
+    const label = getTierLabels(snapshot).find((entry) => entry.tier === tier);
+    if (!label) return;
+    this.app.selectTierLabel(tier);
+    this.#report(
+      this.model.setTierLabel(tier, {
+        text: label.text,
+        offset: { x: label.offset.x + dx, y: label.offset.y + dy },
+      }),
+      "Rótulo desplazado.",
+      { quietSuccess: true },
+    );
   }
 
   #nudgeSelected(dx, dy) {
@@ -1364,7 +1934,7 @@ export class EditorUIController {
     const messages = {
       "same-area": "La zona ya ocupa esa posición.",
       "origin-fixed": "Campamento Base permanece fijo en el centro.",
-      "ring-mismatch": "Bee no permite mezclar el anillo teórico con el de aplicaciones.",
+      "ring-mismatch": "Bee no permite mezclar zonas de niveles distintos.",
       "unknown-area": "La zona seleccionada no pertenece al curso.",
       "unknown-location": "El nodo seleccionado no pertenece al curso.",
       "location-outside-safe-margin": "El nodo debe permanecer dentro del margen seguro del hexágono.",
@@ -1373,6 +1943,13 @@ export class EditorUIController {
       "learning-network-cycle": "La conexión produciría un ciclo en la Red de aprendizaje.",
       "non-learning-location": "Solo las lecciones y misiones pueden pertenecer a la Red de aprendizaje.",
       "location-not-in-learning-network": "Añade primero ambos nodos a la Red de aprendizaje.",
+      "non-editable-location-kind": "Spider solo crea lecciones, misiones o personajes secundarios.",
+      "location-not-editable": "Este tipo de lugar no admite autoría ni Inventario.",
+      "location-not-in-inventory": "El nodo debe estar guardado en Inventario para realizar esa acción.",
+      "protected-location-delete": "Ese nodo académico está protegido contra el borrado definitivo.",
+      "location-deleted": "El ID fue eliminado y permanece reservado.",
+      "location-sequence-exhausted": "La secuencia segura de IDs está agotada; no se creó ningún nodo.",
+      "location-sequence-advance-too-large": "El borrador reserva demasiados IDs sin materializarlos; no se importó.",
       "nothing-to-undo": "No hay cambios para deshacer.",
       "nothing-to-redo": "No hay cambios para rehacer.",
       "profile-read-only": "El perfil estudiante no puede modificar el borrador editorial.",
@@ -1383,10 +1960,6 @@ export class EditorUIController {
   }
 
   showView(view) {
-    if (this.readOnly && (view === "spider" || view === "bee")) {
-      this.#announceReadOnlyRestriction(view);
-      return;
-    }
     this.currentView = view;
     this.elements.inspector.hidden = false;
     if (["spider", "bee", "bowerbird"].includes(view)) this.app.setActiveTool(view);
@@ -1399,11 +1972,30 @@ export class EditorUIController {
     }
   }
 
+  #captureRenderFocus() {
+    const active = document.activeElement;
+    if (!active || !this.elements.shell.contains(active)) return null;
+    return {
+      element: active,
+      id: active.id || null,
+      key: active.dataset?.editorFocusKey ?? null,
+    };
+  }
+
+  #restoreRenderFocus(snapshot) {
+    restoreEditorRenderFocus(snapshot, {
+      root: this.elements.shell,
+      documentRef: document,
+    });
+  }
+
   render() {
+    const renderFocus = this.#captureRenderFocus();
     const snapshot = this.model.getSnapshot();
     const appearanceSnapshot = this.bowerbird.getSnapshot();
     const appState = this.app.getState();
     this.elements.shell.dataset.tool = appState.activeTool;
+    this.elements.shell.dataset.spiderMode = appState.spiderMode;
     this.elements.shell.dataset.dragging = String(Boolean(appState.gesture));
     this.elements.areaCount.textContent = String(snapshot.areas.length);
     this.elements.locationCount.textContent = String(snapshot.locations.length);
@@ -1420,43 +2012,56 @@ export class EditorUIController {
 
     this.elements.spiderButton.setAttribute(
       "aria-pressed",
-      String(!this.readOnly && appState.activeTool === "spider"),
+      String(appState.activeTool === "spider"),
     );
     this.elements.beeButton.setAttribute(
       "aria-pressed",
-      String(!this.readOnly && appState.activeTool === "bee"),
+      String(appState.activeTool === "bee"),
     );
     this.elements.bowerbirdButton.setAttribute(
       "aria-pressed",
       String(appState.activeTool === "bowerbird"),
     );
-    const activeMode = this.readOnly
-      ? "Bowerbird · personal"
-      : appState.activeTool === "bowerbird"
-        ? "Bowerbird"
-        : appState.activeTool === "bee"
-        ? "Bee"
-        : `Spider · ${appState.spiderMode === "connect" ? "conectar" : "mover"}`;
+    const spiderModeLabel = {
+      move: "mover",
+      connect: "conectar",
+      modify: "modificar",
+      create: "crear",
+      inventory: "inventario",
+    }[appState.spiderMode] ?? "mover";
+    const activeMode = appState.activeTool === "bowerbird"
+      ? this.readOnly ? "Bowerbird · personal" : "Bowerbird"
+      : appState.activeTool === "bee"
+        ? this.readOnly ? "Bee · consulta" : "Bee"
+        : this.readOnly
+          ? `Spider · consulta · ${spiderModeLabel}`
+          : `Spider · ${spiderModeLabel}`;
     this.elements.activeTool.textContent = activeMode;
-    for (const radio of document.querySelectorAll('input[name="editor-spider-mode"]')) {
-      radio.checked = radio.value === appState.spiderMode;
+    for (const button of document.querySelectorAll("[data-spider-view]")) {
+      const selected = button.dataset.spiderView === appState.spiderMode;
+      button.setAttribute("aria-pressed", String(selected));
+    }
+    for (const view of document.querySelectorAll("[data-editor-spider-view]")) {
+      view.hidden = view.dataset.editorSpiderView !== appState.spiderMode;
     }
 
     this.#renderInspectorView();
     this.#renderWarnings({
-      warnings: [
-        ...this.courseWarnings,
-        ...(snapshot.validation?.errors ?? []),
-        ...(snapshot.validation?.warnings ?? []),
-        ...snapshot.warnings,
-        ...appearanceSnapshot.warnings,
-      ],
+      warnings: mergeIssueEntries(
+        this.courseWarnings,
+        snapshot.validation?.errors,
+        snapshot.validation?.warnings,
+        snapshot.warnings,
+        appearanceSnapshot.warnings,
+      ),
     });
     this.#renderApplicationState();
     this.#renderLocationControls(snapshot, appState);
+    this.#renderInventoryControls(snapshot, appState);
     this.#renderAreaControls(snapshot, appState);
     this.#renderBowerbirdControls(appearanceSnapshot, appState);
     this.#renderConnections(snapshot, appState);
+    this.#restoreRenderFocus(renderFocus);
   }
 
   #renderInspectorView() {
@@ -1531,23 +2136,86 @@ export class EditorUIController {
     return option;
   }
 
+  #syncFormValue(control, value, { force = false } = {}) {
+    const next = String(value ?? "");
+    const previous = control.dataset.editorRenderedValue;
+    const resolved = resolveEditorFormValue({
+      currentValue: control.value,
+      lastRenderedValue: previous,
+      modelValue: next,
+      selectionChanged: force,
+    });
+    control.value = resolved;
+    control.dataset.editorRenderedValue = next;
+    return resolved === next;
+  }
+
+  #areaGroups(snapshot) {
+    const labels = getTierLabels(snapshot);
+    return [
+      ["Base", snapshot.areas.filter((area) => area.tier === 0)],
+      [labels.find((entry) => entry.tier === 1)?.text ?? "Nivel 1", snapshot.areas.filter((area) => area.tier === 1)],
+      [labels.find((entry) => entry.tier === 2)?.text ?? "Nivel 2", snapshot.areas.filter((area) => area.tier === 2)],
+    ];
+  }
+
   #renderLocationControls(snapshot, appState) {
     const selected = snapshot.locations.find(
       (location) => location.id === appState.selectedLocationId,
     ) ?? snapshot.locations[0];
     if (!selected) return;
-    if (selected.id !== appState.selectedLocationId) this.app.selectLocation(selected.id);
+    const locationChanged = selected.id !== this.lastRenderedLocationId;
+    this.lastRenderedLocationId = selected.id;
 
     this.#replaceSelectOptions(this.elements.locationSelect, snapshot.locations, selected.id);
-    this.#replaceSelectOptions(this.elements.locationArea, snapshot.areas, selected.areaId, {
-      groups: [
-        ["Base", snapshot.areas.filter((area) => area.tier === 0)],
-        ["Anillo 1 · teoría", snapshot.areas.filter((area) => area.tier === 1)],
-        ["Anillo 2 · aplicaciones", snapshot.areas.filter((area) => area.tier === 2)],
-      ],
+    this.#replaceSelectOptions(this.elements.connectLocation, snapshot.locations, selected.id);
+    this.#replaceSelectOptions(this.elements.modifyLocation, snapshot.locations, selected.id);
+    for (const option of this.elements.modifyLocation.options) {
+      const location = snapshot.locations.find(({ id }) => id === option.value);
+      option.disabled = !this.readOnly && !EDITABLE_LOCATION_KINDS.has(location?.kind);
+    }
+    const previousRenderedAreaId = this.elements.locationArea.dataset.editorRenderedValue;
+    const areaCandidate = resolveEditorFormValue({
+      currentValue: this.elements.locationArea.value,
+      lastRenderedValue: previousRenderedAreaId,
+      modelValue: selected.areaId,
+      selectionChanged: locationChanged,
     });
-    this.elements.locationX.value = String(Math.round(selected.offset.x * 100) / 100);
-    this.elements.locationY.value = String(Math.round(selected.offset.y * 100) / 100);
+    const displayedAreaId = snapshot.areas.some(({ id }) => id === areaCandidate)
+      ? areaCandidate
+      : selected.areaId;
+    this.#replaceSelectOptions(this.elements.locationArea, snapshot.areas, displayedAreaId, {
+      groups: this.#areaGroups(snapshot),
+    });
+    this.elements.locationArea.dataset.editorRenderedValue = selected.areaId;
+    this.#replaceSelectOptions(this.elements.createArea, snapshot.areas, this.elements.createArea.value || selected.areaId, {
+      groups: this.#areaGroups(snapshot),
+    });
+    this.#syncFormValue(
+      this.elements.locationX,
+      Math.round(selected.offset.x * 100) / 100,
+      { force: locationChanged },
+    );
+    this.#syncFormValue(
+      this.elements.locationY,
+      Math.round(selected.offset.y * 100) / 100,
+      { force: locationChanged },
+    );
+    this.elements.locationId.value = selected.id;
+    this.#syncFormValue(
+      this.elements.locationTitle,
+      selected.title ?? selected.id,
+      { force: locationChanged },
+    );
+    this.#syncFormValue(
+      this.elements.locationShortTitle,
+      selected.shortTitle ?? selected.title ?? selected.id,
+      { force: locationChanged },
+    );
+    const editable = EDITABLE_LOCATION_KINDS.has(selected.kind);
+    this.elements.locationTitle.disabled = !editable || this.readOnly;
+    this.elements.locationShortTitle.disabled = !editable || this.readOnly;
+    this.elements.applyLocationName.disabled = !editable || this.readOnly;
 
     const memberIds = new Set(snapshot.learningNetworkLocationIds ?? []);
     const academic = isAcademicLocation(selected);
@@ -1580,7 +2248,163 @@ export class EditorUIController {
     this.elements.addConnection.disabled = connectable.length < 2 || this.readOnly;
   }
 
+  #renderInventoryControls(snapshot, appState) {
+    const active = getEditableActiveLocations(snapshot);
+    const inventory = getInventoryLocations(snapshot);
+    const term = this.elements.inventorySearch.value.trim().toLocaleLowerCase("es");
+    const kind = this.elements.inventoryKind.value;
+    const matches = (location) => {
+      const kindMatches = kind === "all" || location.kind === kind;
+      const haystack = `${location.id} ${location.title ?? ""} ${location.shortTitle ?? ""}`
+        .toLocaleLowerCase("es");
+      return kindMatches && (!term || haystack.includes(term));
+    };
+
+    const empty = (message) => {
+      const paragraph = document.createElement("p");
+      paragraph.className = "editor-inventory-empty";
+      paragraph.textContent = message;
+      return paragraph;
+    };
+    const entry = (location, actionLabel, action, selected = false, disabled = false) => {
+      const row = document.createElement("article");
+      row.className = "editor-inventory-entry";
+      if (selected) row.setAttribute("aria-current", "true");
+      const copy = document.createElement("div");
+      const title = document.createElement("strong");
+      title.textContent = location.shortTitle ?? location.title ?? location.id;
+      const meta = document.createElement("small");
+      meta.textContent = `${location.kind} · ${location.id}${
+        PROTECTED_LOCATION_IDS.has(location.id) ? " · protegido contra borrado" : ""
+      }`;
+      copy.append(title, meta);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = actionLabel;
+      button.setAttribute(
+        "aria-label",
+        `${actionLabel} ${location.shortTitle ?? location.title ?? location.id} (${location.id})`,
+      );
+      button.disabled = disabled;
+      button.dataset.editorFocusKey = `inventory:${actionLabel}:${location.id}`;
+      button.addEventListener("click", action);
+      row.append(copy, button);
+      return row;
+    };
+
+    const activeRows = active.filter(matches).map((location) =>
+      entry(
+        location,
+        "Guardar",
+        () => this.#requestInventoryAction("inventory", location.id),
+        location.id === appState.selectedLocationId && appState.spiderMode === "inventory",
+        this.readOnly,
+      )
+    );
+    this.elements.activeLocationList.replaceChildren(
+      ...(activeRows.length > 0 ? activeRows : [empty("No hay nodos activos que coincidan.")]),
+    );
+
+    const inventoryRows = inventory.filter(matches).map((location) =>
+      entry(
+        location,
+        "Seleccionar",
+        () => {
+          this.selectedInventoryLocationId = location.id;
+          this.pendingInventoryAction = null;
+          this.app.clearPendingPlacement?.();
+          this.render();
+        },
+        location.id === this.selectedInventoryLocationId,
+      )
+    );
+    this.elements.inventoryLocationList.replaceChildren(
+      ...(inventoryRows.length > 0 ? inventoryRows : [empty("El Inventario está vacío o no hay coincidencias.")]),
+    );
+
+    const selected = inventory.find((location) => location.id === this.selectedInventoryLocationId);
+    if (!selected && this.selectedInventoryLocationId) this.selectedInventoryLocationId = null;
+    const inventoryLocationChanged = selected?.id !== this.lastRenderedInventoryLocationId;
+    this.elements.inventoryRestoreControls.hidden = !selected;
+    if (selected) {
+      const areaCandidate = resolveEditorFormValue({
+        currentValue: this.elements.inventoryArea.value,
+        lastRenderedValue: this.elements.inventoryArea.dataset.editorRenderedValue,
+        modelValue: selected.areaId,
+        selectionChanged: inventoryLocationChanged,
+      });
+      this.#replaceSelectOptions(
+        this.elements.inventoryArea,
+        snapshot.areas,
+        snapshot.areas.some(({ id }) => id === areaCandidate) ? areaCandidate : selected.areaId,
+        { groups: this.#areaGroups(snapshot) },
+      );
+      this.elements.inventoryArea.dataset.editorRenderedValue = selected.areaId;
+      this.#syncFormValue(
+        this.elements.inventoryX,
+        Number.isFinite(selected.offset?.x) ? selected.offset.x : 0,
+        { force: inventoryLocationChanged },
+      );
+      this.#syncFormValue(
+        this.elements.inventoryY,
+        Number.isFinite(selected.offset?.y) ? selected.offset.y : 0,
+        { force: inventoryLocationChanged },
+      );
+      const protectedLocation = PROTECTED_LOCATION_IDS.has(selected.id);
+      this.elements.deleteLocation.disabled = this.readOnly || protectedLocation;
+      this.elements.deleteLocation.title = protectedLocation
+        ? "Este nodo académico canónico puede inventariarse, pero nunca borrarse."
+        : "Borra la entidad y conserva su ID como tombstone no reutilizable.";
+      this.elements.inventoryStatus.textContent = protectedLocation
+        ? `${selected.id} está protegido: puede reinsertarse, pero no borrarse definitivamente.`
+        : `${selected.id} está fuera del mapamundi y listo para reinsertarse o borrarse.`;
+    } else {
+      this.elements.inventoryStatus.textContent = inventory.length === 0
+        ? "El Inventario está vacío."
+        : "Selecciona un nodo guardado para revisar sus acciones.";
+    }
+    this.lastRenderedInventoryLocationId = selected?.id ?? null;
+
+    const placement = appState.pendingPlacement;
+    this.elements.armCreateLocation.setAttribute(
+      "aria-pressed",
+      String(placement?.type === "create"),
+    );
+    this.elements.armRestoreLocation.setAttribute(
+      "aria-pressed",
+      String(placement?.type === "restore"),
+    );
+    this.elements.createStatus.textContent = getCreateStatus(placement);
+
+    const confirmation = this.pendingInventoryAction;
+    if (confirmation) {
+      this.elements.inventoryConfirmationDetail.textContent = confirmation.type === "delete"
+        ? `Borrarás definitivamente ${confirmation.title} (${confirmation.locationId}), un ${confirmation.kind ?? "nodo"} de origen ${confirmation.provenance ?? "editorial"}. Su ID no podrá reutilizarse.`
+        : `Guardarás ${confirmation.title} (${confirmation.locationId}) fuera del mapa y de la Red de aprendizaje.`;
+      const impacts = getInventoryImpactMessages(confirmation);
+      this.elements.inventoryImpactList.replaceChildren(...impacts.map((impact) => {
+        const item = document.createElement("li");
+        item.textContent = impact;
+        return item;
+      }));
+      this.elements.confirmInventoryAction.textContent = confirmation.type === "delete"
+        ? "Confirmar borrado definitivo"
+        : "Confirmar envío a Inventario";
+      if (!this.elements.inventoryConfirmation.open) {
+        this.elements.inventoryConfirmation.showModal();
+      }
+    } else {
+      this.elements.inventoryImpactList.replaceChildren();
+      if (this.elements.inventoryConfirmation.open) {
+        this.elements.inventoryConfirmation.close();
+      }
+    }
+  }
+
   #renderAreaControls(snapshot, appState) {
+    const tierLabels = getTierLabels(snapshot);
+    this.elements.ringOneHeading.textContent = tierLabels.find((entry) => entry.tier === 1)?.text ?? "Nivel 1";
+    this.elements.ringTwoHeading.textContent = tierLabels.find((entry) => entry.tier === 2)?.text ?? "Nivel 2";
     const renderRing = (container, tier) => {
       const buttons = snapshot.areas
         .filter((area) => area.tier === tier)
@@ -1591,21 +2415,56 @@ export class EditorUIController {
           button.textContent = area.shortTitle ?? area.title;
           button.title = `${area.title} · hex(${area.q}, ${area.r})`;
           button.dataset.areaId = area.id;
-          button.disabled = this.readOnly;
+          button.dataset.editorFocusKey = `area:${area.id}`;
           button.setAttribute("aria-pressed", String(area.id === appState.selectedAreaId));
           button.addEventListener("click", () => this.app.selectArea(area.id));
           return button;
         });
       container.replaceChildren(...buttons);
     };
+    renderRing(this.elements.baseList, 0);
     renderRing(this.elements.ringOneList, 1);
     renderRing(this.elements.ringTwoList, 2);
     const selected = snapshot.areas.find((area) => area.id === appState.selectedAreaId);
+    const areaChanged = selected?.id !== this.lastRenderedAreaId;
+    this.lastRenderedAreaId = selected?.id ?? null;
     this.elements.selectedAreaSummary.textContent = selected
-      ? `${selected.title}: anillo ${selected.tier}, hex(${selected.q}, ${selected.r}).`
-      : "Selecciona una zona del anillo 1 o 2.";
+      ? `${selected.title}: nivel ${selected.tier}, hex(${selected.q}, ${selected.r}).`
+      : appState.selectedTierLabel
+        ? `Rótulo del nivel ${appState.selectedTierLabel} seleccionado.`
+        : "Selecciona una zona de los niveles 1 o 2.";
     this.elements.previousArea.disabled = this.readOnly || !selected || selected.tier === 0;
     this.elements.nextArea.disabled = this.readOnly || !selected || selected.tier === 0;
+    this.elements.areaId.value = selected?.id ?? "";
+    this.#syncFormValue(this.elements.areaTitle, selected?.title ?? "", { force: areaChanged });
+    this.#syncFormValue(
+      this.elements.areaShortTitle,
+      selected?.shortTitle ?? selected?.title ?? "",
+      { force: areaChanged },
+    );
+    this.elements.areaTitle.disabled = this.readOnly || !selected;
+    this.elements.areaShortTitle.disabled = this.readOnly || !selected;
+    this.elements.applyAreaName.disabled = this.readOnly || !selected;
+
+    const selectedTier = appState.selectedTierLabel
+      ?? Number(this.elements.tierLabelSelect.value || 1);
+    const selectedLabel = tierLabels.find((entry) => entry.tier === selectedTier) ?? tierLabels[0];
+    const tierChanged = selectedLabel.tier !== this.lastRenderedTier;
+    this.lastRenderedTier = selectedLabel.tier;
+    this.elements.tierLabelSelect.value = String(selectedLabel.tier);
+    this.#syncFormValue(this.elements.tierLabelText, selectedLabel.text, { force: tierChanged });
+    this.#syncFormValue(this.elements.tierLabelX, selectedLabel.offset.x, { force: tierChanged });
+    this.#syncFormValue(this.elements.tierLabelY, selectedLabel.offset.y, { force: tierChanged });
+    this.elements.tierLabelSelect.disabled = false;
+    for (const control of [
+      this.elements.tierLabelText,
+      this.elements.tierLabelX,
+      this.elements.tierLabelY,
+      this.elements.applyTierLabel,
+      this.elements.resetTierLabel,
+    ]) {
+      control.disabled = this.readOnly;
+    }
   }
 
   #renderBowerbirdControls(appearanceSnapshot, appState) {
@@ -1620,11 +2479,10 @@ export class EditorUIController {
       appearanceSnapshot.areas,
       selected.id,
       {
-        groups: [
-          ["Base", appearanceSnapshot.areas.filter((area) => area.tier === 0)],
-          ["Anillo 1 · teoría", appearanceSnapshot.areas.filter((area) => area.tier === 1)],
-          ["Anillo 2 · aplicaciones", appearanceSnapshot.areas.filter((area) => area.tier === 2)],
-        ],
+        groups: this.#areaGroups({
+          areas: appearanceSnapshot.areas,
+          tierLabels: getTierLabels(this.model.getSnapshot()),
+        }),
       },
     );
 
@@ -1703,6 +2561,7 @@ export class EditorUIController {
       const remove = document.createElement("button");
       remove.type = "button";
       remove.textContent = "Quitar conexión";
+      remove.dataset.editorFocusKey = `connection:${edge.sourceId}:${edge.targetId}`;
       remove.disabled = this.readOnly;
       remove.addEventListener("click", () => {
         this.#report(

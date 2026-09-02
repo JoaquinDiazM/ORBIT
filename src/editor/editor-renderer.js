@@ -10,6 +10,10 @@ const TWO_PI = Math.PI * 2;
 const DEFAULT_LOCATION_HIT_RADIUS_PX = 28;
 const LOCATION_RADIUS_PX = 18;
 const EDITOR_EDGE_COLOR = "rgba(255, 209, 102, 0.96)";
+const DEFAULT_TIER_LABELS = Object.freeze([
+  { tier: 1, text: "NIVEL 1", offset: { x: 0, y: 0 } },
+  { tier: 2, text: "NIVEL 2", offset: { x: 0, y: 0 } },
+]);
 
 function finite(value, fallback = 0) {
   return Number.isFinite(value) ? value : fallback;
@@ -92,6 +96,81 @@ function createAreaCenterIndex(areas, hexSize) {
   );
 }
 
+function normalizeTierLabels(tierLabels = []) {
+  const candidates = Array.isArray(tierLabels) ? tierLabels : [];
+  return DEFAULT_TIER_LABELS.map((fallback) => {
+    const candidate = candidates.find((entry) => Number(entry?.tier) === fallback.tier);
+    const text = String(candidate?.text ?? candidate?.label ?? fallback.text).trim() || fallback.text;
+    return {
+      tier: fallback.tier,
+      text,
+      offset: {
+        x: finite(candidate?.offset?.x ?? candidate?.x),
+        y: finite(candidate?.offset?.y ?? candidate?.y),
+      },
+    };
+  });
+}
+
+function getRingOutline(areas, centerByAreaId, tier, hexSize = WORLD_CONFIG.hexSize) {
+  const centers = areas
+    .filter((area) => Number(area?.tier) === tier)
+    .map((area) => centerByAreaId.get(area.id))
+    .filter(Boolean)
+    .sort((first, second) => Math.atan2(first.y, first.x) - Math.atan2(second.y, second.x));
+  if (centers.length < 3) return [];
+  return centers.map((point) => {
+    const distance = Math.max(1, Math.hypot(point.x, point.y));
+    const expansion = hexSize * 0.7;
+    return {
+      x: point.x + (point.x / distance) * expansion,
+      y: point.y + (point.y / distance) * expansion,
+    };
+  });
+}
+
+/**
+ * Describes the world-space boxes used to draw and hit-test Bee's tier labels.
+ * The box remains a constant size on screen while its editorial offset is kept
+ * in world coordinates.
+ */
+export function getTierLabelLayouts({
+  areas = [],
+  tierLabels = [],
+  zoom = 1,
+  hexSize = WORLD_CONFIG.hexSize,
+} = {}) {
+  const safeAreas = Array.isArray(areas) ? areas : [];
+  const scale = 1 / safeZoom(zoom);
+  const centerByAreaId = createAreaCenterIndex(safeAreas, hexSize);
+  return normalizeTierLabels(tierLabels).flatMap((label) => {
+    const outline = getRingOutline(safeAreas, centerByAreaId, label.tier, hexSize);
+    if (outline.length < 3) return [];
+    const top = outline.reduce((current, point) => point.y < current.y ? point : current);
+    const width = Math.max(54, label.text.length * 6.2 + 16) * scale;
+    const height = 24 * scale;
+    const x = top.x + label.offset.x;
+    const y = top.y - 20 * scale + label.offset.y;
+    return [{ ...label, x, y, width, height, outline }];
+  });
+}
+
+export function findTierLabelAtWorldPoint({
+  x,
+  y,
+  areas = [],
+  tierLabels = [],
+  zoom = 1,
+} = {}) {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+  return getTierLabelLayouts({ areas, tierLabels, zoom }).find((label) =>
+    x >= label.x - label.width / 2
+    && x <= label.x + label.width / 2
+    && y >= label.y - label.height / 2
+    && y <= label.y + label.height / 2
+  ) ?? null;
+}
+
 function locationPosition(location, centerByAreaId) {
   const center = centerByAreaId.get(location?.areaId);
   if (!center) return null;
@@ -113,6 +192,12 @@ function previewPosition(preview, fallback, centerByAreaId) {
     x: center.x + finite(preview.offset.x),
     y: center.y + finite(preview.offset.y),
   };
+}
+
+export function getLocationDragPreview(preview) {
+  return preview?.type === "location" && typeof preview.locationId === "string"
+    ? preview
+    : null;
 }
 
 /**
@@ -269,6 +354,10 @@ export class EditorRenderer {
     connectionPreview = null,
     beeTargetAreaId = null,
     beeTargetValid = false,
+    tierLabels = [],
+    selectedTierLabel = null,
+    hoveredTierLabel = null,
+    tierLabelPreview = null,
     timeSeconds = 0,
     reducedMotion = false,
   } = {}) {
@@ -281,7 +370,8 @@ export class EditorRenderer {
     const centerByAreaId = createAreaCenterIndex(safeAreas, WORLD_CONFIG.hexSize);
     const rawPositionByLocationId = new Map();
     const positionByLocationId = new Map();
-    const previewLocationId = dragPreview?.locationId ?? selectedLocationId;
+    const locationDragPreview = getLocationDragPreview(dragPreview);
+    const previewLocationId = locationDragPreview?.locationId ?? null;
 
     for (const location of safeLocations) {
       const position = locationPosition(location, centerByAreaId);
@@ -290,7 +380,7 @@ export class EditorRenderer {
       positionByLocationId.set(
         location.id,
         location.id === previewLocationId
-          ? previewPosition(dragPreview, position, centerByAreaId)
+          ? previewPosition(locationDragPreview, position, centerByAreaId)
           : position,
       );
     }
@@ -312,13 +402,23 @@ export class EditorRenderer {
       finite(timeSeconds),
       Boolean(reducedMotion),
     );
-    this.#drawRingFrames(safeAreas, centerByAreaId, zoom);
+    this.#drawRingFrames({
+      areas: safeAreas,
+      centerByAreaId,
+      zoom,
+      tierLabels,
+      selectedTierLabel,
+      hoveredTierLabel,
+      tierLabelPreview,
+      activeTool,
+    });
     this.#drawEdges(safeEdges, positionByLocationId, zoom);
 
     if (String(activeTool).toLowerCase() === "bee") {
       this.#drawBeeOverlay({
         centerByAreaId,
         selectedAreaId,
+        hoveredAreaId,
         beeTargetAreaId,
         beeTargetValid,
         dragPreview,
@@ -341,7 +441,7 @@ export class EditorRenderer {
       rawPositionByLocationId,
       selectedLocationId,
       hoveredLocationId,
-      dragPreview,
+      dragPreview: locationDragPreview,
       activeTool,
       zoom,
     });
@@ -400,37 +500,40 @@ export class EditorRenderer {
     context.restore();
   }
 
-  #drawRingFrames(areas, centerByAreaId, zoom) {
+  #drawRingFrames({
+    areas,
+    centerByAreaId,
+    zoom,
+    tierLabels,
+    selectedTierLabel,
+    hoveredTierLabel,
+    tierLabelPreview,
+    activeTool,
+  }) {
     const context = this.context;
     const lineScale = 1 / zoom;
     const ringStyles = new Map([
       [1, {
-        label: "ANILLO 1 · TEORÍA",
         color: "rgba(151, 218, 255, 0.32)",
         dash: [],
       }],
       [2, {
-        label: "ANILLO 2 · APLICACIONES",
         color: "rgba(255, 209, 102, 0.3)",
         dash: [12 * lineScale, 8 * lineScale],
       }],
     ]);
 
+    const effectiveLabels = normalizeTierLabels(tierLabels).map((label) =>
+      Number(tierLabelPreview?.tier) === label.tier && tierLabelPreview?.offset
+        ? { ...label, offset: tierLabelPreview.offset }
+        : label
+    );
+    const layouts = getTierLabelLayouts({ areas, tierLabels: effectiveLabels, zoom });
+
     for (const [tier, style] of ringStyles) {
-      const centers = areas
-        .filter((area) => area.tier === tier)
-        .map((area) => centerByAreaId.get(area.id))
-        .filter(Boolean)
-        .sort((first, second) => Math.atan2(first.y, first.x) - Math.atan2(second.y, second.x));
-      if (centers.length < 3) continue;
-      const outline = centers.map((point) => {
-        const distance = Math.max(1, Math.hypot(point.x, point.y));
-        const expansion = WORLD_CONFIG.hexSize * 0.7;
-        return {
-          x: point.x + (point.x / distance) * expansion,
-          y: point.y + (point.y / distance) * expansion,
-        };
-      });
+      const layout = layouts.find((entry) => entry.tier === tier);
+      const outline = layout?.outline ?? getRingOutline(areas, centerByAreaId, tier);
+      if (outline.length < 3 || !layout) continue;
 
       context.save();
       context.strokeStyle = style.color;
@@ -440,31 +543,48 @@ export class EditorRenderer {
       context.stroke();
       context.restore();
 
-      const top = outline.reduce((current, point) => point.y < current.y ? point : current);
       this.#drawWorldLabel(
-        style.label,
-        top.x,
-        top.y - 20 * lineScale,
+        layout.text,
+        layout.x,
+        layout.y,
         zoom,
         tier === 1 ? "rgba(13, 47, 68, 0.9)" : "rgba(63, 50, 25, 0.9)",
+        {
+          highlighted: String(activeTool).toLowerCase() === "bee"
+            && (Number(selectedTierLabel) === tier || Number(hoveredTierLabel) === tier),
+          selected: String(activeTool).toLowerCase() === "bee"
+            && Number(selectedTierLabel) === tier,
+          width: layout.width,
+          height: layout.height,
+        },
       );
     }
   }
 
-  #drawWorldLabel(text, x, y, zoom, background) {
+  #drawWorldLabel(text, x, y, zoom, background, {
+    highlighted = false,
+    selected = false,
+    width = null,
+    height = null,
+  } = {}) {
     const context = this.context;
     const scale = 1 / zoom;
     context.save();
     context.font = `800 ${10.5 * scale}px system-ui, sans-serif`;
     context.textAlign = "center";
     context.textBaseline = "middle";
-    const width = context.measureText(text).width + 16 * scale;
-    const height = 24 * scale;
-    roundedRectPath(context, x - width / 2, y - height / 2, width, height, 7 * scale);
+    const boxWidth = width ?? context.measureText(text).width + 16 * scale;
+    const boxHeight = height ?? 24 * scale;
+    roundedRectPath(context, x - boxWidth / 2, y - boxHeight / 2, boxWidth, boxHeight, 7 * scale);
     context.fillStyle = background;
     context.fill();
-    context.strokeStyle = "rgba(194, 237, 255, 0.28)";
-    context.lineWidth = 1 * scale;
+    context.strokeStyle = selected
+      ? "rgba(255, 221, 120, 0.98)"
+      : highlighted
+        ? "rgba(132, 232, 255, 0.86)"
+        : "rgba(194, 237, 255, 0.28)";
+    context.lineWidth = (selected ? 3 : highlighted ? 2 : 1) * scale;
+    context.setLineDash(selected ? [6 * scale, 4 * scale] : []);
     context.stroke();
     context.fillStyle = "rgba(235, 249, 255, 0.88)";
     context.fillText(text, x, y + 0.5 * scale);
@@ -596,6 +716,7 @@ export class EditorRenderer {
   #drawBeeOverlay({
     centerByAreaId,
     selectedAreaId,
+    hoveredAreaId,
     beeTargetAreaId,
     beeTargetValid,
     dragPreview,
@@ -604,7 +725,25 @@ export class EditorRenderer {
     const context = this.context;
     const lineScale = 1 / zoom;
     const selectedCenter = centerByAreaId.get(selectedAreaId);
+    const hoveredCenter = centerByAreaId.get(hoveredAreaId);
     const targetCenter = centerByAreaId.get(beeTargetAreaId);
+
+    if (
+      hoveredCenter
+      && hoveredAreaId !== selectedAreaId
+      && hoveredAreaId !== beeTargetAreaId
+    ) {
+      context.save();
+      polygonPath(
+        context,
+        hexCorners(hoveredCenter.x, hoveredCenter.y, WORLD_CONFIG.hexSize - 16),
+      );
+      context.strokeStyle = "rgba(132, 232, 255, 0.82)";
+      context.lineWidth = 2 * lineScale;
+      context.setLineDash([8 * lineScale, 6 * lineScale]);
+      context.stroke();
+      context.restore();
+    }
 
     if (selectedCenter) {
       context.save();

@@ -70,19 +70,20 @@ completo; Estudiante entra con Spider/Bee en consulta y Bowerbird personal; Debu
 queda bloqueado antes de crear el modelo. Mantiene una interfaz análoga, pero no ejecuta una
 sesión de aprendizaje ni concede progreso.
 
-Dos docks retractables separan operaciones generales y herramientas editoriales. **Spider**
-mueve lugares, incorpora o retira lecciones/misiones y edita todas las conexiones académicas
-explícitas. **Bee** intercambia zonas dentro de
-su mismo anillo, sin mover la Base ni mezclar fundamentos de `tier 1` con aplicaciones de
-`tier 2`. **Bowerbird** selecciona paletas, motivos y contornos versionados sin alterar geometría
-o progreso.
+Dos docks retractables separan operaciones generales y herramientas editoriales. **Spider** se
+divide en Mover, Conectar, Modificar, Crear e Inventario: administra lugares académicos o NPC,
+sus nombres, su ciclo de vida y todas las conexiones académicas explícitas. **Bee** intercambia
+zonas dentro de su mismo `tier`, edita sus nombres y permite configurar los rótulos cartográficos
+de ambos niveles sin mover la Base ni mezclar niveles. **Bowerbird** selecciona paletas, motivos
+y contornos versionados sin alterar geometría o progreso.
 
-El documento Docente usa esquema editorial `v3`, autoguardado local, importación/exportación JSON
-e historial. Es independiente de los tres avances `v4`; las apariencias personales Estudiante
-usan otro contrato y no se exportan. **Resumen** puede validar, mostrar el diff y el impacto, y
-aplicar la edición mediante un helper exclusivo de loopback con respaldo y recuperación. Esa
-operación reinicia los tres progresos, conserva documento/preferencias y construye `dist/`, pero
-no muta Git ni despliega.
+El documento Docente usa esquema editorial `v5`, autoguardado local, importación/exportación JSON
+e historial, con migración exacta desde los esquemas publicados. Mantiene IDs monotónicos y
+tombstones para que un nodo borrado no se reutilice. Es independiente de los tres avances `v4`;
+las apariencias personales Estudiante usan otro contrato y no se exportan. **Resumen** puede
+validar, mostrar el diff y el impacto, y aplicar la edición mediante un helper exclusivo de
+loopback con respaldo y recuperación. Esa operación reinicia los tres progresos, conserva
+documento/preferencias y construye `dist/`, pero no muta Git ni despliega.
 
 ## Red de aprendizaje y apertura territorial
 
@@ -183,9 +184,9 @@ El proyecto debe privilegiar contenido y ejercicios sobre producción audiovisua
 - assets costosos;
 - animaciones largas.
 
-La cohorte `0.6.0` no añade backend público, autenticación, gráficos 3D, telemetría ni
+La implementación no añade backend público, autenticación, gráficos 3D, telemetría ni nuevas
 dependencias. El avance dentro de etapas, los parámetros de figuras y las respuestas parciales
-siguen siendo estado de sesión. Progreso `v4`, documento Editor `v3`, preferencias Bowerbird `v1`
+siguen siendo estado de sesión. Progreso `v4`, documento Editor `v5`, preferencias Bowerbird `v1`
 y edición de curso `v1` usan claves y migraciones distintas.
 
 La entrada Editor estática no puede escribir el repositorio. Solo el helper local iniciado

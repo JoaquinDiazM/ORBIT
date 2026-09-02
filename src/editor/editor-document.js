@@ -15,12 +15,37 @@ import { LOCATIONS } from "../data/locations.js";
 import { AREAS, WORLD_CONFIG } from "../data/world.js";
 
 export const EDITOR_DOCUMENT_KIND = "orbit-editor-project";
-export const EDITOR_DOCUMENT_SCHEMA_VERSION = 3;
+export const EDITOR_DOCUMENT_SCHEMA_VERSION = 5;
 export const EDITOR_COURSE_ID = "electromagnetism-applied";
-export const EDITOR_BASE_DATA_VERSION = "0.6.0";
+export const EDITOR_BASE_DATA_VERSION = "0.7.0";
 export const EDITOR_LOCATION_SAFE_MARGIN = 28;
 export const EDITOR_LEARNING_NETWORK_ROOT_ID = "vector-workshop";
 export const EDITOR_LEARNING_LOCATION_KINDS = LEARNING_LOCATION_KINDS;
+export const EDITOR_LOCATION_LIFECYCLES = Object.freeze(["active", "inventory", "deleted"]);
+export const EDITOR_LOCATION_PROVENANCES = Object.freeze(["canonical", "editor-created"]);
+export const EDITOR_EDITABLE_LOCATION_KINDS = Object.freeze(["lesson", "mission", "npc"]);
+export const EDITOR_PROTECTED_LOCATION_IDS = Object.freeze([
+  EDITOR_LEARNING_NETWORK_ROOT_ID,
+  "coulomb-observatory",
+]);
+export const EDITOR_CREATED_LOCATION_ID_PREFIX = "new-node-";
+export const DEFAULT_EDITOR_TIER_LABELS = Object.freeze([
+  Object.freeze({ tier: 1, text: "ANILLO 1 · TEORÍA", offset: Object.freeze({ x: 0, y: 0 }) }),
+  Object.freeze({ tier: 2, text: "ANILLO 2 · APLICACIONES", offset: Object.freeze({ x: 0, y: 0 }) }),
+]);
+
+const CREATED_LOCATION_ID_PATTERN = /^new-node-(\d{4,})$/;
+export const EDITOR_TITLE_MAX_LENGTH = 96;
+export const EDITOR_SHORT_TITLE_MAX_LENGTH = 48;
+export const EDITOR_TIER_LABEL_MAX_LENGTH = 72;
+// Leaves ample room for the application envelope under the helper's 1 MiB
+// request boundary, so every structurally accepted draft is actually sendable.
+export const EDITOR_DOCUMENT_MAX_SERIALIZED_BYTES = 900_000;
+export const EDITOR_MAX_EXTERNAL_LOCATION_SEQUENCE_ADVANCE = 10_000;
+const TIER_LABEL_MAX_OFFSET = 640;
+const EDITABLE_LOCATION_KIND_SET = new Set(EDITOR_EDITABLE_LOCATION_KINDS);
+const LIFECYCLE_SET = new Set(EDITOR_LOCATION_LIFECYCLES);
+const PROTECTED_LOCATION_ID_SET = new Set(EDITOR_PROTECTED_LOCATION_IDS);
 
 const LEGACY_ACADEMIC_DERIVED_CONNECTIONS = Object.freeze([
   ["antenna-range", "atacama-array"],
@@ -34,6 +59,14 @@ const LEGACY_ACADEMIC_DERIVED_CONNECTIONS = Object.freeze([
 
 export function isEditorLearningLocation(location) {
   return isLearningLocation(location);
+}
+
+export function isEditorEditableLocation(location) {
+  return EDITABLE_LOCATION_KIND_SET.has(location?.kind);
+}
+
+export function isEditorProtectedLocationId(locationId) {
+  return PROTECTED_LOCATION_ID_SET.has(locationId);
 }
 
 function issue(code, message, path = null) {
@@ -55,6 +88,12 @@ function dateString(value, fallback) {
   return value;
 }
 
+function normalizedName(value, maxLength = EDITOR_TITLE_MAX_LENGTH) {
+  if (typeof value !== "string") return null;
+  const result = value.trim();
+  return result && !/[\r\n]/.test(result) && result.length <= maxLength ? result : null;
+}
+
 function canonicalContext(options = {}) {
   const baseAreas = Array.isArray(options.baseAreas) ? options.baseAreas : AREAS;
   const baseLocations = Array.isArray(options.baseLocations)
@@ -65,6 +104,12 @@ function canonicalContext(options = {}) {
   const baseDataVersion = options.baseDataVersion ?? EDITOR_BASE_DATA_VERSION;
   const areaById = new Map(baseAreas.map((area) => [area.id, area]));
   const locationById = new Map(baseLocations.map((location) => [location.id, location]));
+  const baselineCandidate = options.baseDocument ?? options.editorDocument;
+  const editorBaseline = isRecord(baselineCandidate)
+    && baselineCandidate.kind === EDITOR_DOCUMENT_KIND
+    && baselineCandidate.schemaVersion === EDITOR_DOCUMENT_SCHEMA_VERSION
+    ? baselineCandidate
+    : null;
 
   return {
     baseAreas,
@@ -74,6 +119,24 @@ function canonicalContext(options = {}) {
     baseDataVersion,
     areaById,
     locationById,
+    editorBaseline,
+    editorBaselineAreaById: new Map(
+      (Array.isArray(editorBaseline?.areas) ? editorBaseline.areas : [])
+        .map((area) => [area.id, area]),
+    ),
+    editorBaselineLocationById: new Map(
+      (Array.isArray(editorBaseline?.locations) ? editorBaseline.locations : [])
+        .map((location) => [location.id, location]),
+    ),
+    editorBaselineTierLabelByTier: new Map(
+      (Array.isArray(editorBaseline?.tierLabels) ? editorBaseline.tierLabels : [])
+        .map((label) => [label.tier, label]),
+    ),
+    trustedNextLocationSequence:
+      Number.isSafeInteger(options.trustedNextLocationSequence)
+      && options.trustedNextLocationSequence >= 1
+        ? options.trustedNextLocationSequence
+        : null,
   };
 }
 
@@ -85,9 +148,53 @@ function compareConnections(first, second) {
   );
 }
 
+function createdLocationSequence(locationId) {
+  const match = typeof locationId === "string" ? CREATED_LOCATION_ID_PATTERN.exec(locationId) : null;
+  if (!match) return null;
+  const sequence = Number(match[1]);
+  if (
+    !Number.isSafeInteger(sequence)
+    || sequence < 1
+    || sequence >= Number.MAX_SAFE_INTEGER
+    || formatEditorCreatedLocationId(sequence) !== locationId
+  ) {
+    return null;
+  }
+  return sequence;
+}
+
+function compareLocationRecords(first, second, context) {
+  const firstIndex = context.baseLocations.findIndex(({ id }) => id === first.id);
+  const secondIndex = context.baseLocations.findIndex(({ id }) => id === second.id);
+  if (firstIndex >= 0 || secondIndex >= 0) {
+    if (firstIndex < 0) return 1;
+    if (secondIndex < 0) return -1;
+    return firstIndex - secondIndex;
+  }
+  return (createdLocationSequence(first.id) ?? Number.MAX_SAFE_INTEGER)
+    - (createdLocationSequence(second.id) ?? Number.MAX_SAFE_INTEGER)
+    || first.id.localeCompare(second.id);
+}
+
 function canonicalAreaAppearance(area) {
   const result = sanitizeAreaAppearance(area?.appearance ?? DEFAULT_AREA_APPEARANCE);
   return structuredClone(result.ok ? result.appearance : DEFAULT_AREA_APPEARANCE);
+}
+
+function defaultTierLabels() {
+  return DEFAULT_EDITOR_TIER_LABELS.map((label) => ({
+    tier: label.tier,
+    text: label.text,
+    offset: { ...label.offset },
+  }));
+}
+
+function baselineTierLabels(context) {
+  const defaults = defaultTierLabels();
+  return defaults.map((fallback) => {
+    const baseline = context.editorBaselineTierLabelByTier.get(fallback.tier);
+    return baseline ? structuredClone(baseline) : fallback;
+  });
 }
 
 function canonicalConnections(baseLocations) {
@@ -106,6 +213,12 @@ function academicLocationIds(locations) {
   return locations.filter(isEditorLearningLocation).map((location) => location.id);
 }
 
+function activeAcademicRecordIds(records) {
+  return records
+    .filter((record) => record.lifecycle === "active" && isEditorLearningLocation(record))
+    .map(({ id }) => id);
+}
+
 function academicConnections(locations) {
   const ids = new Set(academicLocationIds(locations));
   return canonicalConnections(locations)
@@ -114,9 +227,138 @@ function academicConnections(locations) {
     .sort(compareConnections);
 }
 
+export function formatEditorCreatedLocationId(sequence) {
+  const value = Math.max(1, Math.trunc(Number(sequence)) || 1);
+  return `${EDITOR_CREATED_LOCATION_ID_PREFIX}${String(value).padStart(4, "0")}`;
+}
+
+export function createGenericLocationContent(kind, title = "Nuevo nodo") {
+  if (!EDITABLE_LOCATION_KIND_SET.has(kind)) {
+    throw new TypeError(`No existe una plantilla editorial para ${String(kind)}.`);
+  }
+  const safeTitle = normalizedName(title, EDITOR_TITLE_MAX_LENGTH) ?? "Nuevo nodo";
+  const content = {
+    marker: kind === "lesson" ? "L" : kind === "mission" ? "M" : "N",
+    interactionRadius: kind === "npc" ? 70 : 78,
+    visibility: "visibleWhenAreaUnlocked",
+    grants: {},
+    objective: kind === "npc"
+      ? `Contenido provisional: presentar el contexto de ${safeTitle} sin evaluación.`
+      : `Contenido provisional: definir y comprobar el objetivo de aprendizaje de ${safeTitle}.`,
+    sections: [{
+      title: "Contenido provisional",
+      paragraphs: [kind === "npc"
+        ? "Este personaje editorial contiene contexto demostrativo. Sustituye este texto por una explicación revisada antes de publicar contenido definitivo."
+        : "Este nodo editorial contiene material demostrativo. Sustituye este texto por contenido disciplinar revisado antes de una publicación definitiva."],
+    }],
+    sources: [],
+  };
+  if (kind === "npc") {
+    return {
+      ...content,
+      exercise: {
+        type: "acknowledge",
+        prompt: "Confirma que leíste este contexto provisional.",
+        buttonLabel: "Continuar",
+        explanation: "Contexto provisional registrado.",
+      },
+    };
+  }
+  return {
+    ...content,
+    exercise: {
+      type: "choice",
+      prompt: "¿Qué describe mejor el estado actual de este nodo?",
+      choices: [
+        { id: "content-provisional", label: "Es contenido provisional pendiente de revisión disciplinar" },
+        { id: "content-final", label: "Es contenido definitivo listo para una publicación académica" },
+      ],
+      answerId: "content-provisional",
+      explanation: "El nodo fue creado desde una plantilla genérica y permanece marcado como provisional.",
+    },
+  };
+}
+
+function canonicalAreaRecord(area) {
+  return {
+    id: area.id,
+    q: normalizeZero(area.q),
+    r: normalizeZero(area.r),
+    title: normalizedName(area.title, EDITOR_TITLE_MAX_LENGTH) ?? area.id,
+    shortTitle: normalizedName(area.shortTitle, EDITOR_SHORT_TITLE_MAX_LENGTH)
+      ?? normalizedName(area.title, EDITOR_SHORT_TITLE_MAX_LENGTH)
+      ?? area.id,
+    appearance: canonicalAreaAppearance(area),
+  };
+}
+
+function baselineAreaRecord(area, context) {
+  const baseline = context.editorBaselineAreaById.get(area.id);
+  if (!baseline) return canonicalAreaRecord(area);
+  const appearance = sanitizeAreaAppearance(baseline.appearance);
+  const title = normalizedName(baseline.title, EDITOR_TITLE_MAX_LENGTH);
+  const shortTitle = normalizedName(
+    baseline.shortTitle,
+    EDITOR_SHORT_TITLE_MAX_LENGTH,
+  );
+  if (
+    !Number.isInteger(baseline.q)
+    || !Number.isInteger(baseline.r)
+    || !title
+    || !shortTitle
+    || !appearance.ok
+  ) {
+    return canonicalAreaRecord(area);
+  }
+  return {
+    id: area.id,
+    q: normalizeZero(baseline.q),
+    r: normalizeZero(baseline.r),
+    title,
+    shortTitle,
+    appearance: structuredClone(appearance.appearance),
+  };
+}
+
+function canonicalLocationRecord(location, placement = location) {
+  return {
+    id: location.id,
+    kind: location.kind,
+    title: normalizedName(location.title, EDITOR_TITLE_MAX_LENGTH) ?? location.id,
+    shortTitle: normalizedName(location.shortTitle, EDITOR_SHORT_TITLE_MAX_LENGTH)
+      ?? normalizedName(location.title, EDITOR_SHORT_TITLE_MAX_LENGTH)
+      ?? location.id,
+    areaId: placement.areaId ?? location.areaId,
+    offset: {
+      x: normalizeZero(placement.offset?.x ?? location.offset.x),
+      y: normalizeZero(placement.offset?.y ?? location.offset.y),
+    },
+    lifecycle: "active",
+    provenance: "canonical",
+  };
+}
+
+function baselineLocationRecord(location, context) {
+  const baseline = context.editorBaselineLocationById.get(location.id);
+  return baseline ? structuredClone(baseline) : canonicalLocationRecord(location);
+}
+
 export function createEditorDocument(options = {}) {
   const context = canonicalContext(options);
   const updatedAt = dateString(options.updatedAt, new Date().toISOString());
+
+  const baseDocument = options.baseDocument ?? options.editorDocument;
+  if (baseDocument !== undefined && baseDocument !== null) {
+    const sanitizeOptions = { ...options };
+    delete sanitizeOptions.baseDocument;
+    delete sanitizeOptions.editorDocument;
+    const result = sanitizeEditorDraft(baseDocument, sanitizeOptions);
+    if (result.ok) {
+      const document = structuredClone(result.document);
+      document.updatedAt = updatedAt;
+      return document;
+    }
+  }
 
   return {
     kind: EDITOR_DOCUMENT_KIND,
@@ -124,20 +366,10 @@ export function createEditorDocument(options = {}) {
     appearanceCatalogVersion: AREA_APPEARANCE_CATALOG_VERSION,
     courseId: context.courseId,
     baseDataVersion: context.baseDataVersion,
-    areas: context.baseAreas.map((area) => ({
-      id: area.id,
-      q: normalizeZero(area.q),
-      r: normalizeZero(area.r),
-      appearance: canonicalAreaAppearance(area),
-    })),
-    locations: context.baseLocations.map((location) => ({
-      id: location.id,
-      areaId: location.areaId,
-      offset: {
-        x: normalizeZero(location.offset.x),
-        y: normalizeZero(location.offset.y),
-      },
-    })),
+    areas: context.baseAreas.map(canonicalAreaRecord),
+    tierLabels: defaultTierLabels(),
+    locations: context.baseLocations.map((location) => canonicalLocationRecord(location)),
+    nextLocationSequence: 1,
     learningNetwork: {
       nodeIds: academicLocationIds(context.baseLocations),
       connections: academicConnections(context.baseLocations),
@@ -163,29 +395,74 @@ function parseCandidate(candidate) {
   }
 }
 
+export function migrateEditorDocumentV3ToV4(candidate, options = {}) {
+  if (!isRecord(candidate) || candidate.schemaVersion !== 3) {
+    throw new TypeError("La migración v3→v4 requiere un documento editorial v3.");
+  }
+  const context = canonicalContext(options);
+  const result = structuredClone(candidate);
+  result.schemaVersion = 4;
+  result.areas = (Array.isArray(result.areas) ? result.areas : []).map((area) => {
+    const canonical = context.areaById.get(area?.id);
+    const baseline = canonical ? baselineAreaRecord(canonical, context) : null;
+    return {
+      ...area,
+      title: normalizedName(area?.title, EDITOR_TITLE_MAX_LENGTH)
+        ?? normalizedName(baseline?.title, EDITOR_TITLE_MAX_LENGTH)
+        ?? normalizedName(canonical?.title, EDITOR_TITLE_MAX_LENGTH)
+        ?? String(area?.id ?? "Zona"),
+      shortTitle: normalizedName(area?.shortTitle, EDITOR_SHORT_TITLE_MAX_LENGTH)
+        ?? normalizedName(baseline?.shortTitle, EDITOR_SHORT_TITLE_MAX_LENGTH)
+        ?? normalizedName(canonical?.shortTitle, EDITOR_SHORT_TITLE_MAX_LENGTH)
+        ?? normalizedName(canonical?.title, EDITOR_SHORT_TITLE_MAX_LENGTH)
+        ?? String(area?.id ?? "Zona"),
+    };
+  });
+  result.tierLabels = baselineTierLabels(context);
+  return result;
+}
+
+export function migrateEditorDocumentV4ToV5(candidate, options = {}) {
+  if (!isRecord(candidate) || candidate.schemaVersion !== 4) {
+    throw new TypeError("La migración v4→v5 requiere un documento editorial v4.");
+  }
+  const context = canonicalContext(options);
+  const result = structuredClone(candidate);
+  result.schemaVersion = 5;
+  result.locations = (Array.isArray(result.locations) ? result.locations : [])
+    .map((placement) => {
+      const canonical = context.locationById.get(placement?.id);
+      if (!canonical) return null;
+      const baseline = baselineLocationRecord(canonical, context);
+      return {
+        ...baseline,
+        areaId: placement.areaId ?? baseline.areaId,
+        offset: structuredClone(placement.offset ?? baseline.offset),
+      };
+    })
+    .filter(Boolean);
+  result.nextLocationSequence = 1;
+  return result;
+}
+
 function rebaseAreas(
   candidateAreas,
   context,
   errors,
   warnings,
-  { sourceSchemaVersion = EDITOR_DOCUMENT_SCHEMA_VERSION } = {},
+  { rejectUnknown = false } = {},
 ) {
   const canonical = new Map(
     context.baseAreas.map((area) => [
       area.id,
-      {
-        id: area.id,
-        q: normalizeZero(area.q),
-        r: normalizeZero(area.r),
-        appearance: canonicalAreaAppearance(area),
-      },
+        baselineAreaRecord(area, context),
     ]),
   );
   if (!Array.isArray(candidateAreas)) {
     warnings.push(
       issue(
         "areas-rebased",
-        "El documento no declara areas; se restauró la cartografía canónica.",
+        "El documento no declara areas; se restauró la cartografía de la edición base.",
         "areas",
       ),
     );
@@ -205,8 +482,15 @@ function rebaseAreas(
     }
     seen.add(entry.id);
     if (!context.areaById.has(entry.id)) {
-      warnings.push(
-        issue("unknown-area-ignored", `Se ignoró la zona desconocida ${entry.id}.`, path),
+      const target = rejectUnknown ? errors : warnings;
+      target.push(
+        issue(
+          rejectUnknown ? "unknown-area" : "unknown-area-ignored",
+          rejectUnknown
+            ? `El documento v5 declara una zona desconocida: ${entry.id}.`
+            : `Se ignoró la zona desconocida ${entry.id}.`,
+          path,
+        ),
       );
       continue;
     }
@@ -220,15 +504,33 @@ function rebaseAreas(
       );
       continue;
     }
-    const appearance = sourceSchemaVersion === 1
-      ? { ok: true, appearance: canonicalAreaAppearance(context.areaById.get(entry.id)), errors: [] }
-      : sanitizeAreaAppearance(entry.appearance, { path: `${path}.appearance` });
+    const title = normalizedName(entry.title, EDITOR_TITLE_MAX_LENGTH);
+    const shortTitle = normalizedName(entry.shortTitle, EDITOR_SHORT_TITLE_MAX_LENGTH);
+    if (!title) {
+      errors.push(
+        issue("invalid-area-title", `La zona ${entry.id} requiere un título.`, `${path}.title`),
+      );
+    }
+    if (!shortTitle) {
+      errors.push(
+        issue(
+          "invalid-area-short-title",
+          `La zona ${entry.id} requiere un título corto.`,
+          `${path}.shortTitle`,
+        ),
+      );
+    }
+    const appearance = sanitizeAreaAppearance(entry.appearance, {
+      path: `${path}.appearance`,
+    });
     errors.push(...appearance.errors);
-    if (!appearance.ok) continue;
+    if (!title || !shortTitle || !appearance.ok) continue;
     canonical.set(entry.id, {
       id: entry.id,
       q: normalizeZero(entry.q),
       r: normalizeZero(entry.r),
+      title,
+      shortTitle,
       appearance: appearance.appearance,
     });
   }
@@ -240,7 +542,7 @@ function rebaseAreas(
     warnings.push(
       issue(
         "areas-rebased",
-        `Se restauraron ${missing.length} zonas ausentes desde la cartografía canónica.`,
+        `Se restauraron ${missing.length} zonas ausentes desde la edición base.`,
         "areas",
       ),
     );
@@ -249,50 +551,257 @@ function rebaseAreas(
   return context.baseAreas.map((area) => canonical.get(area.id));
 }
 
-function rebaseLocations(candidateLocations, context, errors, warnings) {
-  const canonical = new Map(
-    context.baseLocations.map((location) => [
-      location.id,
-      {
-        id: location.id,
-        areaId: location.areaId,
-        offset: {
-          x: normalizeZero(location.offset.x),
-          y: normalizeZero(location.offset.y),
-        },
+function sanitizeTierLabels(candidate, context, errors, warnings) {
+  const labels = new Map(baselineTierLabels(context).map((label) => [label.tier, label]));
+  if (!Array.isArray(candidate)) {
+    warnings.push(
+      issue(
+        "tier-labels-rebased",
+        "Se restauraron los rótulos de anillo de la edición base.",
+        "tierLabels",
+      ),
+    );
+    return baselineTierLabels(context);
+  }
+
+  const seen = new Set();
+  for (const [index, entry] of candidate.entries()) {
+    const path = `tierLabels[${index}]`;
+    if (!isRecord(entry) || !labels.has(entry.tier)) {
+      errors.push(
+        issue("invalid-tier-label", "Cada rótulo debe pertenecer al anillo 1 o 2.", path),
+      );
+      continue;
+    }
+    if (seen.has(entry.tier)) {
+      errors.push(
+        issue("duplicate-tier-label", `El anillo ${entry.tier} repite su rótulo.`, path),
+      );
+      continue;
+    }
+    seen.add(entry.tier);
+    const text = normalizedName(entry.text, EDITOR_TIER_LABEL_MAX_LENGTH);
+    if (!text) {
+      errors.push(
+        issue(
+          "invalid-tier-label-text",
+          `El anillo ${entry.tier} requiere texto.`,
+          `${path}.text`,
+        ),
+      );
+      continue;
+    }
+    if (
+      !isRecord(entry.offset)
+      || !Number.isFinite(entry.offset.x)
+      || !Number.isFinite(entry.offset.y)
+      || Math.abs(entry.offset.x) > TIER_LABEL_MAX_OFFSET
+      || Math.abs(entry.offset.y) > TIER_LABEL_MAX_OFFSET
+    ) {
+      errors.push(
+        issue(
+          "invalid-tier-label-offset",
+          `El rótulo del anillo ${entry.tier} requiere un offset finito.`,
+          `${path}.offset`,
+        ),
+      );
+      continue;
+    }
+    labels.set(entry.tier, {
+      tier: entry.tier,
+      text,
+      offset: {
+        x: normalizeZero(entry.offset.x),
+        y: normalizeZero(entry.offset.y),
       },
-    ]),
-  );
+    });
+  }
+  const missing = [1, 2].filter((tier) => !seen.has(tier));
+  if (missing.length > 0) {
+    warnings.push(
+      issue(
+        "tier-labels-rebased",
+        `Se restauraron ${missing.length} rótulos de anillo ausentes.`,
+        "tierLabels",
+      ),
+    );
+  }
+  return [labels.get(1), labels.get(2)];
+}
+
+function sanitizeLocationRecords(
+  candidateLocations,
+  context,
+  errors,
+  warnings,
+  { rejectUnknown = false } = {},
+) {
+  const records = new Map();
+  const baselineNextLocationSequence = Number.isSafeInteger(
+    context.editorBaseline?.nextLocationSequence,
+  )
+    && context.editorBaseline.nextLocationSequence >= 1
+    && context.editorBaseline.nextLocationSequence < Number.MAX_SAFE_INTEGER
+    ? context.editorBaseline.nextLocationSequence
+    : 1;
   if (!Array.isArray(candidateLocations)) {
     warnings.push(
       issue(
         "locations-rebased",
-        "El documento no declara locations; se restauraron las ubicaciones canónicas.",
+        "El documento no declara locations; se restauraron los lugares de la edición base.",
         "locations",
       ),
     );
-    return context.baseLocations.map((location) => canonical.get(location.id));
   }
 
-  const seen = new Set();
-  for (const [index, entry] of candidateLocations.entries()) {
+  const entries = (Array.isArray(candidateLocations) ? candidateLocations : []).map(
+    (entry, index) => {
+      const baseline = context.editorBaselineLocationById.get(entry?.id);
+      if (
+        baseline?.lifecycle === "deleted"
+        && entry?.lifecycle !== "deleted"
+        && entry?.kind === baseline.kind
+      ) {
+        warnings.push(
+          issue(
+            "baseline-tombstone-restored",
+            `El ID eliminado ${entry.id} no puede reactivarse sobre la edición aplicada.`,
+            `locations[${index}]`,
+          ),
+        );
+        return structuredClone(baseline);
+      }
+      return entry;
+    },
+  );
+
+  for (const [index, entry] of entries.entries()) {
     const path = `locations[${index}]`;
-    if (!isRecord(entry) || typeof entry.id !== "string") {
+    if (!isRecord(entry) || typeof entry.id !== "string" || !entry.id.trim()) {
       errors.push(issue("invalid-location-entry", "Cada nodo debe declarar un ID.", path));
       continue;
     }
-    if (seen.has(entry.id)) {
+    if (records.has(entry.id)) {
       errors.push(
         issue("duplicate-location-id", `El nodo ${entry.id} aparece más de una vez.`, path),
       );
       continue;
     }
-    seen.add(entry.id);
-    if (!context.locationById.has(entry.id)) {
-      warnings.push(
-        issue("unknown-location-ignored", `Se ignoró el nodo desconocido ${entry.id}.`, path),
+
+    const canonical = context.locationById.get(entry.id);
+    const baseline = context.editorBaselineLocationById.get(entry.id);
+    const sequence = createdLocationSequence(entry.id);
+    if (!canonical && sequence === null) {
+      if (entry.id.startsWith(EDITOR_CREATED_LOCATION_ID_PREFIX)) {
+        errors.push(
+          issue(
+            "invalid-created-location-id",
+            `El ID creado ${entry.id} no usa una secuencia canónica segura.`,
+            `${path}.id`,
+          ),
+        );
+      } else {
+        const target = rejectUnknown ? errors : warnings;
+        target.push(
+          issue(
+            rejectUnknown ? "unknown-location" : "unknown-location-ignored",
+            rejectUnknown
+              ? `El documento v5 declara un nodo desconocido: ${entry.id}.`
+              : `Se ignoró el nodo desconocido ${entry.id}.`,
+            path,
+          ),
+        );
+      }
+      continue;
+    }
+    if (
+      !canonical
+      && !baseline
+      && sequence !== null
+      && sequence < baselineNextLocationSequence
+    ) {
+      errors.push(
+        issue(
+          "reused-created-location-id",
+          `El ID ${entry.id} pertenece a una secuencia ya reservada por la edición publicada.`,
+          `${path}.id`,
+        ),
       );
       continue;
+    }
+    const expectedProvenance = canonical ? "canonical" : "editor-created";
+    const authority = baseline ?? canonical;
+    const kind = authority?.kind ?? entry.kind;
+    if (entry.provenance !== expectedProvenance) {
+      errors.push(
+        issue(
+          "invalid-location-provenance",
+          `${entry.id} debe declarar provenance ${expectedProvenance}.`,
+          `${path}.provenance`,
+        ),
+      );
+    }
+    if (typeof kind !== "string" || (authority && entry.kind !== authority.kind)) {
+      errors.push(
+        issue(
+          "invalid-location-kind",
+          `El tipo de ${entry.id} no coincide con su autoridad editorial.`,
+          `${path}.kind`,
+        ),
+      );
+    }
+    if (!canonical && !EDITABLE_LOCATION_KIND_SET.has(kind)) {
+      errors.push(
+        issue(
+          "non-editable-location-kind",
+          `Spider no puede crear lugares de tipo ${String(kind)}.`,
+          `${path}.kind`,
+        ),
+      );
+    }
+
+    const lifecycle = LIFECYCLE_SET.has(entry.lifecycle) ? entry.lifecycle : null;
+    if (!lifecycle) {
+      errors.push(
+        issue(
+          "invalid-location-lifecycle",
+          `${entry.id} requiere lifecycle active, inventory o deleted.`,
+          `${path}.lifecycle`,
+        ),
+      );
+    }
+    if (canonical && !EDITABLE_LOCATION_KIND_SET.has(canonical.kind) && lifecycle !== "active") {
+      errors.push(
+        issue(
+          "non-editable-location-lifecycle",
+          `${entry.id} no admite inventario ni eliminación.`,
+          `${path}.lifecycle`,
+        ),
+      );
+    }
+    if (lifecycle === "deleted" && PROTECTED_LOCATION_ID_SET.has(entry.id)) {
+      errors.push(
+        issue(
+          "protected-location-delete",
+          `${entry.id} es un nodo académico protegido y no puede eliminarse.`,
+          `${path}.lifecycle`,
+        ),
+      );
+    }
+
+    const title = normalizedName(entry.title, EDITOR_TITLE_MAX_LENGTH);
+    const shortTitle = normalizedName(entry.shortTitle, EDITOR_SHORT_TITLE_MAX_LENGTH);
+    if (!title) {
+      errors.push(issue("invalid-location-title", `${entry.id} requiere un título.`, `${path}.title`));
+    }
+    if (!shortTitle) {
+      errors.push(
+        issue(
+          "invalid-location-short-title",
+          `${entry.id} requiere un título corto.`,
+          `${path}.shortTitle`,
+        ),
+      );
     }
     if (typeof entry.areaId !== "string" || !context.areaById.has(entry.areaId)) {
       errors.push(
@@ -302,9 +811,11 @@ function rebaseLocations(candidateLocations, context, errors, warnings) {
           `${path}.areaId`,
         ),
       );
-      continue;
     }
-    if (!isRecord(entry.offset) || !Number.isFinite(entry.offset.x) || !Number.isFinite(entry.offset.y)) {
+    const validOffset = isRecord(entry.offset)
+      && Number.isFinite(entry.offset.x)
+      && Number.isFinite(entry.offset.y);
+    if (!validOffset) {
       errors.push(
         issue(
           "invalid-location-offset",
@@ -312,32 +823,127 @@ function rebaseLocations(candidateLocations, context, errors, warnings) {
           `${path}.offset`,
         ),
       );
+    }
+    if (
+      !kind
+      || !lifecycle
+      || !title
+      || !shortTitle
+      || !context.areaById.has(entry.areaId)
+      || !validOffset
+    ) {
       continue;
     }
-    canonical.set(entry.id, {
+
+    const record = {
       id: entry.id,
+      kind,
+      title,
+      shortTitle,
       areaId: entry.areaId,
       offset: {
         x: normalizeZero(entry.offset.x),
         y: normalizeZero(entry.offset.y),
       },
-    });
+      lifecycle,
+      provenance: expectedProvenance,
+    };
+    if (!canonical) {
+      const content = createGenericLocationContent(kind, title);
+      if (entry.content !== undefined && JSON.stringify(entry.content) !== JSON.stringify(content)) {
+        warnings.push(
+          issue(
+            "created-location-content-rebased",
+            `Se restauró la plantilla provisional de ${entry.id}.`,
+            `${path}.content`,
+          ),
+        );
+      }
+      record.content = content;
+    }
+    records.set(entry.id, record);
   }
 
-  const missing = context.baseLocations
-    .map((location) => location.id)
-    .filter((locationId) => !seen.has(locationId));
+  const missing = [];
+  for (const location of context.baseLocations) {
+    if (records.has(location.id)) continue;
+    missing.push(location.id);
+    records.set(location.id, baselineLocationRecord(location, context));
+  }
+  for (const baseline of context.editorBaselineLocationById.values()) {
+    if (records.has(baseline.id)) continue;
+    missing.push(baseline.id);
+    records.set(baseline.id, structuredClone(baseline));
+  }
   if (missing.length > 0) {
     warnings.push(
       issue(
         "locations-rebased",
-        `Se restauraron ${missing.length} nodos ausentes desde los datos canónicos.`,
+        `Se restauraron ${missing.length} nodos ausentes desde la edición base.`,
         "locations",
       ),
     );
   }
 
-  return context.baseLocations.map((location) => canonical.get(location.id));
+  return [...records.values()].sort(
+    (first, second) => compareLocationRecords(first, second, context),
+  );
+}
+
+function sanitizeNextLocationSequence(candidate, records, context, errors, warnings) {
+  const inferredFromRecords = records.reduce(
+    (next, record) => Math.max(next, (createdLocationSequence(record.id) ?? 0) + 1),
+    1,
+  );
+  const baselineSequence = Number.isSafeInteger(context.editorBaseline?.nextLocationSequence)
+    && context.editorBaseline.nextLocationSequence >= 1
+    && context.editorBaseline.nextLocationSequence < Number.MAX_SAFE_INTEGER
+    ? context.editorBaseline.nextLocationSequence
+    : 1;
+  const inferred = Math.max(inferredFromRecords, baselineSequence);
+  if (
+    !Number.isSafeInteger(candidate)
+    || candidate < 1
+    || candidate >= Number.MAX_SAFE_INTEGER
+  ) {
+    errors.push(
+      issue(
+        "invalid-next-location-sequence",
+        "nextLocationSequence debe ser un entero seguro positivo con espacio para el siguiente ID.",
+        "nextLocationSequence",
+      ),
+    );
+    return inferred;
+  }
+  if (candidate < inferred) {
+    warnings.push(
+      issue(
+        "location-sequence-rebased",
+        `nextLocationSequence se elevó a ${inferred} para no reutilizar IDs.`,
+        "nextLocationSequence",
+      ),
+    );
+  }
+  const normalized = Math.max(candidate, inferred);
+  const hasTrustedFloor = Boolean(context.editorBaseline)
+    || context.trustedNextLocationSequence !== null;
+  const trustedFloor = Math.max(
+    baselineSequence,
+    context.trustedNextLocationSequence ?? 1,
+  );
+  if (
+    hasTrustedFloor
+    && normalized - trustedFloor > EDITOR_MAX_EXTERNAL_LOCATION_SEQUENCE_ADVANCE
+  ) {
+    errors.push(
+      issue(
+        "location-sequence-advance-too-large",
+        `El documento intenta reservar más de ${EDITOR_MAX_EXTERNAL_LOCATION_SEQUENCE_ADVANCE.toLocaleString("es-CL")} IDs nuevos sin materializarlos respecto de la edición confiable.`,
+        "nextLocationSequence",
+      ),
+    );
+  }
+  return normalized;
 }
 
 function rebaseConnections(
@@ -351,7 +957,7 @@ function rebaseConnections(
     warnings.push(
       issue(
         "connections-rebased",
-        "El documento no declara treeTwoConnections; se restauraron las dependencias canónicas.",
+        "El documento no declara treeTwoConnections; se restauraron las dependencias de la edición base.",
         "treeTwoConnections",
       ),
     );
@@ -380,7 +986,7 @@ function rebaseConnections(
       errors.push(
         issue(
           "unsupported-connection-kind",
-          "Spider 0.4.0 solo admite conexiones completedLocation.",
+          "Spider solo admite conexiones completedLocation.",
           `${path}.kind`,
         ),
       );
@@ -446,7 +1052,7 @@ function rebaseConnections(
     warnings.push(
       issue(
         "connections-rebased",
-        `Se restauraron ${restoredCount} dependencias canónicas asociadas a nodos nuevos.`,
+        `Se restauraron ${restoredCount} dependencias de la edición base asociadas a nodos restaurados.`,
         "treeTwoConnections",
       ),
     );
@@ -474,9 +1080,73 @@ function migrateLegacyLearningNetwork(connections, context) {
   };
 }
 
-function sanitizeLearningNetwork(candidate, context, errors) {
+function migrateLegacySourceToV3(source, context, errors, warnings) {
+  const declaredLocationIds = new Set(
+    (Array.isArray(source.locations) ? source.locations : [])
+      .filter((entry) => isRecord(entry) && typeof entry.id === "string")
+      .map(({ id }) => id),
+  );
+  const restoredLocationIds = new Set(
+    context.baseLocations
+      .map(({ id }) => id)
+      .filter((id) => !declaredLocationIds.has(id)),
+  );
+  const candidatePlacementById = new Map(
+    (Array.isArray(source.locations) ? source.locations : [])
+      .filter((entry) => isRecord(entry) && typeof entry.id === "string")
+      .map((entry) => [entry.id, entry]),
+  );
+  for (const id of candidatePlacementById.keys()) {
+    if (!context.locationById.has(id)) {
+      warnings.push(
+        issue("unknown-location-ignored", `Se ignoró el nodo legacy desconocido ${id}.`, "locations"),
+      );
+    }
+  }
+  const locations = context.baseLocations.map((location) => {
+    const placement = candidatePlacementById.get(location.id);
+    return {
+      id: location.id,
+      areaId: placement?.areaId ?? location.areaId,
+      offset: structuredClone(placement?.offset ?? location.offset),
+    };
+  });
+  if (restoredLocationIds.size > 0) {
+    warnings.push(
+      issue(
+        "locations-rebased",
+        `Se restauraron ${restoredLocationIds.size} nodos ausentes desde la edición base.`,
+        "locations",
+      ),
+    );
+  }
+  return {
+    ...structuredClone(source),
+    schemaVersion: 3,
+    appearanceCatalogVersion: AREA_APPEARANCE_CATALOG_VERSION,
+    areas: (Array.isArray(source.areas) ? source.areas : []).map((area) => ({
+      ...area,
+      appearance: source.schemaVersion === 1
+        ? canonicalAreaAppearance(context.areaById.get(area?.id))
+        : area?.appearance,
+    })),
+    locations,
+    learningNetwork: migrateLegacyLearningNetwork(
+      rebaseConnections(
+        source.treeTwoConnections,
+        context,
+        errors,
+        warnings,
+        { restoredLocationIds },
+      ),
+      context,
+    ),
+  };
+}
+
+function sanitizeLearningNetwork(candidate, records, errors) {
   if (!isRecord(candidate)) {
-    errors.push(issue("missing-learning-network", "El documento v3 debe declarar learningNetwork.", "learningNetwork"));
+    errors.push(issue("missing-learning-network", "El documento debe declarar learningNetwork.", "learningNetwork"));
     return { nodeIds: [], connections: [] };
   }
   if (!Array.isArray(candidate.nodeIds)) {
@@ -485,15 +1155,21 @@ function sanitizeLearningNetwork(candidate, context, errors) {
   if (!Array.isArray(candidate.connections)) {
     errors.push(issue("invalid-connections", "connections debe ser una lista.", "learningNetwork.connections"));
   }
-  if (errors.length > 0) return { nodeIds: [], connections: [] };
+  if (!Array.isArray(candidate.nodeIds) || !Array.isArray(candidate.connections)) {
+    return { nodeIds: [], connections: [] };
+  }
 
-  const academicIdsInCatalogOrder = academicLocationIds(context.baseLocations);
+  const recordById = new Map(records.map((record) => [record.id, record]));
+  const academicIdsInCatalogOrder = activeAcademicRecordIds(records);
   const academicIds = new Set(academicIdsInCatalogOrder);
   const nodeSet = new Set();
   for (const [index, nodeId] of candidate.nodeIds.entries()) {
     const path = "learningNetwork.nodeIds[" + index + "]";
-    if (!context.locationById.has(nodeId)) {
+    const record = recordById.get(nodeId);
+    if (!record) {
       errors.push(issue("unknown-learning-network-node", "Nodo desconocido: " + String(nodeId) + ".", path));
+    } else if (record.lifecycle !== "active") {
+      errors.push(issue("inactive-learning-network-node", nodeId + " está fuera del curso activo.", path));
     } else if (!academicIds.has(nodeId)) {
       errors.push(issue("lateral-learning-network-node", nodeId + " no es lesson ni mission.", path));
     } else if (nodeSet.has(nodeId)) {
@@ -512,7 +1188,7 @@ function sanitizeLearningNetwork(candidate, context, errors) {
       continue;
     }
     if (!academicIds.has(entry.sourceId) || !academicIds.has(entry.targetId)) {
-      errors.push(issue("lateral-learning-network-connection", "La red solo conecta lesson o mission.", path));
+      errors.push(issue("inactive-learning-network-connection", "La red solo conecta lesson o mission activos.", path));
       continue;
     }
     if (!nodeSet.has(entry.sourceId) || !nodeSet.has(entry.targetId)) {
@@ -534,11 +1210,91 @@ function sanitizeLearningNetwork(candidate, context, errors) {
   return { nodeIds: canonicalNodeIds, connections: connections.sort(compareConnections) };
 }
 
+function rebaseLearningNetworkFromBaseline(
+  candidate,
+  records,
+  declaredLocationIds,
+  context,
+  warnings,
+) {
+  if (
+    !isRecord(candidate)
+    || !Array.isArray(candidate.nodeIds)
+    || !Array.isArray(candidate.connections)
+    || !isRecord(context.editorBaseline?.learningNetwork)
+  ) {
+    return candidate;
+  }
+  const network = structuredClone(candidate);
+  const recordById = new Map(records.map((record) => [record.id, record]));
+  const restoredIds = new Set(
+    [...context.editorBaselineLocationById.keys()].filter(
+      (locationId) => !declaredLocationIds.has(locationId),
+    ),
+  );
+  const immutableTombstoneIds = new Set(
+    [...context.editorBaselineLocationById.values()]
+      .filter(({ lifecycle }) => lifecycle === "deleted")
+      .map(({ id }) => id),
+  );
+  network.nodeIds = network.nodeIds.filter((id) => !immutableTombstoneIds.has(id));
+  network.connections = network.connections.filter(
+    ({ sourceId, targetId }) =>
+      !immutableTombstoneIds.has(sourceId) && !immutableTombstoneIds.has(targetId),
+  );
+
+  let restoredNetworkEntryCount = 0;
+  const nodeIds = new Set(network.nodeIds);
+  for (const locationId of restoredIds) {
+    const record = recordById.get(locationId);
+    if (
+      record?.lifecycle === "active"
+      && isEditorLearningLocation(record)
+      && !nodeIds.has(locationId)
+    ) {
+      nodeIds.add(locationId);
+      network.nodeIds.push(locationId);
+      restoredNetworkEntryCount += 1;
+    }
+  }
+
+  const pairs = new Set(
+    network.connections.map(({ sourceId, targetId }) => `${sourceId}->${targetId}`),
+  );
+  for (const connection of context.editorBaseline.learningNetwork.connections ?? []) {
+    if (!restoredIds.has(connection.sourceId) && !restoredIds.has(connection.targetId)) continue;
+    const source = recordById.get(connection.sourceId);
+    const target = recordById.get(connection.targetId);
+    if (
+      source?.lifecycle !== "active"
+      || target?.lifecycle !== "active"
+      || !isEditorLearningLocation(source)
+      || !isEditorLearningLocation(target)
+      || !nodeIds.has(connection.sourceId)
+      || !nodeIds.has(connection.targetId)
+    ) {
+      continue;
+    }
+    const key = `${connection.sourceId}->${connection.targetId}`;
+    if (pairs.has(key)) continue;
+    pairs.add(key);
+    network.connections.push(structuredClone(connection));
+    restoredNetworkEntryCount += 1;
+  }
+  if (restoredNetworkEntryCount > 0) {
+    warnings.push(
+      issue(
+        "learning-network-rebased",
+        `Se restauraron ${restoredNetworkEntryCount} entradas de Red desde la edición aplicada.`,
+        "learningNetwork",
+      ),
+    );
+  }
+  return network;
+}
+
 function materializeEditorDocument(document, context) {
   const areaPlacement = new Map(document.areas.map((area) => [area.id, area]));
-  const locationPlacement = new Map(
-    document.locations.map((location) => [location.id, location]),
-  );
   const completedByTarget = new Map();
   for (const connection of document.learningNetwork.connections) {
     const sources = completedByTarget.get(connection.targetId) ?? [];
@@ -554,33 +1310,54 @@ function materializeEditorDocument(document, context) {
           ...area,
           q: placement.q,
           r: placement.r,
+          title: placement.title,
+          shortTitle: placement.shortTitle,
           appearance: structuredClone(placement.appearance),
         }
       : { ...area, appearance: canonicalAreaAppearance(area) };
   });
-  const locations = structuredClone(context.baseLocations).map((location) => {
-    const placement = locationPlacement.get(location.id);
-    const requirements = normalizeRequirements(location.requirements);
-    const completedLocations = isEditorLearningLocation(location)
-      ? learningNodeIds.has(location.id)
-        ? [...(completedByTarget.get(location.id) ?? [])]
+  const locations = [];
+  for (const record of document.locations) {
+    if (record.lifecycle !== "active") continue;
+    const canonical = context.locationById.get(record.id);
+    const source = canonical
+      ? structuredClone(canonical)
+      : {
+          id: record.id,
+          kind: record.kind,
+          title: record.title,
+          shortTitle: record.shortTitle,
+          ...structuredClone(record.content),
+        };
+    const requirements = normalizeRequirements(source.requirements);
+    const completedLocations = isEditorLearningLocation(record)
+      ? learningNodeIds.has(record.id)
+        ? [...(completedByTarget.get(record.id) ?? [])]
         : []
-      : [...requirements.completedLocations];
-    return {
-      ...location,
-      areaId: placement?.areaId ?? location.areaId,
-      offset: placement ? { ...placement.offset } : { ...location.offset },
+      : [];
+    locations.push({
+      ...source,
+      id: record.id,
+      kind: record.kind,
+      title: record.title,
+      shortTitle: record.shortTitle,
+      areaId: record.areaId,
+      offset: { ...record.offset },
       requirements: {
-        ...(isRecord(location.requirements) ? location.requirements : {}),
-        concepts: [...requirements.concepts],
+        ...(isRecord(source.requirements) ? source.requirements : {}),
+        concepts: isEditorLearningLocation(record) ? [] : [...requirements.concepts],
         completedLocations,
-        rewards: [...requirements.rewards],
-        areas: [...requirements.areas],
+        rewards: isEditorLearningLocation(record) ? [] : [...requirements.rewards],
+        areas: isEditorLearningLocation(record) ? [] : [...requirements.areas],
       },
-    };
-  });
+    });
+  }
 
-  return { areas, locations };
+  return {
+    areas,
+    locations,
+    tierLabels: structuredClone(document.tierLabels),
+  };
 }
 
 export function deriveEditorTreeTwoTopology({ areas = AREAS, locations = LOCATIONS } = {}) {
@@ -717,7 +1494,8 @@ function validateDraftStructure(document, context) {
 function validatePublishableDocument(document, context) {
   const errors = [];
   const warnings = [];
-  const academicIds = academicLocationIds(context.baseLocations);
+  const academicIds = activeAcademicRecordIds(document.locations);
+  const academicIdSet = new Set(academicIds);
   const nodeIds = new Set(document.learningNetwork.nodeIds);
   const incoming = new Map(academicIds.map((id) => [id, 0]));
   const adjacency = new Map(academicIds.map((id) => [id, []]));
@@ -734,17 +1512,23 @@ function validatePublishableDocument(document, context) {
       errors.push(
         issue(
           "missing-learning-network-node",
-          "El nodo académico " + id + " fue retirado de la Red de aprendizaje.",
+          "El nodo académico activo " + id + " fue retirado de la Red de aprendizaje.",
           "learningNetwork.nodeIds",
         ),
       );
     }
   }
-  if (!nodeIds.has(EDITOR_LEARNING_NETWORK_ROOT_ID)) {
+  const rootRecord = document.locations.find(
+    ({ id }) => id === EDITOR_LEARNING_NETWORK_ROOT_ID,
+  );
+  if (
+    rootRecord?.lifecycle !== "active"
+    || !nodeIds.has(EDITOR_LEARNING_NETWORK_ROOT_ID)
+  ) {
     errors.push(
       issue(
         "missing-learning-network-root",
-        "La raíz " + EDITOR_LEARNING_NETWORK_ROOT_ID + " debe pertenecer a la red.",
+        "La raíz " + EDITOR_LEARNING_NETWORK_ROOT_ID + " debe estar activa y pertenecer a la red.",
         "learningNetwork.nodeIds",
       ),
     );
@@ -792,10 +1576,19 @@ function validatePublishableDocument(document, context) {
       );
     }
   }
+  if ([...nodeIds].some((id) => !academicIdSet.has(id))) {
+    errors.push(
+      issue(
+        "inactive-learning-network-node",
+        "La red contiene un nodo académico que no está activo.",
+        "learningNetwork.nodeIds",
+      ),
+    );
+  }
   if (errors.length > 0) return { errors, warnings };
 
   const course = materializeEditorDocument(document, context);
-  const projectValidation = validateProjectData(course);
+  const projectValidation = validateProjectData({ ...course, allowContentSubset: true });
   for (const message of projectValidation.errors) {
     errors.push(issue("project-data-invalid", message));
   }
@@ -833,17 +1626,17 @@ export function sanitizeEditorDraft(candidate, options = {}) {
     );
   }
   const sourceSchemaVersion = source.schemaVersion;
-  if (![1, 2, EDITOR_DOCUMENT_SCHEMA_VERSION].includes(sourceSchemaVersion)) {
+  if (![1, 2, 3, 4, EDITOR_DOCUMENT_SCHEMA_VERSION].includes(sourceSchemaVersion)) {
     errors.push(
       issue(
         "unsupported-editor-schema",
-        `Se esperaba schemaVersion 1, 2 o ${EDITOR_DOCUMENT_SCHEMA_VERSION}.`,
+        `Se esperaba schemaVersion entre 1 y ${EDITOR_DOCUMENT_SCHEMA_VERSION}.`,
         "schemaVersion",
       ),
     );
   }
   if (
-    [2, EDITOR_DOCUMENT_SCHEMA_VERSION].includes(sourceSchemaVersion)
+    [2, 3, 4, EDITOR_DOCUMENT_SCHEMA_VERSION].includes(sourceSchemaVersion)
     && source.appearanceCatalogVersion !== AREA_APPEARANCE_CATALOG_VERSION
   ) {
     errors.push(
@@ -875,52 +1668,93 @@ export function sanitizeEditorDraft(candidate, options = {}) {
   if (errors.length > 0) {
     return { ok: false, document: null, errors, warnings };
   }
+
+  let working = structuredClone(source);
+  if (sourceSchemaVersion <= 2) {
+    working = migrateLegacySourceToV3(source, context, errors, warnings);
+  }
+  if (working.schemaVersion === 3) {
+    working = migrateEditorDocumentV3ToV4(working, options);
+    warnings.push(
+      issue(
+        "editor-schema-v3-v4-migrated",
+        "Se añadieron nombres editables de zonas y rótulos de anillo.",
+        "schemaVersion",
+      ),
+    );
+  }
+  if (working.schemaVersion === 4) {
+    const legacyUnknown = (Array.isArray(working.locations) ? working.locations : [])
+      .filter((entry) => typeof entry?.id === "string" && !context.locationById.has(entry.id));
+    for (const entry of legacyUnknown) {
+      warnings.push(
+        issue(
+          "unknown-location-ignored",
+          `Se ignoró el nodo legacy desconocido ${entry.id}.`,
+          "locations",
+        ),
+      );
+    }
+    working = migrateEditorDocumentV4ToV5(working, options);
+    warnings.push(
+      issue(
+        "editor-schema-v4-v5-migrated",
+        "Se añadió autoridad, ciclo de vida e inventario editorial de lugares.",
+        "schemaVersion",
+      ),
+    );
+  }
   if (sourceSchemaVersion < EDITOR_DOCUMENT_SCHEMA_VERSION) {
     warnings.push(
       issue(
         "editor-schema-migrated",
-        `El documento editorial v${sourceSchemaVersion} se migró a v${EDITOR_DOCUMENT_SCHEMA_VERSION} con la topología académica efectiva explícita.`,
+        `El documento editorial v${sourceSchemaVersion} se migró a v${EDITOR_DOCUMENT_SCHEMA_VERSION}.`,
         "schemaVersion",
       ),
     );
   }
 
   const fallbackTimestamp = new Date().toISOString();
-  const declaredLocationIds = new Set(
-    (Array.isArray(source.locations) ? source.locations : [])
-      .filter((entry) => isRecord(entry) && typeof entry.id === "string")
-      .map((entry) => entry.id),
-  );
-  const restoredLocationIds = new Set(
-    context.baseLocations
-      .map((location) => location.id)
-      .filter((locationId) => !declaredLocationIds.has(locationId)),
-  );
+  const rejectUnknown = sourceSchemaVersion === EDITOR_DOCUMENT_SCHEMA_VERSION;
   const areas = rebaseAreas(
-    source.areas,
+    working.areas,
     context,
     errors,
     warnings,
-    { sourceSchemaVersion },
+    { rejectUnknown },
   );
-  const locations = rebaseLocations(
-    source.locations,
+  const tierLabels = sanitizeTierLabels(working.tierLabels, context, errors, warnings);
+  const locations = sanitizeLocationRecords(
+    working.locations,
+    context,
+    errors,
+    warnings,
+    { rejectUnknown },
+  );
+  const nextLocationSequence = sanitizeNextLocationSequence(
+    working.nextLocationSequence,
+    locations,
     context,
     errors,
     warnings,
   );
-  const learningNetwork = sourceSchemaVersion < EDITOR_DOCUMENT_SCHEMA_VERSION
-    ? migrateLegacyLearningNetwork(
-        rebaseConnections(
-          source.treeTwoConnections,
-          context,
-          errors,
-          warnings,
-          { restoredLocationIds },
-        ),
-        context,
-      )
-    : sanitizeLearningNetwork(source.learningNetwork, context, errors);
+  const declaredLocationIds = new Set(
+    (Array.isArray(working.locations) ? working.locations : [])
+      .filter((entry) => typeof entry?.id === "string")
+      .map(({ id }) => id),
+  );
+  const learningNetworkCandidate = rebaseLearningNetworkFromBaseline(
+    working.learningNetwork,
+    locations,
+    declaredLocationIds,
+    context,
+    warnings,
+  );
+  const learningNetwork = sanitizeLearningNetwork(
+    learningNetworkCandidate,
+    locations,
+    errors,
+  );
   const document = {
     kind: EDITOR_DOCUMENT_KIND,
     schemaVersion: EDITOR_DOCUMENT_SCHEMA_VERSION,
@@ -928,11 +1762,23 @@ export function sanitizeEditorDraft(candidate, options = {}) {
     courseId: context.courseId,
     baseDataVersion: context.baseDataVersion,
     areas,
+    tierLabels,
     locations,
+    nextLocationSequence,
     learningNetwork,
-    updatedAt: dateString(source.updatedAt, fallbackTimestamp),
+    updatedAt: dateString(working.updatedAt, fallbackTimestamp),
   };
-  if (source.updatedAt !== document.updatedAt) {
+  const serializedBytes = new TextEncoder().encode(JSON.stringify(document)).byteLength;
+  if (serializedBytes > EDITOR_DOCUMENT_MAX_SERIALIZED_BYTES) {
+    errors.push(
+      issue(
+        "editor-document-too-large",
+        `El documento editorial ocupa ${serializedBytes} bytes y supera el máximo aplicable de ${EDITOR_DOCUMENT_MAX_SERIALIZED_BYTES}.`,
+        null,
+      ),
+    );
+  }
+  if (working.updatedAt !== document.updatedAt) {
     warnings.push(
       issue("updated-at-rebased", "Se restauró una fecha de actualización válida.", "updatedAt"),
     );

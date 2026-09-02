@@ -5,12 +5,22 @@ import test from "node:test";
 import { APP_CONFIG } from "../src/config.js";
 import {
   fitEditorWorld,
+  getCreateStatus,
   getEditorDraftBadge,
   getEditorImportFeedback,
   getEditorMutationNotice,
   getEditorHistoryAction,
+  getEditorHistorySuccessMessage,
+  getEditableActiveLocations,
+  getIncidentConnectionLabels,
+  getInventoryImpactMessages,
+  getInventoryLocations,
   getReadOnlyCameraPan,
   getReadOnlyRestrictionMessage,
+  refreshInventoryImpact,
+  resolveEditorFormValue,
+  restoreEditorRenderFocus,
+  restoreInventoryDialogFocus,
   shouldRetryEditorService,
 } from "../src/editor/editor-ui-controller.js";
 import { canUseEditorTool } from "../src/editor/editor-app.js";
@@ -104,6 +114,30 @@ test("el shell del editor expone Spider, Bee y Bowerbird en menús retractables"
     "editor-toggle-network-location",
     "editor-ring-one-list",
     "editor-ring-two-list",
+    "editor-base-list",
+    "editor-spider-tab-move",
+    "editor-spider-tab-connect",
+    "editor-spider-tab-modify",
+    "editor-spider-tab-create",
+    "editor-spider-tab-inventory",
+    "editor-spider-move-view",
+    "editor-spider-connect-view",
+    "editor-spider-modify-view",
+    "editor-spider-create-view",
+    "editor-spider-inventory-view",
+    "editor-location-title",
+    "editor-location-short-title",
+    "editor-create-kind",
+    "editor-arm-create-location",
+    "editor-inventory-search",
+    "editor-inventory-location-list",
+    "editor-inventory-confirmation",
+    "editor-inventory-impact-list",
+    "editor-area-title",
+    "editor-area-short-title",
+    "editor-tier-label-text",
+    "editor-tier-label-x",
+    "editor-tier-label-y",
     "editor-export",
     "editor-import",
     "editor-undo",
@@ -144,11 +178,32 @@ test("el shell del editor expone Spider, Bee y Bowerbird en menús retractables"
   assert.match(editor, /href=["']\.\/index\.html["'][^>]*aria-label=["']Volver a ORBIT["']/s);
   assert.match(editor, /class=["']mode-entry-label["']>Volver a ORBIT</);
   assert.doesNotMatch(editor, /ORBIT\s+Estudiante/i);
-  assert.match(editor, /Anillo 1 · fundamentos teóricos/);
-  assert.match(editor, /Anillo 2 · aplicaciones/);
+  assert.match(editor, /id="editor-ring-one-heading">Nivel 1/);
+  assert.match(editor, /id="editor-ring-two-heading">Nivel 2/);
+  assert.doesNotMatch(editor, /fundamentos teóricos/);
   assert.match(editor, /Amarillo brillante continuo:/);
   assert.match(editor, /solo lecciones y misiones pueden pertenecer a la red/);
   assert.match(editor, />Conexión de aprendizaje</);
+  assert.match(editor, /Próximamente/);
+  for (const view of ["move", "connect", "modify", "create", "inventory"]) {
+    assert.match(
+      editor,
+      new RegExp(`id="editor-spider-tab-${view}"[^>]+aria-controls="editor-spider-${view}-view"[^>]+aria-pressed="(?:true|false)"`),
+      `Spider ${view} debe declarar control y estado accesible`,
+    );
+    assert.match(
+      editor,
+      new RegExp(`id="editor-spider-${view}-view"[^>]+aria-labelledby="editor-spider-tab-${view}"`),
+      `panel Spider ${view}`,
+    );
+  }
+  assert.match(editor, /protegido contra borrado|protegidos vector\/coulomb|editor-delete-location/);
+  assert.match(editor, /aria-describedby="editor-inventory-confirmation-detail editor-inventory-impact-list"/);
+  assert.match(
+    editor,
+    /<dialog\s+id="editor-inventory-confirmation"[\s\S]*?role="alertdialog"[\s\S]*?aria-modal="true"[\s\S]*?tabindex="-1"/,
+  );
+  assert.doesNotMatch(editor, /id="editor-inventory-confirmation"[^>]*\shidden(?:\s|>)/);
   assert.match(editor, />Retirar de la red|id="editor-toggle-network-location"/);
   assert.doesNotMatch(editor, /derivada y de solo lectura/);
   assert.doesNotMatch(editor, /Amarillo brillante discontinuo con rombo:/);
@@ -165,6 +220,31 @@ test("el shell del editor expone Spider, Bee y Bowerbird en menús retractables"
   assert.match(
     editor,
     /id="editor-shutdown-local"[\s\S]*?aria-pressed="false"[\s\S]*?hidden[\s\S]*?>Detener servidor<\/button>/,
+  );
+});
+
+test("Inventario separa activos, guardados y enumera conexiones incidentes", () => {
+  const snapshot = {
+    locations: [
+      { id: "active", kind: "lesson" },
+      { id: "gadget", kind: "gadget" },
+    ],
+    document: {
+      locations: [
+        { id: "stored", kind: "mission", lifecycle: "inventory" },
+        { id: "gone", kind: "npc", lifecycle: "deleted" },
+      ],
+    },
+  };
+  assert.deepEqual(getEditableActiveLocations(snapshot).map((entry) => entry.id), ["active"]);
+  assert.deepEqual(getInventoryLocations(snapshot).map((entry) => entry.id), ["stored"]);
+  assert.deepEqual(
+    getIncidentConnectionLabels("active", [
+      { sourceId: "z", targetId: "active" },
+      { sourceId: "active", targetId: "b" },
+      { sourceId: "unrelated", targetId: "elsewhere" },
+    ]),
+    ["active → b", "z → active"],
   );
 });
 
@@ -195,6 +275,23 @@ test("los atajos editoriales respetan el historial nativo de los campos", () => 
   );
 });
 
+test("undo y redo explican que un tombstone no revive", () => {
+  const result = {
+    snapshot: {
+      warnings: [{ code: "deleted-location-revival-blocked" }],
+    },
+  };
+  assert.equal(
+    getEditorHistorySuccessMessage("undo", result),
+    "El borrado definitivo es irreversible; se deshicieron los demás cambios disponibles.",
+  );
+  assert.equal(
+    getEditorHistorySuccessMessage("redo", result),
+    "El borrado definitivo sigue vigente; se rehicieron los demás cambios disponibles.",
+  );
+  assert.equal(getEditorHistorySuccessMessage("undo", {}), "Cambio deshecho.");
+});
+
 test("la UI convierte un fallo de persistencia en error y nunca anuncia guardado", () => {
   assert.deepEqual(
     getEditorMutationNotice(
@@ -222,6 +319,7 @@ test("la importación distingue un borrador editable de uno académicamente publ
       validation: {
         valid: false,
         errors: [{ code: "academic-a" }, { code: "academic-b" }],
+        warnings: [{ code: "draft-warning" }, { code: "content-removed" }],
       },
       warnings: [{ code: "draft-warning" }],
     },
@@ -230,7 +328,7 @@ test("la importación distingue un borrador editable de uno académicamente publ
   assert.deepEqual(getEditorImportFeedback(result), {
     publishable: false,
     errorCount: 2,
-    warningCount: 1,
+    warningCount: 2,
     message: "Borrador importado como editable, pero no es publicable: la validación académica detectó 2 errores. Revisa el Resumen.",
     level: "warning",
   });
@@ -238,8 +336,86 @@ test("la importación distingue un borrador editable de uno académicamente publ
     getEditorDraftBadge({ readOnly: false, snapshot: result.snapshot }),
     {
       text: "2 errores · no publicable",
-      title: "La validación académica bloquea la publicación. Abre Resumen para revisar los errores del borrador. También hay 1 advertencia.",
+      title: "La validación académica bloquea la publicación. Abre Resumen para revisar los errores del borrador. También hay 2 advertencias.",
     },
+  );
+
+  const warningOnly = {
+    ok: true,
+    changed: true,
+    snapshot: {
+      validation: {
+        valid: true,
+        errors: [],
+        warnings: [{ code: "canonical-content-removed" }],
+      },
+      warnings: [],
+    },
+  };
+  assert.deepEqual(getEditorImportFeedback(warningOnly), {
+    publishable: true,
+    errorCount: 0,
+    warningCount: 1,
+    message: "Borrador importado y publicable con 1 advertencia. Revisa el Resumen.",
+    level: "warning",
+  });
+  assert.deepEqual(
+    getEditorDraftBadge({ readOnly: false, snapshot: warningOnly.snapshot }),
+    {
+      text: "1 advertencia",
+      title: "Abre Resumen para revisar las advertencias del borrador.",
+    },
+  );
+});
+
+test("Inventario exige confirmar otra vez si cambian las conexiones enumeradas", () => {
+  const action = {
+    locationId: "new-node-0001",
+    incidentConnections: ["vector-workshop → new-node-0001"],
+  };
+  const unchanged = refreshInventoryImpact(action, {
+    location: { id: action.locationId },
+    incidentConnections: [{ sourceId: "vector-workshop", targetId: action.locationId }],
+  });
+  assert.deepEqual(unchanged, {
+    available: true,
+    changed: false,
+    incidentConnections: action.incidentConnections,
+  });
+
+  const changed = refreshInventoryImpact(action, {
+    location: { id: action.locationId },
+    incidentConnections: [
+      { sourceId: "vector-workshop", targetId: action.locationId },
+      { sourceId: action.locationId, targetId: "coulomb-observatory" },
+    ],
+  });
+  assert.equal(changed.available, true);
+  assert.equal(changed.changed, true);
+  assert.deepEqual(changed.incidentConnections, [
+    "new-node-0001 → coulomb-observatory",
+    "vector-workshop → new-node-0001",
+  ]);
+});
+
+test("el borrado explica contenido, tombstone y concesiones afectadas", () => {
+  assert.deepEqual(
+    getInventoryImpactMessages({
+      type: "delete",
+      kind: "lesson",
+      incidentConnections: [],
+      grantedConceptIds: ["vectors-and-fields"],
+      grantedRewardIds: ["gadgets:field-lens"],
+    }),
+    [
+      "El contenido de la lección dejará definitivamente el curso activo; el ID permanecerá reservado como tombstone.",
+      "La concesión del concepto vectors-and-fields dejará de proceder de este nodo.",
+      "La concesión de la recompensa gadgets:field-lens dejará de proceder de este nodo.",
+    ],
+  );
+  assert.deepEqual(
+    getInventoryImpactMessages({ type: "inventory", incidentConnections: [] }),
+    ["No hay conexiones incidentes que retirar."],
   );
 });
 
@@ -265,16 +441,16 @@ test("las flechas recorren el mapa de solo lectura en la dirección anunciada", 
   assert.equal(getReadOnlyCameraPan({ code: "KeyA" }), null);
 });
 
-test("Estudiante puede usar solo Bowerbird entre las herramientas editoriales", () => {
+test("Estudiante puede consultar las tres herramientas editoriales", () => {
   assert.equal(canUseEditorTool("bowerbird", { readOnly: true }), true);
-  assert.equal(canUseEditorTool("spider", { readOnly: true }), false);
-  assert.equal(canUseEditorTool("bee", { readOnly: true }), false);
+  assert.equal(canUseEditorTool("spider", { readOnly: true }), true);
+  assert.equal(canUseEditorTool("bee", { readOnly: true }), true);
   assert.equal(canUseEditorTool("spider", { readOnly: false }), true);
   assert.equal(canUseEditorTool("unknown", { readOnly: false }), false);
 });
 
 test("cada intento restringido de Estudiante recibe un aviso temporal breve y específico", async () => {
-  const actions = ["spider", "bee", "undo", "redo", "export", "import", "reset"];
+  const actions = ["undo", "redo", "export", "import", "reset"];
   const messages = actions.map((action) => getReadOnlyRestrictionMessage(action));
 
   assert.equal(new Set(messages).size, actions.length);
@@ -290,6 +466,58 @@ test("cada intento restringido de Estudiante recibe un aviso temporal breve y es
   );
   assert.doesNotMatch(readOnlyBranch, /notice\.hidden\s*=\s*false/);
   assert.doesNotMatch(main, /Spider y Bee están bloqueados\. Bowerbird solo modifica/);
+});
+
+test("Crear recupera el estado neutral al completar o cancelar la colocación", () => {
+  assert.equal(
+    getCreateStatus({ type: "create", kind: "mission" }),
+    "Colocación activa: haz clic dentro de una zona; Esc cancela.",
+  );
+  assert.equal(
+    getCreateStatus(null),
+    "El nuevo ID será estable, monotónico y no se reutilizará.",
+  );
+});
+
+test("los formularios preservan un valor dirty solo mientras modelo y selección no cambian", async () => {
+  assert.equal(
+    resolveEditorFormValue({
+      currentValue: "zona-borrador",
+      lastRenderedValue: "zona-a",
+      modelValue: "zona-a",
+    }),
+    "zona-borrador",
+  );
+  assert.equal(
+    resolveEditorFormValue({
+      currentValue: "zona-borrador",
+      lastRenderedValue: "zona-a",
+      modelValue: "zona-movida-en-canvas",
+    }),
+    "zona-movida-en-canvas",
+  );
+  assert.equal(
+    resolveEditorFormValue({
+      currentValue: "zona-anterior",
+      lastRenderedValue: "zona-anterior",
+      modelValue: "zona-del-nodo-nuevo",
+      selectionChanged: true,
+    }),
+    "zona-del-nodo-nuevo",
+  );
+
+  const source = await readFile(
+    new URL("../src/editor/editor-ui-controller.js", import.meta.url),
+    "utf8",
+  );
+  assert.match(
+    source,
+    /#replaceSelectOptions\(this\.elements\.modifyLocation, snapshot\.locations, selected\.id\)/,
+  );
+  assert.doesNotMatch(
+    source,
+    /#replaceSelectOptions\(this\.elements\.modifyLocation, editableLocations, selected\.id\)/,
+  );
 });
 
 test("Encuadrar despeja el inspector y devuelve el foco antes de ajustar el mundo", () => {
@@ -317,6 +545,86 @@ test("Encuadrar despeja el inspector y devuelve el foco antes de ajustar el mund
   ]);
 });
 
+test("quitar una conexión devuelve el foco a la lista cuando su botón desaparece", () => {
+  const removedButton = {
+    isConnected: false,
+    dataset: { editorFocusKey: "connection:source:target" },
+  };
+  const documentRef = {
+    activeElement: removedButton,
+    getElementById(id) {
+      return id === "editor-connection-list" ? connectionList : null;
+    },
+  };
+  const connectionList = {
+    id: "editor-connection-list",
+    disabled: false,
+    focus(options) {
+      assert.deepEqual(options, { preventScroll: true });
+      documentRef.activeElement = this;
+    },
+  };
+  const root = { querySelectorAll: () => [] };
+
+  const restored = restoreEditorRenderFocus(
+    {
+      element: removedButton,
+      id: null,
+      key: removedButton.dataset.editorFocusKey,
+    },
+    { root, documentRef },
+  );
+
+  assert.equal(restored, connectionList);
+  assert.equal(documentRef.activeElement, connectionList);
+});
+
+test("el diálogo de Inventario restaura el disparador o un fallback seguro", () => {
+  const calls = [];
+  const trigger = {
+    isConnected: true,
+    disabled: false,
+    focus(options) {
+      calls.push(["trigger", options]);
+    },
+  };
+  const fallback = {
+    disabled: false,
+    focus(options) {
+      calls.push(["fallback", options]);
+    },
+  };
+  const documentRef = { getElementById: () => null };
+  const root = { querySelectorAll: () => [] };
+
+  assert.equal(
+    restoreInventoryDialogFocus({ element: trigger }, { root, documentRef, fallback }),
+    trigger,
+  );
+  assert.equal(
+    restoreInventoryDialogFocus(null, { root, documentRef, fallback }),
+    fallback,
+  );
+  assert.deepEqual(calls, [
+    ["trigger", { preventScroll: true }],
+    ["fallback", { preventScroll: true }],
+  ]);
+});
+
+test("Inventario abre un modal nativo y Escape cancela antes que el gesto Canvas", async () => {
+  const ui = await readFile(
+    new URL("../src/editor/editor-ui-controller.js", import.meta.url),
+    "utf8",
+  );
+  assert.match(ui, /inventoryConfirmation\.showModal\(\)/);
+  assert.match(ui, /inventoryConfirmation\.addEventListener\("cancel", \(event\) => \{\s*event\.preventDefault\(\);\s*this\.#cancelInventoryAction\(\);/);
+  assert.match(ui, /if \(event\.code === "Escape" && this\.pendingInventoryAction\) \{\s*event\.preventDefault\(\);\s*this\.#cancelInventoryAction\(\);\s*return;/);
+  assert.ok(
+    ui.indexOf('event.code === "Escape" && this.pendingInventoryAction')
+      < ui.indexOf('if (event.code === "Escape")'),
+  );
+});
+
 test("el ciclo de vida conserva el editor cuando pagehide entra en BFCache", async () => {
   const main = await readFile(EDITOR_MAIN_PATH, "utf8");
   assert.match(main, /addEventListener\("pagehide", \(event\) =>/);
@@ -337,8 +645,8 @@ test("el editor carga la edición activa y reserva aplicación/exportación para
     "la recuperación local debe quedar serializada antes de cargar la edición",
   );
   assert.match(main, /validateProjectData\(\{\s*areas: course\.areas,\s*locations: course\.locations/s);
-  assert.match(main, /baseAreas: course\.areas/);
-  assert.match(main, /baseLocations: course\.locations/);
+  assert.match(main, /baseDocument: course\.editorDocument/);
+  assert.match(main, /`orbit-editor:v4:\$\{course\.courseId\}`/);
   assert.match(main, /applicationCoordinator = editorAccess === "full"/);
   assert.match(main, /localServiceClient = editorAccess === "full"/);
   assert.match(main, /\? new EditorLocalServiceClient\(\)\s*: null/);
@@ -346,6 +654,7 @@ test("el editor carga la edición activa y reserva aplicación/exportación para
   const installedApiStart = main.indexOf("window.OrbitEditor =", safeApiStart);
   assert.ok(safeApiStart > 0 && installedApiStart > safeApiStart);
   assert.doesNotMatch(main.slice(safeApiStart, installedApiStart), /exportDocument:/);
+  assert.match(main.slice(safeApiStart, installedApiStart), /selectTool: \(tool\) => app\.setActiveTool\(tool\)/);
   assert.match(main.slice(installedApiStart), /exportDocument: \(\) => model\.exportDocument\(\)/);
   assert.match(main, /`orbit-editor:v2:\$\{course\.courseId\}`/);
   assert.match(main, /`orbit-editor:v1:\$\{course\.courseId\}`/);
@@ -365,6 +674,9 @@ test("el editor carga la edición activa y reserva aplicación/exportación para
     /if \(this\.readOnly\) \{\s*this\.#announceReadOnlyRestriction\("export"\);\s*return;/,
   );
   assert.doesNotMatch(ui, /this\.elements\.exportButton\.disabled = true/);
+  assert.doesNotMatch(ui, /panel\.inert = true/);
+  assert.match(ui, /Abrir Spider en modo consulta/);
+  assert.match(ui, /Bee · consulta/);
 });
 
 test("el apagado local queda oculto hasta validar el servicio y exige doble activación", async () => {

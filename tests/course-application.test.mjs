@@ -118,8 +118,15 @@ test("el orden de nodeIds queda canónico y no produce una aplicación vacía", 
   assert.equal(plan.changed, false);
   assert.deepEqual(plan.diff, {
     movedAreas: [],
+    renamedAreas: [],
     changedAreaAppearances: [],
+    changedTierLabels: [],
     movedLocations: [],
+    createdLocations: [],
+    renamedLocations: [],
+    inventoriedLocations: [],
+    restoredLocations: [],
+    deletedLocations: [],
     addedLearningNodes: [],
     removedLearningNodes: [],
     addedConnections: [],
@@ -129,6 +136,76 @@ test("el orden de nodeIds queda canónico y no produce una aplicación vacía", 
     plan.edition.document.learningNetwork.nodeIds,
     currentEdition.document.learningNetwork.nodeIds,
   );
+});
+
+test("el diff v5 distingue nombres, niveles y ciclo de vida de lugares", () => {
+  const current = createEditorDocument();
+  const candidate = structuredClone(current);
+  candidate.areas[1].title = "Campo electrostático";
+  candidate.areas[1].shortTitle = "Electrostática II";
+  candidate.tierLabels[0].text = "NIVEL 1 · FUNDAMENTOS";
+  candidate.locations.find((entry) => entry.id === "coulomb-observatory").title =
+    "Observatorio eléctrico";
+
+  const restoredId = "gauss-guide-post";
+  current.locations.find((entry) => entry.id === restoredId).lifecycle = "inventory";
+  candidate.locations.find((entry) => entry.id === restoredId).lifecycle = "active";
+  candidate.locations.find((entry) => entry.id === "ampere-foundry").lifecycle = "inventory";
+  candidate.locations.find((entry) => entry.id === "faraday-station").lifecycle = "deleted";
+  candidate.locations.push({
+    id: "new-node-0001",
+    kind: "npc",
+    title: "Nodo nuevo",
+    shortTitle: "Nuevo",
+    areaId: "origin",
+    offset: { x: 0, y: 0 },
+    lifecycle: "active",
+    provenance: "editor-created",
+    content: {},
+  });
+  candidate.locations.push({
+    id: "new-node-0002",
+    kind: "npc",
+    title: "Tombstone nuevo",
+    shortTitle: "Tombstone",
+    areaId: "origin",
+    offset: { x: 0, y: 0 },
+    lifecycle: "deleted",
+    provenance: "editor-created",
+    content: {},
+  });
+
+  const diff = diffEditorDocuments(current, candidate);
+
+  assert.deepEqual(diff.renamedAreas, ["electrostatics"]);
+  assert.deepEqual(diff.changedTierLabels, [1]);
+  assert.deepEqual(diff.renamedLocations, ["coulomb-observatory"]);
+  assert.deepEqual(diff.createdLocations, ["new-node-0001"]);
+  assert.deepEqual(diff.inventoriedLocations, ["ampere-foundry"]);
+  assert.deepEqual(diff.restoredLocations, [restoredId]);
+  assert.deepEqual(diff.deletedLocations, ["faraday-station", "new-node-0002"]);
+});
+
+test("el diff nunca silencia un lugar previo omitido por el candidato", () => {
+  const current = createEditorDocument();
+  current.locations.push({
+    id: "new-node-0001",
+    kind: "npc",
+    title: "Personaje publicado",
+    shortTitle: "Publicado",
+    areaId: "origin",
+    offset: { x: 0, y: 0 },
+    lifecycle: "active",
+    provenance: "editor-created",
+    content: {},
+  });
+  current.nextLocationSequence = 2;
+  const candidate = structuredClone(current);
+  candidate.locations = candidate.locations.filter(({ id }) => id !== "new-node-0001");
+
+  const diff = diffEditorDocuments(current, candidate);
+
+  assert.deepEqual(diff.deletedLocations, ["new-node-0001"]);
 });
 
 test("el plan distingue membresía y aristas de la Red de aprendizaje", () => {
@@ -189,6 +266,29 @@ test("Aplicar rechaza la arista eliminada hasta que Docente repara el borrador",
   assert.deepEqual(plan.diff.addedConnections, [
     "maxwell-archive->superconductivity-transition-lab",
   ]);
+});
+
+test("el plan permite inventariar contenido lateral y advierte sus referencias canónicas", async () => {
+  const currentEdition = await publishedEdition();
+  const candidate = createEditorDocument();
+  candidate.locations.find((entry) => entry.id === "shielding-chamber").lifecycle =
+    "inventory";
+
+  const plan = await createCourseApplicationPlan({
+    currentEdition,
+    candidateDocument: candidate,
+    storage: new BrowserStorage(),
+    appliedAt: "2026-08-31T00:00:00.000Z",
+  });
+
+  assert.equal(plan.changed, true);
+  assert.deepEqual(plan.diff.inventoriedLocations, ["shielding-chamber"]);
+  assert.equal(plan.impact.totalLocations, 28);
+  assert.ok(
+    plan.validation.warnings.some((entry) =>
+      entry.code === "project-data-warning"
+      && entry.message.includes("shielding-chamber")),
+  );
 });
 
 test("aplicar el plan instala la edición y elimina progreso canónico y legado", async () => {

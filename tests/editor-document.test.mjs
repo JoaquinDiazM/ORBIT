@@ -7,14 +7,18 @@ import { AREAS } from "../src/data/world.js";
 import {
   EDITOR_BASE_DATA_VERSION,
   EDITOR_COURSE_ID,
+  EDITOR_DOCUMENT_MAX_SERIALIZED_BYTES,
   EDITOR_DOCUMENT_KIND,
   EDITOR_DOCUMENT_SCHEMA_VERSION,
   EditorDocumentError,
   applyEditorDocument,
   createEditorDocument,
+  createGenericLocationContent,
   deriveEditorTreeTwoTopology,
   importEditorDocument,
   materializeEditorDraft,
+  migrateEditorDocumentV3ToV4,
+  migrateEditorDocumentV4ToV5,
   sanitizeEditorDraft,
   sanitizeEditorDocument,
   serializeEditorDraft,
@@ -61,13 +65,34 @@ test("el documento canónico publica layout, apariencia y dependencias explícit
     ),
     true,
   );
-  assert.deepEqual(Object.keys(candidate.areas[0]), ["id", "q", "r", "appearance"]);
+  assert.deepEqual(Object.keys(candidate.areas[0]), [
+    "id",
+    "q",
+    "r",
+    "title",
+    "shortTitle",
+    "appearance",
+  ]);
   assert.deepEqual(candidate.areas[0].appearance, {
     paletteId: "canonical",
     motifId: "canonical",
     contourId: "canonical",
   });
-  assert.deepEqual(Object.keys(candidate.locations[0]), ["id", "areaId", "offset"]);
+  assert.deepEqual(candidate.tierLabels, [
+    { tier: 1, text: "ANILLO 1 · TEORÍA", offset: { x: 0, y: 0 } },
+    { tier: 2, text: "ANILLO 2 · APLICACIONES", offset: { x: 0, y: 0 } },
+  ]);
+  assert.deepEqual(Object.keys(candidate.locations[0]), [
+    "id",
+    "kind",
+    "title",
+    "shortTitle",
+    "areaId",
+    "offset",
+    "lifecycle",
+    "provenance",
+  ]);
+  assert.equal(candidate.nextLocationSequence, 1);
   assert.equal("concepts" in candidate, false);
   assert.equal("player" in candidate, false);
   assert.equal(sanitizeEditorDocument(candidate).ok, true);
@@ -137,8 +162,26 @@ test("la topología del editor contiene únicamente relaciones académicas expl�
   );
 });
 
-test("IDs desconocidos se ignoran y entidades ausentes se rebasan", () => {
+test("v5 rechaza IDs desconocidos de zona o lugar", () => {
   const candidate = document();
+  candidate.areas.push({ id: "future-ghost", q: 8, r: 8 });
+  candidate.locations.push({
+    id: "future-node",
+    areaId: "origin",
+    offset: { x: 0, y: 0 },
+  });
+
+  const result = sanitizeEditorDraft(candidate);
+
+  assert.equal(result.ok, false);
+  assert.equal(errorCodes(result).has("unknown-area"), true);
+  assert.equal(errorCodes(result).has("unknown-location"), true);
+});
+
+test("un documento legacy ignora desconocidos y rebasa entidades ausentes", () => {
+  const candidate = document();
+  candidate.schemaVersion = 4;
+  delete candidate.nextLocationSequence;
   candidate.areas = candidate.areas.filter((area) => area.id !== "origin");
   candidate.areas.push({ id: "future-ghost", q: 8, r: 8 });
   candidate.locations = candidate.locations.filter(
@@ -160,15 +203,15 @@ test("IDs desconocidos se ignoran y entidades ausentes se rebasan", () => {
   );
   assert.equal(result.document.areas.some((area) => area.id === "future-ghost"), false);
   assert.equal(result.document.locations.some((location) => location.id === "future-node"), false);
-  assert.deepEqual(
-    new Set(result.warnings.map((entry) => entry.code)),
-    new Set([
-      "unknown-area-ignored",
-      "areas-rebased",
-      "unknown-location-ignored",
-      "locations-rebased",
-    ]),
-  );
+  for (const code of [
+    "unknown-area-ignored",
+    "areas-rebased",
+    "unknown-location-ignored",
+    "locations-rebased",
+    "editor-schema-v4-v5-migrated",
+  ]) {
+    assert.equal(result.warnings.some((entry) => entry.code === code), true, code);
+  }
 });
 
 test("kind, esquema y curso incorrectos son incompatibles", () => {
@@ -196,7 +239,7 @@ test("la versión base distinta se rebasa con advertencia", () => {
   assert.equal(result.warnings.some((entry) => entry.code === "base-version-rebased"), true);
 });
 
-test("un borrador v1 de 0.4.0 migra a v3, restaura Smith como lugar lateral y no lo conecta", () => {
+test("un borrador v1 de 0.4.0 migra a v5, restaura Smith como lugar lateral y no lo conecta", () => {
   const legacy = document();
   legacy.treeTwoConnections = legacy.learningNetwork.connections.map((connection) => ({
     ...connection,
@@ -215,7 +258,7 @@ test("un borrador v1 de 0.4.0 migra a v3, restaura Smith como lugar lateral y no
   const result = sanitizeEditorDocument(legacy);
 
   assert.equal(result.ok, true);
-  assert.equal(result.document.schemaVersion, 3);
+  assert.equal(result.document.schemaVersion, 5);
   assert.equal(result.document.appearanceCatalogVersion, 1);
   assert.equal(result.document.locations.length, LOCATIONS.length);
   assert.equal(
@@ -238,7 +281,7 @@ test("un borrador v1 de 0.4.0 migra a v3, restaura Smith como lugar lateral y no
   assert.equal(result.warnings.some(({ code }) => code === "editor-schema-migrated"), true);
 });
 
-test("un borrador v2 migra la topología efectiva de 30 pares y descarta laterales", () => {
+test("un borrador v2 migra a v5 con la topología efectiva y descarta laterales", () => {
   const legacy = document();
   const derivedLegacyPairs = new Set([
     "antenna-range->atacama-array",
@@ -271,7 +314,7 @@ test("un borrador v2 migra la topología efectiva de 30 pares y descarta lateral
   const result = sanitizeEditorDraft(legacy);
 
   assert.equal(result.ok, true);
-  assert.equal(result.document.schemaVersion, 3);
+  assert.equal(result.document.schemaVersion, 5);
   assert.equal(result.document.learningNetwork.nodeIds.length, 21);
   assert.equal(result.document.learningNetwork.connections.length, 30);
   assert.equal(
@@ -281,6 +324,349 @@ test("un borrador v2 migra la topología efectiva de 30 pares y descarta lateral
     false,
   );
   assert.equal(result.warnings.some(({ code }) => code === "editor-schema-migrated"), true);
+});
+
+test("las migraciones explícitas v3→v4→v5 separan presentación y autoridad", () => {
+  const legacy = document();
+  legacy.schemaVersion = 3;
+  legacy.areas = legacy.areas.map(({ id, q, r, appearance }) => ({
+    id,
+    q,
+    r,
+    appearance,
+  }));
+  legacy.locations = legacy.locations.map(({ id, areaId, offset }) => ({
+    id,
+    areaId,
+    offset,
+  }));
+  delete legacy.tierLabels;
+  delete legacy.nextLocationSequence;
+
+  const v4 = migrateEditorDocumentV3ToV4(legacy);
+  assert.equal(v4.schemaVersion, 4);
+  assert.equal(v4.areas.every(({ title, shortTitle }) => title && shortTitle), true);
+  assert.deepEqual(v4.tierLabels, [
+    { tier: 1, text: "ANILLO 1 · TEORÍA", offset: { x: 0, y: 0 } },
+    { tier: 2, text: "ANILLO 2 · APLICACIONES", offset: { x: 0, y: 0 } },
+  ]);
+  assert.equal("lifecycle" in v4.locations[0], false);
+
+  const v5 = migrateEditorDocumentV4ToV5(v4);
+  assert.equal(v5.schemaVersion, 5);
+  assert.equal(v5.nextLocationSequence, 1);
+  assert.deepEqual(
+    Object.keys(v5.locations[0]),
+    ["id", "kind", "title", "shortTitle", "areaId", "offset", "lifecycle", "provenance"],
+  );
+  assert.equal(v5.locations.every(({ lifecycle }) => lifecycle === "active"), true);
+  assert.equal(sanitizeEditorDocument(legacy).ok, true);
+});
+
+test("los IDs creados exigen secuencia segura y representación canónica", () => {
+  const invalidIds = [
+    "new-node-0000",
+    "new-node-00001",
+    "new-node-9007199254740992",
+    `new-node-${"9".repeat(400)}`,
+  ];
+  for (const locationId of invalidIds) {
+    const candidate = document();
+    candidate.locations.push({
+      id: locationId,
+      kind: "npc",
+      title: "Nodo inválido",
+      shortTitle: "Inválido",
+      areaId: "origin",
+      offset: { x: 0, y: 0 },
+      lifecycle: "active",
+      provenance: "editor-created",
+      content: createGenericLocationContent("npc", "Nodo inválido"),
+    });
+    candidate.nextLocationSequence = 2;
+    const result = sanitizeEditorDraft(candidate);
+    assert.equal(result.ok, false, locationId);
+    assert.equal(errorCodes(result).has("invalid-created-location-id"), true, locationId);
+  }
+});
+
+test("baseDocument reserva también los huecos anteriores a su contador monotónico", () => {
+  const baseDocument = document();
+  baseDocument.nextLocationSequence = 10;
+  const candidate = structuredClone(baseDocument);
+  candidate.locations.push({
+    id: "new-node-0005",
+    kind: "npc",
+    title: "ID reciclado",
+    shortTitle: "Reciclado",
+    areaId: "origin",
+    offset: { x: 0, y: 0 },
+    lifecycle: "active",
+    provenance: "editor-created",
+    content: createGenericLocationContent("npc", "ID reciclado"),
+  });
+
+  const result = sanitizeEditorDraft(candidate, { baseDocument });
+  assert.equal(result.ok, false);
+  assert.equal(errorCodes(result).has("reused-created-location-id"), true);
+});
+
+test("un borrador nunca se valida si no cabe en la solicitud del helper", () => {
+  const candidate = document();
+  for (let sequence = 1; sequence <= 2_000; sequence += 1) {
+    const title = `Personaje provisional ${sequence}`;
+    candidate.locations.push({
+      id: `new-node-${String(sequence).padStart(4, "0")}`,
+      kind: "npc",
+      title,
+      shortTitle: `NPC ${sequence}`,
+      areaId: "origin",
+      offset: { x: 0, y: 0 },
+      lifecycle: "active",
+      provenance: "editor-created",
+      content: createGenericLocationContent("npc", title),
+    });
+  }
+  candidate.nextLocationSequence = 2_001;
+  assert.ok(
+    new TextEncoder().encode(JSON.stringify(candidate)).byteLength
+      > EDITOR_DOCUMENT_MAX_SERIALIZED_BYTES,
+  );
+
+  const result = sanitizeEditorDraft(candidate);
+  assert.equal(result.ok, false);
+  assert.equal(errorCodes(result).has("editor-document-too-large"), true);
+});
+
+test("baseDocument rebasa presentación, entidades dinámicas y ciclos de vida omitidos", () => {
+  const appliedBase = document();
+  const electrostatics = appliedBase.areas.find(({ id }) => id === "electrostatics");
+  const magnetism = appliedBase.areas.find(({ id }) => id === "magnetism");
+  [electrostatics.q, magnetism.q] = [magnetism.q, electrostatics.q];
+  [electrostatics.r, magnetism.r] = [magnetism.r, electrostatics.r];
+  electrostatics.title = "Electrostática publicada";
+  electrostatics.shortTitle = "Electro publicada";
+  electrostatics.appearance = {
+    paletteId: "aurora",
+    motifId: "waves",
+    contourId: "double",
+  };
+  appliedBase.tierLabels[0] = {
+    tier: 1,
+    text: "BASE PUBLICADA",
+    offset: { x: 18, y: -14 },
+  };
+  const activeLocation = {
+    id: "new-node-0001",
+    kind: "lesson",
+    title: "Lección publicada",
+    shortTitle: "Publicada",
+    areaId: "origin",
+    offset: { x: 30, y: 14 },
+    lifecycle: "active",
+    provenance: "editor-created",
+    content: createGenericLocationContent("lesson", "Lección publicada"),
+  };
+  const inventoryLocation = {
+    id: "new-node-0002",
+    kind: "npc",
+    title: "Personaje guardado",
+    shortTitle: "Guardado",
+    areaId: "origin",
+    offset: { x: -30, y: 14 },
+    lifecycle: "inventory",
+    provenance: "editor-created",
+    content: createGenericLocationContent("npc", "Personaje guardado"),
+  };
+  const deletedLocation = {
+    id: "new-node-0003",
+    kind: "npc",
+    title: "Personaje eliminado",
+    shortTitle: "Eliminado",
+    areaId: "origin",
+    offset: { x: 0, y: -20 },
+    lifecycle: "deleted",
+    provenance: "editor-created",
+    content: createGenericLocationContent("npc", "Personaje eliminado"),
+  };
+  appliedBase.locations.push(activeLocation, inventoryLocation, deletedLocation);
+  appliedBase.locations.find(({ id }) => id === "gauss-guide-post").lifecycle = "deleted";
+  appliedBase.nextLocationSequence = 8;
+  appliedBase.learningNetwork.nodeIds.push(activeLocation.id);
+  appliedBase.learningNetwork.connections.push({
+    sourceId: "vector-workshop",
+    targetId: activeLocation.id,
+  });
+  const baseResult = sanitizeEditorDraft(appliedBase);
+  assert.equal(baseResult.ok, true);
+
+  const legacy = document();
+  legacy.schemaVersion = 3;
+  legacy.areas = legacy.areas
+    .filter(({ id }) => id !== "electrostatics" && id !== "magnetism")
+    .map(({ id, q, r, appearance }) => ({ id, q, r, appearance }));
+  legacy.locations = legacy.locations.map(({ id, areaId, offset }) => ({ id, areaId, offset }));
+  delete legacy.tierLabels;
+  delete legacy.nextLocationSequence;
+  const rebased = sanitizeEditorDraft(legacy, { baseDocument: baseResult.document });
+
+  assert.equal(rebased.ok, true, rebased.errors.map(({ message }) => message).join("\n"));
+  const restoredArea = rebased.document.areas.find(({ id }) => id === "electrostatics");
+  assert.equal(restoredArea.title, "Electrostática publicada");
+  assert.equal(restoredArea.q, electrostatics.q);
+  assert.deepEqual(restoredArea.appearance, electrostatics.appearance);
+  assert.deepEqual(rebased.document.tierLabels[0], appliedBase.tierLabels[0]);
+  assert.equal(rebased.document.nextLocationSequence, 8);
+  assert.equal(
+    rebased.warnings.some(({ code }) => code === "location-sequence-rebased"),
+    true,
+  );
+  assert.equal(
+    rebased.document.locations.find(({ id }) => id === activeLocation.id).provenance,
+    "editor-created",
+  );
+  assert.equal(
+    rebased.document.locations.find(({ id }) => id === inventoryLocation.id).lifecycle,
+    "inventory",
+  );
+  assert.equal(
+    rebased.document.locations.find(({ id }) => id === deletedLocation.id).lifecycle,
+    "deleted",
+  );
+  assert.equal(
+    rebased.document.locations.find(({ id }) => id === "gauss-guide-post").lifecycle,
+    "deleted",
+  );
+  assert.equal(rebased.document.learningNetwork.nodeIds.includes(activeLocation.id), true);
+  assert.equal(
+    rebased.document.learningNetwork.connections.some(
+      ({ sourceId, targetId }) =>
+        sourceId === "vector-workshop" && targetId === activeLocation.id,
+    ),
+    true,
+  );
+});
+
+test("Bee persiste nombres y rótulos editables con límites navegables", () => {
+  const candidate = document();
+  const electrostatics = candidate.areas.find(({ id }) => id === "electrostatics");
+  electrostatics.title = "Laboratorio electrostático";
+  electrostatics.shortTitle = "Electrostática lab";
+  candidate.tierLabels[0] = {
+    tier: 1,
+    text: "FUNDAMENTOS",
+    offset: { x: 24, y: -16 },
+  };
+
+  const applied = applyEditorDocument(candidate);
+  assert.equal(
+    applied.areas.find(({ id }) => id === "electrostatics").title,
+    "Laboratorio electrostático",
+  );
+  assert.deepEqual(applied.tierLabels[0], {
+    tier: 1,
+    text: "FUNDAMENTOS",
+    offset: { x: 24, y: -16 },
+  });
+
+  candidate.tierLabels[0].offset.x = 641;
+  assert.equal(
+    errorCodes(sanitizeEditorDraft(candidate)).has("invalid-tier-label-offset"),
+    true,
+  );
+  candidate.tierLabels[0].offset.x = 0;
+  electrostatics.title = "Título\npartido";
+  assert.equal(errorCodes(sanitizeEditorDraft(candidate)).has("invalid-area-title"), true);
+});
+
+test("Spider materializa un nodo creado con contenido provisional y autoridad estable", () => {
+  const candidate = document();
+  const created = {
+    id: "new-node-0001",
+    kind: "lesson",
+    title: "Lección de prueba",
+    shortTitle: "Prueba",
+    areaId: "origin",
+    offset: { x: 42, y: 18 },
+    lifecycle: "active",
+    provenance: "editor-created",
+    content: createGenericLocationContent("lesson", "Lección de prueba"),
+  };
+  candidate.locations.push(created);
+  candidate.nextLocationSequence = 2;
+  candidate.learningNetwork.nodeIds.push(created.id);
+  candidate.learningNetwork.connections.push({
+    sourceId: "vector-workshop",
+    targetId: created.id,
+  });
+
+  const result = sanitizeEditorDocument(candidate);
+  assert.equal(result.ok, true, result.errors.map(({ message }) => message).join("\n"));
+  const applied = applyEditorDocument(candidate);
+  const location = applied.locations.find(({ id }) => id === created.id);
+  assert.equal(location.kind, "lesson");
+  assert.equal(location.exercise.type, "choice");
+  assert.equal(location.requirements.completedLocations[0], "vector-workshop");
+  assert.equal(location.objective.includes("provisional"), true);
+});
+
+test("inventario y tombstones excluyen nodos sin restaurar aristas ni reutilizar IDs", () => {
+  const candidate = document();
+  const target = candidate.locations.find(({ id }) => id === "atacama-array");
+  target.lifecycle = "inventory";
+  candidate.learningNetwork.nodeIds = candidate.learningNetwork.nodeIds.filter(
+    (id) => id !== target.id,
+  );
+  candidate.learningNetwork.connections = candidate.learningNetwork.connections.filter(
+    ({ sourceId, targetId }) => sourceId !== target.id && targetId !== target.id,
+  );
+
+  const inventoryResult = sanitizeEditorDocument(candidate);
+  assert.equal(
+    inventoryResult.ok,
+    true,
+    inventoryResult.errors.map(({ message }) => message).join("\n"),
+  );
+  assert.equal(
+    applyEditorDocument(candidate).locations.some(({ id }) => id === target.id),
+    false,
+  );
+
+  candidate.locations.push({
+    id: "new-node-0007",
+    kind: "npc",
+    title: "NPC retirado",
+    shortTitle: "Retirado",
+    areaId: "origin",
+    offset: { x: 0, y: 0 },
+    lifecycle: "deleted",
+    provenance: "editor-created",
+    content: createGenericLocationContent("npc", "NPC retirado"),
+  });
+  candidate.nextLocationSequence = 1;
+  const rebased = sanitizeEditorDraft(candidate);
+  assert.equal(rebased.ok, true);
+  assert.equal(rebased.document.nextLocationSequence, 8);
+  assert.equal(
+    rebased.warnings.some(({ code }) => code === "location-sequence-rebased"),
+    true,
+  );
+});
+
+test("los nodos protegidos pueden inventariarse en borrador pero nunca ser tombstone", () => {
+  const candidate = document();
+  const root = candidate.locations.find(({ id }) => id === "vector-workshop");
+  root.lifecycle = "deleted";
+  candidate.learningNetwork.nodeIds = candidate.learningNetwork.nodeIds.filter(
+    (id) => id !== root.id,
+  );
+  candidate.learningNetwork.connections = candidate.learningNetwork.connections.filter(
+    ({ sourceId, targetId }) => sourceId !== root.id && targetId !== root.id,
+  );
+
+  const result = sanitizeEditorDraft(candidate);
+  assert.equal(result.ok, false);
+  assert.equal(errorCodes(result).has("protected-location-delete"), true);
 });
 
 test("rechaza coordenadas no finitas, ocupación duplicada y mezcla de anillos", () => {

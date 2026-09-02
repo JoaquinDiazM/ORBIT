@@ -4,6 +4,7 @@
 - Fecha: 2026-08-28
 - Ampliado por: [ADR 0008](0008-scoped-appearance-and-local-course-application.md)
 - Enmendado por: [ADR 0009](0009-single-learning-network.md)
+- Enmendado por: [ADR 0010](0010-editorial-entities-and-map-metadata.md)
 
 ## Contexto
 
@@ -159,3 +160,8 @@ ADR 0009 reemplaza, desde el documento editorial `v3`, las secciones que derivab
 desde conceptos y recompensas. Spider mantiene una colección explícita única de nodos y
 conexiones académicas; la separación de aplicaciones, Bee, historial y publicación local de este
 ADR continúa vigente.
+
+ADR 0010 revisa expresamente la frontera de contenido y entidades: el documento `v5` puede
+renombrar, crear, inventariar y eliminar tipos admitidos sin mutar los módulos canónicos. También
+reemplaza la semántica fija de teoría/aplicaciones por dos niveles estructurales con rótulos
+configurables; conserva `tier`, separación de anillos, sitio estático e historial.

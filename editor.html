@@ -155,69 +155,184 @@
         </header>
         <div class="panel-body editor-panel-body">
           <section id="editor-spider-panel" aria-labelledby="editor-spider-heading">
-            <h3 id="editor-spider-heading">Mover y conectar nodos</h3>
-            <p class="editor-intro">Arrastra un nodo para ubicarlo. En Conectar, arrastra desde la fuente hasta el destino para crear un prerrequisito dirigido.</p>
+            <h3 id="editor-spider-heading">Autoría de nodos</h3>
+            <p class="editor-intro">Spider separa cada operación para que mover, conectar, modificar, crear e inventariar sean acciones deliberadas.</p>
 
-            <fieldset class="editor-segmented-control">
-              <legend>Gesto del ratón</legend>
-              <label><input type="radio" name="editor-spider-mode" value="move" checked /> Mover</label>
-              <label><input type="radio" name="editor-spider-mode" value="connect" /> Conectar</label>
-            </fieldset>
+            <nav class="editor-subnav" aria-label="Operaciones de Spider">
+              <button id="editor-spider-tab-move" type="button" data-spider-view="move" aria-controls="editor-spider-move-view" aria-pressed="true">Mover</button>
+              <button id="editor-spider-tab-connect" type="button" data-spider-view="connect" aria-controls="editor-spider-connect-view" aria-pressed="false">Conectar</button>
+              <button id="editor-spider-tab-modify" type="button" data-spider-view="modify" aria-controls="editor-spider-modify-view" aria-pressed="false">Modificar</button>
+              <button id="editor-spider-tab-create" type="button" data-spider-view="create" aria-controls="editor-spider-create-view" aria-pressed="false">Crear</button>
+              <button id="editor-spider-tab-inventory" type="button" data-spider-view="inventory" aria-controls="editor-spider-inventory-view" aria-pressed="false">Inventario</button>
+            </nav>
 
-            <label class="field-label" for="editor-location-select">Nodo seleccionado</label>
-            <select id="editor-location-select"></select>
+            <section id="editor-spider-move-view" class="editor-spider-view" data-editor-spider-view="move" aria-labelledby="editor-spider-tab-move">
+              <p class="editor-intro">Arrastra un nodo para ubicarlo o utiliza los controles numéricos.</p>
+              <label class="field-label" for="editor-location-select">Nodo seleccionado</label>
+              <select id="editor-location-select"></select>
+              <div class="editor-coordinate-grid">
+                <label>Zona<select id="editor-location-area"></select></label>
+                <label>Offset x<input id="editor-location-x" type="number" step="1" /></label>
+                <label>Offset y<input id="editor-location-y" type="number" step="1" /></label>
+                <button id="editor-apply-location" type="button">Aplicar posición</button>
+              </div>
+              <div class="editor-nudge-grid" aria-label="Ajuste fino del nodo">
+                <span></span><button type="button" data-nudge-x="0" data-nudge-y="-1" aria-label="Mover nodo arriba">↑</button><span></span>
+                <button type="button" data-nudge-x="-1" data-nudge-y="0" aria-label="Mover nodo a la izquierda">←</button>
+                <button type="button" data-nudge-x="0" data-nudge-y="1" aria-label="Mover nodo abajo">↓</button>
+                <button type="button" data-nudge-x="1" data-nudge-y="0" aria-label="Mover nodo a la derecha">→</button>
+              </div>
+            </section>
 
-            <div class="editor-network-membership">
-              <p id="editor-network-membership" class="callout" role="status"></p>
-              <button id="editor-toggle-network-location" type="button"></button>
-            </div>
+            <section id="editor-spider-connect-view" class="editor-spider-view" data-editor-spider-view="connect" aria-labelledby="editor-spider-tab-connect" hidden>
+              <p class="editor-intro">Arrastra desde la fuente hasta el destino o construye la conexión con los selectores.</p>
+              <label class="field-label" for="editor-connect-location">Nodo seleccionado</label>
+              <select id="editor-connect-location"></select>
+              <div class="editor-network-membership">
+                <p id="editor-network-membership" class="callout" role="status"></p>
+                <button id="editor-toggle-network-location" type="button"></button>
+              </div>
+              <h3>Conexión de aprendizaje</h3>
+              <div class="editor-connection-form">
+                <label>Fuente<select id="editor-connection-source"></select></label>
+                <span aria-hidden="true">→</span>
+                <label>Destino<select id="editor-connection-target"></select></label>
+                <button id="editor-add-connection" type="button">Conectar</button>
+              </div>
+              <div class="editor-legend" aria-label="Leyenda de conexiones">
+                <p><span class="editor-line-swatch" aria-hidden="true"></span><strong>Amarillo brillante continuo:</strong> apariencia común de todas las conexiones visibles.</p>
+                <p><span class="editor-legend-label">Red</span><strong>Alcance:</strong> solo lecciones y misiones pueden pertenecer a la red y todas sus conexiones son editables.</p>
+              </div>
+              <h3>Red seleccionada</h3>
+              <ul id="editor-connection-list" class="editor-connection-list" tabindex="-1"></ul>
+            </section>
 
-            <div class="editor-coordinate-grid">
-              <label>Zona<select id="editor-location-area"></select></label>
-              <label>Offset x<input id="editor-location-x" type="number" step="1" /></label>
-              <label>Offset y<input id="editor-location-y" type="number" step="1" /></label>
-              <button id="editor-apply-location" type="button">Aplicar posición</button>
-            </div>
+            <section id="editor-spider-modify-view" class="editor-spider-view" data-editor-spider-view="modify" aria-labelledby="editor-spider-tab-modify" hidden>
+              <p class="editor-intro">Los nombres cambian sin alterar el identificador estable ni el contenido del nodo.</p>
+              <label class="field-label" for="editor-modify-location">Nodo seleccionado</label>
+              <select id="editor-modify-location"></select>
+              <div class="editor-form-stack">
+                <label>ID estable<input id="editor-location-id" type="text" readonly aria-readonly="true" /></label>
+                <label>Título completo<input id="editor-location-title" type="text" maxlength="96" /></label>
+                <label>Etiqueta breve<input id="editor-location-short-title" type="text" maxlength="48" /></label>
+                <button id="editor-apply-location-name" type="button">Guardar nombres</button>
+              </div>
+              <button id="editor-edit-location-content" type="button" disabled aria-describedby="editor-content-coming-soon">Editar contenido</button>
+              <p id="editor-content-coming-soon" class="callout"><strong>Próximamente:</strong> etapas, preguntas, fuentes y recompensas.</p>
+            </section>
 
-            <div class="editor-nudge-grid" aria-label="Ajuste fino del nodo">
-              <span></span><button type="button" data-nudge-x="0" data-nudge-y="-1" aria-label="Mover nodo arriba">↑</button><span></span>
-              <button type="button" data-nudge-x="-1" data-nudge-y="0" aria-label="Mover nodo a la izquierda">←</button>
-              <button type="button" data-nudge-x="0" data-nudge-y="1" aria-label="Mover nodo abajo">↓</button>
-              <button type="button" data-nudge-x="1" data-nudge-y="0" aria-label="Mover nodo a la derecha">→</button>
-            </div>
+            <section id="editor-spider-create-view" class="editor-spider-view" data-editor-spider-view="create" aria-labelledby="editor-spider-tab-create" hidden>
+              <p class="editor-intro">Crea una plantilla y colócala con un clic en el mapa o mediante coordenadas accesibles.</p>
+              <div class="editor-form-stack">
+                <label>Tipo<select id="editor-create-kind"><option value="lesson">Lección</option><option value="mission">Misión</option><option value="npc">Personaje secundario</option></select></label>
+                <label>Zona<select id="editor-create-area"></select></label>
+                <div class="editor-inline-coordinates">
+                  <label>Offset x<input id="editor-create-x" type="number" step="1" value="0" /></label>
+                  <label>Offset y<input id="editor-create-y" type="number" step="1" value="0" /></label>
+                </div>
+                <button id="editor-create-location" type="button">Crear en la zona seleccionada</button>
+                <button id="editor-arm-create-location" type="button" aria-pressed="false">Elegir posición con un clic</button>
+                <button id="editor-import-location" type="button" disabled aria-describedby="editor-import-coming-soon">Importar nodo</button>
+              </div>
+              <p id="editor-create-status" class="callout" role="status">El nuevo ID será estable, monotónico y no se reutilizará.</p>
+              <div class="editor-create-followup" aria-label="Siguientes pasos del nodo creado">
+                <button id="editor-open-created-modify" type="button">Abrir Modificar</button>
+                <button id="editor-open-created-move" type="button">Abrir Mover</button>
+              </div>
+              <p id="editor-import-coming-soon" class="editor-coming-soon">Importar un nodo individual: Próximamente.</p>
+            </section>
 
-            <h3>Conexión de aprendizaje</h3>
-            <div class="editor-connection-form">
-              <label>Fuente<select id="editor-connection-source"></select></label>
-              <span aria-hidden="true">→</span>
-              <label>Destino<select id="editor-connection-target"></select></label>
-              <button id="editor-add-connection" type="button">Conectar</button>
-            </div>
-            <div class="editor-legend" aria-label="Leyenda de conexiones">
-              <p><span class="editor-line-swatch" aria-hidden="true"></span><strong>Amarillo brillante continuo:</strong> apariencia común de todas las conexiones visibles.</p>
-              <p><span class="editor-legend-label">Red</span><strong>Alcance:</strong> solo lecciones y misiones pueden pertenecer a la red y todas sus conexiones son editables.</p>
-            </div>
-            <h3>Red seleccionada</h3>
-            <ul id="editor-connection-list" class="editor-connection-list"></ul>
+            <section id="editor-spider-inventory-view" class="editor-spider-view" data-editor-spider-view="inventory" aria-labelledby="editor-spider-tab-inventory" hidden>
+              <p class="editor-intro">Guardar retira el nodo del mapamundi y elimina sus conexiones incidentes. Borrar definitivamente solo se ofrece desde aquí.</p>
+              <div class="editor-inventory-filters">
+                <label>Buscar<input id="editor-inventory-search" type="search" placeholder="ID o título" /></label>
+                <label>Tipo<select id="editor-inventory-kind"><option value="all">Todos</option><option value="lesson">Lecciones</option><option value="mission">Misiones</option><option value="npc">Personajes</option></select></label>
+              </div>
+              <h3>Nodos activos editables</h3>
+              <div id="editor-active-location-list" class="editor-inventory-list"></div>
+              <h3>Nodos guardados</h3>
+              <div id="editor-inventory-location-list" class="editor-inventory-list"></div>
+              <div id="editor-inventory-restore-controls" class="editor-form-stack" hidden>
+                <label>Zona de reinserción<select id="editor-inventory-area"></select></label>
+                <div class="editor-inline-coordinates">
+                  <label>Offset x<input id="editor-inventory-x" type="number" step="1" value="0" /></label>
+                  <label>Offset y<input id="editor-inventory-y" type="number" step="1" value="0" /></label>
+                </div>
+                <button id="editor-restore-location" type="button">Reinsertar en esta zona</button>
+                <button id="editor-arm-restore-location" type="button" aria-pressed="false">Reinsertar con un clic</button>
+                <button id="editor-delete-location" class="editor-danger-button" type="button">Borrar definitivamente</button>
+              </div>
+              <dialog
+                id="editor-inventory-confirmation"
+                class="editor-destructive-confirmation"
+                role="alertdialog"
+                aria-modal="true"
+                aria-labelledby="editor-inventory-confirmation-heading"
+                aria-describedby="editor-inventory-confirmation-detail editor-inventory-impact-list"
+                tabindex="-1"
+              >
+                <h3 id="editor-inventory-confirmation-heading">Confirmar operación</h3>
+                <p id="editor-inventory-confirmation-detail"></p>
+                <ul id="editor-inventory-impact-list"></ul>
+                <div>
+                  <button id="editor-confirm-inventory-action" type="button">Confirmar</button>
+                  <button id="editor-cancel-inventory-action" type="button">Cancelar</button>
+                </div>
+              </dialog>
+              <p id="editor-inventory-status" class="callout" role="status">Selecciona un nodo para revisar sus acciones.</p>
+            </section>
           </section>
 
           <section id="editor-bee-panel" aria-labelledby="editor-bee-heading" hidden>
             <h3 id="editor-bee-heading">Organizar el panal</h3>
-            <p class="editor-intro">Arrastra una zona sobre otra del mismo anillo para intercambiarlas. La Base está fija y los anillos nunca se mezclan.</p>
+            <p class="editor-intro">Haz clic para seleccionar una zona. Arrástrala más allá del umbral visible para intercambiarla con otra del mismo nivel. La Base está fija y los niveles nunca se mezclan.</p>
 
+            <section class="editor-ring-group" aria-labelledby="editor-base-heading">
+              <h3 id="editor-base-heading">Base</h3>
+              <div id="editor-base-list" class="editor-area-list"></div>
+            </section>
             <section class="editor-ring-group" aria-labelledby="editor-ring-one-heading">
-              <h3 id="editor-ring-one-heading">Anillo 1 · fundamentos teóricos</h3>
+              <h3 id="editor-ring-one-heading">Nivel 1</h3>
               <div id="editor-ring-one-list" class="editor-area-list"></div>
             </section>
             <section class="editor-ring-group" aria-labelledby="editor-ring-two-heading">
-              <h3 id="editor-ring-two-heading">Anillo 2 · aplicaciones</h3>
+              <h3 id="editor-ring-two-heading">Nivel 2</h3>
               <div id="editor-ring-two-list" class="editor-area-list"></div>
             </section>
             <div class="editor-bee-actions">
               <button id="editor-area-previous" type="button">Intercambiar anterior</button>
               <button id="editor-area-next" type="button">Intercambiar siguiente</button>
             </div>
-            <p id="editor-selected-area-summary" class="callout">Selecciona una zona del anillo 1 o 2.</p>
+            <p id="editor-selected-area-summary" class="callout">Selecciona una zona de los niveles 1 o 2.</p>
+            <section class="editor-bee-metadata" aria-labelledby="editor-area-name-heading">
+              <h3 id="editor-area-name-heading">Nombre de la zona</h3>
+              <div class="editor-form-stack">
+                <label>ID estable<input id="editor-area-id" type="text" readonly aria-readonly="true" /></label>
+                <label>Título completo<input id="editor-area-title" type="text" maxlength="96" /></label>
+                <label>Etiqueta breve<input id="editor-area-short-title" type="text" maxlength="48" /></label>
+                <button id="editor-apply-area-name" type="button">Guardar nombres</button>
+              </div>
+            </section>
+            <section class="editor-bee-metadata" aria-labelledby="editor-tier-label-heading">
+              <h3 id="editor-tier-label-heading">Rótulo del nivel</h3>
+              <p class="editor-intro">También puedes seleccionar y arrastrar el rótulo directamente en el mapa.</p>
+              <div class="editor-form-stack">
+                <label>Nivel<select id="editor-tier-label-select"><option value="1">Nivel 1</option><option value="2">Nivel 2</option></select></label>
+                <label>Texto<input id="editor-tier-label-text" type="text" maxlength="72" /></label>
+                <div class="editor-inline-coordinates">
+                  <label>Desplazamiento x<input id="editor-tier-label-x" type="number" min="-640" max="640" step="1" /></label>
+                  <label>Desplazamiento y<input id="editor-tier-label-y" type="number" min="-640" max="640" step="1" /></label>
+                </div>
+                <button id="editor-apply-tier-label" type="button">Aplicar rótulo</button>
+                <button id="editor-reset-tier-label" type="button">Restaurar rótulo</button>
+              </div>
+              <div class="editor-nudge-grid" aria-label="Ajuste fino del rótulo seleccionado">
+                <span></span><button type="button" data-tier-label-nudge-x="0" data-tier-label-nudge-y="-1" aria-label="Mover rótulo arriba">↑</button><span></span>
+                <button type="button" data-tier-label-nudge-x="-1" data-tier-label-nudge-y="0" aria-label="Mover rótulo a la izquierda">←</button>
+                <button type="button" data-tier-label-nudge-x="0" data-tier-label-nudge-y="1" aria-label="Mover rótulo abajo">↓</button>
+                <button type="button" data-tier-label-nudge-x="1" data-tier-label-nudge-y="0" aria-label="Mover rótulo a la derecha">→</button>
+              </div>
+            </section>
           </section>
 
           <section id="editor-bowerbird-panel" aria-labelledby="editor-bowerbird-heading" hidden>
@@ -250,14 +365,14 @@
             <h3>Base editorial de ORBIT</h3>
             <p>El borrador se guarda únicamente en este navegador y permanece separado del progreso de aprendizaje guardado por ORBIT.</p>
             <dl class="editor-summary-list">
-              <div><dt>Spider</dt><dd>Ubica lecciones y misiones, decide su pertenencia y edita la Red de aprendizaje.</dd></div>
-              <div><dt>Bee</dt><dd>Reordena las Zonas mediante intercambios dentro de cada anillo.</dd></div>
+              <div><dt>Spider</dt><dd>Mueve, conecta, renombra, crea e inventaría nodos de la Red de aprendizaje.</dd></div>
+              <div><dt>Bee</dt><dd>Selecciona y renombra Zonas, intercambia posiciones dentro de cada nivel y edita sus rótulos.</dd></div>
               <div><dt>Bowerbird</dt><dd>Configura presets visuales por zona sin modificar geometría ni progreso.</dd></div>
-              <div><dt>Publicación</dt><dd>Exporta el JSON para revisarlo e integrarlo durante el mantenimiento del sitio.</dd></div>
+              <div><dt>Publicación</dt><dd>Valida y aplica el borrador con el helper durante mantenimiento, o exporta su JSON para revisión.</dd></div>
             </dl>
             <section id="editor-warning-summary" class="editor-warning-summary" aria-labelledby="editor-warning-heading" hidden>
-              <h3 id="editor-warning-heading">Advertencias del borrador</h3>
-              <p>Revisa estos ajustes antes de exportar o integrar el documento.</p>
+              <h3 id="editor-warning-heading">Resultados de validación</h3>
+              <p>Revisa los errores y advertencias antes de exportar o integrar el documento.</p>
               <ul id="editor-warning-list"></ul>
             </section>
             <section
@@ -309,6 +424,15 @@
                   <div><dt>Zonas movidas</dt><dd id="editor-diff-areas">0</dd></div>
                   <div><dt>Nodos movidos</dt><dd id="editor-diff-locations">0</dd></div>
                   <div><dt>Apariencias</dt><dd id="editor-diff-appearances">0</dd></div>
+                  <div><dt>Zonas renombradas</dt><dd id="editor-diff-renamed-areas">0</dd></div>
+                  <div><dt>Rótulos de nivel</dt><dd id="editor-diff-tier-labels">0</dd></div>
+                  <div><dt>Nodos creados</dt><dd id="editor-diff-created-locations">0</dd></div>
+                  <div><dt>Nodos renombrados</dt><dd id="editor-diff-renamed-locations">0</dd></div>
+                  <div><dt>Nodos inventariados</dt><dd id="editor-diff-inventoried-locations">0</dd></div>
+                  <div><dt>Nodos restaurados</dt><dd id="editor-diff-restored-locations">0</dd></div>
+                  <div><dt>Nodos eliminados</dt><dd id="editor-diff-deleted-locations">0</dd></div>
+                  <div><dt>Nodos añadidos a la red</dt><dd id="editor-diff-added-learning-nodes">0</dd></div>
+                  <div><dt>Nodos retirados de la red</dt><dd id="editor-diff-removed-learning-nodes">0</dd></div>
                   <div><dt>Conexiones añadidas</dt><dd id="editor-diff-added-connections">0</dd></div>
                   <div><dt>Conexiones retiradas</dt><dd id="editor-diff-removed-connections">0</dd></div>
                   <div><dt>Alcanzabilidad</dt><dd id="editor-validation-reachability">—</dd></div>
@@ -372,7 +496,9 @@
             <h3>Controles</h3>
             <dl class="controls-list">
               <div><dt>Arrastrar nodo</dt><dd>Moverlo dentro de una zona o trasladarlo a otra.</dd></div>
-              <div><dt>Arrastrar zona</dt><dd>Intercambiarla con otra del mismo anillo.</dd></div>
+              <div><dt>Clic en zona</dt><dd>Seleccionarla sin intercambiarla.</dd></div>
+              <div><dt>Arrastrar zona</dt><dd>Intercambiarla con otra del mismo nivel después del umbral de movimiento.</dd></div>
+              <div><dt>Arrastrar rótulo</dt><dd>Reposicionar el nombre visual del nivel.</dd></div>
               <div><dt>Seleccionar zona</dt><dd>En Bowerbird, elegirla en el mapa o en la lista para previsualizar su apariencia.</dd></div>
               <div><dt>Arrastrar fondo</dt><dd>Desplazar la cámara.</dd></div>
               <div><dt>Rueda</dt><dd>Ajustar el zoom.</dd></div>
@@ -386,7 +512,8 @@
       </aside>
 
       <section id="editor-controls-hint" class="glass-card compact-card editor-controls-hint" aria-label="Controles principales del editor">
-        <span>Arrastra: mover o conectar</span>
+        <span>Spider: mover, conectar y crear</span>
+        <span>Bee: clic selecciona; arrastrar intercambia</span>
         <span>Bowerbird: decorar zona</span>
         <span>Fondo: desplazar mapa</span>
         <span>Rueda: zoom</span>

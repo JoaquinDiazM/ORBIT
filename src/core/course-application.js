@@ -124,6 +124,22 @@ function changedIds(firstEntries, secondEntries, projection) {
     .sort((first, second) => first.localeCompare(second));
 }
 
+function changedExistingIds(firstEntries, secondEntries, projection) {
+  const firstById = placementById(firstEntries);
+  return secondEntries
+    .filter((entry) => {
+      const previous = firstById.get(entry.id);
+      return previous
+        && JSON.stringify(projection(previous)) !== JSON.stringify(projection(entry));
+    })
+    .map((entry) => entry.id)
+    .sort((first, second) => first.localeCompare(second));
+}
+
+function locationLifecycle(location) {
+  return location?.lifecycle ?? "active";
+}
+
 function connectionKey(connection) {
   return `${connection.sourceId}->${connection.targetId}`;
 }
@@ -137,18 +153,70 @@ export function diffEditorDocuments(currentDocument, candidateDocument) {
   );
   const currentNodes = new Set(currentDocument.learningNetwork.nodeIds);
   const candidateNodes = new Set(candidateDocument.learningNetwork.nodeIds);
+  const currentLocations = placementById(currentDocument.locations);
+  const candidateLocations = placementById(candidateDocument.locations);
+  const currentTierLabels = placementById(
+    (currentDocument.tierLabels ?? []).map((entry) => ({ ...entry, id: entry.tier })),
+  );
   return {
     movedAreas: changedIds(currentDocument.areas, candidateDocument.areas, ({ q, r }) => ({ q, r })),
+    renamedAreas: changedExistingIds(
+      currentDocument.areas,
+      candidateDocument.areas,
+      ({ title, shortTitle }) => ({ title, shortTitle }),
+    ),
     changedAreaAppearances: changedIds(
       currentDocument.areas,
       candidateDocument.areas,
       ({ appearance }) => appearance,
     ),
-    movedLocations: changedIds(
+    changedTierLabels: (candidateDocument.tierLabels ?? [])
+      .filter((entry) => {
+        const previous = currentTierLabels.get(entry.tier);
+        return !previous
+          || JSON.stringify({ text: previous.text, offset: previous.offset })
+            !== JSON.stringify({ text: entry.text, offset: entry.offset });
+      })
+      .map((entry) => entry.tier)
+      .sort((first, second) => first - second),
+    movedLocations: changedExistingIds(
       currentDocument.locations,
       candidateDocument.locations,
       ({ areaId, offset }) => ({ areaId, offset }),
     ),
+    createdLocations: candidateDocument.locations
+      .filter((entry) =>
+        !currentLocations.has(entry.id) && locationLifecycle(entry) !== "deleted")
+      .map((entry) => entry.id)
+      .sort((first, second) => first.localeCompare(second)),
+    renamedLocations: changedExistingIds(
+      currentDocument.locations,
+      candidateDocument.locations,
+      ({ title, shortTitle }) => ({ title, shortTitle }),
+    ),
+    inventoriedLocations: candidateDocument.locations
+      .filter((entry) =>
+        locationLifecycle(entry) === "inventory"
+        && locationLifecycle(currentLocations.get(entry.id)) === "active")
+      .map((entry) => entry.id)
+      .sort((first, second) => first.localeCompare(second)),
+    restoredLocations: candidateDocument.locations
+      .filter((entry) =>
+        locationLifecycle(entry) === "active"
+        && locationLifecycle(currentLocations.get(entry.id)) === "inventory")
+      .map((entry) => entry.id)
+      .sort((first, second) => first.localeCompare(second)),
+    deletedLocations: [...new Set([
+      ...candidateDocument.locations
+        .filter((entry) =>
+          locationLifecycle(entry) === "deleted"
+          && locationLifecycle(currentLocations.get(entry.id)) !== "deleted")
+        .map((entry) => entry.id),
+      ...currentDocument.locations
+        .filter((entry) =>
+          locationLifecycle(entry) !== "deleted" && !candidateLocations.has(entry.id))
+        .map((entry) => entry.id),
+    ])].sort((first, second) => first.localeCompare(second)),
     addedLearningNodes: [...candidateNodes]
       .filter((id) => !currentNodes.has(id))
       .sort((first, second) => first.localeCompare(second)),
@@ -187,7 +255,7 @@ export async function createCourseApplicationPlan({
     locations: candidate.locations,
     concepts,
   });
-  const diff = diffEditorDocuments(current.edition.document, candidate.edition.document);
+  const diff = diffEditorDocuments(current.editorDocument, candidate.editorDocument);
   const changed = current.edition.revision !== candidate.edition.revision;
   return {
     kind: "orbit-course-application-plan",

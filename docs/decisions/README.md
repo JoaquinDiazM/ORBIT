@@ -13,6 +13,7 @@ Los ADR registran decisiones que afectan estructura, dependencias, persistencia 
 - [0007 — Editor local estático y estado editorial separado](0007-static-local-editor.md)
 - [0008 — Apariencia por alcance y aplicación local recuperable](0008-scoped-appearance-and-local-course-application.md)
 - [0009 — Red única de aprendizaje y apertura territorial derivada](0009-single-learning-network.md)
+- [0010 — Metadatos cartográficos y ciclo de vida de entidades editoriales](0010-editorial-entities-and-map-metadata.md)
 
 ## Crear un ADR
 

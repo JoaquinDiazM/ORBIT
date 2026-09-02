@@ -61,13 +61,14 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
 - Build estático y despliegue preparado para GitHub Pages.
 - Dos entradas estáticas: **ORBIT** en `index.html`, con perfiles Estudiante, Docente y Debug,
   y **ORBIT Editor** en `editor.html`.
-- Editor local con dos docks retractables: Docente usa **Spider** para ubicar nodos y editar la
-  pertenencia y conexiones de la Red de aprendizaje, **Bee** para intercambiar zonas dentro de su anillo y **Bowerbird** para preparar la
-  apariencia publicada. Estudiante mantiene Spider y Bee en solo lectura, pero dispone de su
-  propio Bowerbird personal; Debug queda bloqueado antes de crear el modelo editorial.
-- Documento Docente `v3` con autoguardado, historial, importación y exportación JSON. Incluye
-  cartografía, nodos y conexiones académicas explícitas y apariencias, pero nunca incorpora progreso ni las
-  preferencias Bowerbird privadas de Estudiante.
+- Editor local con dos docks retractables: Docente usa **Spider** para mover, conectar,
+  renombrar, crear, inventariar y eliminar los tipos de nodo admitidos; **Bee** organiza y
+  renombra zonas y configura los rótulos de nivel; **Bowerbird** prepara la apariencia publicada.
+  Estudiante mantiene Spider y Bee en solo lectura, pero dispone de su propio Bowerbird personal;
+  Debug queda bloqueado antes de crear el modelo editorial.
+- Documento Docente `v5` con autoguardado, historial, importación y exportación JSON. Incluye
+  cartografía, metadatos de nivel, ciclo de vida de nodos, conexiones académicas explícitas y
+  apariencias, pero nunca incorpora progreso ni preferencias Bowerbird privadas de Estudiante.
 - Catálogo visual versionado de paletas, motivos y contornos. Las zonas bloqueadas conservan una
   apariencia neutral y los motivos animados respetan `prefers-reduced-motion`.
 - Edición publicada validable bajo `public/data/courses/`, con revisión y digest SHA-256. El
@@ -82,6 +83,24 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
   acceso real.
 - Una dependencia npm fijada y documentada: KaTeX 0.18.1; la cohorte `0.6.0` no añade paquetes,
   backend público, autenticación, render 3D ni CDN.
+
+### Cambios en revisión para 0.7.0
+
+Bee conserva los dos `tier` estructurales y la prohibición de mezclarlos, pero permite cambiar
+el nombre completo y breve de cada zona, así como el texto y posición de los dos rótulos de
+nivel. Los términos teoría y aplicaciones pasan a ser valores iniciales editables, no una
+semántica codificada en la interfaz.
+
+Spider se organiza en **Mover**, **Conectar**, **Modificar**, **Crear** e **Inventario**. Puede
+crear `lesson`, `mission` y `npc` provisionales con ID monotónico, renombrarlos, retirarlos del
+mapa activo, reinsertarlos y borrarlos desde Inventario. Inventariar enumera y elimina sus
+conexiones incidentes; reinsertar no las restaura. `vector-workshop` y
+`coulomb-observatory` nunca pueden borrarse definitivamente.
+
+El documento Docente migra `v3 → v4 → v5`; la edición de curso publicada conserva su raw `v3`
+y se autentica antes de migrarse en memoria. Esta compatibilidad evita cambiar su revisión
+histórica hasta que un docente aplique expresamente un documento nuevo. Consulta el
+[ADR 0010](docs/decisions/0010-editorial-entities-and-map-metadata.md).
 
 ### Cambios centrales de 0.6.0
 
@@ -187,7 +206,7 @@ La entrada separada `editor.html` inaugura **ORBIT Editor**, una herramienta loc
 
 Spider permite arrastrar nodos, cambiar su `areaId + offset` y añadir o retirar únicamente requisitos directos `completedLocations`. Las relaciones que proceden de conceptos o recompensas permanecen visibles y de solo lectura; se impiden relaciones propias, duplicadas o cíclicas. Bee intercambia coordenadas axiales entre dos zonas del mismo `tier`: Campamento Base queda fijo, las seis zonas teóricas permanecen en el anillo 1 y las doce aplicaciones en el anillo 2.
 
-El borrador se autoguarda bajo `orbit-editor:v1:electromagnetism-applied`, admite deshacer/rehacer e importación/exportación validada. Este esquema editorial `v1` es independiente del progreso estudiantil `v3`. El JSON exportado debe revisarse y aplicarse al repositorio antes de ejecutar validación, build y despliegue manual; abrir el Editor no cambia lo que ve Estudiante y la entrada separada no constituye autenticación.
+El borrador inaugurado en 0.4.0 usaba `orbit-editor:v1:electromagnetism-applied`; el contrato vigente se autoguarda bajo `orbit-editor:v5:electromagnetism-applied` y migra las claves `v1`–`v4`. Este esquema editorial es independiente del progreso estudiantil. El JSON exportado debe revisarse y aplicarse al repositorio antes de ejecutar validación, build y despliegue manual; abrir el Editor no cambia lo que ve Estudiante y la entrada separada no constituye autenticación.
 
 Consulta la [Guía de ORBIT Editor](docs/EDITOR_GUIDE.md) y el [ADR 0007](docs/decisions/0007-static-local-editor.md).
 
@@ -331,9 +350,10 @@ activa. Estudiante recupera claves históricas solo cuando la edición declara e
 Docente y Debug continúan en sus propias claves. Cambiar el selector recarga el modo elegido, no
 copia logros entre perfiles.
 
-ORBIT Editor opera sobre ramas de estado separadas: un documento Docente `v3`, las preferencias
+ORBIT Editor opera sobre ramas de estado separadas: un documento Docente `v5`, las preferencias
 visuales personales de Estudiante y la edición publicada `v1`. El documento Docente conserva
-ubicaciones, coordenadas, la Red de aprendizaje explícita y apariencias, pero no respuestas ni logros. El
+zonas, rótulos, definiciones y ciclo de vida de lugares, la Red de aprendizaje explícita y
+apariencias, pero no respuestas ni logros. El
 flujo de aplicación local consume ese documento completo, muestra el impacto y reinicia el
 progreso de los tres perfiles; no mezcla ni elimina el borrador o las preferencias personales.
 

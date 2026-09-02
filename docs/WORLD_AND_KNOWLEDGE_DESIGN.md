@@ -116,9 +116,10 @@ Si un destino acaba de volverse accesible, únicamente la arista desde el lugar 
 ORBIT Editor abre en `editor.html` y trabaja sobre una copia editorial del curso publicado. No
 sustituye los perfiles Estudiante, Docente o Debug de ORBIT en `index.html` ni comparte su
 progreso. Sin query concede capacidad Docente completa; `?profile=student` conserva el mapa en
-consulta con Spider y Bee bloqueados, pero habilita Bowerbird personal; `?profile=debug` se
-detiene antes de crear el modelo. El documento Docente usa esquema `v3` y la clave
-`orbit-editor:v3:electromagnetism-applied`; las preferencias Estudiante usan un documento
+consulta: Spider y Bee permiten seleccionar e inspeccionar, sus mutaciones quedan bloqueadas y
+Bowerbird personal permanece habilitado; `?profile=debug` se detiene antes de crear el modelo.
+El documento Docente usa esquema `v5` y la clave
+`orbit-editor:v5:electromagnetism-applied`; las preferencias Estudiante usan un documento
 `orbit-bowerbird` `v1`, ambos separados de los tres avances `v4` ligados a revisión.
 
 Con capacidad Docente, la herramienta **Spider** opera sobre los lugares y la Red de aprendizaje:
@@ -126,14 +127,16 @@ Con capacidad Docente, la herramienta **Spider** opera sobre los lugares y la Re
 - mueve un lugar cambiando su `areaId` y su `offset` local;
 - añade o retira `lesson` y `mission` de la red sin borrar su entidad o posición;
 - crea o elimina conexiones explícitas entre nodos que pertenecen a la red;
+- renombra, crea e inventaría `lesson`, `mission` y `npc` con IDs estables; reinsertar no
+  reconstruye conexiones y borrar desde Inventario reserva el ID;
 - rechaza extremos laterales, autorrelaciones, duplicados, ciclos y redes estructuralmente
   inalcanzables antes de permitir su aplicación.
 
 También con capacidad Docente, **Bee** reorganiza las zonas del disco axial. Como las 19 celdas
 ya están ocupadas, la operación disponible es un intercambio: solo admite dos zonas con el
-mismo `tier` o anillo, mantiene fijo el origen y desplaza cada zona junto con los lugares que
-contiene. De esta manera, el anillo uno de fundamentos teóricos nunca se mezcla con el anillo
-dos de aplicaciones.
+mismo `tier` o nivel, mantiene fijo el origen y desplaza cada zona junto con los lugares que
+contiene. También cambia `title`/`shortTitle` y el texto/offset de cada rótulo. Los niveles 1 y 2
+nunca se mezclan aunque sus nombres visibles sean configurables.
 
 **Bowerbird** configura una paleta, un motivo y un contorno por zona sin cambiar el mundo o la
 red. En Docente forma parte del documento publicable; en Estudiante es una preferencia privada
@@ -199,8 +202,9 @@ Su incorporación eleva el dataset a 29 lugares sin añadir una condición al re
 
 ## Expansión del mapa
 
-ORBIT Editor reorganiza y decora elementos existentes, pero todavía no crea ni elimina zonas o
-lugares. Para ampliar el dataset fuente:
+ORBIT Editor puede crear, inventariar y eliminar `lesson`, `mission` y `npc`, pero todavía no
+crea ni elimina zonas, conceptos, referencias, gadgets o transportes. Para ampliar el dataset
+fuente fuera de esa autoridad editorial:
 
 Al agregar zonas:
 

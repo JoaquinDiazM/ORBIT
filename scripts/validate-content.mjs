@@ -16,6 +16,7 @@ const edition = await materializeCourseEdition(editionCandidate);
 const result = validateProjectData({
   areas: edition.areas,
   locations: edition.locations,
+  allowContentSubset: true,
 });
 
 for (const warning of result.warnings) {

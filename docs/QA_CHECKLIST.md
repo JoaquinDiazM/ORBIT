@@ -119,7 +119,7 @@
       sobrescribir el raw ni emitir éxito. Un fallo de escritura compatible restaura los selects
       al snapshot.
 - [ ] Los cambios de esquema incluyen migración o decisión documentada.
-- [ ] El documento Docente usa `orbit-editor:v3:electromagnetism-applied`; las preferencias
+- [ ] El documento Docente usa `orbit-editor:v5:electromagnetism-applied`; las preferencias
       Estudiante usan `orbit-bowerbird:v1:electromagnetism-applied:student`; ninguno aparece bajo
       `orbit-progress`.
 - [ ] Progreso, documento, preferencias y edición instalada sobreviven recarga según su alcance y
@@ -183,16 +183,17 @@
 - [ ] `editor.html` identifica inequívocamente **ORBIT Editor** y enlaza de vuelta a ORBIT.
 - [ ] `editor.html` sin query y `?profile=teacher` abren Docente con capacidad completa.
 - [ ] `?profile=student` muestra el alcance personal, permite pan/zoom/encuadre/consulta y
-      Bowerbird, y bloquea Spider, Bee, exportación, importación, restauración e historial del
-      documento Docente.
+      Bowerbird; abre Spider y Bee en consulta, pero bloquea sus mutaciones, además de
+      exportación, importación, restauración e historial del documento Docente.
 - [ ] Estudiante no ve un aviso de acceso permanente; pulsar cada control restringido por ratón
       o teclado conserva el foco disponible y muestra un toast temporal, breve y específico.
-- [ ] En Estudiante, intentar Spider/Bee o una mutación Docente por puntero, teclado o API
-      conserva intacto el documento; cambiar Bowerbird solo actualiza su clave personal.
+- [ ] En Estudiante, seleccionar con Spider/Bee funciona por DOM, Canvas y API segura; intentar
+      una mutación Docente por puntero, teclado o API conserva intacto el documento. Cambiar
+      Bowerbird solo actualiza su clave personal.
 - [ ] `?profile=debug` muestra un bloqueo enfocable, no crea `EditorModel` ni renderer y no
       expone métodos mutadores en `window.OrbitEditor`.
 - [ ] Spider, Bee y Bowerbird nunca leen o escriben progreso: Docente usa
-      `orbit-editor:v3:electromagnetism-applied`; Estudiante lee ese documento pero guarda solo
+      `orbit-editor:v5:electromagnetism-applied`; Estudiante lee ese documento pero guarda solo
       `orbit-bowerbird:v1:electromagnetism-applied:student`. Solo la aplicación Docente explícita
       inspecciona y reinicia las claves de progreso descritas en su impacto.
 - [ ] Cambiar la query demuestra que estas restricciones son locales y no se presenta como
@@ -212,11 +213,21 @@
       conexiones incidentes; volver a añadirlo no inventa conexiones.
 - [ ] Spider crea y elimina una conexión explícita `fuente → destino` entre dos miembros de la Red.
 - [ ] Spider rechaza self-edge, duplicado, ID desconocido, nodo lateral y ciclo sin modificar el borrador.
+- [ ] Los cinco submenús Spider preservan selección; Modificar cambia `title`/`shortTitle` sin
+      cambiar ID y muestra el resto del contenido como **Próximamente**.
+- [ ] Crear asigna IDs `new-node-NNNN` monotónicos y no reutilizables; lesson/mission reciben una
+      actividad genérica válida y NPC un cierre `acknowledge` no evaluativo.
+- [ ] Inventariar enumera y elimina todas las aristas incidentes; reinsertar conserva identidad y
+      contenido, pero no restaura aristas. Borrar solo funciona desde Inventario, reserva el ID y
+      rechaza `vector-workshop` y `coulomb-observatory`.
 - [ ] Bee intercambia dos zonas de `tier 1` y, por separado, dos de `tier 2`.
 - [ ] Bee rechaza un intercambio `tier 1 ↔ tier 2`, comunica **ANILLO INCOMPATIBLE** por texto y no deja cambios parciales.
 - [ ] Campamento Base permanece fijo en `(0,0)`.
 - [ ] Tras cada intercambio se conservan coordenadas únicas, distancias axiales `0/1/2`, distribución `1 + 6 + 12`, IDs, `tier`, `order` y contenido.
 - [ ] Los lugares viajan con su zona y conservan offsets locales al intercambiar hexágonos.
+- [ ] Un clic Bee selecciona sin intercambio; renombrar una zona conserva ID/tier/contenido.
+- [ ] Cada rótulo de nivel admite texto, arrastre y alternativa DOM/teclado; recarga, undo/redo y
+      restauración conservan o recuperan el valor esperado sin codificar teoría/aplicaciones.
 - [ ] Bowerbird Docente permite paleta, motivo y contorno por zona, registra el cambio en
       historial y no altera coordenadas, anillos, requisitos o progreso.
 - [ ] Bowerbird Estudiante no entra al historial/exportación Docente y sobrevive a una aplicación
@@ -230,15 +241,19 @@
 - [ ] Deshacer y rehacer funcionan mediante botones, `Ctrl`/`Cmd` + `Z`, `Ctrl`/`Cmd` + `Shift` + `Z` y `Ctrl` + `Y`.
 - [ ] Importar o restaurar inicia un historial nuevo; undo/redo nunca cruza esa frontera.
 - [ ] Cada operación Docente válida se autoguarda en
-      `orbit-editor:v3:electromagnetism-applied` y una recarga la recupera.
-- [ ] Exportar produce `orbit-editor-project` esquema `v3` con catálogo, curso, versión base,
-      áreas/apariencias, ubicaciones y `learningNetwork`, sin progreso ni preferencias Estudiante.
-- [ ] Un documento `v1` o `v2` válido migra a `v3`, conserva mapa/apariencias y materializa las
-      30 conexiones académicas efectivas; las cinco parejas laterales históricas no ingresan a la Red.
-- [ ] Un borrador `v3` semánticamente inválido abre con diagnóstico para que Spider pueda repararlo;
+      `orbit-editor:v5:electromagnetism-applied` y una recarga la recupera.
+- [ ] Exportar produce `orbit-editor-project` esquema `v5` con catálogo, curso, versión base,
+      áreas/apariencias/rótulos, ciclo de vida de ubicaciones y `learningNetwork`, sin progreso
+      ni preferencias Estudiante.
+- [ ] Un documento `v1` o `v2` válido migra hasta `v5`, conserva mapa/apariencias y materializa
+      las 30 conexiones académicas efectivas; las cinco parejas laterales históricas no ingresan
+      a la Red.
+- [ ] La migración exacta `v3 → v4` añade nombres/rótulos actuales con offset cero y `v4 → v5`
+      añade ciclo de vida sin cambiar los 29 lugares ni las conexiones de entrada.
+- [ ] Un borrador `v3` o `v5` semánticamente inválido abre con diagnóstico para que Spider pueda repararlo;
       una estructura ilegible o futura sigue la recuperación protegida.
 - [ ] Una importación válida reemplaza el borrador solo después de sanearlo; una inválida conserva intacto el estado anterior.
-- [ ] Un borrador persistido ilegible o futuro abre una copia canónica sin sobrescribir el raw y
+- [ ] Un borrador persistido ilegible o futuro abre una copia de la edición base sin sobrescribir el raw y
       bloquea mutaciones ordinarias; solo **Restaurar** o importar un documento válido lo reemplaza
       y rehabilita el autoguardado.
 - [ ] Exportar no aplica. **Resumen** exige validar, revisar diff e impacto y confirmar en línea
@@ -263,8 +278,9 @@
       y no acepta rutas proporcionadas por el cliente.
 - [ ] El helper acepta un checkout con cambios sin consultar ni mutar Git, deja intactas las rutas
       ajenas, respalda la fuente reemplazada y rechaza una `expectedPreviousRevision` obsoleta.
-- [ ] Validar materializa 19 zonas y 29 lugares, calcula SHA-256 y muestra diff de zonas, nodos,
-      conexiones y apariencias.
+- [ ] Validar materializa 19 zonas y los lugares activos, calcula SHA-256 y muestra diff de
+      nombres/rótulos, nodos creados/renombrados/inventariados/restaurados/eliminados,
+      posiciones, conexiones y apariencias.
 - [ ] La tabla de impacto cubre Estudiante, Docente y Debug e informa guardado legible, lugares
       completados y conceptos adquiridos; una edición posterior invalida el plan.
 - [ ] La confirmación explica que el reset elimina logros, posición, transporte, ajustes y

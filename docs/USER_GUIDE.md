@@ -170,8 +170,9 @@ Cambia a Debug, abre el debugger con `F2` y usa:
 Conserva copias antes de probar cambios incompatibles en el contenido.
 
 Este JSON pertenece al progreso `v4` de ORBIT. No es compatible ni intercambiable con un
-documento `orbit-editor-project` `v3`: el primero contiene logros y preferencias del perfil; el
-segundo contiene cartografía, la Red de aprendizaje y apariencias publicables.
+documento `orbit-editor-project` `v5`: el primero contiene logros y preferencias del perfil; el
+segundo contiene cartografía, entidades e inventario, la Red de aprendizaje y apariencias
+publicables.
 
 ## Relación con ORBIT Editor
 
@@ -188,7 +189,7 @@ historial, exportación, importación, restauración y el documento Docente en s
 intento restringido muestra un aviso temporal conciso; no ocupa el mapa con un banner permanente.
 Con `?profile=debug` bloquea la entrada antes de crear el modelo editorial.
 
-El documento Docente se autoguarda bajo `orbit-editor:v3:electromagnetism-applied`; las
+El documento Docente se autoguarda bajo `orbit-editor:v5:electromagnetism-applied`; las
 preferencias Bowerbird Estudiante usan
 `orbit-bowerbird:v1:electromagnetism-applied:student`. Ninguna rama se mezcla con los tres
 avances. En ORBIT, una preferencia personal tiene prioridad sobre la apariencia publicada, pero

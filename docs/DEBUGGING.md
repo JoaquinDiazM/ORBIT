@@ -126,11 +126,11 @@ http://127.0.0.1:4173/editor.html
 ```
 
 Editor sí interpreta `profile` para una limitación local: `?profile=student` abre consulta con
-Spider y Bee bloqueados, pero permite preferencias Bowerbird personales; `?profile=debug` muestra
-un bloqueo sin crear el modelo. `?debug=1` no concede privilegios editoriales. Ningún modo del
+Spider y Bee seleccionables pero sin mutaciones, y permite preferencias Bowerbird personales;
+`?profile=debug` muestra un bloqueo sin crear el modelo. `?debug=1` no concede privilegios editoriales. Ningún modo del
 Editor carga `window.OrbitDebug` o crea un `ProgressionModel`; solo la aplicación Docente
 explícita inspecciona y reinicia progreso. El documento Docente reside en
-`orbit-editor:v3:electromagnetism-applied`, las preferencias Estudiante en una clave
+`orbit-editor:v5:electromagnetism-applied`, las preferencias Estudiante en una clave
 `orbit-bowerbird:v1:` separada y Debug conserva progreso `v4` ligado a la revisión activa. La
 query no constituye autenticación.
 

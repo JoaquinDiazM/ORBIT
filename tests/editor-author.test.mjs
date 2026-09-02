@@ -17,6 +17,7 @@ import { WORLD_CONFIG } from "../src/data/world.js";
 import { CourseApplicationCoordinator } from "../src/editor/course-application-coordinator.js";
 import { EditorAuthorClient } from "../src/editor/editor-author-client.js";
 import {
+  createGenericLocationContent,
   createEditorDocument,
   EDITOR_DOCUMENT_SCHEMA_VERSION,
 } from "../src/editor/editor-document.js";
@@ -229,6 +230,114 @@ test("Aplicar conserva una copia persistente de la fuente reemplazada", async (t
   assert.equal(
     await readFile(resolve(root, second.sourceBackup.path), "utf8"),
     previousSource,
+  );
+});
+
+test("Aplicar rechaza omitir entidades publicadas y rebajar tombstones o secuencias", async (t) => {
+  const root = await fixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const runner = successfulRunner();
+  const published = createEditorDocument({ updatedAt: "2026-08-30T00:00:00.000Z" });
+  published.locations.push(
+    {
+      id: "new-node-0001",
+      kind: "npc",
+      title: "Personaje publicado",
+      shortTitle: "Publicado",
+      areaId: "electrostatics",
+      offset: { x: 0, y: 0 },
+      lifecycle: "active",
+      provenance: "editor-created",
+      content: createGenericLocationContent("npc", "Personaje publicado"),
+    },
+    {
+      id: "new-node-0002",
+      kind: "npc",
+      title: "Personaje eliminado",
+      shortTitle: "Eliminado",
+      areaId: "electrostatics",
+      offset: { x: 12, y: 0 },
+      lifecycle: "deleted",
+      provenance: "editor-created",
+      content: createGenericLocationContent("npc", "Personaje eliminado"),
+    },
+  );
+  published.nextLocationSequence = 6;
+  const initial = await applyEditionToRepository({
+    root,
+    document: published,
+    expectedPreviousRevision: null,
+    runner,
+    appliedAt: "2026-08-30T00:00:00.000Z",
+  });
+  await finalizeRepositoryApplication({ root, rollbackToken: initial.rollbackToken });
+  const target = resolve(
+    root,
+    "public/data/courses/electromagnetism-applied.edition.json",
+  );
+  const sourceBefore = await readFile(target, "utf8");
+
+  const stale = structuredClone(published);
+  stale.locations = stale.locations.filter(({ id }) => id !== "new-node-0001");
+  stale.locations.find(({ id }) => id === "new-node-0002").lifecycle = "active";
+  stale.nextLocationSequence = 1;
+
+  await assert.rejects(
+    applyEditionToRepository({
+      root,
+      document: stale,
+      expectedPreviousRevision: initial.edition.revision,
+      runner,
+      appliedAt: "2026-08-31T00:00:00.000Z",
+    }),
+    (error) => error.code === "noncanonical-editor-document",
+  );
+  assert.equal(await readFile(target, "utf8"), sourceBefore);
+
+  const recycled = structuredClone(published);
+  recycled.locations.push({
+    id: "new-node-0004",
+    kind: "npc",
+    title: "ID reciclado",
+    shortTitle: "Reciclado",
+    areaId: "origin",
+    offset: { x: -12, y: 0 },
+    lifecycle: "active",
+    provenance: "editor-created",
+    content: createGenericLocationContent("npc", "ID reciclado"),
+  });
+  await assert.rejects(
+    applyEditionToRepository({
+      root,
+      document: recycled,
+      expectedPreviousRevision: initial.edition.revision,
+      runner,
+      appliedAt: "2026-08-31T00:00:00.000Z",
+    }),
+    (error) => error.code === "invalid-editor-document",
+  );
+  assert.equal(await readFile(target, "utf8"), sourceBefore);
+
+  const poisonedSequence = structuredClone(published);
+  poisonedSequence.nextLocationSequence = Number.MAX_SAFE_INTEGER - 1;
+  await assert.rejects(
+    applyEditionToRepository({
+      root,
+      document: poisonedSequence,
+      expectedPreviousRevision: initial.edition.revision,
+      runner,
+      appliedAt: "2026-08-31T00:00:00.000Z",
+    }),
+    (error) =>
+      error.code === "invalid-editor-document"
+      && error.cause?.issues?.some(
+        (entry) => entry.code === "location-sequence-advance-too-large",
+      ),
+  );
+  assert.equal(await readFile(target, "utf8"), sourceBefore);
+  await assert.rejects(
+    readFile(resolve(root, ".orbit-editor", "repository-transaction.json"), "utf8"),
+    /ENOENT/,
   );
 });
 

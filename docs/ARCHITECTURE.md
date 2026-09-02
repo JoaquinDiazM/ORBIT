@@ -148,7 +148,7 @@ edición activa.
 
 Los demás contratos persistidos permanecen separados:
 
-- documento Docente: `orbit-editor:v3:electromagnetism-applied`;
+- documento Docente: `orbit-editor:v5:electromagnetism-applied`;
 - preferencias visuales Estudiante: `orbit-bowerbird:v1:electromagnetism-applied:student`;
 - edición instalada en el navegador: `orbit-course-edition:v1:electromagnetism-applied`;
 - edición canónica publicada: `public/data/courses/electromagnetism-applied.edition.json`.
@@ -166,18 +166,20 @@ limpia, pero conserva intacto el registro crudo y una importación lo rechaza an
 emitir; el bloqueo se reporta como error de persistencia para que el loop continúe sin reintentos
 destructivos. Las preferencias Bowerbird con esquema o catálogo desconocido también conservan
 el registro crudo y bloquean set, reset e importación. Un borrador Docente ilegible o futuro abre
-una copia canónica de consulta, pero bloquea las mutaciones ordinarias hasta que Docente elige
+una copia de la edición base para consulta, pero bloquea las mutaciones ordinarias hasta que Docente elige
 explícitamente **Restaurar** o importa un documento válido. La misma reversión visual se aplica a
 los selects Bowerbird cuando una escritura compatible falla.
 
 ### Edición de curso y aplicación
 
 `src/core/course-edition.js` define `orbit-course-edition` `v1`. El artefacto contiene el
-documento Docente `v3`, revisión anterior, revisión nueva, política de reset, fecha y digest
-SHA-256. Al arrancar, ORBIT y Editor validan la fuente publicada, materializan sobre los módulos
-canónicos únicamente coordenadas/apariencias de zonas, `areaId + offset` de lugares y la
-`learningNetwork` explícita, y rechazan una edición local que no descienda de la publicada.
-Contenido, conceptos, recompensas, IDs y anillos siguen en los datos canónicos.
+documento Docente raw firmado, revisión anterior, revisión nueva, política de reset, fecha y
+digest SHA-256. Una fuente histórica se autentica en su propio esquema antes de migrarse en
+memoria; una edición nueva usa documento `v5`. Al arrancar, ORBIT y Editor validan la fuente,
+combinan el catálogo canónico con la autoridad editorial y materializan nombres/apariencias de
+zonas, definiciones y lugares activos, `areaId + offset` y `learningNetwork`. Conceptos,
+recompensas, `tier` e IDs canónicos conservan su catálogo fuente; IDs creados y estados de ciclo
+de vida pertenecen al documento desplegado.
 
 `src/core/course-application.js` calcula el diff y el impacto legible de los tres perfiles,
 construye un plan ligado al digest y ejecuta la transacción del navegador. El reset elimina solo
@@ -331,15 +333,16 @@ local de acceso; no crea `ProgressionModel`, no concede conceptos y no publica
 `window.OrbitDebug`. Solo el flujo Docente explícito de aplicación inspecciona y reinicia claves
 de progreso tras cuantificar el impacto. Sin query crea el Editor completo sobre la edición
 materializada. Con `?profile=student` crea Spider/Bee de solo lectura y una sesión Bowerbird
-personal mutable; permite recorrer, encuadrar, consultar y exportar. Con `?profile=debug` muestra
+personal mutable; permite recorrer, encuadrar y consultar, y solo exporta sus preferencias
+Bowerbird personales: nunca importa ni exporta el documento Docente. Con `?profile=debug` muestra
 el bloqueo y no crea el modelo editorial.
 
-El documento editorial `orbit-editor-project` usa esquema `v3` y contiene:
+El documento editorial `orbit-editor-project` usa esquema `v5` y contiene:
 
-- coordenadas axiales y apariencias de las 19 zonas;
-- `areaId + offset` de los 29 lugares;
-- la pertenencia de 21 lecciones/misiones y una lista de conexiones académicas explícitas —29 en
-  la edición aplicada vigente—;
+- nombres, coordenadas axiales y apariencias de las 19 zonas;
+- texto y offset cartográfico de los dos rótulos de nivel;
+- definición, procedencia, estado de ciclo de vida y `areaId + offset` de los lugares;
+- IDs eliminados reservados, contador monotónico y conexiones académicas explícitas;
 - curso, versión de datos base, versión del catálogo y fecha de actualización.
 
 No incluye respuestas, conceptos adquiridos, recompensas ni posición de un estudiante. Antes de
@@ -352,20 +355,25 @@ Si el valor ya persistido es ilegible o pertenece a un esquema futuro, ninguna m
 lo sobrescribe: Restaurar o importar un documento válido son las dos fronteras explícitas de
 recuperación del borrador Docente.
 
-**Spider** opera sobre lugares y la Red de aprendizaje. Convierte coordenadas de pantalla a
-mundo, permite cambiar `areaId + offset` y mantiene el marcador dentro del margen seguro del
-hexágono. Solo `lesson` y `mission` pueden añadirse a la red; retirar uno conserva la entidad y
-elimina sus aristas incidentes. Toda flecha confirmada es explícita y editable. IDs desconocidos,
-extremos fuera de la red, autorrelaciones, duplicados y ciclos se rechazan estructuralmente;
-raíces adicionales y topologías académicamente inalcanzables se rechazan al usar **Validar** o
-**Aplicar**.
+**Spider** expone Mover, Conectar, Modificar, Crear e Inventario. Convierte coordenadas de
+pantalla a mundo, mantiene cada marcador dentro del margen seguro y edita una única Red. Solo
+`lesson` y `mission` activos pueden pertenecer a ella. `lesson`, `mission` y `npc` pueden
+renombrarse, crearse con ID monotónico o pasar por Inventario; inventariar elimina todas las
+aristas incidentes y reinsertar no las restaura. El borrado permanente reserva el ID y nunca
+admite `vector-workshop` o `coulomb-observatory`. IDs desconocidos, autorrelaciones, duplicados y
+ciclos se rechazan estructuralmente; raíces adicionales y topologías inalcanzables se rechazan
+al usar **Validar** o **Aplicar**.
 
-**Bee** opera sobre zonas. Como las posiciones de los anillos están completas, un gesto válido intercambia `(q,r)` entre dos zonas del mismo `tier`; no crea huecos. `origin` permanece en `(0,0)`, las zonas teóricas mantienen distancia axial 1 y las aplicaciones distancia 2. El intercambio conserva IDs, contenido, `tier`, `order` y los offsets locales de sus lugares.
+**Bee** opera sobre zonas y rótulos. Como las posiciones están completas, un arrastre válido
+intercambia `(q,r)` entre dos zonas del mismo `tier`; un clic selecciona sin intercambiar.
+`origin` permanece en `(0,0)`, los niveles 1 y 2 mantienen sus distancias y no se mezclan. Bee
+puede renombrar `title`/`shortTitle` con ID estable y cambiar texto/offset de cada rótulo de nivel.
 
 **Bowerbird** opera sobre el triple `paletteId + motifId + contourId`. En Docente modifica el
 documento común y participa en historial/exportación/aplicación; en Estudiante modifica solo el
-documento de preferencias. Las migraciones `v1 → v2 → v3` añaden apariencia canónica y convierten
-la topología efectiva anterior en la red académica explícita sin reactivar lugares laterales.
+documento de preferencias. Las migraciones `v1 → v2 → v3 → v4 → v5` añaden apariencia,
+convierten la topología efectiva anterior en la red académica explícita e incorporan metadatos y
+ciclo de vida sin reactivar lugares inventariados.
 
 En acceso Docente, el menú **General** y el menú **Editor** son docks retractables
 independientes. Pointer Events proporcionan arrastre y cancelación; listas, campos, botones y
@@ -384,7 +392,8 @@ y el éxito exige reiniciar `dev` para revisar ORBIT. La frontera está
 descrita en la [Guía de ORBIT Editor](EDITOR_GUIDE.md) y decidida por [ADR
 0007](decisions/0007-static-local-editor.md) y [ADR
 0008](decisions/0008-scoped-appearance-and-local-course-application.md), enmendados por [ADR
-0009](decisions/0009-single-learning-network.md).
+0009](decisions/0009-single-learning-network.md) y [ADR
+0010](decisions/0010-editorial-entities-and-map-metadata.md).
 
 ## Audio
 
@@ -460,12 +469,18 @@ Persistido por Editor, de forma completamente separada:
 
 ```text
 kind: orbit-editor-project
-schemaVersion: 3
+schemaVersion: 5
 appearanceCatalogVersion: 1
 courseId
 baseDataVersion
-areas[]: id + q + r + appearance
-locations[]: id + areaId + offset
+areas[]: id + q + r + title + shortTitle + appearance
+tierLabels[]: tier + text + offset
+locations[]
+  id + kind + title + shortTitle + areaId + offset
+  lifecycle: active | inventory | deleted
+  provenance: canonical | editor-created
+  content (solo para entidades creadas por el Editor)
+nextLocationSequence
 learningNetwork
   nodeIds[]
   connections[]: sourceId + targetId
@@ -513,9 +528,10 @@ La arquitectura admite, sin exigirlos todavía:
 - migraciones de progreso;
 - pruebas de integración en navegador.
 
-La ampliación vigente del Editor no implica todavía edición de contenido académico, creación de
-entidades, colaboración, autenticación, varias rutas ni publicación remota. El helper local es un
-puente de mantenimiento para una ruta y un archivo fijo, no un backend.
+La ampliación vigente permite crear entidades con plantillas genéricas y renombrarlas, pero no
+implica todavía edición profunda de contenido académico, conceptos o referencias, colaboración,
+autenticación, varias rutas ni publicación remota. El helper local es un puente de mantenimiento
+para una ruta y un archivo fijo, no un backend.
 
 Cada incorporación que requiera dependencias debe documentarse mediante ADR.
 

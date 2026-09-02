@@ -240,21 +240,21 @@ Sin propuestas pendientes de clasificar.
 ## Cohorte inmediata
 
 - Versión: `0.7.0`
-- Estado de la cohorte: `abierta`
-- IDs: `UPD-019`
+- Estado de la cohorte: `cerrada`
+- IDs: `UPD-019`, `UPD-020`
 - Apertura registrada tras publicar ORBIT 0.6.0: 2026-09-02.
+- Cierre confirmado por JoaquinDiazM: 2026-09-02.
 
 ## Actualizaciones activas
 
 ### UPD-019 — Bee: nombres de zonas y etiquetas configurables de niveles
 
-- Estado: `propuesto`
+- Estado: `en-revision`
 - Tipo: `feature`
 - Versión objetivo: `0.7.0`
 - Impacto sugerido: `Y`; amplía el contrato editorial y requiere migrar el documento Docente de
   v3 a v4.
-- Próximo responsable: JoaquinDiazM, que puede autorizarla después de publicar 0.6.0 o añadirla a
-  una cohorte todavía abierta.
+- Próximo responsable: JoaquinDiazM, para la revisión manual conjunta de la cohorte 0.7.0.
 
 #### Solicitud original
 
@@ -300,21 +300,39 @@ con una animación adecuada.
 
 #### Implementación y revisión
 
-- Resultado: no iniciada; propuesta clasificada para una cohorte posterior a 0.6.0.
-- Pruebas automáticas: no aplican todavía.
-- Preflight del entorno: pendiente.
-- Revisión manual humana: pendiente.
+- Base revisada: ORBIT 0.6.0 en `645c27b`, con edición publicada
+  `sha256:bc5258ae59ba60f97b1de809d00e602efa62ca2da9ce15ca735d8636451a0fc2`; la
+  migración v3 → v4 → v5 conserva zonas, lugares, posiciones, apariencias y Red.
+- Rutas propias: `src/editor/editor-document.js`, `src/editor/editor-model.js`,
+  `src/editor/editor-app.js`, `src/editor/editor-renderer.js`,
+  `src/editor/editor-ui-controller.js`, `src/editor/editor.css`, `editor.html`, contratos de
+  aplicación/edición, ADR 0010, guías y pruebas asociadas.
+- Resultado: Bee permite editar `title` y `shortTitle` de cada zona; seleccionar y desplazar las
+  etiquetas configurables de ambos niveles con puntero, teclado o controles DOM; restaurar sus
+  valores; y persistir todo en el documento v5, historial, respaldo, digest, diff y aplicación.
+  Mantiene Base inmóvil, intercambios dentro del mismo nivel y consulta de solo lectura para
+  Estudiante.
+- Pruebas automáticas: 472 pruebas ejecutadas, 470 aprobadas, 0 fallidas y 2 omitidas por la
+  restricción esperada de symlinks en Windows; `validate-content`, `check-repository`,
+  `git diff --check` y el build estático finalizaron correctamente.
+- Preflight del entorno: completado con Node v24.19.0 ejecutado directamente; no se abrió un
+  navegador ni un helper desde la sesión del agente, el puerto 4173 quedó libre y no quedaron
+  `.orbit-editor`, tombstone ni lock de helper. Se repetirá tras crear el commit local.
+- Revisión manual humana: pendiente — JoaquinDiazM debe usar una terminal visible de VS Code y
+  Edge externo para comprobar clic sin intercambio, drag de zonas solo dentro de su nivel, Base
+  inmóvil, renombrado completo/breve, selección y movimiento de etiquetas con ratón y teclado,
+  restauración, undo/redo, recarga y exportación/importación; en Estudiante debe confirmar Bee y
+  Spider de solo lectura sin bloquear las preferencias personales Bowerbird.
 - Observaciones del usuario: ninguna adicional.
 
 ### UPD-020 — Spider: autoría de nodos, contenido inicial e inventario
 
-- Estado: `faltan-detalles`
+- Estado: `en-revision`
 - Tipo: `épica`
-- Versión objetivo: `0.8.0`
+- Versión objetivo: `0.7.0`
 - Impacto sugerido: `Y`; amplía Spider desde cartografía/red hacia autoría de entidades y
   contenido, y requiere una autoridad editorial nueva para lugares creados.
-- Próximo responsable: JoaquinDiazM, que resuelve las tres decisiones de ciclo de vida antes de
-  autorizar; UPD-019 queda primero por establecer el documento Editor v4.
+- Próximo responsable: JoaquinDiazM, para la revisión manual conjunta de la cohorte 0.7.0.
 
 #### Solicitud original
 
@@ -337,18 +355,24 @@ personajes secundarios; gadgets y transportes siguen reservados a desarrolladore
   un clic de colocación; **Importar nodo** permanece deshabilitado sin afectar la importación del
   proyecto completo. **Inventario** diferencia retirar de la Red, sacar del mapamundi activo y
   borrar definitivamente; permite buscar, filtrar y reinsertar con clic.
-- Decisiones confirmadas: `lesson`/`mission` creados entran a la Red pero mantienen bloqueado
-  **Aplicar** hasta recibir una conexión válida; `npc` permanece lateral y nunca contiene una
-  pregunta evaluativa. Crear/modificar/inventariar/borrar excluye `gadget`, `transport`, `base` y
-  `debug`; Mover conserva el alcance actual sobre lugares existentes. Toda operación participa en
-  autoguardado, exportación/importación, diff e historial atómico. Validar rechaza IDs duplicados,
-  referencias colgantes, placeholders no autorizados, contenido inválido, ciclos, raíces
-  adicionales o territorio inalcanzable. Resumen distingue creados, renombrados, inventariados,
-  restaurados y eliminados.
+- Decisiones confirmadas: `lesson`/`mission` creados entran a la Red y mantienen bloqueado
+  **Aplicar** hasta recibir una conexión válida; su contenido genérico sí puede validarse,
+  aplicarse y probarse en ORBIT normal. `npc` permanece lateral y nunca contiene una pregunta
+  evaluativa. Crear/modificar/inventariar/borrar excluye `gadget`, `transport`, `base` y `debug`;
+  Mover conserva el alcance actual sobre lugares existentes. Inventariar elimina por completo
+  todas las conexiones incidentes después de enumerarlas y advertirlo; no persiste conexiones
+  suspendidas y la reinserción exige reconstruirlas manualmente. El borrado permanente solo se
+  inicia desde Inventario y admite cualquier `lesson`, `mission` o `npc` salvo los IDs protegidos
+  `vector-workshop` y `coulomb-observatory`; esos dos pueden inventariarse, pero nunca borrarse ni
+  liberar su ID. Toda operación participa en autoguardado, exportación/importación, diff e
+  historial atómico. Validar rechaza IDs duplicados, referencias colgantes, contenido inválido,
+  ciclos, raíces adicionales o territorio inalcanzable. Resumen distingue creados, renombrados,
+  inventariados, restaurados y eliminados.
 - Criterios de aceptación: cada submenú preserva foco, selección y estado al cambiar de vista;
   la creación/colocación y reinserción tienen alternativa de teclado; un nodo fuera del mapa no
   aparece ni progresa en runtime; un nodo reinsertado conserva ID/contenido y debe reconectarse;
-  borrado muestra impacto y confirmación; IDs nunca se reciclan; el documento migra v4 → v5 sin
+  inventariar enumera las aristas que eliminará; borrar muestra impacto y confirmación; los dos
+  IDs protegidos no pueden borrarse y ningún ID se recicla; el documento migra v4 → v5 sin
   alterar los 29 lugares y 29 conexiones de la edición 0.6.0 aprobada; pruebas cubren ciclo de
   vida, referencias, persistencia, undo/redo, aplicación, reset y accesibilidad.
 - Fuera de alcance: editor completo de párrafos, etapas, ejercicios, fuentes, conceptos,
@@ -362,24 +386,38 @@ personajes secundarios; gadgets y transportes siguen reservados a desarrolladore
 
 #### Preguntas bloqueantes
 
-1. ¿Un nodo con texto/pregunta genéricos puede aplicarse antes de existir el editor de contenido?
-   Recomendación: permitir guardarlo, exportarlo y posicionarlo, pero bloquear **Aplicar** mientras
-   conserve la marca de placeholder.
-2. Al inventariar un nodo académico, ¿se descartan sus conexiones o se conservan suspendidas?
-   Recomendación: excluirlas de runtime/validación activa, guardarlas como metadato recuperable y
-   restaurar solo las que sigan siendo válidas, con confirmación.
-3. ¿El borrado definitivo alcanza cualquier lugar publicado o solo nodos creados por el Editor?
-   Recomendación: en la primera entrega, borrar definitivamente solo nodos creados por el Editor;
-   los canónicos pueden inventariarse, pero no eliminarse ni liberar su ID.
+- Ninguna. JoaquinDiazM confirmó que el contenido genérico puede aplicarse; inventariar elimina
+  las conexiones tras advertir cuáles se perderán; y el borrado permanente protege únicamente
+  `vector-workshop` y `coulomb-observatory` entre los tipos editables.
 
 #### Implementación y revisión
 
-- Resultado: no iniciada; requiere resolver ciclo de placeholder, conexiones suspendidas y
-  alcance del borrado antes de dividir o autorizar la épica.
-- Pruebas automáticas: no aplican todavía.
-- Preflight del entorno: pendiente.
-- Revisión manual humana: pendiente.
-- Observaciones del usuario: ninguna adicional.
+- Base revisada: ORBIT 0.6.0 en `645c27b`, con los 29 lugares y 29 conexiones de la edición
+  publicada; la migración v5 materializa las entidades editoriales sin alterar esa base.
+- Rutas propias: documento/modelo/aplicación/render/controlador de Editor, `editor.html`, CSS,
+  `src/core/course-application.js`, `src/core/course-edition.js`, `src/core/validator.js`, helper
+  local, runtime Estudiante, ADR 0010, documentación y pruebas de regresión.
+- Resultado: Spider presenta **Mover**, **Conectar**, **Modificar**, **Crear** e **Inventario**;
+  crea IDs monotónicos para `lesson`, `mission` y `npc`, permite renombrar y colocar, elimina las
+  aristas incidentes con advertencia exacta al inventariar, repone sin recrearlas y ofrece borrado
+  irreversible con tombstone salvo para `vector-workshop` y `coulomb-observatory`. El documento
+  v5 protege referencias, alcance, contadores y eliminaciones frente a recarga, importación,
+  undo/reset y aplicación local.
+- Pruebas automáticas: 472 pruebas ejecutadas, 470 aprobadas, 0 fallidas y 2 omitidas por la
+  restricción esperada de symlinks en Windows; incluyen migración/canonicalidad, alto de IDs,
+  ciclo de vida, seguridad del helper, aplicación, foco y accesibilidad. `validate-content`,
+  `check-repository`, `git diff --check` y el build estático finalizaron correctamente.
+- Preflight del entorno: completado sin iniciar servidores ni navegador desde el agente; puerto
+  4173 libre y sin sesión, journal, tombstone ni lock del helper. Se repetirá tras el commit local.
+- Revisión manual humana: pendiente — JoaquinDiazM debe comprobar en Edge externo que las cinco
+  vistas conservan selección y formularios; crear y colocar cada tipo; verificar que `npc` no
+  tenga pregunta y que un académico sin entrada bloquee Aplicar; confirmar advertencias de
+  aristas, inventariar, reponer y borrar un nodo no protegido; verificar que los dos IDs protegidos
+  no puedan borrarse; y revisar Resumen/Validar, recarga, undo/redo y exportación/importación. Para
+  ensayar Aplicar debe exportar respaldo, detener `npm run dev`, iniciar `npm run editor:author`
+  desde VS Code, abrir su URL exacta en Edge y usar solo un borrador válido que quiera conservar,
+  pues la aplicación reinicia los tres perfiles.
+- Observaciones del usuario: Pregunta 1 -> Manten el aplicar, esos nodos genericos los quiero probar en ORBIT normal. Pregunta 2 -> Eliminar completamente, solo advertir al usuario cuales conexiones se perderan al inventariar un nodo. Se subentiende que el docente que usa ORBIT es un experto tal en su material que puede reconstruir las conexiones nesesarias sin asistencia. Pregunta 3 -> Bien, esto es algo importante que talvez se me ha olvidado mensionar solo DOS nodos, del arbol principal, son canonicos, los demas no me importa sin son borrados para hacer pruebas. Estos son los nodos del taller vectorial y el de coulumb. Los demas no importan en absoluto y cuando la version 1.0.0 este lista es cuando me dedicare a crear el contenido grueso del curso de electromagnetismo, antes de eso solo estamos construyendo la bases de ORBIT como herramienta general. Recalcar tambien que añadi esta update al cohorte de la version 0.7.0 y sera la ultima de esa version.
 
 ### UPD-002 — Sistema de servidor online
 

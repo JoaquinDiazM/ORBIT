@@ -66,7 +66,7 @@ Estado: base cartográfica implementada en `0.4.0`; no es todavía un editor com
   autocomplete las
   lecciones y misiones evaluables al interactuar.
 - Mantener **ORBIT Editor** (`editor.html`) con Docente completo por defecto, Estudiante en
-  consulta con Spider/Bee bloqueados y Debug bloqueado antes de crear el modelo.
+  consulta con Spider/Bee sin mutaciones y Debug bloqueado antes de crear el modelo.
 - Incorporar docks General y Editor retractables y operables con puntero o teclado.
 - Implementar Spider para mover nodos y editar requisitos directos `completedLocations`, conservando conceptos/recompensas como relaciones derivadas de solo lectura.
 - Implementar Bee para intercambiar zonas dentro de `tier 1` o `tier 2`, con Base fija y rechazo entre anillos.
@@ -117,6 +117,9 @@ Estado: `0.5.1` publicada; las herramientas y la edición versionada están oper
 
 ## 0.7 — Instrumentación y aplicaciones
 
+- Migrar ORBIT Editor mediante `v3 → v4 → v5`: Bee configura nombres y rótulos de nivel, y
+  Spider incorpora Modificar, Crear e Inventario con IDs estables y ciclo de vida desplegable.
+- Conservar dos niveles estructurales sin mezclar sus zonas y una sola Red de aprendizaje activa.
 - Líneas de transmisión.
 - Ondas y energía electromagnética.
 - Antenas.

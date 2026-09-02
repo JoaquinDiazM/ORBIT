@@ -48,10 +48,11 @@ habilitar la confirmación y la aplicación.
 
 - **Docente:** `editor.html` o `editor.html?profile=teacher`; dispone de General, Spider, Bee,
   Bowerbird, historial, importación, restauración, exportación y aplicación local asistida.
-- **Estudiante:** `editor.html?profile=student`; puede consultar, desplazar, ampliar, encuadrar y
-  usar Bowerbird para sus preferencias personales. Spider, Bee, historial, importación,
-  restauración y exportación del borrador Docente quedan bloqueados. No hay un banner permanente:
-  cada intento muestra una alerta temporal, breve y específica para la acción.
+- **Estudiante:** `editor.html?profile=student`; puede abrir Spider y Bee para consultar nodos,
+  conexiones, zonas y rótulos, además de desplazar, ampliar y encuadrar el mapa. Bowerbird guarda
+  sus preferencias personales. Las mutaciones Spider/Bee, historial, importación, restauración y
+  exportación del borrador Docente quedan bloqueados. No hay un banner permanente: cada intento
+  restringido muestra una alerta temporal, breve y específica.
 - **Debug:** `editor.html?profile=debug`; muestra el bloqueo y no crea el modelo editorial.
 
 `?debug=1` no eleva capacidades del Editor. Como cualquiera puede cambiar estas queries, la
@@ -64,14 +65,14 @@ Al comenzar, el Editor carga la edición publicada, migra si corresponde el borr
 crea un documento Docente independiente. Cada cambio válido se guarda automáticamente bajo:
 
 ```text
-orbit-editor:v3:electromagnetism-applied
+orbit-editor:v5:electromagnetism-applied
 ```
 
-El documento `orbit-editor-project` `v3` reúne Spider, Bee y las apariencias Bowerbird que
-Docente pretende publicar. Una copia `v1` o `v2` válida se migra, asignando apariencia canónica
-cuando corresponde y materializando la Red de aprendizaje académica efectiva; un esquema o
-catálogo desconocido se rechaza sin sobrescribir el original.
-En ese caso la copia canónica visible es de recuperación: las ediciones ordinarias permanecen
+El documento `orbit-editor-project` `v5` reúne Spider, Bee y las apariencias Bowerbird que
+Docente pretende publicar. Las migraciones puras `v1 → v2 → v3 → v4 → v5` preservan el mapa:
+`v4` incorpora nombres y rótulos de nivel; `v5`, definiciones y ciclo de vida de lugares. Un
+esquema o catálogo desconocido se rechaza sin sobrescribir el original.
+En ese caso la copia visible de la edición base es de recuperación: las ediciones ordinarias permanecen
 bloqueadas hasta que Docente usa **Restaurar** o importa explícitamente un documento válido.
 
 Estudiante no modifica ese documento. Sus elecciones Bowerbird se guardan por separado en:
@@ -96,17 +97,20 @@ La interfaz conserva el menú general de ORBIT y añade un menú editorial. Ambo
 
 El menú editorial contiene tres herramientas:
 
-- **Spider**, para disponer nodos y editar la pertenencia y conexiones de la Red de aprendizaje.
-- **Bee**, para reorganizar las zonas hexagonales sin mezclar sus anillos pedagógicos.
+- **Spider**, para mover, conectar, modificar, crear e inventariar nodos.
+- **Bee**, para organizar y renombrar zonas y configurar los rótulos de sus niveles sin
+  mezclarlos.
 - **Bowerbird**, para elegir paleta, motivo y contorno dentro de un catálogo versionado.
 
 Minimizar un menú no descarta la selección, el borrador ni el historial. En una ventana estrecha, conviene cerrar el panel que no se esté usando para conservar espacio sobre el mapa.
 
-## Spider: nodos y conexiones
+## Spider: nodos, conexiones y ciclo de vida
 
-Spider está disponible únicamente con acceso Docente y presenta todos los lugares del curso con
-independencia de su estado de desbloqueo en ORBIT. En Estudiante, intentar abrirla comunica la
-restricción sin modificar el borrador.
+Spider presenta todos los lugares del curso con independencia de su estado de desbloqueo en
+ORBIT. Docente dispone de sus cinco submenús —**Mover**, **Conectar**, **Modificar**, **Crear** e
+**Inventario**— y conserva selección y estado al alternarlos. Estudiante puede abrir Spider y Bee
+para consultar la cartografía, la Red y los metadatos, pero todos los controles que mutarían el
+borrador compartido permanecen deshabilitados.
 
 ### Mover un nodo
 
@@ -130,8 +134,8 @@ conexiones incidentes. Personajes, gadgets y transportes son laterales; Base y D
 sus políticas especiales. Todos permanecen fuera de la red y nunca muestran ese control.
 
 Estas operaciones pueden dejar un borrador incompleto mientras se reorganiza. **Validar** debe
-rechazarlo hasta recuperar los 21 nodos académicos, la raíz única `vector-workshop`, un
-predecesor para cada otro nodo, ausencia de ciclos y alcanzabilidad territorial completa.
+rechazarlo hasta recuperar la raíz única `vector-workshop`, un predecesor para cada otro nodo
+académico activo, ausencia de ciclos y alcanzabilidad territorial completa.
 
 ### Conectar nodos
 
@@ -161,33 +165,70 @@ Durante una reorganización sí puede existir temporalmente más de una raíz o 
 inalcanzable. **Validar** y **Aplicar** permanecen bloqueados hasta recuperar la raíz única y la
 alcanzabilidad integral.
 
-Esta política conserva una única fuente de verdad: el documento `v3` declara explícitamente la
+Esta política conserva una única fuente de verdad: el documento `v5` declara explícitamente la
 pertenencia y conexiones académicas; conceptos y recompensas continúan como resultados.
+
+### Modificar y crear
+
+**Modificar** muestra el ID estable como solo lectura y permite cambiar `title` y `shortTitle`
+de `lesson`, `mission` y `npc`. La edición de párrafos, ejercicios, fuentes, concesiones y
+multimedia permanece deshabilitada bajo **Próximamente**.
+
+**Crear** admite los mismos tres tipos. ORBIT asigna un ID monotónico `new-node-NNNN` que no
+depende del título y nunca vuelve a utilizarse. Una lección o misión nueva contiene una etapa y
+una alternativa genéricas válidas; un NPC contiene contexto y cierre `acknowledge`, no una
+pregunta evaluativa. Elige el tipo y una zona desde los controles o inicia la colocación y haz
+clic en un hexágono. El contenido genérico puede aplicarse para probarlo en ORBIT, pero todo nodo
+académico activo debe conectarse antes de que la validación lo acepte. **Importar nodo** anuncia
+**Próximamente** y no afecta la importación del proyecto editorial completo.
+
+### Inventario y borrado
+
+**Inventario** filtra por ID, título o tipo y separa tres operaciones:
+
+- **Retirar de la Red** conserva el lugar activo y su posición, pero elimina sus aristas.
+- **Guardar en Inventario** retira el lugar del mapamundi activo y enumera todas las conexiones
+  incidentes que se eliminarán. No conserva conexiones suspendidas.
+- **Borrar definitivamente** solo aparece para un lugar ya inventariado, muestra su impacto y
+  exige confirmación. Reserva su ID para impedir que otra entidad lo reutilice.
+
+Al reinsertar, el nodo conserva ID, tipo, nombres y contenido. Debes escoger una zona o hacer
+clic en un hexágono; una lección o misión vuelve a la Red sin aristas y debe reconectarse.
+`vector-workshop` y `coulomb-observatory` pueden inventariarse, pero nunca borrarse. Los tipos
+`base`, `debug`, `gadget` y `transport` no pueden modificarse, crearse, inventariarse ni borrarse.
 
 ## Bee: organización de zonas
 
-Bee está disponible únicamente con acceso Docente y reorganiza hexágonos mediante intercambio.
-En Estudiante permanece bloqueada. El mapa actual ocupa todas las posiciones de sus tres
-niveles, por lo que no existen celdas vacías a las que trasladar una zona.
+Bee reorganiza hexágonos mediante intercambio con acceso Docente. En Estudiante puede abrirse
+para seleccionar y consultar zonas y rótulos, pero todos sus controles mutantes permanecen
+deshabilitados. El mapa actual ocupa todas las posiciones de sus tres niveles, por lo que no
+existen celdas vacías a las que trasladar una zona.
 
 Con ratón o puntero:
 
 1. Activa **Bee**.
-2. Selecciona una zona móvil.
-3. Arrástrala sobre otra zona del mismo anillo.
+2. Haz clic para seleccionarla o arrástrala sobre otra zona del mismo nivel.
+3. Superado el umbral de arrastre, suéltala para intercambiar sus coordenadas.
 4. Suelta para intercambiar sus coordenadas axiales `(q,r)`.
 
-Con teclado, selecciona una zona en la lista del anillo y activa **Intercambiar anterior** o **Intercambiar siguiente** mediante `Enter` o `Espacio`.
+Con teclado, selecciona una zona en la lista del nivel y activa **Intercambiar anterior** o
+**Intercambiar siguiente** mediante `Enter` o `Espacio`. El inspector permite editar por separado
+el nombre completo y la etiqueta breve sin alterar el ID.
 
 Se aplican tres límites:
 
 - Campamento Base (`origin`) permanece fijo en el anillo 0.
-- Las seis zonas teóricas del anillo 1 solo pueden intercambiarse entre sí.
-- Las doce zonas de aplicación del anillo 2 solo pueden intercambiarse entre sí.
+- Las seis zonas del nivel 1 solo pueden intercambiarse entre sí.
+- Las doce zonas del nivel 2 solo pueden intercambiarse entre sí.
 
 Un intento entre anillos se rechaza sin realizar cambios y se comunica mediante texto. El
 intercambio conserva `tier`, `order`, IDs y contenido; como cada lugar mantiene su `areaId`,
 los nodos de una zona viajan con su hexágono y conservan sus offsets locales.
+
+Cada nivel tiene además un rótulo cartográfico con texto y offset `{x,y}` configurables. Puedes
+seleccionarlo y arrastrarlo en el Canvas o usar el selector, campos numéricos y ajustes por
+teclado. Restaurar recupera el texto inicial y offset cero. Los rótulos pertenecen al Editor y
+no añaden por sí solos una superposición a ORBIT Estudiante.
 
 ## Bowerbird: apariencia por zona
 
@@ -198,7 +239,7 @@ progreso.
 
 El alcance depende del perfil:
 
-- **Docente** edita la apariencia publicada dentro del documento común `v3`. Esos cambios
+- **Docente** edita la apariencia publicada dentro del documento común `v5`. Esos cambios
   participan en deshacer/rehacer, importación, exportación, diff y aplicación.
 - **Estudiante** edita únicamente sus overrides personales. No cambia el historial ni el JSON
   Docente y sus preferencias se conservan durante una aplicación del curso.
@@ -218,30 +259,42 @@ Los botones **Deshacer** y **Rehacer** recorren el historial del borrador. Tambi
 - `Ctrl`/`Cmd` + `Shift` + `Z`: rehacer;
 - `Ctrl` + `Y`: rehacer en plataformas que usan esa convención.
 
-Mover un nodo, añadirlo o retirarlo de la red, crear o quitar una conexión, intercambiar dos zonas y cambiar una
-apariencia Docente cuentan como operaciones completas. El autoguardado registra el resultado de
+Mover, renombrar, crear, inventariar o reinsertar un nodo; añadirlo o retirarlo de la red;
+crear o quitar una conexión; cambiar una zona o rótulo; e intercambiar zonas o apariencias
+Docente cuentan como operaciones completas. El autoguardado registra el resultado de
 deshacer o rehacer. Importar otro archivo o restablecer la cartografía inicia un nuevo historial
 para evitar combinar estados de procedencias distintas. Las preferencias Bowerbird Estudiante no
 forman parte de este historial compartido.
+
+**Borrar definitivamente** es la excepción deliberada: crea un tombstone y no puede revertirse
+con Deshacer, Rehacer, Restaurar ni importar una copia anterior. Si Deshacer encuentra un snapshot
+que intentaría revivirlo, conserva el tombstone y lo explica en el aviso de resultado.
 
 Los atajos del historial editorial no interceptan la edición de campos de texto o coordenadas: dentro de un `input`, `select` o `textarea`, `Ctrl`/`Cmd` + `Z` conserva el comportamiento nativo del control.
 
 ## Exportar e importar
 
 **Exportar JSON** descarga una instantánea versionada del documento Docente. El archivo identifica
-su tipo (`orbit-editor-project`), esquema `v3`, catálogo visual, curso y versión de datos base;
-contiene coordenadas y apariencias de zonas, `areaId + offset` de nodos y
-`learningNetwork.nodeIds + connections`. No contiene respuestas, progreso ni preferencias
+su tipo (`orbit-editor-project`), esquema `v5`, catálogo visual, curso y versión de datos base;
+contiene nombres, coordenadas y apariencias de zonas, rótulos de nivel, definiciones y ciclo de
+vida de nodos, tombstones, `areaId + offset` y
+`learningNetwork.nodeIds + connections`. No contiene respuestas de usuarios, progreso ni preferencias
 Bowerbird Estudiante.
 Descargarlo no modifica la edición que usa ORBIT.
 
-Si una importación descarta IDs desconocidos, restaura entidades ausentes o rebasa otra versión
-base, el Editor abre **Resumen**, muestra cada advertencia y conserva el detalle hasta la
-siguiente edición. Un JSON incompatible, malformado o estructuralmente inválido no reemplaza el
+Solo los formatos heredados `v1`–`v4` pueden descartar con advertencia IDs desconocidos al
+migrarse. En `v5`, un ID de zona o lugar desconocido se rechaza sin reemplazar el borrador. Si
+una migración restaura entidades ausentes o rebasa otra versión base, el Editor abre **Resumen**,
+muestra cada advertencia y conserva el detalle hasta la siguiente edición. Un JSON incompatible,
+malformado o estructuralmente inválido no reemplaza el
 borrador previo; si el valor ya persistido no puede interpretarse al iniciar, ORBIT abre una
-copia canónica sin sobrescribir el texto local dañado. Mientras ese raw esté protegido, las
+copia de la edición base sin sobrescribir el texto local dañado. Mientras ese raw esté protegido, las
 mutaciones normales fallan con una explicación; **Restaurar** o importar un documento que supere
 el saneamiento estructural lo reemplaza de forma explícita y reactiva el autoguardado.
+
+El documento normalizado no puede superar 900 000 bytes. Este margen garantiza que todo
+borrador aceptado quepa también en la solicitud local de **Aplicar**; si se alcanza, **Validar**
+lo marca como error antes de iniciar cualquier escritura.
 
 **Importar JSON** permite continuar un borrador o revisar el trabajo de otra persona. El Editor
 valida estructuralmente esquema, catálogo, IDs, coordenadas, anillos, offsets, apariencias y
@@ -252,6 +305,12 @@ importación que falla el saneamiento debe dejarlo intacto. Importar, restaurar,
 requieren Docente. Estudiante no puede importar ni exportar el documento del curso y tampoco
 puede reemplazar ni modificar el borrador Docente; sus preferencias Bowerbird permanecen en su clave
 personal separada.
+
+Una carga externa puede adelantar `nextLocationSequence` como máximo 10 000 reservas respecto del
+high-water confiable de la edición base o de la sesión actual. Un salto mayor se rechaza
+atómicamente y no reemplaza el borrador; un contador inferior se eleva para no reciclar IDs. Las
+publicaciones sucesivas pueden continuar avanzando porque cada edición validada pasa a ser el nuevo
+piso confiable.
 
 ## Validar, revisar impacto y aplicar localmente
 
@@ -294,10 +353,11 @@ a ejecutar el comando en 4173.
 
 En **Resumen**, el flujo seguro es:
 
-1. **Validar** el documento completo. La validación materializa las 19 zonas y 29 lugares,
-   comprueba anillos, offsets, IDs, 21 nodos académicos, raíz única, conexiones, ciclos,
+1. **Validar** el documento completo. La validación materializa las zonas y lugares activos,
+   comprueba niveles, offsets, IDs, raíz única, conexiones, ciclos,
    adyacencia y alcanzabilidad total, y liga el plan al digest del borrador actual.
-2. Revisar el **diff** de zonas, nodos, conexiones y apariencias, junto con la tabla de impacto
+2. Revisar el **diff** de zonas y rótulos, nodos creados/renombrados/inventariados/restaurados/
+   eliminados, posiciones, conexiones y apariencias, junto con la tabla de impacto
    de Estudiante, Docente y Debug. Cada fila informa si el guardado es legible y cuántos lugares
    completados y conceptos adquiridos se eliminarán.
 3. Leer el alcance del reinicio y activar la confirmación accesible en línea. Una edición posterior
@@ -312,7 +372,7 @@ alerta temporal; una respuesta positiva ya no puede quedar visualmente como un b
 
 El reinicio total elimina logros, posición, transporte activo, ajustes y overrides de depuración
 de Estudiante, Docente y Debug, incluidas sus claves legadas compatibles. Conserva el documento
-Docente `v3`, las preferencias Bowerbird Estudiante y cualquier dato no relacionado. Nunca usa
+Docente `v5`, las preferencias Bowerbird Estudiante y cualquier dato no relacionado. Nunca usa
 `localStorage.clear()`.
 
 Si falla la validación, la comprobación o el build, no se instala la edición. Si una interrupción
@@ -341,7 +401,7 @@ Aplicar localmente no despliega el sitio.
 Esta versión amplía la base del editor cartográfico y visual. Todavía no permite:
 
 - editar enunciados, ejercicios, soluciones, fórmulas o referencias;
-- crear o eliminar zonas, lugares, conceptos o recompensas;
+- crear o eliminar zonas, conceptos o recompensas;
 - trasladar zonas entre los anillos 1 y 2;
 - gestionar varias rutas o cursos;
 - colaborar simultáneamente entre dispositivos;
@@ -354,4 +414,5 @@ revisiones posteriores. Consulta también [Arquitectura](ARCHITECTURE.md), [Dise
 Red de aprendizaje](WORLD_AND_KNOWLEDGE_DESIGN.md), [Checklist de QA](QA_CHECKLIST.md), [ADR
 0007](decisions/0007-static-local-editor.md) y [ADR
 0008](decisions/0008-scoped-appearance-and-local-course-application.md), enmendados por [ADR
-0009](decisions/0009-single-learning-network.md).
+0009](decisions/0009-single-learning-network.md) y [ADR
+0010](decisions/0010-editorial-entities-and-map-metadata.md).

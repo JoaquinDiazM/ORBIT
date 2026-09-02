@@ -596,7 +596,10 @@ export function simulateFullProgression({ areas = AREAS, locations = LOCATIONS }
   let changed = true;
   let safetyCounter = 0;
 
-  while (changed && safetyCounter < 100) {
+  // Cada pasada que mantiene `changed` añade al menos un lugar nuevo al Set.
+  // Por lo tanto el proceso termina por construcción para una colección finita y
+  // no necesita un límite mágico que rechace redes editoriales profundas válidas.
+  while (changed) {
     changed = false;
     safetyCounter += 1;
 
@@ -671,9 +674,15 @@ export function simulateFullProgression({ areas = AREAS, locations = LOCATIONS }
   };
 }
 
-export function validateProjectData({ areas = AREAS, locations = LOCATIONS } = {}) {
+export function validateProjectData({
+  areas = AREAS,
+  locations = LOCATIONS,
+  allowContentSubset = false,
+  dynamicEdition = false,
+} = {}) {
   const errors = [];
   const warnings = [];
+  const contentSubsetAllowed = Boolean(allowContentSubset || dynamicEdition);
   const worldIndex = createWorldIndex(areas);
   const knownAreaIds = new Set(areas.map((area) => area.id));
   const knownLocationIds = new Set(locations.map((location) => location.id));
@@ -686,6 +695,7 @@ export function validateProjectData({ areas = AREAS, locations = LOCATIONS } = {
     learningLocations.map((location) => [location.id, 0]),
   );
   const knownConceptIds = new Set(CONCEPTS.map((concept) => concept.id));
+  const canonicalLocationIds = new Set(LOCATIONS.map((location) => location.id));
   const rewards = knownRewardKeys();
 
   for (const duplicate of duplicateValues(areas.map((area) => area.id))) {
@@ -921,9 +931,13 @@ export function validateProjectData({ areas = AREAS, locations = LOCATIONS } = {
       }
       for (const locationId of requirements.completedLocations) {
         if (!knownLocationIds.has(locationId)) {
-          errors.push(
-            `La referencia ${collectionId}:${entry.id} exige un lugar inexistente: ${locationId}.`,
-          );
+          const message =
+            `La referencia ${collectionId}:${entry.id} exige un lugar inexistente: ${locationId}.`;
+          if (contentSubsetAllowed && canonicalLocationIds.has(locationId)) {
+            warnings.push(`${message} La edición dinámica retiró ese lugar canónico.`);
+          } else {
+            errors.push(message);
+          }
         }
       }
       for (const reward of requirements.rewards) {
@@ -949,7 +963,12 @@ export function validateProjectData({ areas = AREAS, locations = LOCATIONS } = {
   );
   for (const concept of CONCEPTS) {
     if (!grantedConceptIds.has(concept.id)) {
-      errors.push(`El concepto ${concept.id} no es concedido por ningún lugar.`);
+      const message = `El concepto ${concept.id} no es concedido por ningún lugar.`;
+      if (contentSubsetAllowed) {
+        warnings.push(`${message} La edición dinámica conserva el concepto en el catálogo.`);
+      } else {
+        errors.push(message);
+      }
     }
   }
   for (const area of areas) {
@@ -977,10 +996,6 @@ export function validateProjectData({ areas = AREAS, locations = LOCATIONS } = {
         `El lugar lateral ${location.id} no queda disponible al abrir su zona.`,
       );
     }
-  }
-
-  if (simulation.iterations >= 100) {
-    errors.push("La simulación de progresión excedió el límite de seguridad.");
   }
 
   return { errors, warnings, simulation };

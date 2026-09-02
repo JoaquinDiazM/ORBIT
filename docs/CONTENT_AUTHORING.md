@@ -112,9 +112,9 @@ Esqueleto mínimo:
 
 Las ecuaciones usan TeX compatible con KaTeX y siempre incluyen una descripción visible. La UI genera DOM y MathML mediante `katex.render`; no introduzcas HTML, delimitadores `$$...$$` ni comandos que requieran `trust: true`. `npm test` compila todas las expresiones con la configuración de producción.
 
-Crear una entidad `lesson` o `mission` no la incorpora por sí solo a la Red de aprendizaje:
-añádela mediante Spider y declara al menos una conexión entrante, salvo que una futura decisión
-arquitectónica autorice otra raíz.
+Crear una entidad `lesson` o `mission` con Spider la incorpora activa a la Red de aprendizaje,
+pero sin conexiones. Declara al menos una conexión entrante antes de aplicar; solo
+`vector-workshop` puede ser raíz.
 
 ## Requisitos
 
@@ -133,7 +133,7 @@ requirements: {
 Todos los elementos de una categoría y todas las categorías declaradas son obligatorios en el
 contrato que los consume.
 
-La progresión académica usa una única Red de aprendizaje explícita del documento Editor `v3`.
+La progresión académica usa una única Red de aprendizaje explícita del documento Editor `v5`.
 Solo `lesson` y `mission` pueden pertenecer a ella; al materializarse, una conexión `A → B`
 produce `A` en `B.requirements.completedLocations`. En los lugares académicos no declares
 `concepts`, `rewards` ni `areas` como requisitos: no son otra vía de acceso. Los lugares

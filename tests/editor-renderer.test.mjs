@@ -6,7 +6,10 @@ import {
   EditorRenderer,
   findAreaAtWorldPoint,
   findLocationAtWorldPoint,
+  findTierLabelAtWorldPoint,
   getEditorEdgeVisualStyle,
+  getLocationDragPreview,
+  getTierLabelLayouts,
 } from "../src/editor/editor-renderer.js";
 
 const areas = [
@@ -99,6 +102,51 @@ test("cuando los radios se solapan se elige el nodo más cercano", () => {
     findLocationAtWorldPoint({ x: 0, y: 0, areas, locations })?.id,
     "near",
   );
+});
+
+test("los rótulos Bee comparten geometría de dibujo y hit-testing con zoom", () => {
+  const ringAreas = [
+    { id: "a", q: 1, r: 0, tier: 1 },
+    { id: "b", q: 1, r: -1, tier: 1 },
+    { id: "c", q: 0, r: -1, tier: 1 },
+    { id: "d", q: -1, r: 0, tier: 1 },
+    { id: "e", q: -1, r: 1, tier: 1 },
+    { id: "f", q: 0, r: 1, tier: 1 },
+  ];
+  const tierLabels = [{ tier: 1, text: "FUNDAMENTOS", offset: { x: 35, y: -18 } }];
+  const [layout] = getTierLabelLayouts({ areas: ringAreas, tierLabels, zoom: 2 });
+
+  assert.equal(layout.text, "FUNDAMENTOS");
+  assert.deepEqual(layout.offset, { x: 35, y: -18 });
+  assert.equal(findTierLabelAtWorldPoint({
+    x: layout.x,
+    y: layout.y,
+    areas: ringAreas,
+    tierLabels,
+    zoom: 2,
+  })?.tier, 1);
+  assert.equal(findTierLabelAtWorldPoint({
+    x: layout.x + layout.width,
+    y: layout.y,
+    areas: ringAreas,
+    tierLabels,
+    zoom: 2,
+  }), null);
+  const [zoomedOut] = getTierLabelLayouts({ areas: ringAreas, tierLabels, zoom: 0.5 });
+  assert.equal(zoomedOut.width, layout.width * 4);
+  assert.equal(zoomedOut.height, layout.height * 4);
+});
+
+test("un preview de arrastre Bee nunca suplanta la posición de un nodo", () => {
+  const areaPreview = { type: "area", world: { x: 400, y: 200 } };
+  const locationPreview = {
+    type: "location",
+    locationId: "source",
+    world: { x: 20, y: 15 },
+  };
+  assert.equal(getLocationDragPreview(areaPreview), null);
+  assert.equal(getLocationDragPreview({ world: { x: 400, y: 200 } }), null);
+  assert.equal(getLocationDragPreview(locationPreview), locationPreview);
 });
 
 test("Editor usa amarillo brillante para las conexiones editables de aprendizaje", () => {
@@ -280,4 +328,28 @@ test("Canvas dibuja de forma uniforme las conexiones persistentes de aprendizaje
     { type: "stroke", color: "rgba(255, 209, 102, 0.96)", lineWidth: 3, lineDash: [] },
   ]);
   assert.equal(arrowheads.length, 2);
+});
+
+test("Bee realza la zona bajo el puntero aunque todavía no esté seleccionada", () => {
+  const trace = [];
+  const renderer = new EditorRenderer(createCanvasHarness(trace));
+  const sceneAreas = areas.map((area, index) => ({
+    ...area,
+    tier: index,
+    shortTitle: area.id,
+    color: "#214765",
+    accent: "#8bdcf7",
+  }));
+
+  renderer.render({
+    camera: { x: 0, y: 0, zoom: 1 },
+    areas: sceneAreas,
+    activeTool: "bee",
+    hoveredAreaId: "east",
+  });
+
+  assert.ok(trace.some(
+    (operation) => operation.type === "stroke"
+      && operation.color === "rgba(132, 232, 255, 0.82)",
+  ));
 });

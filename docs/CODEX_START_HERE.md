@@ -65,9 +65,10 @@ El producto ya incluye:
 - pruebas unitarias;
 - build y workflow para GitHub Pages.
 - Editor con docks **General** y **Editor** retractables: Docente usa Spider, Bee y Bowerbird;
-  Estudiante recorre el mapa con Spider/Bee bloqueados y Bowerbird personal; Debug no inicia el
+  Estudiante consulta con Spider/Bee sin mutaciones y usa Bowerbird personal; Debug no inicia el
   modelo;
-- documento `orbit-editor-project` `v3`, catálogo visual y preferencias Estudiante aisladas;
+- documento `orbit-editor-project` `v5`, con migración exacta `v3 → v4 → v5`, catálogo visual,
+  metadatos de niveles, entidades editoriales e inventario; preferencias Estudiante aisladas;
 - `orbit-course-edition` con revisión/digest y aplicación local recuperable mediante
   `npm run editor:author`, sin backend público ni dependencia nueva;
 - modos locales explícitos: `dev` sirve ORBIT y Editor pero no aplica; `editor:author` bloquea
@@ -83,7 +84,7 @@ figuras/Gadgets, las posiciones de cargas y el contexto
 liga cada clave de progreso al curso/revisión. Una edición distinta reinicia en vez de reactivar
 avance; la compatibilidad histórica es una decisión explícita del artefacto.
 
-El documento Docente usa `orbit-editor:v3:electromagnetism-applied`; Estudiante guarda solo sus
+El documento Docente usa `orbit-editor:v5:electromagnetism-applied`; Estudiante guarda solo sus
 overrides Bowerbird en `orbit-bowerbird:v1:electromagnetism-applied:student`. Importar o exportar
 JSON nunca mezcla ambos. **Resumen** valida, muestra diff/impacto y puede aplicar mediante el
 helper loopback: este escribe el artefacto canónico, ejecuta check/build y coordina un reset
@@ -117,12 +118,14 @@ Antes de implementar una tarea, identifica cuáles puede afectar:
 - alcanzabilidad de la progresión;
 - IDs persistentes;
 - esquema de guardado;
-- separación entre progreso `v4`, documento Docente `v3`, preferencias Bowerbird `v1` y edición
+- separación entre progreso `v4`, documento Docente `v5`, preferencias Bowerbird `v1` y edición
   de curso `v1`;
-- 21 nodos académicos, raíz única y conexiones explícitas validadas —29 en la edición aplicada—
-  frente a lugares laterales fuera de red;
+- IDs persistentes, secuencia monotónica y tombstones que impiden reutilizar un nodo eliminado;
+- raíz única y alcanzabilidad de todos los nodos académicos activos —la edición 0.6.0 parte de
+  21 nodos y 29 conexiones— frente a lugares laterales fuera de red;
 - revisión de curso, reset específico y bloqueo compartido/exclusivo;
-- permanencia de zonas teóricas y aplicaciones en sus anillos;
+- permanencia de cada zona en su `tier`; los nombres visibles de ambos niveles son editables y no
+  cambian esa pertenencia;
 - funcionamiento sin backend;
 - funcionamiento sin nuevas dependencias;
 - accesibilidad y teclado;
@@ -201,8 +204,8 @@ Para probar cambios editoriales:
 4. retira y reincorpora una lección/misión a la red; crea y elimina una conexión con Spider;
 5. intercambia zonas del mismo anillo con Bee y fuerza un rechazo entre anillos;
 6. prueba deshacer, rehacer, recarga, exportación e importación inválida;
-7. abre `editor.html?profile=student`, verifica navegación, Spider/Bee bloqueados y Bowerbird
-   personal sin mutar el documento Docente;
+7. abre `editor.html?profile=student`, verifica navegación y consulta por Spider/Bee, confirma
+   que sus mutaciones están bloqueadas y usa Bowerbird personal sin mutar el documento Docente;
 8. abre `editor.html?profile=debug` y confirma que no se crea el modelo editorial;
 9. valida en Resumen y revisa diff, impacto de los tres perfiles y plan invalidado tras editar;
 10. en `dev`, confirma que Resumen permite editar/validar, identifica **Modo normal** y mantiene
@@ -279,9 +282,11 @@ Prefiere funciones puras y pruebas unitarias. Si una nueva mecánica requiere es
 
 Las figuras SVG y las políticas de expresión introducidas en `0.3.1` no autorizan por sí solas un sistema de gráficos 3D, álgebra simbólica general, backend o dependencia nueva. La visión transversal de ORBIT tampoco autoriza a declarar soporte multicurso sin un contrato curricular verificable. Amplía primero los contratos nativos existentes y conserva límites explícitos de entrada y costo.
 
-La base actual de ORBIT Editor tampoco autoriza contenido editable, creación de entidades,
-autenticación, colaboración ni despliegue automático. La vista Estudiante autoriza únicamente
-Bowerbird personal; no puede mutar Spider, Bee o el documento compartido. Versiona por separado
+La base actual de ORBIT Editor autoriza crear `lesson`, `mission` y `npc` con contenido genérico y
+editar sus nombres, ciclo de vida, posición y conexiones; no autoriza todavía editar en profundidad
+párrafos, ejercicios, fuentes, concesiones o multimedia, ni añade autenticación, colaboración o
+despliegue automático. La vista Estudiante puede consultar Spider y Bee y modificar únicamente su
+Bowerbird personal; no puede mutar el documento compartido. Versiona por separado
 documento editorial, catálogo/preferencias, edición publicada y progreso. No incrementes
 `progressSchemaVersion` por un cambio que solo pertenezca a otra rama; sí debes cambiar la
 revisión del curso y aplicar la política de reset cuando una edición incompatible se instala.
@@ -325,8 +330,8 @@ La entrega de un agente debe indicar:
 - si cambió contenido visible, la nota que deberá incorporarse a `CHANGELOG.md` después de la
   aprobación; no edites todavía el changelog durante `en-revision`.
 
-Si la tarea afecta Editor, añade además el recorrido Docente, Spider/Bee bloqueados y Bowerbird
-personal en Estudiante, bloqueo Debug, separación de almacenamiento, round-trip JSON y no
+Si la tarea afecta Editor, añade además el recorrido Docente, Spider/Bee consultables pero sin
+mutaciones y Bowerbird personal en Estudiante, bloqueo Debug, separación de almacenamiento, round-trip JSON y no
 regresión de los tres perfiles. Si afecta aplicación, incluye diff/impacto, invalidación del
 plan, bloqueo exclusivo, reset/conservación, recuperación y concordancia entre fuente,
 `dist` y `build-info.json`. Registra esa evidencia dentro del punto antes de pasarlo a

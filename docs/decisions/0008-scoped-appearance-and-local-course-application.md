@@ -222,3 +222,7 @@ enmendadas aquí.
 ADR 0009 conserva el helper, Bowerbird, la edición desplegable y el reinicio recuperable, pero
 avanza el documento Docente a `v3` y reemplaza las conexiones `completedLocations` del contrato
 `v2` por la Red de aprendizaje académica explícita.
+
+ADR 0010 conserva esta transacción y avanza el documento Docente a `v5`. La edición desplegable
+puede materializar nombres, rótulos y el ciclo de vida de entidades admitidas; el helper mantiene
+la misma autoridad local, respaldo, recuperación y prohibición de consultar o mutar Git.

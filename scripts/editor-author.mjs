@@ -22,6 +22,7 @@ import {
   createCourseEdition,
   materializeCourseEdition,
 } from "../src/core/course-edition.js";
+import { applyEditorDocument } from "../src/editor/editor-document.js";
 import {
   sendEditorEntryRedirect,
   sendRuntimeEntryUnavailable,
@@ -712,10 +713,29 @@ export async function applyEditionToRepository({
       `La fuente cambió desde el plan: se esperaba ${String(expectedPreviousRevision)} y existe ${String(currentRevision)}.`,
     );
   }
-  const edition = await createCourseEdition(document, {
+  let normalizedDocument;
+  try {
+    normalizedDocument = applyEditorDocument(document, {
+      baseDocument: current?.editorDocument,
+    }).document;
+  } catch (cause) {
+    throw new EditorAuthorError(
+      "invalid-editor-document",
+      "La edición enviada no supera el contrato editorial vigente.",
+      { cause },
+    );
+  }
+  if (!isDeepStrictEqual(document, normalizedDocument)) {
+    throw new EditorAuthorError(
+      "noncanonical-editor-document",
+      "La edición enviada omite o altera estado editorial publicado. Recarga el Editor antes de volver a validar.",
+    );
+  }
+  const edition = await createCourseEdition(normalizedDocument, {
     previousRevision: currentRevision,
     acceptsUnversionedProgress: false,
     appliedAt,
+    baseDocument: current?.editorDocument,
   });
   const targetText = `${JSON.stringify(edition, null, 2)}\n`;
   const targetSourceBytes = Buffer.from(targetText, "utf8");
