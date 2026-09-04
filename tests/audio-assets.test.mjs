@@ -8,6 +8,9 @@ import test from "node:test";
 const projectRoot = fileURLToPath(new URL("../", import.meta.url));
 const audioRoot = resolve(projectRoot, "public", "assets", "audio");
 const manifestPath = resolve(audioRoot, "audio-manifest.json");
+const cc0FreesoundKeys = new Set(["global_ambience", "hexagon_transition", "mission_start"]);
+const orbitContributionKeys = new Set(["ui_select", "zone_unlocked"]);
+const TELEPORT_SHA256 = "46898662fa36a5321acf540e691a947dc449218dae9dc409e561feab0641e5eb";
 
 async function collectFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -65,9 +68,56 @@ test("el manifiesto indexa cada Ogg con metadatos y rutas relativas", async () =
     assert.equal(metadata.runtime_file, basename(definition.src));
     assert.equal(metadata.playback.loop, definition.loop);
     assert.equal(metadata.playback.suggested_volume, definition.volume);
-    if (metadata.source.sound_url.startsWith("https://freesound.org/")) {
+    if (cc0FreesoundKeys.has(key)) {
+      assert.match(metadata.source.sound_url, /^https:\/\/freesound\.org\//);
       assert.match(metadata.source.license_name, /Creative Commons 0/i);
-    } else {
+    } else if (key === "teleport") {
+      assert.equal(metadata.source.sound_url, "https://freesound.org/people/RunnerPack/sounds/87043/");
+      assert.equal(metadata.source.sound_name, "weapAppear.wav");
+      assert.equal(metadata.source.author_url, "https://freesound.org/people/RunnerPack/");
+      assert.equal(metadata.source.author_name, "RunnerPack");
+      assert.equal(metadata.source.license_url, "https://creativecommons.org/licenses/by/4.0/");
+      assert.equal(metadata.source.license_name, "Attribution 4.0");
+      assert.match(metadata.source.upstream_modifications, /invertido/i);
+      assert.match(metadata.source.upstream_modifications, /acelerado/i);
+      assert.equal(
+        metadata.source.download_url,
+        "https://cdn.freesound.org/previews/87/87043_1332467-lq.ogg",
+      );
+      assert.equal(metadata.source.retrieved_on, "2026-09-04");
+      assert.deepEqual(metadata.source.attribution_chain, [
+        {
+          sound_url: "https://freesound.org/people/ejfortin/sounds/49695/",
+          sound_name: "Energy Whip 2.wav",
+          author_url: "https://freesound.org/people/ejfortin/",
+          author_name: "ejfortin",
+          license_url: "https://creativecommons.org/licenses/sampling+/1.0/",
+          license_name: "Sampling+",
+        },
+      ]);
+      assert.equal(metadata.conversion.audio_content_modified, false);
+      assert.match(metadata.conversion.provenance_note, /sin modificaciones/i);
+      assert.equal(metadata.sha256, TELEPORT_SHA256);
+      assert.equal(createHash("sha256").update(header).digest("hex"), TELEPORT_SHA256);
+      assert.ok(
+        header.includes(Buffer.from([0x01, 0x76, 0x6f, 0x72, 0x62, 0x69, 0x73])),
+        "teleport debe conservar un encabezado de identificación Vorbis.",
+      );
+      for (const requiredCredit of [
+        "RunnerPack",
+        "weapAppear.wav",
+        "https://freesound.org/people/RunnerPack/sounds/87043/",
+        "https://creativecommons.org/licenses/by/4.0/",
+        "ejfortin",
+        "Energy Whip 2.wav",
+        "https://freesound.org/people/ejfortin/sounds/49695/",
+        "https://creativecommons.org/licenses/sampling+/1.0/",
+      ]) {
+        assert.ok(attribution.includes(requiredCredit), `Falta atribución pública: ${requiredCredit}`);
+      }
+      assert.match(attribution, /invirtiendo y acelerando/i);
+      assert.match(attribution, /sin nuevas modificaciones de audio/i);
+    } else if (orbitContributionKeys.has(key)) {
       assert.equal(
         metadata.source.sound_url,
         "https://chatgpt.com/c/6a90bb10-8000-83e9-82af-e55fc58da22c",
@@ -75,6 +125,8 @@ test("el manifiesto indexa cada Ogg con metadatos y rutas relativas", async () =
       assert.match(metadata.source.author_name, /JoaquinDiazM/);
       assert.match(metadata.source.license_name, /MIT License/i);
       assert.match(metadata.source.provenance_note, /responsable del repositorio/i);
+    } else {
+      assert.fail(`${key} no declara una política de procedencia comprobada.`);
     }
     if (metadata.sha256) {
       assert.equal(
@@ -121,19 +173,21 @@ test("el manifiesto indexa cada Ogg con metadatos y rutas relativas", async () =
   );
 });
 
-test("los cinco eventos de audio disponibles conservan sus claves estables", async () => {
+test("los seis eventos de audio disponibles conservan sus claves estables", async () => {
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
-  assert.equal(Object.keys(manifest.assets).length, 5);
+  assert.equal(Object.keys(manifest.assets).length, 6);
   assert.deepEqual(Object.keys(manifest.assets).sort(), [
     "global_ambience",
     "hexagon_transition",
     "mission_start",
+    "teleport",
     "ui_select",
     "zone_unlocked",
   ]);
   assert.equal(manifest.assets.global_ambience.category, "ambience");
   assert.equal(manifest.assets.hexagon_transition.category, "effects");
   assert.equal(manifest.assets.mission_start.category, "effects");
+  assert.equal(manifest.assets.teleport.category, "effects");
   assert.equal(manifest.assets.ui_select.category, "effects");
   assert.equal(manifest.assets.zone_unlocked.category, "effects");
 });

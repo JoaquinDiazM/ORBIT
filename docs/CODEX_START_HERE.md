@@ -45,7 +45,8 @@ El producto ya incluye:
   `localStorage`, con migración del antiguo `normal` a `student`;
 - progreso `v4` ligado a `courseId + courseRevision`, con migraciones controladas y lectura del
   prefijo histórico `aea-progress` solo cuando la edición activa lo declara compatible;
-- audio local con cinco recursos verificables y volúmenes independientes `ambience`/`effects`;
+- audio local con seis recursos verificables —incluido el cue exclusivo de teletransporte— y
+  volúmenes independientes `ambience`/`effects`;
 - ventana principal compatible con un panel secundario de Zonas · Red, Gadgets, Símbolos, Constantes,
   Formulario o Glosario, más **Ajustes** como acceso agrupado a Visual, Sonido y Ayuda;
 - HUD con barra nativa de **Progreso**, porcentaje conceptual entero y equivalente accesible
@@ -106,7 +107,7 @@ no mata procesos ajenos y autoría lo rechaza durante operaciones o journals pen
 
 Las fuentes se añaden de forma selectiva cuando una afirmación específica las necesita. La biblioteca permanece en los datos, el validador y sus paneles de **Símbolos**, **Constantes**, **Formulario** y **Glosario**. Esos paneles muestran el contenido desbloqueado, pero no repiten cuadros bibliográficos: la UI comunica cada fuente pertinente una vez, en la transición que desbloquea su entrada. No cites operaciones elementales ni repitas dentro de un nodo la procedencia docente ya reconocida globalmente en el README.
 
-El manifiesto versiona ambiente global, transición de hexágono, confirmación de interacción, clic de interfaz y desbloqueo de zona. Los tres recursos de Freesound son CC0 1.0; `ui-select-default.ogg` y `zone-unlocked-airlock.ogg` son contribuciones de ORBIT aportadas por JoaquinDiazM mediante la conversación de ChatGPT registrada en sus sidecars y publicadas bajo MIT. Conserva esa distinción y no los atribuyas a un catálogo externo.
+El manifiesto versiona ambiente global, transición de hexágono, confirmación de interacción, clic de interfaz, desbloqueo de zona y teletransporte. Tres recursos de Freesound son CC0 1.0; el cue de teletransporte es `weapAppear.wav` de RunnerPack bajo CC BY 4.0 y conserva la cadena a `Energy Whip 2.wav` de ejfortin bajo Sampling+ 1.0. `ui-select-default.ogg` y `zone-unlocked-airlock.ogg` son contribuciones de ORBIT aportadas por JoaquinDiazM mediante la conversación de ChatGPT registrada en sus sidecars y publicadas bajo MIT. Conserva esas distinciones y no atribuyas las contribuciones directas a un catálogo externo.
 
 ## 3. Invariantes que debes declarar
 

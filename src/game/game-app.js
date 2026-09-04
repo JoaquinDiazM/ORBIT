@@ -6,6 +6,7 @@ import { StoragePersistenceError } from "../core/storage.js";
 import {
   createWorldIndex,
   getAreaAtWorldPosition,
+  getAreaCenter,
   getLocationWorldPosition,
 } from "../core/world-graph.js";
 import { Camera2D } from "./camera.js";
@@ -13,6 +14,74 @@ import { InputController } from "./input-controller.js";
 import { CanvasRenderer } from "./renderer.js";
 
 export const LOCATION_INTERACTION_AUDIO_KEY = "mission_start";
+export const TELEPORT_AUDIO_KEY = "teleport";
+
+const POINTER_CLICK_TOLERANCE_PX = 6;
+const TELEPORT_DIRECTION_VECTORS = Object.freeze({
+  left: Object.freeze({ x: -1, y: 0 }),
+  right: Object.freeze({ x: 1, y: 0 }),
+  up: Object.freeze({ x: 0, y: -1 }),
+  down: Object.freeze({ x: 0, y: 1 }),
+});
+
+function compareNumbers(first, second, tolerance = 1e-9) {
+  return Math.abs(first - second) <= tolerance ? 0 : first - second;
+}
+
+export function hasExclusivePointerModifier(event, modifier) {
+  return Boolean(
+    event?.[`${modifier}Key`]
+    && (modifier === "ctrl" || !event?.ctrlKey)
+    && (modifier === "alt" || !event?.altKey)
+    && (modifier === "meta" || !event?.metaKey)
+    && (modifier === "shift" || !event?.shiftKey),
+  );
+}
+
+export function isPrimaryPointerButton(event) {
+  return Boolean(
+    event
+    && event.button === 0
+    && event.isPrimary !== false
+    && Number.isFinite(event.clientX)
+    && Number.isFinite(event.clientY),
+  );
+}
+
+export function findDirectionalTeleportArea({
+  areas,
+  unlockedAreaIds,
+  originArea,
+  direction,
+  hexSize = WORLD_CONFIG.hexSize,
+}) {
+  const vector = TELEPORT_DIRECTION_VECTORS[direction];
+  if (!vector || !originArea || !Array.isArray(areas) || !(unlockedAreaIds instanceof Set)) {
+    return null;
+  }
+
+  const origin = getAreaCenter(originArea, hexSize);
+  const candidates = areas
+    .filter((area) => area.id !== originArea.id && unlockedAreaIds.has(area.id))
+    .map((area) => {
+      const center = getAreaCenter(area, hexSize);
+      const deltaX = center.x - origin.x;
+      const deltaY = center.y - origin.y;
+      const projection = deltaX * vector.x + deltaY * vector.y;
+      const distance = Math.hypot(deltaX, deltaY);
+      const lateral = Math.abs(deltaX * vector.y - deltaY * vector.x);
+      return { area, projection, distance, angularError: lateral / distance };
+    })
+    .filter(({ projection, distance }) => projection > 1e-9 && distance > 1e-9)
+    .sort((first, second) =>
+      compareNumbers(first.distance, second.distance)
+      || compareNumbers(first.angularError, second.angularError)
+      || (first.area.order ?? Number.MAX_SAFE_INTEGER)
+        - (second.area.order ?? Number.MAX_SAFE_INTEGER)
+      || first.area.id.localeCompare(second.area.id));
+
+  return candidates[0]?.area ?? null;
+}
 
 export function reduceLatestTreeTwoUnlock(current, event) {
   if (["reset", "state-imported"].includes(event?.type)) {
@@ -106,6 +175,7 @@ export class GameApp {
     this.lastTimestamp = null;
     this.lastPositionSave = 0;
     this.lastDebugUpdate = 0;
+    this.teleportPointerGesture = null;
     this.newlyAccessibleLocationIds = new Set();
     this.unlockSourceLocationId = null;
     this.running = false;
@@ -127,10 +197,17 @@ export class GameApp {
       this.camera.adjustZoom(event.deltaY);
     };
     this.onPointerDown = (event) => this.#handlePointerDown(event);
+    this.onPointerMove = (event) => this.#handlePointerMove(event);
+    this.onPointerUp = (event) => this.#handlePointerUp(event);
+    this.onPointerCancel = (event) => this.#cancelPointerTeleport(event);
 
     window.addEventListener("resize", this.onResize);
     this.canvas.addEventListener("wheel", this.onWheel, { passive: false });
     this.canvas.addEventListener("pointerdown", this.onPointerDown);
+    this.canvas.addEventListener("pointermove", this.onPointerMove);
+    this.canvas.addEventListener("pointerup", this.onPointerUp);
+    this.canvas.addEventListener("pointercancel", this.onPointerCancel);
+    this.canvas.addEventListener("lostpointercapture", this.onPointerCancel);
     this.unsubscribeProgression = this.progression.subscribe((event) => {
       if (["reset", "state-imported", "player-teleported"].includes(event.type)) {
         this.syncPlayerFromProgress();
@@ -169,12 +246,21 @@ export class GameApp {
       this.stop();
     } finally {
       for (const cleanup of [
+        () => {
+          if (this.teleportPointerGesture) {
+            this.#releasePointerTeleport(this.teleportPointerGesture.pointerId);
+          }
+        },
         () => this.input.destroy(),
         () => this.unsubscribeProgression?.(),
         () => this.motionQuery?.removeEventListener?.("change", this.onMotionPreferenceChanged),
         () => window.removeEventListener("resize", this.onResize),
         () => this.canvas.removeEventListener("wheel", this.onWheel),
         () => this.canvas.removeEventListener("pointerdown", this.onPointerDown),
+        () => this.canvas.removeEventListener("pointermove", this.onPointerMove),
+        () => this.canvas.removeEventListener("pointerup", this.onPointerUp),
+        () => this.canvas.removeEventListener("pointercancel", this.onPointerCancel),
+        () => this.canvas.removeEventListener("lostpointercapture", this.onPointerCancel),
       ]) {
         try {
           cleanup();
@@ -251,6 +337,10 @@ export class GameApp {
 
   #handleActions() {
     if (this.input.consume("escape")) this.ui.closeTopPanel();
+    const teleportDirection = this.input.consumeDirectionalTeleport();
+    if (teleportDirection && !this.ui.isBlockingModalOpen()) {
+      this.#teleportInDirection(teleportDirection);
+    }
     if (this.input.consume("debug")) {
       if (!this.profileCapabilities.canUseDebugger) {
         this.ui.toast("El debugger solo está disponible en el perfil debug.", "warning");
@@ -348,11 +438,32 @@ export class GameApp {
 
   #handlePointerDown(event) {
     this.canvas.focus({ preventScroll: true });
-    if (!this.debugState.enabled || !event.shiftKey) return;
-    const rectangle = this.canvas.getBoundingClientRect();
-    const screenX = event.clientX - rectangle.left;
-    const screenY = event.clientY - rectangle.top;
-    const world = this.camera.screenToWorld(screenX, screenY);
+    if (
+      event.target === this.canvas
+      && isPrimaryPointerButton(event)
+      && hasExclusivePointerModifier(event, "ctrl")
+      && !this.ui.isBlockingModalOpen()
+    ) {
+      event.preventDefault?.();
+      this.teleportPointerGesture = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        dragged: false,
+      };
+      try {
+        this.canvas.setPointerCapture?.(event.pointerId);
+      } catch {
+        // Pointer capture is an enhancement; the click remains valid on the canvas without it.
+      }
+      return;
+    }
+    if (
+      !this.debugState.enabled
+      || !isPrimaryPointerButton(event)
+      || !hasExclusivePointerModifier(event, "shift")
+    ) return;
+    const world = this.#worldPointFromPointerEvent(event);
     const area = getAreaAtWorldPosition(world.x, world.y, WORLD_CONFIG.hexSize, this.worldIndex);
     if (!area) {
       this.ui.toast("El punto seleccionado está fuera de la cartografía definida.", "warning");
@@ -365,6 +476,103 @@ export class GameApp {
       return;
     }
     this.ui.toast(`Teletransporte de depuración: ${area.title}.`, "success");
+  }
+
+  #handlePointerMove(event) {
+    const gesture = this.teleportPointerGesture;
+    if (!gesture || gesture.pointerId !== event.pointerId || gesture.dragged) return;
+    if (
+      Math.hypot(event.clientX - gesture.startX, event.clientY - gesture.startY)
+      > POINTER_CLICK_TOLERANCE_PX
+    ) {
+      gesture.dragged = true;
+    }
+  }
+
+  #handlePointerUp(event) {
+    const gesture = this.teleportPointerGesture;
+    if (!gesture || gesture.pointerId !== event.pointerId) return;
+    this.#releasePointerTeleport(event.pointerId);
+    if (
+      gesture.dragged
+      || Math.hypot(event.clientX - gesture.startX, event.clientY - gesture.startY)
+        > POINTER_CLICK_TOLERANCE_PX
+      || !isPrimaryPointerButton(event)
+      || !hasExclusivePointerModifier(event, "ctrl")
+      || this.ui.isBlockingModalOpen()
+    ) return;
+
+    event.preventDefault?.();
+    const area = this.#areaFromPointerEvent(event);
+    if (!area) {
+      this.ui.toast("El punto seleccionado está fuera de la cartografía definida.", "warning");
+      return;
+    }
+    this.#teleportToUnlockedArea(area);
+  }
+
+  #cancelPointerTeleport(event) {
+    const gesture = this.teleportPointerGesture;
+    if (!gesture || gesture.pointerId !== event.pointerId) return;
+    this.#releasePointerTeleport(event.pointerId);
+  }
+
+  #releasePointerTeleport(pointerId) {
+    this.teleportPointerGesture = null;
+    try {
+      if (this.canvas.hasPointerCapture?.(pointerId)) {
+        this.canvas.releasePointerCapture(pointerId);
+      }
+    } catch {
+      // A browser may release capture before dispatching cancellation.
+    }
+  }
+
+  #areaFromPointerEvent(event) {
+    const world = this.#worldPointFromPointerEvent(event);
+    return getAreaAtWorldPosition(world.x, world.y, WORLD_CONFIG.hexSize, this.worldIndex);
+  }
+
+  #worldPointFromPointerEvent(event) {
+    const rectangle = this.canvas.getBoundingClientRect();
+    const scaleX = rectangle.width > 0 ? this.renderer.width / rectangle.width : 1;
+    const scaleY = rectangle.height > 0 ? this.renderer.height / rectangle.height : 1;
+    const screenX = (event.clientX - rectangle.left) * scaleX;
+    const screenY = (event.clientY - rectangle.top) * scaleY;
+    return this.camera.screenToWorld(screenX, screenY);
+  }
+
+  #teleportInDirection(direction) {
+    const snapshot = this.progression.getSnapshot();
+    const originArea = getAreaAtWorldPosition(
+      this.player.x,
+      this.player.y,
+      WORLD_CONFIG.hexSize,
+      this.worldIndex,
+    );
+    const destination = findDirectionalTeleportArea({
+      areas: this.areas,
+      unlockedAreaIds: snapshot.unlockedAreaIds,
+      originArea,
+      direction,
+    });
+    if (!destination) {
+      this.ui.toast("No hay otra zona abierta en esa dirección.", "warning");
+      return false;
+    }
+    return this.#teleportToUnlockedArea(destination);
+  }
+
+  #teleportToUnlockedArea(area) {
+    const snapshot = this.progression.getSnapshot();
+    if (!snapshot.unlockedAreaIds.has(area.id)) {
+      this.ui.toast(`La zona ${area.title} todavía está bloqueada.`, "warning");
+      return false;
+    }
+    if (!this.teleportToArea(area.id, { suppressAreaTransitionCue: true })) return false;
+    void this.audio?.play?.(TELEPORT_AUDIO_KEY);
+    this.ui.toast(`Teletransporte: ${area.title}.`, "success");
+    return true;
   }
 
   getDebugState() {
@@ -391,7 +599,7 @@ export class GameApp {
     return true;
   }
 
-  teleportToArea(areaId) {
+  teleportToArea(areaId, { suppressAreaTransitionCue = false } = {}) {
     let position;
     try {
       position = this.progression.teleportToArea(areaId);
@@ -402,8 +610,13 @@ export class GameApp {
     if (!position) return false;
     this.player.x = position.x;
     this.player.y = position.y;
+    this.player.velocityX = 0;
+    this.player.velocityY = 0;
     this.camera.x = position.x;
     this.camera.y = position.y;
+    if (suppressAreaTransitionCue) {
+      this.currentArea = this.worldIndex.byId.get(areaId) ?? this.currentArea;
+    }
     return true;
   }
 

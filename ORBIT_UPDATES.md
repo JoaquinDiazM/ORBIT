@@ -240,19 +240,20 @@ Sin propuestas pendientes de clasificar.
 ## Cohorte inmediata
 
 - Versión: `0.7.1`
-- Estado de la cohorte: `abierta`
+- Estado de la cohorte: `cerrada`
 - IDs: `UPD-022`, `UPD-023`
 - Apertura registrada tras publicar ORBIT 0.7.0: 2026-09-04.
+- Cierre confirmado por JoaquinDiazM: 2026-09-04.
 
 ## Actualizaciones activas
 
 ### UPD-022 — Actualizar las capturas del README para ORBIT 0.7.0
 
-- Estado: `propuesto`
+- Estado: `en-revision`
 - Tipo: `documentación`
 - Versión objetivo: `0.7.1`
 - Impacto sugerido: `Z`; renueva evidencia visual sin cambiar contratos ni comportamiento.
-- Próximo responsable: JoaquinDiazM, que autoriza la propuesta o precisa qué vistas priorizar.
+- Próximo responsable: JoaquinDiazM, que revisa las tres capturas definitivas en Edge externo.
 
 #### Solicitud original
 
@@ -281,22 +282,32 @@ El README debe usar capturas de la versión 0.7.0 que acaba de cerrar.
 
 #### Implementación y revisión
 
-- Base revisada: ORBIT 0.7.0 publicada en `c2e706f`.
-- Rutas propias: `README.md`, assets de documentación y pruebas de marca/captura.
-- Resultado: no iniciada; propuesta clasificada desde la bandeja el 2026-09-04.
-- Pruebas automáticas: no aplican todavía.
-- Preflight del entorno: pendiente.
-- Revisión manual humana: pendiente — JoaquinDiazM elegirá y aprobará las capturas definitivas.
-- Observaciones del usuario: solicita screenshots representativos de la versión 0.7.0.
+- Base revisada: ORBIT 0.7.0 cerrada en `22bede41cbb842658196575a3c30ff16d12b054d`.
+- Rutas propias: `README.md`, `docs/screenshots/README.md`,
+  `docs/screenshots/orbit-0.7.0.png`, `docs/screenshots/editor-spider-0.7.0.png`,
+  `docs/screenshots/editor-bee-0.7.0.png` y `tests/brand-assets.test.mjs`.
+- Resultado: implementada el 2026-09-04. El README muestra ORBIT Estudiante, Spider y Bee desde
+  una reproducción exacta y aislada de 0.7.0; las capturas históricas se conservan para no romper
+  documentación anterior.
+- Pruebas automáticas: la prueba de marca verifica enlaces, texto alternativo, PNG 1280 × 720 y
+  peso máximo de 800 kB; forma parte de la suite completa aprobada (487 pruebas, 485 aprobadas y
+  2 omitidas por enlaces simbólicos no disponibles en Windows).
+- Preflight del entorno: captura realizada en una copia temporal del commit publicado, sin datos
+  previos ni herramientas Debug; contexto de navegador y servidor aislados ya cerrados, sin usar
+  Edge ni el perfil persistente del usuario.
+- Revisión manual humana: pendiente — abrir las tres imágenes en Edge, comprobarlas al 100 % y
+  200 %, y confirmar que son legibles, corresponden a 0.7.0 y no muestran datos privados,
+  depuración, carga ni errores.
+- Observaciones del usuario: solicita screenshots representativos de la versión 0.7.0. Se que siempre le haces mantencion al texto del readme, pero tambien manten las figuras actualizadas, no en TODAS las versiones, pero si cada 2 o 3.
 
 ### UPD-023 — Teletransporte con Ctrl+clic y audio propio
 
-- Estado: `faltan-detalles`
+- Estado: `en-revision`
 - Tipo: `feature`
 - Versión objetivo: `0.7.1`
 - Impacto sugerido: `Z`; añade una interacción compatible y un evento de audio sin cambiar el
   modelo de progreso.
-- Próximo responsable: JoaquinDiazM, que confirma la política de acceso a zonas bloqueadas.
+- Próximo responsable: JoaquinDiazM, que prueba la interacción y el audio en Edge externo.
 
 #### Solicitud original
 
@@ -312,7 +323,7 @@ solaparse con el cambio ordinario de zona mediante WASD.
 - Decisiones confirmadas: el asset se descarga y versiona localmente junto con licencia,
   autoría, URL y fecha de consulta verificadas; ORBIT nunca depende de Freesound en runtime. El
   teletransporte emite un solo cue y suprime el cue ordinario de cruce de zona para ese traslado.
-- Criterios de aceptación provisionales: hit-testing correcto con cámara y zoom; Ctrl+clic sin
+- Criterios de aceptación: hit-testing correcto con cámara y zoom; Ctrl+clic sin
   arrastre ni activación accidental; destino exactamente centrado y persistido; alternativa de
   teclado accesible; ningún cambio de progreso, conceptos o desbloqueos; audio sometido al volumen
   de Interfaz y efectos, sin superposición ni reproducción antes del primer gesto; degradación a
@@ -325,30 +336,43 @@ solaparse con el cambio ordinario de zona mediante WASD.
 
 #### Preguntas bloqueantes
 
-- ¿Estudiante y Docente pueden teletransportarse únicamente a zonas ya abiertas, dejando a Debug
-  acceder a cualquiera? Recomendación: sí; permitir saltar a una zona bloqueada en perfiles
-  ordinarios contradiría la progresión aunque el gesto exista para todos.
+- Ninguna. JoaquinDiazM confirmó el 2026-09-04 que Estudiante, Docente y Debug solo pueden usar
+  este teletransporte hacia zonas ya abiertas.
 
 #### Implementación y revisión
 
-- Base revisada: ORBIT 0.7.0 publicada en `c2e706f`.
-- Rutas propias: por determinar después de resolver la política de acceso y verificar el asset.
-- Resultado: no iniciada; propuesta clasificada desde la bandeja el 2026-09-04.
-- Pruebas automáticas: no aplican todavía.
-- Preflight del entorno: pendiente; incluye comprobar licencia y descarga reproducible.
-- Revisión manual humana: pendiente — se probará en Edge externo con los tres perfiles.
+- Base revisada: ORBIT 0.7.0 cerrada en `22bede41cbb842658196575a3c30ff16d12b054d`.
+- Rutas propias: `index.html`, `src/game/game-app.js`, `src/game/input-controller.js`,
+  `src/ui/ui-controller.js`, manifiesto, Ogg, sidecar y atribución de audio, documentación viva y
+  pruebas focalizadas.
+- Resultado: implementada el 2026-09-04. `Ctrl` + clic primario centra y persiste en una zona
+  abierta; `Ctrl` + flecha ofrece la alternativa de teclado. Ambos funcionan en los tres perfiles,
+  rechazan zonas cerradas, no alteran progreso y solicitan un único cue `teleport` sin el cue de
+  cruce ordinario. Arrastre, otros botones y modificadores combinados no disparan la acción.
+- Pruebas automáticas: 58/58 focalizadas y suite completa de 487 pruebas —485 aprobadas y 2
+  omitidas por enlaces simbólicos no disponibles en Windows—; validación de contenido, sintaxis,
+  enlaces, versión y build estático aprobada. Incluye cámara/zoom/DPR, fronteras, tres perfiles,
+  teclado, captura, rollback de persistencia, audio y accesibilidad.
+- Preflight del entorno: asset Ogg local verificado por SHA-256
+  `46898662fa36a5321acf540e691a947dc449218dae9dc409e561feab0641e5eb`; fuente RunnerPack bajo
+  CC BY 4.0 y cadena antecedente de ejfortin bajo Sampling+ 1.0 documentadas. `dist` fue
+  regenerado y coincide con las fuentes y la revisión canónica del curso.
+- Revisión manual humana: pendiente — en una terminal visible de VS Code ejecutar `npm run dev`,
+  abrir la URL indicada en Edge externo y probar Estudiante, Docente y Debug: salto centrado a
+  zona abierta, rechazo de zona cerrada, `Ctrl` + flechas, persistencia tras recargar, ausencia de
+  concesiones, un solo cue, arrastre/clic/modificadores sin salto, cruce WASD ordinario, volumen de
+  efectos en cero, botón Debug **Teletransporte** y conservación de `Shift` + clic Debug.
 - Observaciones del usuario: el cue de teletransporte no debe solaparse con el sonido de cruce
-  provocado por WASD.
+  provocado por WASD. Sobre la pregunta, si, solo se permiten saltos dentro de la zona del mapa desbloqueado.
 
 ### UPD-021 — Editor de contenido interactivo y paneles redimensionables
 
-- Estado: `faltan-detalles`
+- Estado: `propuesto`
 - Tipo: `épica`
 - Versión objetivo: `0.8.0`
 - Impacto sugerido: `Y`; convierte Spider en una herramienta de autoría académica y amplía el
   contrato declarativo de ventanas interactivas.
-- Próximo responsable: JoaquinDiazM, que decide los límites de sintaxis y extensibilidad de la
-  primera entrega.
+- Próximo responsable: JoaquinDiazM, que podrá autorizar la épica cuando 0.7.1 haya terminado.
 
 #### Solicitud original
 
@@ -365,16 +389,19 @@ F = ∇f» en la etapa 5 del Taller Vectorial no debe aparecer como texto matem�
   en el mismo documento declarativo que ORBIT valida y renderiza, con previsualización inmediata y
   paridad entre la vista Docente y el runtime Estudiante.
 - Decisiones confirmadas: el editor vive dentro de **Modificar**, conserva el ID estable del nodo
-  y debe cubrir párrafos, matemáticas, figuras declarativas, ejercicios y etapas. El ancho de las
-  ventanas derechas se ajusta con puntero y alternativa de teclado, respeta límites responsive y
-  ofrece restaurar el valor predeterminado.
-- Criterios de aceptación provisionales: fuente y preview sincronizados; errores localizados sin
+  y debe cubrir párrafos, matemáticas, figuras declarativas, ejercicios y etapas. Usará una
+  sintaxis declarativa restringida y extensible —Markdown más bloques ORBIT—, sin HTML,
+  JavaScript ni paquetes arbitrarios. La primera entrega cubrirá todas las estructuras ya
+  soportadas; las figuras inéditas seguirán siendo componentes registrados por desarrolladores.
+  El ancho de las ventanas derechas se ajusta con puntero y alternativa de teclado, respeta
+  límites responsive y ofrece restaurar el valor predeterminado.
+- Criterios de aceptación: fuente y preview sincronizados; errores localizados sin
   perder el borrador; TeX delimitado y renderizado por KaTeX con alternativa accesible; plantillas
   para estructuras vigentes; autoguardado, undo/redo, importación/exportación, digest, diff y
   aplicación; saneamiento sin HTML o JavaScript ejecutable; migración no destructiva de los nodos
   existentes; ancho persistente por producto sin ocultar controles; prueba de ida y vuelta sobre
   Taller Vectorial y una ventana multietapa.
-- Fuera de alcance provisional: ejecutar código arbitrario escrito por un docente, instalar
+- Fuera de alcance: ejecutar código arbitrario escrito por un docente, instalar
   paquetes desde la fuente editorial, colaboración online, multimedia remota y servidor de
   UPD-002.
 - Dependencias, invariantes o ADR: requiere un ADR nuevo para sintaxis, AST, autoridad entre fuente
@@ -383,24 +410,23 @@ F = ∇f» en la etapa 5 del Taller Vectorial no debe aparecer como texto matem�
 
 #### Preguntas bloqueantes
 
-1. ¿Aceptas una sintaxis declarativa restringida y extensible —Markdown más bloques ORBIT— en vez
-   de HTML/JavaScript o paquetes arbitrarios? Recomendación: sí; ofrece libertad mediante un AST y
-   componentes registrados sin permitir ejecución insegura.
-2. ¿La primera entrega debe cubrir todas las estructuras que ORBIT ya soporta y dejar figuras
-   nuevas como componentes registrados por desarrolladores? Recomendación: sí; primero lograr
-   paridad y round-trip, después diseñar importación o creación visual de componentes inéditos.
+- Ninguna. JoaquinDiazM confirmó ambas recomendaciones el 2026-09-04: sintaxis declarativa
+  restringida y paridad inicial con las estructuras existentes, dejando figuras nuevas en el
+  catálogo de componentes registrados.
 
 #### Implementación y revisión
 
 - Base revisada: ORBIT 0.7.0 publicada en `c2e706f` y contrato editorial v5.
-- Rutas propias: por determinar después del ADR y las dos decisiones bloqueantes.
-- Resultado: no iniciada; épica clasificada desde la bandeja el 2026-09-04.
+- Rutas propias: se concretarán en el preflight de 0.8.0 después de redactar el ADR de sintaxis,
+  AST, autoridad y migración.
+- Resultado: no iniciada; especificación desbloqueada el 2026-09-04, pendiente de autorización y
+  de que finalice la cohorte inmediata 0.7.1.
 - Pruebas automáticas: no aplican todavía.
 - Preflight del entorno: pendiente.
 - Revisión manual humana: pendiente — deberá cubrir autoría, preview, persistencia y ventanas
   redimensionables en Edge externo.
 - Observaciones del usuario: prioriza una base escalable que puedan usar tanto docentes como
-  desarrolladores, no una sucesión indefinida de parches por tipo de ventana.
+  desarrolladores, no una sucesión indefinida de parches por tipo de ventana. Para la primera pregunta, si. Respecto a la segunda pregunta tambien si.
 
 ### UPD-002 — Sistema de servidor online
 

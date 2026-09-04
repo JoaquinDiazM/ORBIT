@@ -1,0 +1,39 @@
+{
+  "asset_id": "teleport_weap_appear_01",
+  "runtime_file": "teleport_weap_appear_01.ogg",
+  "category": "transitions",
+  "intended_use": "Efecto exclusivo del teletransporte solicitado mediante Ctrl+clic o Ctrl+flecha; no acompaña el cruce ordinario de zona por movimiento.",
+  "playback": {
+    "loop": false,
+    "suggested_volume": 0.65
+  },
+  "source": {
+    "sound_url": "https://freesound.org/people/RunnerPack/sounds/87043/",
+    "sound_name": "weapAppear.wav",
+    "author_url": "https://freesound.org/people/RunnerPack/",
+    "author_name": "RunnerPack",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "license_name": "Attribution 4.0",
+    "upstream_modifications": "RunnerPack declaró haber invertido y acelerado Energy Whip 2.wav para crear weapAppear.wav.",
+    "attribution_chain": [
+      {
+        "sound_url": "https://freesound.org/people/ejfortin/sounds/49695/",
+        "sound_name": "Energy Whip 2.wav",
+        "author_url": "https://freesound.org/people/ejfortin/",
+        "author_name": "ejfortin",
+        "license_url": "https://creativecommons.org/licenses/sampling+/1.0/",
+        "license_name": "Sampling+"
+      }
+    ],
+    "download_url": "https://cdn.freesound.org/previews/87/87043_1332467-lq.ogg",
+    "download_kind": "Preview Ogg oficial de baja calidad de Freesound",
+    "retrieved_on": "2026-09-04"
+  },
+  "conversion": {
+    "source_format": "Preview Ogg Vorbis de Freesound del original WAV PCM 16-bit, 44.1 kHz, estéreo",
+    "runtime_format": "Ogg Vorbis, 44.1 kHz, estéreo",
+    "audio_content_modified": false,
+    "provenance_note": "El archivo de ejecución conserva sin modificaciones los bytes del preview oficial indicado en download_url."
+  },
+  "sha256": "46898662fa36a5321acf540e691a947dc449218dae9dc409e561feab0641e5eb"
+}

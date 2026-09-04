@@ -48,6 +48,14 @@ const MANIFEST = Object.freeze({
       loop: false,
       volume: 0.65,
     },
+    teleport: {
+      id: "teleport_weap_appear_01",
+      src: "transitions/teleport_weap_appear_01.ogg",
+      metadata: "transitions/teleport_weap_appear_01.json",
+      category: "effects",
+      loop: false,
+      volume: 0.65,
+    },
   },
 });
 
@@ -176,11 +184,12 @@ test("difiere manifiesto, elementos y ambiente hasta el primer gesto", async () 
   assert.equal(await harness.manager.whenReady(), true);
 
   assert.equal(harness.fetchCalls, 1);
-  assert.equal(harness.audioElements.length, 5);
+  assert.equal(harness.audioElements.length, 6);
   assert.deepEqual([...harness.manager.getState().assetKeys].sort(), [
     "global_ambience",
     "hexagon_transition",
     "mission_start",
+    "teleport",
     "ui_select",
     "zone_unlocked",
   ]);
@@ -263,12 +272,12 @@ test("las vistas previas respetan la categoría y usan un elemento aislado", asy
     reason: "category-silent",
     category: "effects",
   });
-  assert.equal(harness.audioElements.length, 5);
+  assert.equal(harness.audioElements.length, 6);
 
   harness.manager.setEffectsVolume(0.5);
   const result = await harness.manager.preview("mission_start");
   assert.equal(result.ok, true);
-  assert.equal(harness.audioElements.length, 6);
+  assert.equal(harness.audioElements.length, 7);
   const preview = harness.audioElements.at(-1);
   assert.equal(preview.loop, false);
   assert.equal(preview.volume, 0.375);
@@ -278,6 +287,28 @@ test("las vistas previas respetan la categoría y usan un elemento aislado", asy
   harness.manager.stopPreviews();
   assert.equal(preview.paused, true);
   assert.equal(harness.manager.getState().activePreviews, 0);
+});
+
+test("el teletransporte puede reproducirse y previsualizarse como efecto independiente", async () => {
+  const harness = createHarness({ effectsVolume: 0.5 });
+  await harness.manager.activateFromGesture();
+  const teleport = findAudio(harness, "/transitions/teleport_weap_appear");
+
+  assert.deepEqual(await harness.manager.play("teleport"), {
+    ok: true,
+    assetKey: "teleport",
+  });
+  assert.equal(teleport.playCalls, 1);
+  assert.equal(teleport.volume, 0.325);
+
+  assert.deepEqual(await harness.manager.preview("teleport"), {
+    ok: true,
+    assetKey: "teleport",
+  });
+  const preview = harness.audioElements.at(-1);
+  assert.equal(preview.src, teleport.src);
+  assert.equal(preview.loop, false);
+  assert.equal(preview.volume, 0.325);
 });
 
 test("el cue de interacción elige exactamente el predeterminado o el específico", async () => {

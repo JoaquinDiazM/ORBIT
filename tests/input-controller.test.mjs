@@ -112,3 +112,77 @@ test("G, H y M quedan libres y no producen acciones globales", () => {
     global.window = previousWindow;
   }
 });
+
+test("Ctrl+flecha en el canvas produce un solo teletransporte direccional sin movimiento", () => {
+  const previousWindow = global.window;
+  global.window = { addEventListener() {}, removeEventListener() {} };
+  try {
+    const canvas = { closest: () => null };
+    const controller = new InputController(canvas);
+    let prevented = 0;
+    const shortcut = {
+      code: "ArrowRight",
+      target: canvas,
+      ctrlKey: true,
+      altKey: false,
+      metaKey: false,
+      shiftKey: false,
+      repeat: false,
+      preventDefault() {
+        prevented += 1;
+      },
+    };
+
+    controller.onKeyDown(shortcut);
+    controller.onKeyDown({ ...shortcut, repeat: true });
+    assert.equal(prevented, 2);
+    assert.deepEqual(controller.axis(), { x: 0, y: 0 });
+    assert.equal(controller.consumeDirectionalTeleport(), "right");
+    assert.equal(controller.consumeDirectionalTeleport(), null);
+
+    controller.onKeyUp({ code: "ArrowRight" });
+    controller.onKeyDown(shortcut);
+    assert.equal(controller.consumeDirectionalTeleport(), "right");
+    controller.destroy();
+  } finally {
+    global.window = previousWindow;
+  }
+});
+
+test("el teletransporte de teclado exige foco en el canvas y Ctrl como modificador exclusivo", () => {
+  const previousWindow = global.window;
+  global.window = { addEventListener() {}, removeEventListener() {} };
+  try {
+    const canvas = { closest: () => null };
+    const controller = new InputController(canvas);
+    const base = {
+      code: "ArrowUp",
+      target: canvas,
+      ctrlKey: true,
+      altKey: false,
+      metaKey: false,
+      shiftKey: false,
+      repeat: false,
+      preventDefault() {},
+    };
+
+    for (const candidate of [
+      { ...base, target: targetMatching("button") },
+      { ...base, target: targetMatching("input") },
+      { ...base, shiftKey: true },
+      { ...base, altKey: true },
+      { ...base, metaKey: true },
+      { ...base, ctrlKey: false },
+    ]) {
+      controller.onKeyDown(candidate);
+      assert.equal(controller.consumeDirectionalTeleport(), null);
+      controller.onKeyUp({ code: candidate.code });
+    }
+
+    controller.onBlur();
+    assert.equal(controller.consumeDirectionalTeleport(), null);
+    controller.destroy();
+  } finally {
+    global.window = previousWindow;
+  }
+});

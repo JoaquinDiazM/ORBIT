@@ -238,16 +238,49 @@ function makeHarness() {
   };
 }
 
-function withController(run) {
+function withController(run, { audio = null } = {}) {
   const previousDocument = global.document;
   const harness = makeHarness();
   global.document = harness.document;
+  let result;
   try {
-    run(new UIController({ progression: harness.progression, audio: null }), harness);
-  } finally {
+    result = run(new UIController({ progression: harness.progression, audio }), harness);
+  } catch (error) {
     global.document = previousDocument;
+    throw error;
   }
+  if (result && typeof result.finally === "function") {
+    return result.finally(() => {
+      global.document = previousDocument;
+    });
+  }
+  global.document = previousDocument;
+  return result;
 }
+
+test("el debugger ofrece una reproducción accesible del cue de teletransporte", async () => {
+  const previousWindow = global.window;
+  global.window = { setTimeout() {} };
+  const previews = [];
+  const audio = {
+    preview(assetKey, options) {
+      previews.push({ assetKey, options });
+      return Promise.resolve({ ok: true });
+    },
+  };
+  try {
+    await withController(async (_controller, { getNode }) => {
+      const button = getNode("debug-audio-teleport");
+      button.dispatch("click");
+      await Promise.resolve();
+      assert.deepEqual(previews, [
+        { assetKey: "teleport", options: { durationMs: undefined } },
+      ]);
+    }, { audio });
+  } finally {
+    global.window = previousWindow;
+  }
+});
 
 test("el HUD deriva la versión de APP_CONFIG y deja el perfil únicamente en el selector", () => {
   withController((_controller, { getNode, progression }) => {

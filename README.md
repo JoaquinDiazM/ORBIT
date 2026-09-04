@@ -2,15 +2,19 @@
 
 **Open Roadmap for Building Intuition and Theory**
 
-**ORBIT**
+**ORBIT 0.7.0 · experiencia de aprendizaje**
 
-![Captura de ORBIT](docs/screenshots/prototype.png)
+![ORBIT 0.7.0 en perfil Estudiante, con Campamento Base y el menú principal](docs/screenshots/orbit-0.7.0.png)
 
-**ORBIT Editor**
+**ORBIT Editor 0.7.0 · Spider**
 
-![Captura de referencia de ORBIT Editor 0.4.0](docs/screenshots/editor.png)
+![ORBIT Editor 0.7.0 con Spider abierto para organizar nodos y conexiones](docs/screenshots/editor-spider-0.7.0.png)
 
-_Captura de referencia de 0.4.0; la corrección de cabecera de 0.4.1 está incorporada en la aplicación._
+**ORBIT Editor 0.7.0 · Bee**
+
+![ORBIT Editor 0.7.0 con Bee abierto para organizar zonas y rótulos](docs/screenshots/editor-bee-0.7.0.png)
+
+_Capturas reproducidas desde la versión publicada 0.7.0, en un perfil de navegador aislado y a 1280 × 720._
 
 ORBIT es un proyecto educativo abierto y transversal para construir intuición, teoría y conexiones entre rutas de aprendizaje mediante una interfaz narrativa en dos dimensiones. La ruta implementada actualmente es **Electromagnetismo**: el estudiante explora libremente un mundo abstracto dividido en hexágonos, resuelve actividades universitarias y abre nuevas regiones mediante conocimiento adquirido.
 
@@ -52,7 +56,8 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
 - Debugger visual, nodo de depuración, atajos `F2`/`` ` `` y API de consola disponibles solo
   en el perfil Debug.
 - Mezclador con volúmenes independientes para **Ambiente** e **Interfaz y efectos**; cero silencia solo la categoría correspondiente.
-- Cinco audios versionados y verificables: ambiente global, transición de hexágono, confirmación de interacción, clic de interfaz y desbloqueo de zona.
+- Seis audios versionados y verificables: ambiente global, transición de hexágono, confirmación
+  de interacción, clic de interfaz, desbloqueo de zona y teletransporte.
 - Ecuaciones TeX renderizadas localmente con KaTeX y salida visual + MathML.
 - Progreso `v4`, con `courseId` y `courseRevision`, migraciones controladas desde esquemas anteriores y rechazo seguro de un avance perteneciente a otra revisión.
 - Observatorio de Coulomb en cinco etapas, incluida una figura reutilizable `PointChargeField2D` con tres cargas operable mediante puntero y teclado.
@@ -221,7 +226,7 @@ La zona visible **Estación de Superconductividad** y el personaje **Heike Kamer
 
 El Observatorio de Coulomb conserva su ID y ahora recorre cinco etapas: relación fuerza–campo–potencial, laboratorio interactivo de tres cargas, escala de Coulomb, demostración conservativa guiada de siete intervenciones y transferencia con un dipolo. `PointChargeField2D` trabaja en un dominio normalizado, conserva exactamente tres cargas y anuncia la singularidad en vez de suavizarla.
 
-El inventario de audio de esta entrega contiene cinco recursos con manifiesto, metadatos, atribución y prueba directa. Los tres sonidos procedentes de Freesound mantienen su licencia CC0 1.0. `ui-select-default.ogg` y `zone-unlocked-airlock.ogg` fueron aportados expresamente por JoaquinDiazM mediante una conversación de ChatGPT y se versionan como contribuciones de ORBIT bajo MIT; no se atribuyen a un catálogo externo.
+La publicación 0.3.2 incorporó cinco recursos con manifiesto, metadatos, atribución y prueba directa. Los tres sonidos procedentes de Freesound mantienen su licencia CC0 1.0. `ui-select-default.ogg` y `zone-unlocked-airlock.ogg` fueron aportados expresamente por JoaquinDiazM mediante una conversación de ChatGPT y se versionan como contribuciones de ORBIT bajo MIT; no se atribuyen a un catálogo externo. El inventario actual añade el cue de teletransporte con su licencia y cadena de atribución independientes.
 
 ### Taller Vectorial, incorporado en 0.3.1
 
@@ -300,6 +305,8 @@ local, pero conserva el borrador en una clave editorial separada y no carga prog
 | Control | Acción |
 |---|---|
 | `WASD` o flechas | Movimiento libre |
+| `Ctrl` + clic primario | Saltar al centro de una zona abierta; un arrastre no activa el salto |
+| `Ctrl` + flecha | Saltar con teclado a la zona abierta más cercana en esa dirección |
 | `E` o espacio | Interactuar con el lugar cercano |
 | Rueda del ratón | Zoom |
 | `T` | Alternar transportes adquiridos |
@@ -410,7 +417,7 @@ Debug, la interfaz permite:
 - conceder el siguiente concepto;
 - abrir todas las zonas;
 - completar todo el prototipo;
-- probar directamente los cinco recursos de audio versionados;
+- probar directamente los seis recursos de audio versionados;
 - reiniciar, exportar e importar un perfil.
 
 También existe una API en consola:
@@ -472,7 +479,10 @@ copiar evaluaciones, pautas o material docente protegido sin autorización expl�
 - Código fuente: [MIT](LICENSE).
 - Contenido pedagógico original y documentación: [CC BY-SA 4.0](LICENSE-CONTENT.md), salvo indicación distinta.
 - KaTeX: MIT, copiado al build desde la dependencia fijada.
-- Audio incluido: tres recursos de Freesound bajo CC0 1.0 y dos contribuciones de ORBIT bajo MIT, con procedencia individual en [public/assets/audio/ATTRIBUTION.md](public/assets/audio/ATTRIBUTION.md).
+- Audio incluido: tres recursos de Freesound bajo CC0 1.0, `weapAppear.wav` de RunnerPack bajo
+  CC BY 4.0 con su atribución antecedente Sampling+ 1.0, y dos contribuciones de ORBIT bajo MIT;
+  consulta la procedencia individual en
+  [public/assets/audio/ATTRIBUTION.md](public/assets/audio/ATTRIBUTION.md).
 - Texto abierto adaptado cuando se indica: CC BY-SA 4.0; referencias completas en [docs/references/references.bib](docs/references/references.bib).
 - Material docente EL3103 reconocido globalmente como contexto del proyecto: licencia no indicada; no se redistribuyen los PDF, sus tablas, ejercicios ni soluciones ni se repiten citas locales dentro de los nodos.
 - Los enlaces externos conservan sus propias condiciones de uso; no se redistribuyen sus recursos dentro del repositorio.

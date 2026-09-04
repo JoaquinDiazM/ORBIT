@@ -258,6 +258,7 @@ export class UIController {
       ["#debug-audio-mission", "mission_start", undefined],
       ["#debug-audio-ui-select", "ui_select", undefined],
       ["#debug-audio-zone-unlocked", "zone_unlocked", undefined],
+      ["#debug-audio-teleport", "teleport", undefined],
     ];
     for (const [selector, assetKey, durationMs] of audioPreviews) {
       document.querySelector(selector).addEventListener("click", () => {

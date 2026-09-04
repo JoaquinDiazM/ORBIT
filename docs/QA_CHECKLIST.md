@@ -16,6 +16,12 @@
 - [ ] El personaje se mueve con WASD y flechas.
 - [ ] El movimiento diagonal no es más rápido que el axial.
 - [ ] El personaje no está fijado a nodos ni caminos.
+- [ ] `Ctrl` + clic primario sin arrastre centra al personaje en la zona abierta seleccionada;
+      un clic ordinario, otro botón o modificadores combinados no lo hacen.
+- [ ] `Ctrl` + flecha, con foco en el mapa, centra una sola vez en la zona abierta más cercana de
+      esa dirección; campos y controles no interceptan el atajo.
+- [ ] El teletransporte se rechaza para zonas bloqueadas en Estudiante, Docente y Debug, persiste
+      la posición y no concede conceptos, lugares, recompensas ni zonas.
 - [ ] Las fronteras bloqueadas impiden el paso sin vibración severa.
 - [ ] Las fronteras abiertas permiten cruzar en ambos sentidos.
 - [ ] Cada zona nueva abre todas sus aristas compartidas con zonas ya abiertas.
@@ -336,11 +342,16 @@
 - [ ] Completar un lugar que abre una o varias zonas reproduce `zone_unlocked` una sola vez; una finalización sin zona nueva no lo solicita.
 - [ ] Una interacción sin cue específico solicita solo la confirmación predeterminada.
 - [ ] Una acción con cue específico lo solicita en lugar del predeterminado; ambos nunca se superponen.
+- [ ] Teletransportarse por `Ctrl` + clic o `Ctrl` + flecha reproduce `teleport` una vez y no
+      superpone `hexagon_transition`; moverse con WASD conserva únicamente la transición ordinaria.
 - [ ] El autocompletado Docente reproduce una sola señal de finalización y no superpone
       `mission_start`.
-- [ ] Los cinco botones de prueba del debugger reproducen, respectivamente, ambiente, transición de hexágono, confirmación de interacción, clic de interfaz y zona desbloqueada.
-- [ ] El manifiesto contiene cinco `.ogg` versionados, cada uno con sidecar, atribución y un uso verificable.
-- [ ] Los tres recursos de Freesound conservan licencia CC0 1.0; `ui-select-default.ogg` y `zone-unlocked-airlock.ogg` se identifican como contribuciones de ORBIT aportadas por JoaquinDiazM mediante ChatGPT y publicadas bajo MIT.
+- [ ] Los seis botones de prueba del debugger reproducen, respectivamente, ambiente, transición de hexágono, confirmación de interacción, clic de interfaz, zona desbloqueada y teletransporte.
+- [ ] El manifiesto contiene seis `.ogg` versionados, cada uno con sidecar, atribución y un uso verificable.
+- [ ] Tres recursos de Freesound conservan licencia CC0 1.0; `teleport` declara CC BY 4.0 y la
+      cadena Sampling+ 1.0 de la obra antecedente; `ui-select-default.ogg` y
+      `zone-unlocked-airlock.ogg` se identifican como contribuciones de ORBIT aportadas por
+      JoaquinDiazM mediante ChatGPT y publicadas bajo MIT.
 
 ## Contenido 0.3.2
 
@@ -362,7 +373,8 @@
 - [ ] Todas las rutas son relativas.
 - [ ] El job de validación remota termina correctamente; el job de Pages se omite mientras `ENABLE_PAGES` no sea `true`.
 - [ ] La página funciona bajo una subruta de repositorio.
-- [ ] README, capturas `prototype.png`/`editor.png` y versión corresponden al comportamiento publicado.
+- [ ] README, capturas versionadas enumeradas en `docs/screenshots/README.md` y versión
+      corresponden al comportamiento publicado.
 - [ ] `CHANGELOG.md` registra los cambios visibles.
 - [ ] El proceso distingue exportación, aplicación local y despliegue: ninguna autentica, crea
       commits ni publica automáticamente.

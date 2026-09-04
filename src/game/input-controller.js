@@ -13,6 +13,13 @@ const ACTION_KEYS = Object.freeze({
   escape: ["Escape"],
 });
 
+export const DIRECTIONAL_TELEPORT_KEYS = Object.freeze({
+  ArrowLeft: "left",
+  ArrowRight: "right",
+  ArrowUp: "up",
+  ArrowDown: "down",
+});
+
 function matchesClosest(target, selector) {
   return Boolean(target?.closest?.(selector));
 }
@@ -30,10 +37,29 @@ export class InputController {
     this.canvas = canvas;
     this.down = new Set();
     this.actions = new Set();
+    this.directionalTeleportDown = new Set();
 
     this.onKeyDown = (event) => {
       if (isTextEntryTarget(event.target)) {
         if (event.code === "Escape") this.actions.add("escape");
+        return;
+      }
+
+      const teleportDirection = DIRECTIONAL_TELEPORT_KEYS[event.code];
+      const isDirectionalTeleport = Boolean(
+        teleportDirection
+        && event.target === this.canvas
+        && event.ctrlKey
+        && !event.altKey
+        && !event.metaKey
+        && !event.shiftKey,
+      );
+      if (isDirectionalTeleport) {
+        event.preventDefault();
+        if (!event.repeat && !this.directionalTeleportDown.has(event.code)) {
+          this.actions.add(`teleport-${teleportDirection}`);
+        }
+        this.directionalTeleportDown.add(event.code);
         return;
       }
 
@@ -61,11 +87,13 @@ export class InputController {
 
     this.onKeyUp = (event) => {
       this.down.delete(event.code);
+      this.directionalTeleportDown.delete(event.code);
     };
 
     this.onBlur = () => {
       this.down.clear();
       this.actions.clear();
+      this.directionalTeleportDown.clear();
     };
 
     window.addEventListener("keydown", this.onKeyDown, { passive: false });
@@ -89,6 +117,14 @@ export class InputController {
     if (!this.actions.has(action)) return false;
     this.actions.delete(action);
     return true;
+  }
+
+  consumeDirectionalTeleport() {
+    for (const direction of Object.values(DIRECTIONAL_TELEPORT_KEYS)) {
+      if (!this.consume(`teleport-${direction}`)) continue;
+      return direction;
+    }
+    return null;
   }
 
   destroy() {

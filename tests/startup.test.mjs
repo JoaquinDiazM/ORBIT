@@ -91,6 +91,9 @@ test("el shell expone todos los menús secundarios de ORBIT", async () => {
     "hud-progress-value",
     "profile-select",
     "open-orbit-editor",
+    "world-canvas",
+    "controls-hint",
+    "debug-audio-teleport",
   ];
 
   for (const id of requiredIds) assert.match(index, new RegExp(`id=["']${id}["']`));
@@ -110,6 +113,11 @@ test("el shell expone todos los menús secundarios de ORBIT", async () => {
   assert.match(index, /Confirmar interacción/);
   assert.match(index, /Clic de interfaz/);
   assert.match(index, /Zona desbloqueada/);
+  assert.match(index, /id="world-canvas"[\s\S]{0,240}aria-describedby="controls-hint"/);
+  assert.match(index, /aria-keyshortcuts="Control\+ArrowLeft Control\+ArrowRight Control\+ArrowUp Control\+ArrowDown"/);
+  assert.match(index, /<kbd>Ctrl<\/kbd> \+ clic/);
+  assert.match(index, /<kbd>Ctrl<\/kbd> \+ flecha/);
+  assert.match(index, /id="debug-audio-teleport"[\s\S]{0,120}>Teletransporte<\/button>/);
   assert.match(index, /aria-label="Cambiar perfil local; no constituye autenticación"/);
   assert.match(index, /title="Perfiles locales sin autenticación"/);
   assert.match(index, /<dt id="hud-progress-heading">Progreso<\/dt>/);

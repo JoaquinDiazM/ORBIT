@@ -30,7 +30,7 @@ La finalización de un lugar calcula las zonas y lugares accesibles que aparecen
 
 Cada OGG versionado sigue necesitando una entrada de manifiesto, metadatos homónimos, atribución verificable y un punto de reproducción accesible. Un archivo entregado sin autor, fuente y licencia permanece fuera del repositorio hasta resolver esa procedencia.
 
-El inventario de 0.3.2 contiene cinco claves. `global_ambience`, `hexagon_transition` y `mission_start` proceden de Freesound y mantienen CC0 1.0. `ui_select` y `zone_unlocked` fueron aportados expresamente por JoaquinDiazM mediante la conversación de ChatGPT registrada en sus sidecars y se publican como contribuciones de ORBIT bajo MIT; no se atribuyen a Freesound ni a otro catálogo externo. Los cinco recursos tienen prueba individual en el debugger.
+El inventario base de 0.3.2 contiene cinco claves. `global_ambience`, `hexagon_transition` y `mission_start` proceden de Freesound y mantienen CC0 1.0. `ui_select` y `zone_unlocked` fueron aportados expresamente por JoaquinDiazM mediante la conversación de ChatGPT registrada en sus sidecars y se publican como contribuciones de ORBIT bajo MIT; no se atribuyen a Freesound ni a otro catálogo externo. La ampliación candidata agrega `teleport`, un preview oficial de `weapAppear.wav` de RunnerPack bajo CC BY 4.0, con la cadena de atribución a `Energy Whip 2.wav` de ejfortin bajo Sampling+ 1.0. Los seis recursos tienen prueba individual en el debugger.
 
 ## Alternativas consideradas
 

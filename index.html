@@ -16,7 +16,13 @@
   </head>
   <body>
     <main id="app" aria-label="ORBIT, ruta interactiva de Electromagnetismo">
-      <canvas id="world-canvas" tabindex="0" aria-label="Mundo interactivo en dos dimensiones">
+      <canvas
+        id="world-canvas"
+        tabindex="0"
+        aria-label="Mundo interactivo en dos dimensiones"
+        aria-describedby="controls-hint"
+        aria-keyshortcuts="Control+ArrowLeft Control+ArrowRight Control+ArrowUp Control+ArrowDown"
+      >
         Tu navegador necesita soporte para Canvas 2D.
       </canvas>
 
@@ -158,6 +164,8 @@
 
       <section id="controls-hint" class="glass-card compact-card" aria-label="Controles principales">
         <span><kbd>WASD</kbd> / flechas: mover</span>
+        <span><kbd>Ctrl</kbd> + clic: saltar a una zona abierta</span>
+        <span><kbd>Ctrl</kbd> + flecha: saltar con teclado</span>
         <span><kbd>E</kbd>: interactuar</span>
         <span><kbd>T</kbd>: transporte</span>
         <span data-debug-only hidden><kbd>F2</kbd>: debugger</span>
@@ -292,6 +300,8 @@
           <p>El menú lateral abre una herramienta secundaria a la vez. Puede permanecer visible junto con la lección principal; las lecciones extensas se recorren por etapas.</p>
           <dl class="controls-list">
             <div><dt><kbd>WASD</kbd> o flechas</dt><dd>Movimiento libre.</dd></div>
+            <div><dt><kbd>Ctrl</kbd> + clic</dt><dd>Teletransportarse al centro de una zona abierta.</dd></div>
+            <div><dt><kbd>Ctrl</kbd> + flecha</dt><dd>Teletransportarse con teclado a la zona abierta más cercana en esa dirección.</dd></div>
             <div><dt><kbd>E</kbd></dt><dd>Interactuar con el lugar más cercano.</dd></div>
             <div><dt><kbd>T</kbd></dt><dd>Cambiar entre transportes adquiridos.</dd></div>
             <div><dt>Rueda del ratón</dt><dd>Ajustar el zoom.</dd></div>
@@ -345,6 +355,7 @@
             <button id="debug-audio-mission" data-audio-cue="none" type="button">Confirmar interacción</button>
             <button id="debug-audio-ui-select" data-audio-cue="none" type="button">Clic de interfaz</button>
             <button id="debug-audio-zone-unlocked" data-audio-cue="none" type="button">Zona desbloqueada</button>
+            <button id="debug-audio-teleport" data-audio-cue="none" type="button">Teletransporte</button>
           </div>
 
           <div class="button-grid">

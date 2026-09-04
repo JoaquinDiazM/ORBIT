@@ -41,6 +41,14 @@
       "category": "effects",
       "loop": false,
       "volume": 0.65
+    },
+    "teleport": {
+      "id": "teleport_weap_appear_01",
+      "src": "transitions/teleport_weap_appear_01.ogg",
+      "metadata": "transitions/teleport_weap_appear_01.json",
+      "category": "effects",
+      "loop": false,
+      "volume": 0.65
     }
   }
 }

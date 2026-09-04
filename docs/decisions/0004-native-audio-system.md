@@ -6,7 +6,7 @@
 
 ## Contexto
 
-Al aceptar esta decisión, el prototipo incorporaba tres recursos Ogg Vorbis para ambiente global, cruce de hexágono y confirmación de interacción. Todos eran CC0 1.0, estaban acompañados por metadatos y sumaban aproximadamente 1.23 MiB. El inventario vigente de cinco recursos se documenta en el ADR 0006. Cada recurso versionado debe tener un camino de reproducción verificable, sin convertir el audio en el único medio para comunicar un estado.
+Al aceptar esta decisión, el prototipo incorporaba tres recursos Ogg Vorbis para ambiente global, cruce de hexágono y confirmación de interacción. Todos eran CC0 1.0, estaban acompañados por metadatos y sumaban aproximadamente 1.23 MiB. El inventario vigente de seis recursos se documenta en el ADR 0006. Cada recurso versionado debe tener un camino de reproducción verificable, sin convertir el audio en el único medio para comunicar un estado.
 
 ## Decisión
 

@@ -43,11 +43,16 @@ Estudiante o Docente y esos perfiles tampoco publican `window.OrbitDebug`.
 - **Conceder siguiente concepto:** avanza por el orden demostrativo.
 - **Abrir todas las zonas:** agrega overrides de área al perfil.
 - **Completar todo:** concede todos los conceptos, recompensas y lugares.
-- **Probar audio:** reproduce los cinco recursos versionados —ambiente, transición de hexágono, confirmación de interacción, clic de interfaz y zona desbloqueada— sin exigir progresión previa.
+- **Probar audio:** reproduce los seis recursos versionados —ambiente, transición de hexágono,
+  confirmación de interacción, clic de interfaz, zona desbloqueada y teletransporte— sin exigir
+  progresión previa.
 - **Reiniciar:** borra el perfil activo.
 - **Exportar/importar:** intercambia el JSON del perfil.
 
-Con debugger activo, `Shift` + clic teletransporta al punto seleccionado dentro de la cartografía definida.
+En cualquier perfil, `Ctrl` + clic teletransporta al centro de la zona abierta seleccionada y
+`Ctrl` + flecha elige la zona abierta más cercana en esa dirección. Con debugger activo,
+`Shift` + clic conserva el teletransporte técnico al punto seleccionado dentro de la cartografía
+definida.
 
 ## API de consola
 
@@ -107,7 +112,7 @@ OrbitDebug.setAmbienceVolume(0.4);
 OrbitDebug.setEffectsVolume(0.8);
 ```
 
-**Ajustes → Sonido** abre el mezclador y la API modifica cada categoría mediante `ProgressionModel`; cero silencia únicamente esa categoría. El debugger visual incluye pruebas individuales de los cinco recursos disponibles, incluidos `ui_select` y `zone_unlocked`.
+**Ajustes → Sonido** abre el mezclador y la API modifica cada categoría mediante `ProgressionModel`; cero silencia únicamente esa categoría. El debugger visual incluye pruebas individuales de los seis recursos disponibles, incluidos `ui_select`, `zone_unlocked` y `teleport`.
 
 ### Estado
 

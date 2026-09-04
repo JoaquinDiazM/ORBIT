@@ -11,10 +11,23 @@ import {
 
 const MANIFEST_PATH = new URL("../public/manifest.webmanifest", import.meta.url);
 const README_PATH = new URL("../README.md", import.meta.url);
-const PROTOTYPE_SCREENSHOT_PATH = new URL(
-  "../docs/screenshots/prototype.png",
-  import.meta.url,
-);
+const README_SCREENSHOTS = [
+  {
+    alt: "ORBIT 0.7.0 en perfil Estudiante, con Campamento Base y el menú principal",
+    href: "docs/screenshots/orbit-0.7.0.png",
+  },
+  {
+    alt: "ORBIT Editor 0.7.0 con Spider abierto para organizar nodos y conexiones",
+    href: "docs/screenshots/editor-spider-0.7.0.png",
+  },
+  {
+    alt: "ORBIT Editor 0.7.0 con Bee abierto para organizar zonas y rótulos",
+    href: "docs/screenshots/editor-bee-0.7.0.png",
+  },
+].map((screenshot) => ({
+  ...screenshot,
+  path: new URL(`../${screenshot.href}`, import.meta.url),
+}));
 const SHELL_PATHS = [
   new URL("../index.html", import.meta.url),
   new URL("../editor.html", import.meta.url),
@@ -82,21 +95,30 @@ test("la marca queda visible con tamaño contenido en README y ambos shells", as
   }
 });
 
-test("README conserva una captura principal PNG de 1280 por 720", async () => {
+test("README muestra capturas legibles de ORBIT 0.7.0 y sus herramientas editoriales", async () => {
   const readme = await readFile(README_PATH, "utf8");
-  assert.match(
-    readme,
-    /!\[Captura de ORBIT\]\(docs\/screenshots\/prototype\.png\)/,
-  );
 
-  const screenshot = await readFile(PROTOTYPE_SCREENSHOT_PATH);
-  assert.ok(screenshot.length >= 24, "La captura no contiene un encabezado PNG completo.");
-  assert.deepEqual(
-    [...screenshot.subarray(0, 8)],
-    [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
-  );
-  assert.equal(screenshot.readUInt32BE(8), 13);
-  assert.equal(screenshot.toString("ascii", 12, 16), "IHDR");
-  assert.equal(screenshot.readUInt32BE(16), 1280);
-  assert.equal(screenshot.readUInt32BE(20), 720);
+  for (const { alt, href, path } of README_SCREENSHOTS) {
+    assert.ok(
+      readme.includes(`![${alt}](${href})`),
+      `README no enlaza ${href} con su texto alternativo descriptivo.`,
+    );
+
+    const screenshot = await readFile(path);
+    assert.ok(screenshot.length >= 24, `${href} no contiene un encabezado PNG completo.`);
+    assert.ok(
+      screenshot.length <= 800_000,
+      `${href} supera el límite documental de 800 kB.`,
+    );
+    assert.deepEqual(
+      [...screenshot.subarray(0, 8)],
+      [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+    );
+    assert.equal(screenshot.readUInt32BE(8), 13);
+    assert.equal(screenshot.toString("ascii", 12, 16), "IHDR");
+    assert.equal(screenshot.readUInt32BE(16), 1280);
+    assert.equal(screenshot.readUInt32BE(20), 720);
+  }
+
+  assert.doesNotMatch(readme, /Captura de referencia de ORBIT Editor 0\.4\.0/);
 });

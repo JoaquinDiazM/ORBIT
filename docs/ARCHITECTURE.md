@@ -279,6 +279,8 @@ Orquesta el loop:
 
 - lee entrada;
 - calcula movimiento;
+- resuelve teletransporte explícito al centro de zonas abiertas mediante `Ctrl` + clic o
+  `Ctrl` + flecha, sin modificar la progresión territorial;
 - verifica cruces de fronteras;
 - actualiza cámara y lugar cercano;
 - solicita interacciones a la UI;
@@ -397,9 +399,9 @@ descrita en la [Guía de ORBIT Editor](EDITOR_GUIDE.md) y decidida por [ADR
 
 ## Audio
 
-`src/audio/audio-manager.js` carga `public/assets/audio/audio-manifest.json` después del primer gesto del usuario. El manifiesto versiona cinco recursos: ambiente global, transición de hexágono, confirmación de interacción, clic de interfaz y desbloqueo de zona. Cada definición pertenece a `ambience` o `effects`; las preferencias independientes `ambienceVolume` y `effectsVolume` se persisten mediante `ProgressionModel`, y el valor cero silencia solo su categoría.
+`src/audio/audio-manager.js` carga `public/assets/audio/audio-manifest.json` después del primer gesto del usuario. El manifiesto versiona seis recursos: ambiente global, transición de hexágono, confirmación de interacción, clic de interfaz, desbloqueo de zona y teletransporte. Cada definición pertenece a `ambience` o `effects`; las preferencias independientes `ambienceVolume` y `effectsVolume` se persisten mediante `ProgressionModel`, y el valor cero silencia solo su categoría.
 
-Cada OGG tiene un sidecar homónimo, entrada de manifiesto, atribución y botón de prueba. Los tres recursos procedentes de Freesound son CC0 1.0. `ui-select-default.ogg` y `zone-unlocked-airlock.ogg` fueron aportados por JoaquinDiazM mediante la conversación de ChatGPT registrada en sus metadatos y se distribuyen como contribuciones de ORBIT bajo MIT, sin atribuirlos a un catálogo externo.
+Cada OGG tiene un sidecar homónimo, entrada de manifiesto, atribución y botón de prueba. Tres recursos procedentes de Freesound son CC0 1.0. El teletransporte usa un preview oficial de `weapAppear.wav` de RunnerPack bajo CC BY 4.0 y conserva además la atribución de su obra antecedente `Energy Whip 2.wav` de ejfortin bajo Sampling+ 1.0. `ui-select-default.ogg` y `zone-unlocked-airlock.ogg` fueron aportados por JoaquinDiazM mediante la conversación de ChatGPT registrada en sus metadatos y se distribuyen como contribuciones de ORBIT bajo MIT, sin atribuirlos a un catálogo externo.
 
 ## Arranque
 
