@@ -239,183 +239,12 @@ Sin propuestas pendientes de clasificar.
 
 ## Cohorte inmediata
 
-- Versión: `0.7.0`
-- Estado de la cohorte: `cerrada`
-- IDs: `UPD-019`, `UPD-020`
-- Apertura registrada tras publicar ORBIT 0.6.0: 2026-09-02.
-- Cierre confirmado por JoaquinDiazM: 2026-09-02.
+- Versión: `0.7.1`
+- Estado de la cohorte: `abierta`
+- IDs: `UPD-022`, `UPD-023`
+- Apertura registrada tras publicar ORBIT 0.7.0: 2026-09-04.
 
 ## Actualizaciones activas
-
-### UPD-019 — Bee: nombres de zonas y etiquetas configurables de niveles
-
-- Estado: `publicando`
-- Tipo: `feature`
-- Versión objetivo: `0.7.0`
-- Impacto sugerido: `Y`; amplía el contrato editorial y requiere migrar el documento Docente de
-  v3 a v4.
-- Próximo responsable: agente de publicación, que revalida, versiona y publica la cohorte cerrada.
-
-#### Solicitud original
-
-Bee debe permitir cambiar el nombre de las zonas/hexágonos y modificar tanto el texto como la
-posición de las etiquetas de los anillos. ORBIT no debe imponer para otros cursos los nombres
-«teoría» y «aplicaciones»: debe conservar la idea más general de dos niveles de profundidad. Un
-clic debe poder seleccionar hexágonos y cuadros de etiqueta; hover y selección pueden destacarse
-con una animación adecuada.
-
-#### Especificación elaborada por el agente
-
-- Objetivo observable: Bee permite renombrar las zonas sin alterar sus IDs y editar el texto y la
-  posición de las etiquetas visuales de los dos niveles del mapa.
-- Decisiones confirmadas: cada zona conserva `id`, `tier`, coordenadas y contenido. Bee expone
-  `title` como nombre completo y `shortTitle` como etiqueta breve del hexágono. Los niveles
-  estructurales siguen siendo `tier 1` y `tier 2`, pero sus nombres dejan de estar fijados a teoría
-  y aplicaciones. Cada nivel guarda texto y desplazamiento bidimensional respecto de un anclaje
-  calculado. La migración v3 → v4 conserva como valores iniciales `ANILLO 1 · TEORÍA` y
-  `ANILLO 2 · APLICACIONES`, con desplazamiento cero. Estas etiquetas pertenecen al mapa del
-  Editor; esta entrega no añade una superposición nueva al mapamundi Estudiante.
-- Criterios de aceptación: clic y teclado seleccionan zona o etiqueta sin disparar intercambios;
-  arrastrar conserva el intercambio Bee para hexágonos y mueve la etiqueta cuando ella es el
-  objetivo; inspector DOM, flechas y controles numéricos ofrecen alternativa accesible; hover,
-  foco y selección se distinguen sin depender solo del color y respetan
-  `prefers-reduced-motion`; los textos son planos, no vacíos y acotados, y las posiciones finitas
-  permanecen en los límites navegables; restaurar, deshacer, rehacer, recargar, importar y exportar
-  conservan texto y posición; aplicar materializa `title`/`shortTitle` en ORBIT e incorpora los
-  metadatos de nivel a digest, diff y respaldo; Estudiante conserva Bee de solo lectura; pruebas
-  cubren migración, saneamiento, historial, selección, zoom/cámara, aplicación y accesibilidad.
-- Fuera de alcance: cambiar IDs; crear, eliminar o duplicar zonas; alterar `tier`, cantidad de
-  niveles, geometría axial o regla de intercambio; mezclar niveles o mover `origin`; editar
-  contenido académico, nodos o Bowerbird; añadir etiquetas de nivel a ORBIT Estudiante; backend,
-  multicurso o publicación remota.
-- Dependencias, invariantes o ADR: requiere 0.6.0 publicada; documento `orbit-editor-project` v4
-  con migración no destructiva desde v3 y continuidad v1/v2; materialización, almacenamiento,
-  edición aplicada, diff, digest y recuperación incluyen los metadatos nuevos; enmienda ADR 0007
-  y 0008, mientras ADR 0009 y la Red de aprendizaje no cambian.
-
-#### Preguntas bloqueantes
-
-- Ninguna. El alcance mínimo conserva dos niveles estructurales, distingue nombre completo y
-  breve y limita las etiquetas de nivel a ORBIT Editor.
-
-#### Implementación y revisión
-
-- Base revisada: ORBIT 0.6.0 en `645c27b`, con edición publicada
-  `sha256:bc5258ae59ba60f97b1de809d00e602efa62ca2da9ce15ca735d8636451a0fc2`; la
-  migración v3 → v4 → v5 conserva zonas, lugares, posiciones, apariencias y Red.
-- Rutas propias: `src/editor/editor-document.js`, `src/editor/editor-model.js`,
-  `src/editor/editor-app.js`, `src/editor/editor-renderer.js`,
-  `src/editor/editor-ui-controller.js`, `src/editor/editor.css`, `editor.html`, contratos de
-  aplicación/edición, ADR 0010, guías y pruebas asociadas.
-- Resultado: Bee permite editar `title` y `shortTitle` de cada zona; seleccionar y desplazar las
-  etiquetas configurables de ambos niveles con puntero, teclado o controles DOM; restaurar sus
-  valores; y persistir todo en el documento v5, historial, respaldo, digest, diff y aplicación.
-  Mantiene Base inmóvil, intercambios dentro del mismo nivel y consulta de solo lectura para
-  Estudiante. La edición completa aprobada quedó aplicada como
-  `sha256:69b473310f63fb8bb81e41d26eea6955d9f9b16c7f4a2b0430c92b96d709eb0a`.
-- Pruebas automáticas: 472 pruebas ejecutadas, 470 aprobadas, 0 fallidas y 2 omitidas por la
-  restricción esperada de symlinks en Windows; `validate-content`, `check-repository`,
-  `git diff --check` y el build estático finalizaron correctamente.
-- Preflight del entorno: completado con Node v24.19.0 ejecutado directamente; no se abrió un
-  navegador ni un helper desde la sesión del agente, el puerto 4173 quedó libre y no quedaron
-  `.orbit-editor`, tombstone ni lock de helper. Se repetirá tras crear el commit local.
-- Revisión manual humana: `aprobada` — JoaquinDiazM confirmó el 2026-09-04 que completó en Edge
-  externo todas las pruebas solicitadas y sus comprobaciones adicionales.
-- Observaciones del usuario: la aprobación comprende el documento aplicado completo
-  `69b47331…`, no solo una operación aislada de Bee.
-
-### UPD-020 — Spider: autoría de nodos, contenido inicial e inventario
-
-- Estado: `publicando`
-- Tipo: `épica`
-- Versión objetivo: `0.7.0`
-- Impacto sugerido: `Y`; amplía Spider desde cartografía/red hacia autoría de entidades y
-  contenido, y requiere una autoridad editorial nueva para lugares creados.
-- Próximo responsable: agente de publicación, que revalida, versiona y publica la cohorte cerrada.
-
-#### Solicitud original
-
-Spider debe adoptar submenús análogos a Ajustes: **Mover**, **Conectar**, **Modificar**,
-**Crear** e **Inventario**. Modificar cambia etiqueta/título y deja la edición interior bloqueada
-como «Próximamente». Crear usa un template con texto, una pregunta de elección múltiple, una
-etapa y título genéricos, asigna un ID interno y permite posicionar con clic; Importar nodo queda
-bloqueado para otra actualización. Inventario guarda nodos fuera del mapa, permite reponerlos con
-clic o borrarlos definitivamente. Solo se crean o modifican lugares de aprendizaje, misiones y
-personajes secundarios; gadgets y transportes siguen reservados a desarrolladores.
-
-#### Especificación elaborada por el agente
-
-- Objetivo observable: Spider organiza una sola vista activa en cinco submenús accesibles con
-  ratón y teclado. **Mover** y **Conectar** conservan íntegramente las capacidades actuales.
-  **Modificar** muestra el ID estable como solo lectura y edita `title` y `shortTitle` de
-  `lesson`, `mission` y `npc`; cuerpo, etapas, preguntas, fuentes y concesiones aparecen
-  deshabilitados como **Próximamente**. **Crear** admite esos tres tipos, asigna un ID monotónico
-  como `new-node-0001` que no cambia ni se reutiliza, ofrece un template adecuado al tipo y exige
-  un clic de colocación; **Importar nodo** permanece deshabilitado sin afectar la importación del
-  proyecto completo. **Inventario** diferencia retirar de la Red, sacar del mapamundi activo y
-  borrar definitivamente; permite buscar, filtrar y reinsertar con clic.
-- Decisiones confirmadas: `lesson`/`mission` creados entran a la Red y mantienen bloqueado
-  **Aplicar** hasta recibir una conexión válida; su contenido genérico sí puede validarse,
-  aplicarse y probarse en ORBIT normal. `npc` permanece lateral y nunca contiene una pregunta
-  evaluativa. Crear/modificar/inventariar/borrar excluye `gadget`, `transport`, `base` y `debug`;
-  Mover conserva el alcance actual sobre lugares existentes. Inventariar elimina por completo
-  todas las conexiones incidentes después de enumerarlas y advertirlo; no persiste conexiones
-  suspendidas y la reinserción exige reconstruirlas manualmente. El borrado permanente solo se
-  inicia desde Inventario y admite cualquier `lesson`, `mission` o `npc` salvo los IDs protegidos
-  `vector-workshop` y `coulomb-observatory`; esos dos pueden inventariarse, pero nunca borrarse ni
-  liberar su ID. Toda operación participa en autoguardado, exportación/importación, diff e
-  historial atómico. Validar rechaza IDs duplicados, referencias colgantes, contenido inválido,
-  ciclos, raíces adicionales o territorio inalcanzable. Resumen distingue creados, renombrados,
-  inventariados, restaurados y eliminados.
-- Criterios de aceptación: cada submenú preserva foco, selección y estado al cambiar de vista;
-  la creación/colocación y reinserción tienen alternativa de teclado; un nodo fuera del mapa no
-  aparece ni progresa en runtime; un nodo reinsertado conserva ID/contenido y debe reconectarse;
-  inventariar enumera las aristas que eliminará; borrar muestra impacto y confirmación; los dos
-  IDs protegidos no pueden borrarse y ningún ID se recicla; el documento migra v4 → v5 sin
-  alterar los 29 lugares y 29 conexiones de la edición 0.6.0 aprobada; pruebas cubren ciclo de
-  vida, referencias, persistencia, undo/redo, aplicación, reset y accesibilidad.
-- Fuera de alcance: editor completo de párrafos, etapas, ejercicios, fuentes, conceptos,
-  recompensas o multimedia; importación individual; zonas o Bee/Bowerbird; gadgets y transportes;
-  renombrar IDs publicados; backend, cuentas, Git automático o UPD-002.
-- Dependencias, invariantes o ADR: requiere 0.6.0 y, por secuencia propuesta, UPD-019/0.7.0;
-  documento Editor v5 con definiciones/overrides de lugares, inventario y tombstones; recomienda
-  ADR 0010 para autoridad de datos, IDs monotónicos, eliminación/referencias, migración, digest,
-  diff, respaldo y reset, enmendando ADR 0007–0009. Conserva sitio estático, helper loopback,
-  aplicación transaccional y revisión manual externa.
-
-#### Preguntas bloqueantes
-
-- Ninguna. JoaquinDiazM confirmó que el contenido genérico puede aplicarse; inventariar elimina
-  las conexiones tras advertir cuáles se perderán; y el borrado permanente protege únicamente
-  `vector-workshop` y `coulomb-observatory` entre los tipos editables.
-
-#### Implementación y revisión
-
-- Base revisada: ORBIT 0.6.0 en `645c27b`, con los 29 lugares y 29 conexiones de la edición
-  publicada; la migración v5 materializa las entidades editoriales sin alterar esa base.
-- Rutas propias: documento/modelo/aplicación/render/controlador de Editor, `editor.html`, CSS,
-  `src/core/course-application.js`, `src/core/course-edition.js`, `src/core/validator.js`, helper
-  local, runtime Estudiante, ADR 0010, documentación y pruebas de regresión.
-- Resultado: Spider presenta **Mover**, **Conectar**, **Modificar**, **Crear** e **Inventario**;
-  crea IDs monotónicos para `lesson`, `mission` y `npc`, permite renombrar y colocar, elimina las
-  aristas incidentes con advertencia exacta al inventariar, repone sin recrearlas y ofrece borrado
-  irreversible con tombstone salvo para `vector-workshop` y `coulomb-observatory`. El documento
-  v5 protege referencias, alcance, contadores y eliminaciones frente a recarga, importación,
-  undo/reset y aplicación local. La edición aprobada `69b47331…` publica 30 lugares activos,
-  conserva un nodo creado en Inventario y materializa 22 nodos y 31 conexiones en la Red.
-- Pruebas automáticas: 472 pruebas ejecutadas, 470 aprobadas, 0 fallidas y 2 omitidas por la
-  restricción esperada de symlinks en Windows; incluyen migración/canonicalidad, alto de IDs,
-  ciclo de vida, seguridad del helper, aplicación, foco y accesibilidad. `validate-content`,
-  `check-repository`, `git diff --check` y el build estático finalizaron correctamente.
-- Preflight del entorno: completado sin iniciar servidores ni navegador desde el agente; puerto
-  4173 libre y sin sesión, journal, tombstone ni lock del helper. Se repetirá tras el commit local.
-- Revisión manual humana: `aprobada` — JoaquinDiazM confirmó el 2026-09-04 que completó en Edge
-  externo todas las pruebas solicitadas y sus comprobaciones adicionales, incluida la aplicación
-  de la revisión `69b47331…` y el reinicio de progreso.
-- Observaciones del usuario: confirmó que el contenido genérico debe poder aplicarse; Inventario
-  elimina por completo las conexiones enumeradas; solo `vector-workshop` y
-  `coulomb-observatory` están protegidos contra borrado entre los tipos editables; y la aprobación
-  comprende el documento aplicado completo con Taller de fasores activo y Malla V-D inventariada.
 
 ### UPD-022 — Actualizar las capturas del README para ORBIT 0.7.0
 
@@ -452,7 +281,7 @@ El README debe usar capturas de la versión 0.7.0 que acaba de cerrar.
 
 #### Implementación y revisión
 
-- Base revisada: ORBIT 0.7.0 publicada por esta cohorte.
+- Base revisada: ORBIT 0.7.0 publicada en `c2e706f`.
 - Rutas propias: `README.md`, assets de documentación y pruebas de marca/captura.
 - Resultado: no iniciada; propuesta clasificada desde la bandeja el 2026-09-04.
 - Pruebas automáticas: no aplican todavía.
@@ -502,7 +331,7 @@ solaparse con el cambio ordinario de zona mediante WASD.
 
 #### Implementación y revisión
 
-- Base revisada: ORBIT 0.7.0 publicada por esta cohorte.
+- Base revisada: ORBIT 0.7.0 publicada en `c2e706f`.
 - Rutas propias: por determinar después de resolver la política de acceso y verificar el asset.
 - Resultado: no iniciada; propuesta clasificada desde la bandeja el 2026-09-04.
 - Pruebas automáticas: no aplican todavía.
@@ -563,7 +392,7 @@ F = ∇f» en la etapa 5 del Taller Vectorial no debe aparecer como texto matem�
 
 #### Implementación y revisión
 
-- Base revisada: ORBIT 0.7.0 publicada por esta cohorte y contrato editorial v5.
+- Base revisada: ORBIT 0.7.0 publicada en `c2e706f` y contrato editorial v5.
 - Rutas propias: por determinar después del ADR y las dos decisiones bloqueantes.
 - Resultado: no iniciada; épica clasificada desde la bandeja el 2026-09-04.
 - Pruebas automáticas: no aplican todavía.
