@@ -32,8 +32,9 @@ Recorre el mundo, completa lecciones y misiones y adquiere conceptos. La Red de 
 elegibles nuevos nodos académicos; una zona vecina se abre cuando contiene uno de ellos. Sus
 personajes, gadgets y transportes quedan disponibles para interactuar sin formar parte de la red.
 
-La edición vigente materializa 19 zonas y 29 lugares. La Estación de la Carta de Smith es
-opcional y no cambia el camino necesario para completar la demostración.
+La edición vigente materializa 19 zonas y 30 lugares activos; conserva además un lugar creado en
+Inventario, fuera del runtime. La Estación de la Carta de Smith es opcional y no cambia el camino
+necesario para completar la demostración.
 
 El contenido actual es una demostración de mecánicas y estructura. No constituye todavía un curso completo.
 
@@ -69,7 +70,7 @@ También existen recompensas opcionales que no son necesarias para abrir la sigu
 Pulsa `K` para revisar:
 
 - **Zonas:** regiones abiertas o bloqueadas por adyacencia y elegibilidad académica.
-- **Red de aprendizaje:** 21 lecciones y misiones conectadas en dirección prerrequisito → destino.
+- **Red de aprendizaje:** 22 lecciones y misiones conectadas en dirección prerrequisito → destino.
 
 El panel **Zonas · Red** separa además la exploración lateral. El mundo no obliga a caminar por
 las conexiones: la red controla elegibilidad académica, no la trayectoria física dentro de una zona.

@@ -198,9 +198,9 @@
       inspecciona y reinicia las claves de progreso descritas en su impacto.
 - [ ] Cambiar la query demuestra que estas restricciones son locales y no se presenta como
       autenticación o seguridad real.
-- [ ] El dataset compartido conserva 19 zonas, 20 conceptos y 29 lugares; la Red de aprendizaje
-      contiene únicamente sus 21 lecciones/misiones y todas sus conexiones explícitas validadas
-      —29 en la edición aplicada, 30 en la base canónica—.
+- [ ] La base canónica conserva 19 zonas, 20 conceptos y 29 lugares; la edición 0.7.0 publica 30
+      lugares activos y mantiene uno en Inventario. La Red de aprendizaje contiene únicamente sus
+      22 lecciones/misiones activas y 31 conexiones explícitas validadas.
 - [ ] Los docks **General** y **Editor** se minimizan y expanden por separado; el control de reapertura nunca desaparece.
 - [ ] `aria-expanded`, foco visible, `Tab`, `Enter` y `Espacio` reflejan el estado real de ambos docks.
 - [ ] Spider muestra todos los nodos sin depender del progreso de ORBIT.

@@ -249,7 +249,7 @@ Sin propuestas pendientes de clasificar.
 
 ### UPD-019 — Bee: nombres de zonas y etiquetas configurables de niveles
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `0.7.0`
 - Impacto sugerido: `Y`; amplía el contrato editorial y requiere migrar el documento Docente de
@@ -326,7 +326,7 @@ con una animación adecuada.
 
 ### UPD-020 — Spider: autoría de nodos, contenido inicial e inventario
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `épica`
 - Versión objetivo: `0.7.0`
 - Impacto sugerido: `Y`; amplía Spider desde cartografía/red hacia autoría de entidades y
@@ -452,7 +452,7 @@ El README debe usar capturas de la versión 0.7.0 que acaba de cerrar.
 
 #### Implementación y revisión
 
-- Base revisada: ORBIT 0.7.0 pendiente de publicación.
+- Base revisada: ORBIT 0.7.0 publicada por esta cohorte.
 - Rutas propias: `README.md`, assets de documentación y pruebas de marca/captura.
 - Resultado: no iniciada; propuesta clasificada desde la bandeja el 2026-09-04.
 - Pruebas automáticas: no aplican todavía.
@@ -502,7 +502,7 @@ solaparse con el cambio ordinario de zona mediante WASD.
 
 #### Implementación y revisión
 
-- Base revisada: ORBIT 0.7.0 pendiente de publicación.
+- Base revisada: ORBIT 0.7.0 publicada por esta cohorte.
 - Rutas propias: por determinar después de resolver la política de acceso y verificar el asset.
 - Resultado: no iniciada; propuesta clasificada desde la bandeja el 2026-09-04.
 - Pruebas automáticas: no aplican todavía.
@@ -563,7 +563,7 @@ F = ∇f» en la etapa 5 del Taller Vectorial no debe aparecer como texto matem�
 
 #### Implementación y revisión
 
-- Base revisada: ORBIT 0.7.0 pendiente de publicación y contrato editorial v5.
+- Base revisada: ORBIT 0.7.0 publicada por esta cohorte y contrato editorial v5.
 - Rutas propias: por determinar después del ADR y las dos decisiones bloqueantes.
 - Resultado: no iniciada; épica clasificada desde la bandeja el 2026-09-04.
 - Pruebas automáticas: no aplican todavía.

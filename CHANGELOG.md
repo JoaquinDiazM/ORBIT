@@ -2,6 +2,48 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [0.7.0] - 2026-09-04
+
+### Añadido
+
+- Bee permite editar los nombres completos y breves de las zonas y configurar texto y posición
+  de los rótulos de ambos niveles sin cambiar IDs, geometría ni pertenencia a `tier`.
+- Spider se organiza en **Mover**, **Conectar**, **Modificar**, **Crear** e **Inventario** y admite
+  autoría del ciclo de vida de `lesson`, `mission` y `npc`, con IDs monotónicos, reinserción y
+  borrado irreversible mediante tombstones.
+- ADR 0010 define la autoridad de entidades editoriales, migraciones, inventario, eliminación,
+  contadores y materialización del mapa.
+
+### Cambiado
+
+- El documento Docente avanza de `v3` a `v5` mediante migraciones explícitas y conserva nombres,
+  rótulos, contenido, ciclo de vida, historial, importación/exportación, digest, diff y respaldo.
+- La edición aprobada `69b47331…` publica 19 zonas, 30 lugares activos, uno inventariado, 22 nodos
+  académicos y 31 conexiones. Incluye Taller de fasores activo, conserva Malla V-D en Inventario
+  y mantiene `vector-workshop` y `coulomb-observatory` protegidos contra borrado definitivo.
+- Estudiante puede consultar Spider y Bee sin mutaciones y mantiene Bowerbird personal separado
+  del documento Docente.
+
+### Corregido
+
+- La frontera de edición/aplicación rechaza documentos v5 no canónicos, descendientes que omiten
+  entidades o tombstones y avances anómalos del contador monotónico.
+- Las eliminaciones permanentes no reviven mediante undo, reset o importación; los formularios y
+  el foco se reconcilian después de cambios de selección y operaciones de Inventario.
+- Los clics toleran movimientos involuntarios inferiores a 7 px y el borrado definitivo usa un
+  diálogo modal accesible con impacto anunciado, Escape y restauración de foco.
+
+### Verificación y alcance
+
+- La cohorte corresponde exactamente a `UPD-019` y `UPD-020`. El check integral ejecuta 472
+  pruebas: 470 aprobadas, 0 fallos y 2 omisiones EPERM esperadas de symlink; valida 19 zonas, 20
+  conceptos y 30 lugares activos alcanzables, 123 archivos JavaScript, 42 Markdown y el build.
+- JoaquinDiazM completó en Edge externo las pruebas solicitadas y propias, aplicó la revisión
+  completa `69b47331…` y aprobó ambos IDs.
+- Se conservan sitio estático, perfiles locales, progreso `v4`, una sola raíz académica, cinco
+  audios y KaTeX 0.18.1. No se añaden dependencias, backend, cuentas, autenticación, telemetría ni
+  CDN.
+
 ## [0.6.0] - 2026-09-02
 
 ### Añadido

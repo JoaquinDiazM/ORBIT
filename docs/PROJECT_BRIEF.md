@@ -41,9 +41,10 @@ La experiencia combina dos modos que deberán coexistir en una versión futura:
 - **Modo Expedición:** progresión narrativa y desbloqueos espaciales.
 - **Modo consulta temática:** acceso académico directo por tema, útil para repasar antes de una evaluación.
 
-La ruta conserva 19 zonas, 20 conceptos y 29 lugares. Veintiuna lecciones o misiones forman una
-Red de aprendizaje aplicada de 29 parejas académicas; los ocho lugares restantes —Base, seis
-laterales y Debug— quedan fuera de ella y no bloquean el tronco. El Taller Vectorial sigue siendo
+La ruta publicada conserva 19 zonas, 20 conceptos y 30 lugares activos. Veintidós lecciones o
+misiones forman una Red de aprendizaje aplicada de 31 parejas académicas; los ocho lugares
+restantes —Base, seis laterales y Debug— quedan fuera de ella y no bloquean el tronco. Un lugar
+creado adicional permanece en Inventario y no forma parte del runtime. El Taller Vectorial sigue siendo
 el primer nodo desarrollado con mayor profundidad:
 reúne elementos diferenciales, una comparación visual de campos en SVG, un ejemplo cartesiano
 guiado y una evaluación cilíndrica independiente. El modo de consulta temática con acceso

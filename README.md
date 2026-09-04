@@ -18,19 +18,19 @@ El autor sitúa el origen pedagógico de esta primera ruta en su experiencia doc
 
 La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra lineal y física clásica, especialmente quienes consideran estudiar Ingeniería Eléctrica o comienzan los primeros semestres de la especialidad.
 
-> **Estado:** base publicada `0.6.0`; la siguiente cohorte operativa se controla en `ORBIT_UPDATES.md`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
+> **Estado:** base publicada `0.7.0`; la siguiente cohorte operativa se controla en `ORBIT_UPDATES.md`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
 
 ## Qué demuestra esta versión
 
 - Movimiento continuo en 2D con teclado; el personaje no está restringido a nodos ni caminos.
 - Mundo de 19 hexágonos: Campamento Base, seis fundamentos y doce áreas de aplicación.
-- **Red de aprendizaje única:** conecta 21 lecciones y misiones mediante 29 relaciones
+- **Red de aprendizaje única:** conecta 22 lecciones y misiones mediante 31 relaciones
   académicas explícitas, con Taller Vectorial como raíz.
 - **Apertura territorial derivada:** una zona vecina se abre cuando contiene al menos un nodo
   académico elegible; personajes, gadgets y transportes quedan disponibles para interactuar al
   abrir su zona, fuera de la red.
 - Regla de fronteras: cuando se abre un hexágono, quedan transitables todas sus aristas compartidas con hexágonos previamente abiertos.
-- Veinte conceptos y 29 lugares alcanzables, incluida una misión integradora Tierra–Luna y una estación opcional para la Carta de Smith.
+- Veinte conceptos y 30 lugares activos alcanzables, incluida una misión integradora Tierra–Luna y una estación opcional para la Carta de Smith; otro nodo creado permanece guardado en Inventario.
 - Ejercicios de alternativa, respuesta numérica con tolerancia, expresiones equivalentes, secuencias guiadas y actividades de confirmación.
 - Lugares extensos divididos en etapas desbloqueables dentro de la ventana principal; el Taller Vectorial desarrolla ahora seis etapas con andamiaje decreciente.
 - Menú **Gadgets** disponible desde cualquier zona: la calculadora científica segura está siempre activa; el Explorador de campos 2D y la Carta de Smith aparecen al obtener sus recompensas.
@@ -81,10 +81,10 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
   después de verificar la sesión local y el bloqueo exclusivo.
 - Los perfiles y bloqueos son modos locales elegibles, no cuentas, autenticación ni control de
   acceso real.
-- Una dependencia npm fijada y documentada: KaTeX 0.18.1; la cohorte `0.6.0` no añade paquetes,
+- Una dependencia npm fijada y documentada: KaTeX 0.18.1; la cohorte `0.7.0` no añade paquetes,
   backend público, autenticación, render 3D ni CDN.
 
-### Cambios en revisión para 0.7.0
+### Cambios centrales de 0.7.0
 
 Bee conserva los dos `tier` estructurales y la prohibición de mezclarlos, pero permite cambiar
 el nombre completo y breve de cada zona, así como el texto y posición de los dos rótulos de
@@ -97,9 +97,10 @@ mapa activo, reinsertarlos y borrarlos desde Inventario. Inventariar enumera y e
 conexiones incidentes; reinsertar no las restaura. `vector-workshop` y
 `coulomb-observatory` nunca pueden borrarse definitivamente.
 
-El documento Docente migra `v3 → v4 → v5`; la edición de curso publicada conserva su raw `v3`
-y se autentica antes de migrarse en memoria. Esta compatibilidad evita cambiar su revisión
-histórica hasta que un docente aplique expresamente un documento nuevo. Consulta el
+El documento Docente migra `v3 → v4 → v5`; las ediciones históricas se autentican antes de
+migrarse en memoria. La edición aplicada `69b47331…` ya publica un documento `v5` con 30 lugares
+activos, uno inventariado, 22 nodos académicos y 31 conexiones. Incluye el Taller de fasores
+creado durante la revisión y conserva Malla V-D fuera del runtime en Inventario. Consulta el
 [ADR 0010](docs/decisions/0010-editorial-entities-and-map-metadata.md).
 
 ### Cambios centrales de 0.6.0

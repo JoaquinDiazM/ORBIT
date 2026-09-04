@@ -22,7 +22,7 @@ En este orden:
 
 ## 2. Estado actual
 
-La base publicada es `0.6.0` y la siguiente cohorte operativa se controla en
+La base publicada es `0.7.0` y la siguiente cohorte operativa se controla en
 `ORBIT_UPDATES.md`. El prototipo sigue siendo estático, conserva una dependencia local
 respaldada por ADR, dos entradas
 deliberadamente separadas y un flujo por cohortes con autorización y revisión humana:
@@ -36,8 +36,9 @@ El producto ya incluye:
 - movimiento continuo en Canvas 2D;
 - 19 hexágonos en tres niveles: base, seis fundamentos y doce aplicaciones;
 - fronteras físicas derivadas de la apertura de zonas por adyacencia y elegibilidad académica;
-- 29 lugares: 21 lecciones/misiones en una Red de aprendizaje aplicada de 29 parejas explícitas y ocho
-  lugares Base/laterales/Debug fuera de ella; un panel **Visual** separado de **Zonas · Red**,
+- 30 lugares activos: 22 lecciones/misiones en una Red de aprendizaje aplicada de 31 parejas
+  explícitas y ocho lugares Base/laterales/Debug fuera de ella; el documento v5 conserva además
+  un nodo creado en Inventario. Un panel **Visual** separado de **Zonas · Red**,
   accesible desde **Ajustes**, con modos **Oculta**, **Directo** y **Total**;
 - ejercicios de alternativa, número, expresión segura, secuencia y confirmación;
 - guardado separado para los perfiles canónicos `student`, `teacher` y `debug` en
@@ -121,8 +122,8 @@ Antes de implementar una tarea, identifica cuáles puede afectar:
 - separación entre progreso `v4`, documento Docente `v5`, preferencias Bowerbird `v1` y edición
   de curso `v1`;
 - IDs persistentes, secuencia monotónica y tombstones que impiden reutilizar un nodo eliminado;
-- raíz única y alcanzabilidad de todos los nodos académicos activos —la edición 0.6.0 parte de
-  21 nodos y 29 conexiones— frente a lugares laterales fuera de red;
+- raíz única y alcanzabilidad de todos los nodos académicos activos —la edición 0.7.0 publica
+  22 nodos y 31 conexiones— frente a lugares laterales o inventariados fuera de red;
 - revisión de curso, reset específico y bloqueo compartido/exclusivo;
 - permanencia de cada zona en su `tier`; los nombres visibles de ambos niveles son editables y no
   cambian esa pertenencia;
