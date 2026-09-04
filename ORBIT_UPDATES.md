@@ -249,12 +249,12 @@ Sin propuestas pendientes de clasificar.
 
 ### UPD-019 — Bee: nombres de zonas y etiquetas configurables de niveles
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `feature`
 - Versión objetivo: `0.7.0`
 - Impacto sugerido: `Y`; amplía el contrato editorial y requiere migrar el documento Docente de
   v3 a v4.
-- Próximo responsable: JoaquinDiazM, para la revisión manual conjunta de la cohorte 0.7.0.
+- Próximo responsable: agente de publicación, que revalida, versiona y publica la cohorte cerrada.
 
 #### Solicitud original
 
@@ -311,28 +311,27 @@ con una animación adecuada.
   etiquetas configurables de ambos niveles con puntero, teclado o controles DOM; restaurar sus
   valores; y persistir todo en el documento v5, historial, respaldo, digest, diff y aplicación.
   Mantiene Base inmóvil, intercambios dentro del mismo nivel y consulta de solo lectura para
-  Estudiante.
+  Estudiante. La edición completa aprobada quedó aplicada como
+  `sha256:69b473310f63fb8bb81e41d26eea6955d9f9b16c7f4a2b0430c92b96d709eb0a`.
 - Pruebas automáticas: 472 pruebas ejecutadas, 470 aprobadas, 0 fallidas y 2 omitidas por la
   restricción esperada de symlinks en Windows; `validate-content`, `check-repository`,
   `git diff --check` y el build estático finalizaron correctamente.
 - Preflight del entorno: completado con Node v24.19.0 ejecutado directamente; no se abrió un
   navegador ni un helper desde la sesión del agente, el puerto 4173 quedó libre y no quedaron
   `.orbit-editor`, tombstone ni lock de helper. Se repetirá tras crear el commit local.
-- Revisión manual humana: pendiente — JoaquinDiazM debe usar una terminal visible de VS Code y
-  Edge externo para comprobar clic sin intercambio, drag de zonas solo dentro de su nivel, Base
-  inmóvil, renombrado completo/breve, selección y movimiento de etiquetas con ratón y teclado,
-  restauración, undo/redo, recarga y exportación/importación; en Estudiante debe confirmar Bee y
-  Spider de solo lectura sin bloquear las preferencias personales Bowerbird.
-- Observaciones del usuario: ninguna adicional.
+- Revisión manual humana: `aprobada` — JoaquinDiazM confirmó el 2026-09-04 que completó en Edge
+  externo todas las pruebas solicitadas y sus comprobaciones adicionales.
+- Observaciones del usuario: la aprobación comprende el documento aplicado completo
+  `69b47331…`, no solo una operación aislada de Bee.
 
 ### UPD-020 — Spider: autoría de nodos, contenido inicial e inventario
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `épica`
 - Versión objetivo: `0.7.0`
 - Impacto sugerido: `Y`; amplía Spider desde cartografía/red hacia autoría de entidades y
   contenido, y requiere una autoridad editorial nueva para lugares creados.
-- Próximo responsable: JoaquinDiazM, para la revisión manual conjunta de la cohorte 0.7.0.
+- Próximo responsable: agente de publicación, que revalida, versiona y publica la cohorte cerrada.
 
 #### Solicitud original
 
@@ -402,22 +401,177 @@ personajes secundarios; gadgets y transportes siguen reservados a desarrolladore
   aristas incidentes con advertencia exacta al inventariar, repone sin recrearlas y ofrece borrado
   irreversible con tombstone salvo para `vector-workshop` y `coulomb-observatory`. El documento
   v5 protege referencias, alcance, contadores y eliminaciones frente a recarga, importación,
-  undo/reset y aplicación local.
+  undo/reset y aplicación local. La edición aprobada `69b47331…` publica 30 lugares activos,
+  conserva un nodo creado en Inventario y materializa 22 nodos y 31 conexiones en la Red.
 - Pruebas automáticas: 472 pruebas ejecutadas, 470 aprobadas, 0 fallidas y 2 omitidas por la
   restricción esperada de symlinks en Windows; incluyen migración/canonicalidad, alto de IDs,
   ciclo de vida, seguridad del helper, aplicación, foco y accesibilidad. `validate-content`,
   `check-repository`, `git diff --check` y el build estático finalizaron correctamente.
 - Preflight del entorno: completado sin iniciar servidores ni navegador desde el agente; puerto
   4173 libre y sin sesión, journal, tombstone ni lock del helper. Se repetirá tras el commit local.
-- Revisión manual humana: pendiente — JoaquinDiazM debe comprobar en Edge externo que las cinco
-  vistas conservan selección y formularios; crear y colocar cada tipo; verificar que `npc` no
-  tenga pregunta y que un académico sin entrada bloquee Aplicar; confirmar advertencias de
-  aristas, inventariar, reponer y borrar un nodo no protegido; verificar que los dos IDs protegidos
-  no puedan borrarse; y revisar Resumen/Validar, recarga, undo/redo y exportación/importación. Para
-  ensayar Aplicar debe exportar respaldo, detener `npm run dev`, iniciar `npm run editor:author`
-  desde VS Code, abrir su URL exacta en Edge y usar solo un borrador válido que quiera conservar,
-  pues la aplicación reinicia los tres perfiles.
-- Observaciones del usuario: Pregunta 1 -> Manten el aplicar, esos nodos genericos los quiero probar en ORBIT normal. Pregunta 2 -> Eliminar completamente, solo advertir al usuario cuales conexiones se perderan al inventariar un nodo. Se subentiende que el docente que usa ORBIT es un experto tal en su material que puede reconstruir las conexiones nesesarias sin asistencia. Pregunta 3 -> Bien, esto es algo importante que talvez se me ha olvidado mensionar solo DOS nodos, del arbol principal, son canonicos, los demas no me importa sin son borrados para hacer pruebas. Estos son los nodos del taller vectorial y el de coulumb. Los demas no importan en absoluto y cuando la version 1.0.0 este lista es cuando me dedicare a crear el contenido grueso del curso de electromagnetismo, antes de eso solo estamos construyendo la bases de ORBIT como herramienta general. Recalcar tambien que añadi esta update al cohorte de la version 0.7.0 y sera la ultima de esa version.
+- Revisión manual humana: `aprobada` — JoaquinDiazM confirmó el 2026-09-04 que completó en Edge
+  externo todas las pruebas solicitadas y sus comprobaciones adicionales, incluida la aplicación
+  de la revisión `69b47331…` y el reinicio de progreso.
+- Observaciones del usuario: confirmó que el contenido genérico debe poder aplicarse; Inventario
+  elimina por completo las conexiones enumeradas; solo `vector-workshop` y
+  `coulomb-observatory` están protegidos contra borrado entre los tipos editables; y la aprobación
+  comprende el documento aplicado completo con Taller de fasores activo y Malla V-D inventariada.
+
+### UPD-022 — Actualizar las capturas del README para ORBIT 0.7.0
+
+- Estado: `propuesto`
+- Tipo: `documentación`
+- Versión objetivo: `0.7.1`
+- Impacto sugerido: `Z`; renueva evidencia visual sin cambiar contratos ni comportamiento.
+- Próximo responsable: JoaquinDiazM, que autoriza la propuesta o precisa qué vistas priorizar.
+
+#### Solicitud original
+
+El README debe usar capturas de la versión 0.7.0 que acaba de cerrar.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: reemplazar las capturas obsoletas por imágenes reproducibles de ORBIT
+  0.7.0 que representen tanto la experiencia de aprendizaje como las capacidades principales del
+  Editor.
+- Decisiones confirmadas: las imágenes forman parte del repositorio, no dependen de servicios
+  externos y deben corresponder al estado publicado, sin datos locales privados ni herramientas
+  de depuración visibles por accidente.
+- Criterios de aceptación: README muestra al menos una captura principal de ORBIT y una del
+  Editor con Bee/Spider 0.7.0; las imágenes son legibles en GitHub, tienen texto alternativo,
+  dimensiones y peso razonables, y pasan la comprobación de assets y enlaces. JoaquinDiazM revisa
+  las capturas finales en Edge externo.
+- Fuera de alcance: rediseñar la marca, cambiar la interfaz para embellecer la captura, producir
+  video promocional o documentar capacidades aún no publicadas.
+- Dependencias, invariantes o ADR: requiere 0.7.0 publicada y conserva la fuente canónica de marca;
+  no necesita esquema, dependencia ni ADR nuevo.
+
+#### Preguntas bloqueantes
+
+- Ninguna para autorizar el alcance inicial; la composición exacta puede decidirse al capturar.
+
+#### Implementación y revisión
+
+- Base revisada: ORBIT 0.7.0 pendiente de publicación.
+- Rutas propias: `README.md`, assets de documentación y pruebas de marca/captura.
+- Resultado: no iniciada; propuesta clasificada desde la bandeja el 2026-09-04.
+- Pruebas automáticas: no aplican todavía.
+- Preflight del entorno: pendiente.
+- Revisión manual humana: pendiente — JoaquinDiazM elegirá y aprobará las capturas definitivas.
+- Observaciones del usuario: solicita screenshots representativos de la versión 0.7.0.
+
+### UPD-023 — Teletransporte con Ctrl+clic y audio propio
+
+- Estado: `faltan-detalles`
+- Tipo: `feature`
+- Versión objetivo: `0.7.1`
+- Impacto sugerido: `Z`; añade una interacción compatible y un evento de audio sin cambiar el
+  modelo de progreso.
+- Próximo responsable: JoaquinDiazM, que confirma la política de acceso a zonas bloqueadas.
+
+#### Solicitud original
+
+Permitir que cualquier perfil de ORBIT use Ctrl+clic para trasladarse inmediatamente al centro
+de una zona. El agente debe obtener, si es posible, el sonido y su atribución desde
+`https://freesound.org/people/RunnerPack/sounds/87043/`. El sonido de teletransporte no debe
+solaparse con el cambio ordinario de zona mediante WASD.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: Ctrl+clic sobre un hexágono válido mueve al explorador a su centro mediante
+  una acción inequívoca, reproducible en Estudiante, Docente y Debug, con señal sonora exclusiva.
+- Decisiones confirmadas: el asset se descarga y versiona localmente junto con licencia,
+  autoría, URL y fecha de consulta verificadas; ORBIT nunca depende de Freesound en runtime. El
+  teletransporte emite un solo cue y suprime el cue ordinario de cruce de zona para ese traslado.
+- Criterios de aceptación provisionales: hit-testing correcto con cámara y zoom; Ctrl+clic sin
+  arrastre ni activación accidental; destino exactamente centrado y persistido; alternativa de
+  teclado accesible; ningún cambio de progreso, conceptos o desbloqueos; audio sometido al volumen
+  de Interfaz y efectos, sin superposición ni reproducción antes del primer gesto; degradación a
+  silencio si falla; pruebas de los tres perfiles, zonas limítrofes y modificadores.
+- Fuera de alcance: teletransporte en ORBIT Editor, viaje entre cursos, animación compleja,
+  cooldown, coste, backend o modificación de la apertura territorial.
+- Dependencias, invariantes o ADR: reutiliza cámara, movimiento, persistencia, servicio y
+  manifiesto de audio. La licencia del recurso indicado debe permitir su inclusión y atribución
+  antes de incorporarlo; no se añade dependencia npm ni ADR salvo que cambie progresión.
+
+#### Preguntas bloqueantes
+
+- ¿Estudiante y Docente pueden teletransportarse únicamente a zonas ya abiertas, dejando a Debug
+  acceder a cualquiera? Recomendación: sí; permitir saltar a una zona bloqueada en perfiles
+  ordinarios contradiría la progresión aunque el gesto exista para todos.
+
+#### Implementación y revisión
+
+- Base revisada: ORBIT 0.7.0 pendiente de publicación.
+- Rutas propias: por determinar después de resolver la política de acceso y verificar el asset.
+- Resultado: no iniciada; propuesta clasificada desde la bandeja el 2026-09-04.
+- Pruebas automáticas: no aplican todavía.
+- Preflight del entorno: pendiente; incluye comprobar licencia y descarga reproducible.
+- Revisión manual humana: pendiente — se probará en Edge externo con los tres perfiles.
+- Observaciones del usuario: el cue de teletransporte no debe solaparse con el sonido de cruce
+  provocado por WASD.
+
+### UPD-021 — Editor de contenido interactivo y paneles redimensionables
+
+- Estado: `faltan-detalles`
+- Tipo: `épica`
+- Versión objetivo: `0.8.0`
+- Impacto sugerido: `Y`; convierte Spider en una herramienta de autoría académica y amplía el
+  contrato declarativo de ventanas interactivas.
+- Próximo responsable: JoaquinDiazM, que decide los límites de sintaxis y extensibilidad de la
+  primera entrega.
+
+#### Solicitud original
+
+Spider → Modificar → Editar contenido debe ofrecer a docentes y desarrolladores una fuente
+editable similar a Markdown junto a su previsualización, capaz de componer texto, ecuaciones,
+figuras, preguntas y etapas sin seguir acumulando parches incompatibles. Las ventanas derechas de
+ORBIT y ORBIT Editor también deben poder ampliarse horizontalmente con el ratón. Toda expresión
+matemática debe marcarse y renderizarse en un entorno adecuado; por ejemplo, «escalar f tal que
+F = ∇f» en la etapa 5 del Taller Vectorial no debe aparecer como texto matemático sin compilar.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: una única herramienta versionada transforma una fuente académica legible
+  en el mismo documento declarativo que ORBIT valida y renderiza, con previsualización inmediata y
+  paridad entre la vista Docente y el runtime Estudiante.
+- Decisiones confirmadas: el editor vive dentro de **Modificar**, conserva el ID estable del nodo
+  y debe cubrir párrafos, matemáticas, figuras declarativas, ejercicios y etapas. El ancho de las
+  ventanas derechas se ajusta con puntero y alternativa de teclado, respeta límites responsive y
+  ofrece restaurar el valor predeterminado.
+- Criterios de aceptación provisionales: fuente y preview sincronizados; errores localizados sin
+  perder el borrador; TeX delimitado y renderizado por KaTeX con alternativa accesible; plantillas
+  para estructuras vigentes; autoguardado, undo/redo, importación/exportación, digest, diff y
+  aplicación; saneamiento sin HTML o JavaScript ejecutable; migración no destructiva de los nodos
+  existentes; ancho persistente por producto sin ocultar controles; prueba de ida y vuelta sobre
+  Taller Vectorial y una ventana multietapa.
+- Fuera de alcance provisional: ejecutar código arbitrario escrito por un docente, instalar
+  paquetes desde la fuente editorial, colaboración online, multimedia remota y servidor de
+  UPD-002.
+- Dependencias, invariantes o ADR: requiere un ADR nuevo para sintaxis, AST, autoridad entre fuente
+  y documento compilado, catálogo de figuras, migración y límites de seguridad. Debe reutilizar
+  KaTeX local y el esquema editorial, sin crear un segundo motor de contenido incongruente.
+
+#### Preguntas bloqueantes
+
+1. ¿Aceptas una sintaxis declarativa restringida y extensible —Markdown más bloques ORBIT— en vez
+   de HTML/JavaScript o paquetes arbitrarios? Recomendación: sí; ofrece libertad mediante un AST y
+   componentes registrados sin permitir ejecución insegura.
+2. ¿La primera entrega debe cubrir todas las estructuras que ORBIT ya soporta y dejar figuras
+   nuevas como componentes registrados por desarrolladores? Recomendación: sí; primero lograr
+   paridad y round-trip, después diseñar importación o creación visual de componentes inéditos.
+
+#### Implementación y revisión
+
+- Base revisada: ORBIT 0.7.0 pendiente de publicación y contrato editorial v5.
+- Rutas propias: por determinar después del ADR y las dos decisiones bloqueantes.
+- Resultado: no iniciada; épica clasificada desde la bandeja el 2026-09-04.
+- Pruebas automáticas: no aplican todavía.
+- Preflight del entorno: pendiente.
+- Revisión manual humana: pendiente — deberá cubrir autoría, preview, persistencia y ventanas
+  redimensionables en Edge externo.
+- Observaciones del usuario: prioriza una base escalable que puedan usar tanto docentes como
+  desarrolladores, no una sucesión indefinida de parches por tipo de ventana.
 
 ### UPD-002 — Sistema de servidor online
 

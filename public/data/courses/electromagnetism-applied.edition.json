@@ -2,23 +2,25 @@
   "kind": "orbit-course-edition",
   "schemaVersion": 1,
   "courseId": "electromagnetism-applied",
-  "revision": "sha256:bc5258ae59ba60f97b1de809d00e602efa62ca2da9ce15ca735d8636451a0fc2",
-  "previousRevision": "sha256:ef0d04f9d466ad413d221945e26ab02da1ce709a3c580c0647e00a580e84f12c",
+  "revision": "sha256:69b473310f63fb8bb81e41d26eea6955d9f9b16c7f4a2b0430c92b96d709eb0a",
+  "previousRevision": "sha256:bc5258ae59ba60f97b1de809d00e602efa62ca2da9ce15ca735d8636451a0fc2",
   "resetPolicy": "full-reset-v1",
   "acceptsUnversionedProgress": false,
-  "appliedAt": "2026-08-31T07:30:39.805Z",
-  "digest": "bc5258ae59ba60f97b1de809d00e602efa62ca2da9ce15ca735d8636451a0fc2",
+  "appliedAt": "2026-09-02T22:59:44.046Z",
+  "digest": "69b473310f63fb8bb81e41d26eea6955d9f9b16c7f4a2b0430c92b96d709eb0a",
   "document": {
     "kind": "orbit-editor-project",
-    "schemaVersion": 3,
+    "schemaVersion": 5,
     "appearanceCatalogVersion": 1,
     "courseId": "electromagnetism-applied",
-    "baseDataVersion": "0.6.0",
+    "baseDataVersion": "0.7.0",
     "areas": [
       {
         "id": "origin",
         "q": 0,
         "r": 0,
+        "title": "Campamento Base",
+        "shortTitle": "Base",
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -29,6 +31,8 @@
         "id": "electrostatics",
         "q": 0,
         "r": 1,
+        "title": "Altiplano Electrostático",
+        "shortTitle": "Electrostática",
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -39,6 +43,8 @@
         "id": "magnetism",
         "q": -1,
         "r": 0,
+        "title": "Cuenca Magnetostática",
+        "shortTitle": "Magnetismo",
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -49,6 +55,8 @@
         "id": "differential-equations",
         "q": 1,
         "r": -1,
+        "title": "Meseta de Ecuaciones Diferenciales",
+        "shortTitle": "Ec. diferenciales",
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -59,6 +67,8 @@
         "id": "maxwell",
         "q": -1,
         "r": 1,
+        "title": "Archivo de Maxwell",
+        "shortTitle": "Maxwell",
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -69,6 +79,8 @@
         "id": "waves",
         "q": 0,
         "r": -1,
+        "title": "Mar de las Ondas",
+        "shortTitle": "Ondas",
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -79,6 +91,8 @@
         "id": "circuits",
         "q": 1,
         "r": 0,
+        "title": "Distrito de Circuitos",
+        "shortTitle": "Circuitos",
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -89,6 +103,8 @@
         "id": "sensors-instrumentation",
         "q": -2,
         "r": 2,
+        "title": "Estación de Sensores e Instrumentación",
+        "shortTitle": "Sensores",
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -99,6 +115,8 @@
         "id": "electrical-machines",
         "q": 1,
         "r": 1,
+        "title": "Taller de Máquinas Eléctricas",
+        "shortTitle": "Máquinas",
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -109,6 +127,8 @@
         "id": "power-systems",
         "q": 2,
         "r": 0,
+        "title": "Red de Sistemas Eléctricos de Potencia",
+        "shortTitle": "Potencia",
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -119,6 +139,8 @@
         "id": "computational-electromagnetics",
         "q": -1,
         "r": 2,
+        "title": "Laboratorio de Electromagnetismo Computacional",
+        "shortTitle": "EM computacional",
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -129,6 +151,8 @@
         "id": "fourier-analysis",
         "q": -1,
         "r": -1,
+        "title": "Observatorio de Fourier",
+        "shortTitle": "Fourier",
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -139,6 +163,8 @@
         "id": "optics-photonics",
         "q": -2,
         "r": 0,
+        "title": "Jardín de Óptica y Fotónica",
+        "shortTitle": "Óptica",
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -149,6 +175,8 @@
         "id": "electromagnetic-compatibility",
         "q": -2,
         "r": 1,
+        "title": "Estación de Superconductividad",
+        "shortTitle": "Superconductividad",
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -159,6 +187,8 @@
         "id": "waveguides",
         "q": 2,
         "r": -2,
+        "title": "Galería de Guías de Onda",
+        "shortTitle": "Guías de onda",
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -169,6 +199,8 @@
         "id": "applications",
         "q": 1,
         "r": -2,
+        "title": "Observatorio de Radioastronomía",
+        "shortTitle": "Radioastronomía",
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -179,6 +211,8 @@
         "id": "antennas",
         "q": 0,
         "r": -2,
+        "title": "Campo de Antenas",
+        "shortTitle": "Antenas",
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -189,6 +223,8 @@
         "id": "wireless-communications",
         "q": 0,
         "r": 2,
+        "title": "Puerto de Comunicaciones Inalámbricas",
+        "shortTitle": "Comunicaciones",
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -199,6 +235,8 @@
         "id": "transmission-lines",
         "q": 2,
         "r": -1,
+        "title": "Corredor de Líneas de Transmisión",
+        "shortTitle": "Líneas",
         "appearance": {
           "paletteId": "canonical",
           "motifId": "canonical",
@@ -206,240 +244,494 @@
         }
       }
     ],
+    "tierLabels": [
+      {
+        "tier": 1,
+        "text": "ANILLO 1 · TEORÍA",
+        "offset": {
+          "x": 634.5445380281253,
+          "y": 72.73435416132656
+        }
+      },
+      {
+        "tier": 2,
+        "text": "ANILLO 2 · APLICACIONES",
+        "offset": {
+          "x": 639.5607003840787,
+          "y": 238.26771190779414
+        }
+      }
+    ],
     "locations": [
       {
         "id": "base-camp",
+        "kind": "base",
+        "title": "Base de la Expedición",
+        "shortTitle": "Base",
         "areaId": "origin",
         "offset": {
           "x": -6.850109973794986,
           "y": 94.67315849535174
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "vector-workshop",
+        "kind": "lesson",
+        "title": "Taller Vectorial",
+        "shortTitle": "Vectores",
         "areaId": "origin",
         "offset": {
-          "x": -40.09644290050829,
-          "y": -50.59534259723938
-        }
+          "x": -68.33938798231219,
+          "y": 9.152676861912859
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "debug-terminal",
+        "kind": "debug",
+        "title": "Terminal de Cartografía",
+        "shortTitle": "Debugger",
         "areaId": "origin",
         "offset": {
           "x": 112,
           "y": 82
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "field-lens-cache",
+        "kind": "gadget",
+        "title": "Depósito del Explorador de Campos",
+        "shortTitle": "Explorador 2D",
         "areaId": "origin",
         "offset": {
-          "x": 129.5899021115971,
-          "y": -25.92602473698946
-        }
+          "x": 100.65150239404227,
+          "y": -117.59049092035296
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "coulomb-observatory",
+        "kind": "lesson",
+        "title": "Observatorio de Coulomb",
+        "shortTitle": "Coulomb",
         "areaId": "electrostatics",
         "offset": {
           "x": -46.31831563256324,
           "y": -22.385644836278573
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "gauss-guide-post",
+        "kind": "npc",
+        "title": "Puesto del Guía de Gauss",
+        "shortTitle": "Guía de Gauss",
         "areaId": "electrostatics",
         "offset": {
           "x": 116.57325063249701,
           "y": 47.747581389253924
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "circuit-analysis-bench",
+        "kind": "lesson",
+        "title": "Banco de Análisis de Circuitos",
+        "shortTitle": "Banco de circuitos",
         "areaId": "circuits",
         "offset": {
           "x": 15.12238576000533,
           "y": -30.55716876240762
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "differential-equations-lab",
+        "kind": "lesson",
+        "title": "Laboratorio de Ecuaciones Diferenciales",
+        "shortTitle": "Laboratorio de ED",
         "areaId": "differential-equations",
         "offset": {
           "x": 3.8021662951476003,
           "y": 0.1570618551712073
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "ampere-foundry",
+        "kind": "lesson",
+        "title": "Fundición de Ampère",
+        "shortTitle": "Ampère",
         "areaId": "magnetism",
         "offset": {
           "x": -117.86933547291954,
           "y": -70.63351643207041
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "electric-cart-depot",
+        "kind": "transport",
+        "title": "Depósito del Carro Eléctrico",
+        "shortTitle": "Carro eléctrico",
         "areaId": "magnetism",
         "offset": {
           "x": -102.83313353626659,
           "y": 102.19530292242493
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "faraday-station",
+        "kind": "lesson",
+        "title": "Estación de Faraday",
+        "shortTitle": "Faraday",
         "areaId": "magnetism",
         "offset": {
           "x": 92.63672686235907,
           "y": 42.080781417931505
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "maxwell-archive",
+        "kind": "lesson",
+        "title": "Cámara de Síntesis de Maxwell",
+        "shortTitle": "Maxwell",
         "areaId": "maxwell",
         "offset": {
           "x": -2.59207408361209,
           "y": -5.509738116151084
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "hertz-beacon",
+        "kind": "lesson",
+        "title": "Baliza de Hertz",
+        "shortTitle": "Hertz",
         "areaId": "waves",
         "offset": {
           "x": -3.802166295147714,
           "y": 33.90935304089629
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "radio-skiff-hangar",
+        "kind": "transport",
+        "title": "Hangar del Deslizador de Radio",
+        "shortTitle": "Deslizador",
         "areaId": "waves",
         "offset": {
           "x": 6.221968329287591,
           "y": -143.92867535047742
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "sensor-calibration-lab",
+        "kind": "lesson",
+        "title": "Laboratorio de Calibración de Sensores",
+        "shortTitle": "Calibración",
         "areaId": "sensors-instrumentation",
         "offset": {
           "x": -5.098155538337551,
           "y": -29.24275128627289
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "rotating-machine-lab",
+        "kind": "lesson",
+        "title": "Laboratorio de Máquina Rotatoria",
+        "shortTitle": "Máquina rotatoria",
         "areaId": "electrical-machines",
         "offset": {
           "x": -6.135784505934794,
           "y": -24.890559889273675
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "power-network-station",
+        "kind": "lesson",
+        "title": "Estación de Redes de Potencia",
+        "shortTitle": "Red de potencia",
         "areaId": "power-systems",
         "offset": {
-          "x": 22,
-          "y": -18
-        }
+          "x": -12.971169932516887,
+          "y": -11.467466651353504
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "field-solver-lab",
+        "kind": "lesson",
+        "title": "Método de Diferencias Finitas",
+        "shortTitle": "FDM",
         "areaId": "computational-electromagnetics",
         "offset": {
           "x": -22.467975685777787,
           "y": -4.19512954182801
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "spectrum-workshop",
+        "kind": "lesson",
+        "title": "Taller del Espectro",
+        "shortTitle": "Espectro",
         "areaId": "fourier-analysis",
         "offset": {
           "x": 5.012067312217596,
           "y": -16.718940414050394
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "optics-bench",
+        "kind": "lesson",
+        "title": "Banco de Interfaces Ópticas",
+        "shortTitle": "Interfaz óptica",
         "areaId": "optics-photonics",
         "offset": {
           "x": 0.8149806684613168,
           "y": -0.7851529621767384
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "shielding-chamber",
+        "kind": "npc",
+        "title": "Heike Kamerlingh Onnes",
+        "shortTitle": "Onnes",
         "areaId": "electromagnetic-compatibility",
         "offset": {
           "x": -99.11715106447161,
           "y": 57.76666830666966
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "superconductivity-transition-lab",
+        "kind": "lesson",
+        "title": "Laboratorio de Transición Superconductora",
+        "shortTitle": "Superconductividad",
         "areaId": "electromagnetic-compatibility",
         "offset": {
           "x": 33.70210692451576,
           "y": -17.37619692666493
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "waveguide-mode-gallery",
+        "kind": "lesson",
+        "title": "Galería de Modos Guiados",
+        "shortTitle": "Modos guiados",
         "areaId": "waveguides",
         "offset": {
           "x": -22,
           "y": 14
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "transmission-line-bench",
+        "kind": "lesson",
+        "title": "Banco de Líneas de Transmisión",
+        "shortTitle": "Banco de líneas",
         "areaId": "transmission-lines",
         "offset": {
           "x": -63.774415200588805,
           "y": 36.41417254479779
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "smith-chart-station",
+        "kind": "gadget",
+        "title": "Estación de la Carta de Smith",
+        "shortTitle": "Carta de Smith",
         "areaId": "transmission-lines",
         "offset": {
           "x": 91.59919349199413,
           "y": -51.252503560759294
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "antenna-range",
+        "kind": "lesson",
+        "title": "Campo de Medición de Antenas",
+        "shortTitle": "Campo de antenas",
         "areaId": "antennas",
         "offset": {
-          "x": 24,
-          "y": -18
-        }
+          "x": 8.569974836261906,
+          "y": 22.25877176585857
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "wireless-link-station",
+        "kind": "mission",
+        "title": "Estación de Presupuesto de Enlace",
+        "shortTitle": "Presupuesto de enlace",
         "areaId": "wireless-communications",
         "offset": {
           "x": 33.70210692451576,
           "y": -1.1572600718695298
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "atacama-array",
+        "kind": "mission",
+        "title": "Arreglo de Atacama",
+        "shortTitle": "Atacama",
         "areaId": "applications",
         "offset": {
           "x": 2.505985857492114,
           "y": 103.88561296035243
-        }
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
       },
       {
         "id": "lunar-relay",
+        "kind": "mission",
+        "title": "Relé Lunar",
+        "shortTitle": "Enlace lunar",
         "areaId": "applications",
         "offset": {
           "x": 0,
           "y": -78.96200666427626
+        },
+        "lifecycle": "active",
+        "provenance": "canonical"
+      },
+      {
+        "id": "new-node-0001",
+        "kind": "lesson",
+        "title": "Taller de fasores",
+        "shortTitle": "Fasores",
+        "areaId": "origin",
+        "offset": {
+          "x": 73.89461141778617,
+          "y": 6.336162022307036
+        },
+        "lifecycle": "active",
+        "provenance": "editor-created",
+        "content": {
+          "marker": "L",
+          "interactionRadius": 78,
+          "visibility": "visibleWhenAreaUnlocked",
+          "grants": {},
+          "objective": "Contenido provisional: definir y comprobar el objetivo de aprendizaje de Taller de fasores.",
+          "sections": [
+            {
+              "title": "Contenido provisional",
+              "paragraphs": [
+                "Este nodo editorial contiene material demostrativo. Sustituye este texto por contenido disciplinar revisado antes de una publicación definitiva."
+              ]
+            }
+          ],
+          "sources": [],
+          "exercise": {
+            "type": "choice",
+            "prompt": "¿Qué describe mejor el estado actual de este nodo?",
+            "choices": [
+              {
+                "id": "content-provisional",
+                "label": "Es contenido provisional pendiente de revisión disciplinar"
+              },
+              {
+                "id": "content-final",
+                "label": "Es contenido definitivo listo para una publicación académica"
+              }
+            ],
+            "answerId": "content-provisional",
+            "explanation": "El nodo fue creado desde una plantilla genérica y permanece marcado como provisional."
+          }
+        }
+      },
+      {
+        "id": "new-node-0002",
+        "kind": "lesson",
+        "title": "Malla dual Voronoi-Delaunay",
+        "shortTitle": "Malla V-D",
+        "areaId": "computational-electromagnetics",
+        "offset": {
+          "x": 69.1951178918381,
+          "y": 35.01882004263814
+        },
+        "lifecycle": "inventory",
+        "provenance": "editor-created",
+        "content": {
+          "marker": "L",
+          "interactionRadius": 78,
+          "visibility": "visibleWhenAreaUnlocked",
+          "grants": {},
+          "objective": "Contenido provisional: definir y comprobar el objetivo de aprendizaje de Malla dual Voronoi-Delaunay.",
+          "sections": [
+            {
+              "title": "Contenido provisional",
+              "paragraphs": [
+                "Este nodo editorial contiene material demostrativo. Sustituye este texto por contenido disciplinar revisado antes de una publicación definitiva."
+              ]
+            }
+          ],
+          "sources": [],
+          "exercise": {
+            "type": "choice",
+            "prompt": "¿Qué describe mejor el estado actual de este nodo?",
+            "choices": [
+              {
+                "id": "content-provisional",
+                "label": "Es contenido provisional pendiente de revisión disciplinar"
+              },
+              {
+                "id": "content-final",
+                "label": "Es contenido definitivo listo para una publicación académica"
+              }
+            ],
+            "answerId": "content-provisional",
+            "explanation": "El nodo fue creado desde una plantilla genérica y permanece marcado como provisional."
+          }
         }
       }
     ],
+    "nextLocationSequence": 3,
     "learningNetwork": {
       "nodeIds": [
         "vector-workshop",
@@ -462,7 +754,8 @@
         "antenna-range",
         "wireless-link-station",
         "atacama-array",
-        "lunar-relay"
+        "lunar-relay",
+        "new-node-0001"
       ],
       "connections": [
         {
@@ -558,6 +851,10 @@
           "targetId": "superconductivity-transition-lab"
         },
         {
+          "sourceId": "optics-bench",
+          "targetId": "superconductivity-transition-lab"
+        },
+        {
           "sourceId": "rotating-machine-lab",
           "targetId": "wireless-link-station"
         },
@@ -578,11 +875,15 @@
           "targetId": "faraday-station"
         },
         {
+          "sourceId": "vector-workshop",
+          "targetId": "new-node-0001"
+        },
+        {
           "sourceId": "waveguide-mode-gallery",
           "targetId": "lunar-relay"
         }
       ]
     },
-    "updatedAt": "2026-08-31T07:28:20.280Z"
+    "updatedAt": "2026-09-02T22:57:45.043Z"
   }
 }
