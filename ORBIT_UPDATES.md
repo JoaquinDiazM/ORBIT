@@ -235,12 +235,13 @@ Añade aquí una idea en lenguaje natural. No necesita ID ni detalles técnicos.
   Descripción:
 -->
 
-Sin propuestas pendientes de clasificar.
+Sin propuestas pendientes de clasificar. La política editorial solicitada se registró como UPD-025.
 
 ## Cohorte inmediata
 
 - Versión: `0.8.0`
-- Estado de la cohorte: `abierta`
+- Estado de la cohorte: `cerrada`
+- Cierre confirmado por JoaquinDiazM: 2026-09-09.
 - IDs: `UPD-021`, `UPD-024`
 - Apertura registrada tras publicar ORBIT 0.7.1: 2026-09-09.
 
@@ -253,7 +254,7 @@ Sin propuestas pendientes de clasificar.
 - Versión objetivo: `0.8.0`
 - Impacto sugerido: `Y`; convierte Spider en una herramienta de autoría académica y amplía el
   contrato declarativo de ventanas interactivas.
-- Próximo responsable: JoaquinDiazM, revisión humana y decisión de aprobación.
+- Próximo responsable: JoaquinDiazM, repetir la revisión de Comprobar servicio y Aplicar.
 
 #### Solicitud original
 
@@ -288,6 +289,9 @@ F = ∇f» en la etapa 5 del Taller Vectorial no debe aparecer como texto matem�
 - Dependencias, invariantes o ADR: requiere un ADR nuevo para sintaxis, AST, autoridad entre fuente
   y documento compilado, catálogo de figuras, migración y límites de seguridad. Debe reutilizar
   KaTeX local y el esquema editorial, sin crear un segundo motor de contenido incongruente.
+- Corrección autorizada tras revisión humana: reparar el fallo de check al aplicar Fasores y
+  ampliar **Volver a comprobar servicio** para comprobar el borrador antes de Aplicar, con errores
+  útiles y sin reemplazar fuente, dist o progreso durante esa comprobación.
 
 #### Preguntas bloqueantes
 
@@ -309,34 +313,53 @@ F = ∇f» en la etapa 5 del Taller Vectorial no debe aparecer como texto matem�
 - Invariantes revisados: fuente académica como autoridad única del cuerpo, migración editorial
   no destructiva, IDs y progreso v4 estables, red y territorio derivados, sitio estático,
   saneamiento sin ejecución, teclado y almacenamiento separado. No se añaden dependencias.
-- Pruebas automáticas: `npm run check` termina con código cero: 543 casos, 541 aprobados y dos
-  symlinks omitidos por Windows; cero fallos. Validación de alcanzabilidad, 137 archivos JS,
+- Pruebas automáticas: `npm run check` termina con código cero: 580 casos, 578 aprobados y dos
+  symlinks omitidos por Windows; cero fallos. Validación de alcanzabilidad, 140 archivos JS,
   enlaces de 45 documentos y build aprobados. Ida y vuelta de los 29 nodos editables, migración,
   firma, aplicación aislada, recuperación, renderer, matemática y redimensionado cubiertos. Se
-  adaptó la fixture de aplicación al esquema v6 conservando todas sus aserciones.
+  adaptó la fixture de aplicación al esquema v6 conservando todas sus aserciones. La corrección
+  añade cobertura de copia aislada, autenticación, exclusión mutua, diagnósticos stdout/stderr,
+  cambios concurrentes, revisión/sesión, respuestas tardías y eventos reales de los controles UI
+  con DOM y almacenamiento aislados. El nuevo precheck ejecutó también el check completo real
+  sobre un borrador válido de Fasores: 578 aprobadas, fuente y dist canónicos idénticos y copia
+  temporal/caché npm retirados. No se modificó el contenido académico persistente.
 - Preflight del entorno: 2026-09-09, cambios del checkout limitados a esta cohorte; 4173 libre,
   sin servicio, journal, tombstone ni lock de autoría. Se conserva únicamente el directorio de
   respaldos preexistente. Coinciden los 97 archivos fuente/public con dist y ambas entradas HTML
   con su transformación KaTeX; fuente y build-info conservan revisión/digest `69b47331…`.
-  Ocho recursos HTTP devolvieron `Cache-Control: no-store` en una raíz temporal, PID 13004 y
-  puerto aislado 58665; proceso terminado, puerto liberado y raíz retirada. Sin navegador ni
-  perfiles/cachés del desarrollador usados, sin servidores de agente activos.
-- Revisión manual humana: pendiente. Desde terminal visible de VS Code iniciar `npm run dev` y
+  El nuevo endpoint de comprobación devuelve `Cache-Control: no-store` en una raíz y puerto
+  temporales, retirados al terminar. Preflight repetido tras la corrección: 4173 sin listeners,
+  cero procesos Node de ORBIT o de pruebas; sin navegador ni perfiles/cachés del desarrollador
+  usados. Build de 2026-09-09T19:28:26.787Z concordante con fuente; sin recursos de agente activos.
+- Revisión manual humana: el primer intento falló; corrección lista, repetición pendiente.
+  Desde terminal visible de VS Code iniciar `npm run dev` y
   revisar en Edge externo los pasos de `docs/CONTENT_SOURCE_GUIDE.md` y la sección 0.8.0 de
   `docs/QA_CHECKLIST.md`. Cubrir autoría, recuperación, preview, historial y paneles; para Aplicar,
-  seguir el cambio a mantenimiento de `docs/EDITOR_GUIDE.md`. El agente congela escrituras desde
+  seguir el cambio a mantenimiento de `docs/EDITOR_GUIDE.md`, con el helper reiniciado para cargar
+  esta corrección. En Resumen, pulsar **Volver a comprobar servicio**, esperar el resultado y
+  revisar/confirmar el plan antes de Aplicar; comprobar que un fallo aparece antes de habilitarlo.
+  El agente congela escrituras desde
   la validación del borrador hasta el resultado humano de Aplicar. No se atribuye revisión humana
   a las pruebas automatizadas con almacenamiento inyectado.
+- Diagnóstico de la reactivación (2026-09-09): una edición válida de Fasores reproducida en copia
+  aislada falla únicamente en la prueba del registro: la cohorte marcada `cerrada` carecía de la
+  línea de fecha de cierre. Se registra el cierre ya indicado por JoaquinDiazM; el helper además
+  descartaba stdout y perdía la explicación. Corregido: el botón comprueba el candidato completo
+  en copia temporal y muestra los detalles antes de habilitar Aplicar. Editar o cambiar de sesión
+  invalida la evidencia; Aplicar conserva su check y recuperación propios. La reproducción
+  aislada del fallo original, corregida únicamente con la fecha de cierre, superó la aplicación
+  real y su reversión sin alterar la fuente canónica.
 - Observaciones del usuario: prioriza una base escalable que puedan usar tanto docentes como
   desarrolladores, no una sucesión indefinida de parches por tipo de ventana. Para la primera pregunta, si. Respecto a la segunda pregunta tambien si.
+- Observaciones del usuario (2): Al intentar aplicar las modificaciones que hice a un nodo, el de fasores, salto la notificacion de "La edición no superó npm run check." esto no solo hay que arreglarlo, en caso de que vuelva a pasar debe ser algo que se notifique antes, con el boton de comprobar servicio.
 
 ### UPD-024 — Sincronizar la prueba de desconexión del servidor en Linux
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `infraestructura`
 - Versión objetivo: `0.8.0`
 - Impacto sugerido: `Z`; estabiliza una comprobación preexistente del control local.
-- Próximo responsable: JoaquinDiazM, decisión de aprobación; CI Linux tras publicación autorizada.
+- Próximo responsable: agente, publicación cuando UPD-021 también quede aprobado; CI Linux posterior.
 
 #### Solicitud original
 
@@ -375,8 +398,8 @@ pasa. La prueba espera el cierre del cliente, pero no el cierre observado por el
   autorizado. No se presenta la aprobación Windows como evidencia Linux.
 - Preflight del entorno: pruebas con servidores acotados y raíces temporales retiradas; 4173
   libre, sin servicios ni recursos de agente persistentes. Comparte el preflight final de UPD-021.
-- Revisión manual humana: no requiere gestos de navegador porque solo cambia el test; pendiente
-  de aprobación de JoaquinDiazM y de cerrar la cohorte 0.8.0 para publicar.
+- Revisión manual humana: no requiere gestos de navegador porque solo cambia el test.
+  JoaquinDiazM lo marcó aprobado y cerró la cohorte el 2026-09-09; espera la aprobación de UPD-021.
 - Observaciones del usuario: «Autorizar UPD-024», recibido el 2026-09-09.
 
 ### UPD-002 — Sistema de servidor online
@@ -427,6 +450,47 @@ contenido mediante ORBIT Editor durante mantenciones planificadas.
   docente, estadísticas, respaldo y publicación editorial.
 - Pruebas: no aplican todavía.
 - Observaciones del usuario: pendientes.
+
+### UPD-025 — Edición de contenido por agentes mediante ORBIT Editor/Spider
+
+- Estado: `propuesto`
+- Tipo: `documentación`
+- Versión objetivo: `auto`
+- Impacto sugerido: `Z`; establece el procedimiento operativo de autoría de contenido.
+- Próximo responsable: JoaquinDiazM, autorización para una cohorte posterior a 0.8.0.
+
+#### Solicitud original
+
+Politica de agentes actualizada
+
+Quiero que de ahora en adelante los agentes adopten la politica de incorporar cambios atravez de ORBIT Editor, hablo en particular de los cambios a nivel de contenido tienen que usar el modo de modificar en la herramienta de spider para verificar que el motor y lengueje creado siempre esta lo mas actualizado posible y en caso de encontrar dificultades, bajar a nivel del backend del motor de creacion de contenido para mejorar la experiencia de uso tanto de agentes como de usuarios docentes.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: incorporar cambios académicos mediante ORBIT Editor → Spider → Modificar
+  → Editar contenido, usando la fuente, compilador y preview disponibles para docentes.
+- Decisiones expresadas: esa ruta editorial debe ser obligatoria para contenido; las dificultades
+  deben servir para mejorar el motor y la experiencia de autoría local.
+- Criterios de aceptación: AGENTS.md y las guías describen el mismo procedimiento; cada cambio
+  registra nodo, fuente, validación y preview; una limitación del Editor se reproduce antes de
+  modificar sus módulos dentro del alcance autorizado y se vuelve a comprobar desde Spider.
+  Se conservan IDs, trazabilidad científica, sesiones identificadas, limpieza y aplicación humana.
+- Fuera de alcance: reabrir 0.8.0, añadir funciones al motor por esta ficha, backend remoto o
+  modificar perfiles/cachés del desarrollador.
+- Dependencias, invariantes o ADR: requiere UPD-021 publicada; conserva ADR 0011, fuente editorial
+  como autoridad y reglas de revisión humana. El motor es la implementación local existente.
+
+#### Preguntas bloqueantes
+
+- Ninguna para el alcance documental propuesto; se conservan las reglas actuales de aplicación
+  canónica humana. Una ampliación sobre esa sesión debe quedar explícita en la autorización.
+
+#### Implementación y revisión
+
+- Resultado: propuesta clasificada; no implementada ni añadida a la cohorte cerrada 0.8.0.
+- Pruebas automáticas: no aplican todavía.
+- Preflight del entorno: no aplica a la clasificación.
+- Revisión manual humana: pendiente de autorización e implementación.
 
 ## Historial
 

@@ -218,7 +218,8 @@ Para probar cambios editoriales:
     confirmación/**Aplicar** deshabilitados con una explicación visible;
 11. sin exigir un checkout limpio ni crear commits, detén `npm run dev`, cierra las demás
     pestañas e inicia `npm run editor:author` en el origen fijo `127.0.0.1:4173`,
-    comprueba que todas las entradas ORBIT responden en mantenimiento, aplica y verifica reset,
+    comprueba que todas las entradas ORBIT responden en mantenimiento, pulsa **Volver a comprobar
+    servicio** y espera el check del borrador en copia; revisa el impacto, aplica y verifica reset,
     conservación de documento/preferencias y concordancia fuente/build;
 12. detén autoría, inicia nuevamente `npm run dev` y vuelve a ORBIT en los tres perfiles para
     comprobar la revisión instalada.

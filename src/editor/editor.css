@@ -893,6 +893,8 @@
 }
 
 .editor-application-status[data-level="error"] {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
   border-left-color: #ff8f9b;
   color: #ffdce0;
 }

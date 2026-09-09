@@ -1,5 +1,6 @@
 const SESSION_ENDPOINT = "/__orbit/author/session";
 const AUTHOR_ENDPOINTS = Object.freeze({
+  check: "/__orbit/author/check",
   apply: "/__orbit/author/apply",
   finalize: "/__orbit/author/finalize",
   rollback: "/__orbit/author/rollback",
@@ -53,6 +54,7 @@ export class EditorAuthorClient {
       || body.token.length < 32
       || typeof body.courseId !== "string"
       || body.courseId.length === 0
+      || !(body.currentRevision === null || typeof body.currentRevision === "string")
       || !isRecord(body.endpoints)
       || Object.entries(AUTHOR_ENDPOINTS).some(
         ([name, endpoint]) => body.endpoints[name] !== endpoint,
@@ -69,6 +71,10 @@ export class EditorAuthorClient {
 
   async apply({ document, expectedPreviousRevision }) {
     return this.#post("apply", { document, expectedPreviousRevision });
+  }
+
+  async check({ document, expectedPreviousRevision }) {
+    return this.#post("check", { document, expectedPreviousRevision });
   }
 
   async finalize(rollbackToken) {

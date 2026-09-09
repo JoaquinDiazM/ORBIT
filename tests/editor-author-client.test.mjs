@@ -15,7 +15,9 @@ const session = {
   schemaVersion: 1,
   token: "s".repeat(64),
   courseId: "electromagnetism-applied",
+  currentRevision: null,
   endpoints: {
+    check: "/__orbit/author/check",
     apply: "/__orbit/author/apply",
     finalize: "/__orbit/author/finalize",
     rollback: "/__orbit/author/rollback",
@@ -98,6 +100,8 @@ test("el cliente rechaza tokens, cursos y tablas de endpoints incompletos", asyn
   for (const invalid of [
     { ...session, token: "breve" },
     { ...session, courseId: "" },
+    { ...session, currentRevision: undefined },
+    { ...session, endpoints: { ...session.endpoints, check: undefined } },
     { ...session, endpoints: { ...session.endpoints, finalize: "/__orbit/author/otro" } },
   ]) {
     const client = new EditorAuthorClient({ fetchImpl: async () => response(invalid) });
@@ -107,4 +111,22 @@ test("el cliente rechaza tokens, cursos y tablas de endpoints incompletos", asyn
         && error.code === "invalid-author-session",
     );
   }
+});
+
+test("check envía el candidato al endpoint autenticado y conserva el diagnóstico del repositorio", async () => {
+  const calls = [];
+  const client = new EditorAuthorClient({
+    fetchImpl: async (url, options) => {
+      calls.push({ url, options });
+      return options.method === "GET" ? response(session) : response({
+        ok: false, code: "repository-check-failed", message: "npm run check falló: updates-registry · falta cierre confirmado.",
+      }, { ok: false, status: 400 });
+    },
+  });
+  await assert.rejects(client.check({ document: { source: "Fasores" }, expectedPreviousRevision: "sha256:base" }),
+    (error) => error.code === "repository-check-failed" && error.message.includes("updates-registry"));
+  assert.equal(calls[1].url, "/__orbit/author/check");
+  assert.equal(calls[1].options.cache, "no-store");
+  assert.equal(calls[1].options.headers["x-orbit-author-token"], session.token);
+  assert.deepEqual(JSON.parse(calls[1].options.body), { document: { source: "Fasores" }, expectedPreviousRevision: "sha256:base" });
 });

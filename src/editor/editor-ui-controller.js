@@ -11,6 +11,13 @@ const EDITOR_AUTHOR_ORIGIN = "http://127.0.0.1:4173";
 const SERVICE_STOPPED_ACTION_MESSAGE =
   "Servidor detenido: aplicar permanece bloqueado hasta verificar el próximo servicio local.";
 
+export function hasCurrentRepositoryCheck(plan, evidence) {
+  return Boolean(plan && evidence && evidence.code === 0
+    && evidence.courseId === plan.courseId
+    && evidence.currentRevision === plan.currentRevision
+    && evidence.targetRevision === plan.targetRevision);
+}
+
 export function shouldRetryEditorService({
   origin,
   session,
@@ -482,6 +489,8 @@ export class EditorUIController {
     this.applicationActionMessage = null;
     this.pendingResolution = null;
     this.applicationEvidence = null;
+    this.repositoryCheckError = null;
+    this.repositoryChecking = false;
     this.reloadRequired = false;
     this.helperStatusText = "Sin comprobar";
     this.selectedInventoryLocationId = null;
@@ -517,6 +526,7 @@ export class EditorUIController {
       validateApplication: query("#editor-validate-application"),
       retryService: query("#editor-retry-service"),
       applicationStatus: query("#editor-application-status"),
+      repositoryCheckStatus: query("#editor-repository-check-status"),
       pendingApplication: query("#editor-pending-application"),
       pendingDetail: query("#editor-pending-detail"),
       recoverApplication: query("#editor-recover-application"),
@@ -664,11 +674,14 @@ export class EditorUIController {
       this.render();
     });
     this.render();
-    if (this.serviceMonitor) void this.serviceMonitor.start();
+    if (this.serviceMonitor) void this.serviceMonitor.start().catch(() => undefined);
   }
 
   destroy() {
     this.destroyed = true;
+    this.applicationGeneration += 1;
+    this.applicationCoordinator?.invalidate();
+    this.applicationCoordinator?.disconnect();
     this.unsubscribeModel?.();
     this.unsubscribeBowerbird?.();
     this.unsubscribeApp?.();
@@ -1065,6 +1078,8 @@ export class EditorUIController {
         ? "Hay una aplicación pendiente o en curso; resuélvela antes de apagar."
         : "Detiene únicamente el servidor ORBIT que sirve esta página.";
       if (session.service === "development") {
+        this.applicationCoordinator?.disconnect();
+        this.elements.confirmApplication.checked = false;
         this.authorSessionReady = false;
         this.helperStatusText = "Modo normal · aplicación bloqueada";
       } else if (!this.authorSessionReady) {
@@ -1073,6 +1088,8 @@ export class EditorUIController {
       return session;
     } catch (error) {
       if (!this.destroyed) {
+        this.applicationCoordinator?.disconnect();
+        this.elements.confirmApplication.checked = false;
         this.localServiceMode = "unknown";
         this.localServiceDiagnostic = [
           error?.code ?? "local-service-unavailable",
@@ -1094,6 +1111,11 @@ export class EditorUIController {
     if (!this.localServiceClient || this.destroyed) {
       return { mode: "unknown", authorReady: false, transient: false };
     }
+    // A focus/pageshow probe must not mistake our own check's busy response
+    // for a lost helper session. The explicit action refreshed before starting it.
+    if (this.repositoryChecking) {
+      return { mode: this.localServiceMode, authorReady: this.authorSessionReady, transient: false };
+    }
     const session = await this.#probeLocalServiceControl();
     if (this.localServiceMode === "editor-author") {
       await this.#probeAuthorHelper({ announceReady });
@@ -1113,29 +1135,51 @@ export class EditorUIController {
 
   async #retryServiceDetection() {
     if (!this.serviceMonitor || this.applicationBusy || this.destroyed) return;
+    const generation = this.applicationGeneration;
     this.applicationActionMessage = null;
+    this.repositoryCheckError = null;
+    this.elements.confirmApplication.checked = false;
+    this.#setApplicationBusy(true);
     this.#setApplicationStatus("Comprobando de nuevo el servicio local…", "info");
-    const result = await this.serviceMonitor.refresh();
-    if (this.destroyed) return;
-    if (result?.mode === "editor-author" && result.authorReady) {
-      this.#setApplicationStatus(
-        this.applicationPlan
-          ? "Modo mantenimiento verificado. El plan validado sigue vigente; ya puedes confirmar."
-          : "Modo mantenimiento verificado. Valida la edición para calcular el plan aplicable.",
-        "success",
-      );
-    } else if (result?.mode === "development") {
-      this.#setApplicationStatus(
-        "Modo normal detectado. Puedes validar, pero aplicar requiere iniciar mantenimiento.",
-        "info",
-      );
-    } else {
-      this.#setApplicationStatus(
-        "El servicio todavía no responde. El Editor seguirá intentando mientras esta pestaña permanezca abierta.",
-        "warning",
-      );
+    try {
+      const result = await this.serviceMonitor.refresh();
+      if (this.destroyed || generation !== this.applicationGeneration) return;
+      if (result?.mode === "editor-author" && result.authorReady && !this.pendingResolution && !this.reloadRequired) {
+        this.repositoryChecking = true;
+        this.#renderApplicationState();
+        this.#setApplicationStatus("Validando el plan y ejecutando npm run check sobre una copia temporal del borrador…", "info");
+        const checked = await this.applicationCoordinator.check(this.model.getSnapshot().document);
+        if (this.destroyed || generation !== this.applicationGeneration) return;
+        this.applicationPlan = checked.plan;
+        this.#setApplicationStatus(
+          checked.plan.changed
+            ? "Comprobación completa superada. Revisa el plan y confirma esta revisión para aplicar."
+            : "Comprobación completa superada. La edición coincide con la revisión activa; no hay cambios que aplicar.",
+          "success",
+        );
+      } else if (this.pendingResolution || this.reloadRequired) {
+        this.#setApplicationStatus("Resuelve la aplicación pendiente o recarga antes de comprobar otro borrador.", "warning");
+      } else if (result?.mode === "development") {
+        this.#setApplicationStatus("Modo normal detectado. Para comprobar el borrador completo, inicia mantenimiento y vuelve a pulsar este botón.", "info");
+      } else {
+        this.#setApplicationStatus("El servicio todavía no responde. El Editor seguirá intentando mientras esta pestaña permanezca abierta.", "warning");
+      }
+    } catch (error) {
+      if (this.destroyed || generation !== this.applicationGeneration) return;
+      this.applicationCoordinator?.invalidateCheck();
+      this.applicationPlan = this.applicationCoordinator?.getSnapshot().plan ?? null;
+      this.repositoryCheckError = this.#applicationErrorMessage(error);
+      const summary = this.repositoryCheckError.split(/\r?\n/, 1)[0].slice(0, 320);
+      this.#setApplicationStatus(`${summary} Consulta el diagnóstico completo debajo.`, "error");
+    } finally {
+      if (!this.destroyed) {
+        this.repositoryChecking = false;
+        if (generation !== this.applicationGeneration) {
+          this.#setApplicationStatus("El borrador cambió durante la comprobación; vuelve a comprobar el servicio.", "warning");
+        }
+        this.#setApplicationBusy(false);
+      }
     }
-    this.#renderApplicationState();
   }
 
   async #requestLocalShutdown() {
@@ -1168,6 +1212,8 @@ export class EditorUIController {
       await this.localServiceClient.shutdown();
       if (this.destroyed) return;
       this.localServiceMode = "unknown";
+      this.applicationCoordinator?.disconnect();
+      this.elements.confirmApplication.checked = false;
       this.authorSessionReady = false;
       this.applicationProbeStarted = false;
       this.applicationActionMessage = SERVICE_STOPPED_ACTION_MESSAGE;
@@ -1211,11 +1257,13 @@ export class EditorUIController {
   }
 
   #setApplicationStatus(message, level = "info") {
+    if (this.destroyed) return;
     this.elements.applicationStatus.textContent = message;
     this.elements.applicationStatus.dataset.level = level;
   }
 
   #setApplicationBusy(busy) {
+    if (this.destroyed) return;
     this.applicationBusy = Boolean(busy);
     this.elements.shell.dataset.applying = String(this.applicationBusy);
     this.elements.shell.setAttribute("aria-busy", String(this.applicationBusy));
@@ -1230,6 +1278,7 @@ export class EditorUIController {
     this.applicationGeneration += 1;
     this.applicationCoordinator?.invalidate();
     this.applicationPlan = null;
+    this.repositoryCheckError = null;
     this.applicationActionMessage = null;
     this.elements.confirmApplication.checked = false;
     if (message && !this.applicationBusy) this.#setApplicationStatus(message, "warning");
@@ -1294,6 +1343,8 @@ export class EditorUIController {
       }
     } catch (error) {
       if (this.destroyed) return;
+      this.applicationCoordinator.disconnect();
+      this.elements.confirmApplication.checked = false;
       this.authorSessionReady = false;
       this.helperStatusText = error?.code === "pending-browser-state-ambiguous"
         ? "Pendiente bloqueada por estado ambiguo"
@@ -1314,7 +1365,7 @@ export class EditorUIController {
   }
 
   async #validateCourseApplication() {
-    if (!this.applicationCoordinator || this.applicationBusy || this.reloadRequired) return;
+    if (!this.applicationCoordinator || this.applicationBusy || this.reloadRequired || this.destroyed) return;
     const candidate = this.model.getSnapshot().document;
     const generation = this.applicationGeneration;
     this.#setApplicationBusy(true);
@@ -1324,7 +1375,9 @@ export class EditorUIController {
     );
     try {
       await this.serviceMonitor?.refresh();
+      if (this.destroyed || generation !== this.applicationGeneration) return;
       const plan = await this.applicationCoordinator.validate(candidate);
+      if (this.destroyed) return;
       if (generation !== this.applicationGeneration) {
         this.applicationCoordinator.invalidate();
         this.applicationPlan = null;
@@ -1335,16 +1388,18 @@ export class EditorUIController {
         return;
       }
       this.applicationPlan = plan;
+      this.repositoryCheckError = null;
       this.applicationActionMessage = null;
       this.elements.confirmApplication.checked = false;
       const warningCount = plan.validation.warnings.length;
       this.#setApplicationStatus(
         plan.changed
-          ? `Plan válido${warningCount ? ` con ${warningCount} advertencia${warningCount === 1 ? "" : "s"}` : ""}. Revisa el impacto y confirma explícitamente.`
+          ? `Plan válido${warningCount ? ` con ${warningCount} advertencia${warningCount === 1 ? "" : "s"}` : ""}. Usa «Volver a comprobar servicio» para comprobar el borrador completo antes de confirmar.`
           : "La revisión calculada coincide con la edición activa; no hay nada que aplicar.",
         plan.changed ? (warningCount ? "warning" : "success") : "info",
       );
     } catch (error) {
+      if (this.destroyed || generation !== this.applicationGeneration) return;
       this.applicationPlan = null;
       this.elements.confirmApplication.checked = false;
       this.#setApplicationStatus(this.#applicationErrorMessage(error), "error");
@@ -1361,34 +1416,39 @@ export class EditorUIController {
       || !this.elements.confirmApplication.checked
       || this.pendingResolution
       || this.reloadRequired
+      || this.destroyed
+      || !hasCurrentRepositoryCheck(this.applicationPlan, this.applicationCoordinator.getSnapshot().repositoryCheck)
     ) return;
     this.applicationActionMessage = null;
     this.#setApplicationBusy(true);
     this.#setApplicationStatus("Comprobando el modo mantenimiento antes de aplicar…", "info");
-    await this.serviceMonitor?.refresh();
-    if (this.pendingResolution || this.reloadRequired) {
-      this.#setApplicationBusy(false);
-      return;
-    }
-    if (this.localServiceMode !== "editor-author" || !this.authorSessionReady) {
-      const message = this.localServiceMode === "development"
-        ? "Aplicar está bloqueado en modo normal. Detén `dev`, inicia `npm run editor:author` y vuelve a validar la sesión."
-        : "No hay una sesión de mantenimiento verificada. Inicia `npm run editor:author` y cierra las demás pestañas de ORBIT.";
-      this.applicationActionMessage = message;
-      this.#setApplicationStatus(message, "warning");
-      this.toast(message, "warning", 7000);
-      this.#setApplicationBusy(false);
-      this.#renderApplicationState();
-      return;
-    }
+    const generation = this.applicationGeneration;
     const candidate = this.model.getSnapshot().document;
     const confirmedPlan = structuredClone(this.applicationPlan);
-    this.#setApplicationStatus(
-      "Aplicando fuente, ejecutando `npm run check`, construyendo dist y reiniciando el progreso local…",
-      "warning",
-    );
     try {
+      await this.serviceMonitor?.refresh();
+      if (this.destroyed || generation !== this.applicationGeneration) return;
+      if (this.pendingResolution || this.reloadRequired) {
+        this.#setApplicationBusy(false);
+        return;
+      }
+      if (this.localServiceMode !== "editor-author" || !this.authorSessionReady) {
+        const message = this.localServiceMode === "development"
+          ? "Aplicar está bloqueado en modo normal. Detén `dev`, inicia `npm run editor:author` y vuelve a validar la sesión."
+          : "No hay una sesión de mantenimiento verificada. Inicia `npm run editor:author` y cierra las demás pestañas de ORBIT.";
+        this.applicationActionMessage = message;
+        this.#setApplicationStatus(message, "warning");
+        this.toast(message, "warning", 7000);
+        this.#setApplicationBusy(false);
+        this.#renderApplicationState();
+        return;
+      }
+      this.#setApplicationStatus(
+        "Aplicando fuente, ejecutando `npm run check`, construyendo dist y reiniciando el progreso local…",
+        "warning",
+      );
       const result = await this.applicationCoordinator.apply(candidate);
+      if (this.destroyed) return;
       this.applicationPlan = null;
       this.pendingResolution = null;
       this.elements.confirmApplication.checked = false;
@@ -1425,6 +1485,7 @@ export class EditorUIController {
         7000,
       );
     } catch (error) {
+      if (this.destroyed) return;
       if (["revision-conflict", "application-plan-stale"].includes(error?.code)) {
         this.#invalidateApplicationPlan();
       }
@@ -1451,7 +1512,7 @@ export class EditorUIController {
       }
     } finally {
       this.#setApplicationBusy(false);
-      if (!this.applicationProbeStarted) void this.serviceMonitor?.refresh();
+      if (!this.destroyed && !this.applicationProbeStarted) void this.serviceMonitor?.refresh().catch(() => undefined);
     }
   }
 
@@ -1503,12 +1564,23 @@ export class EditorUIController {
   }
 
   #renderApplicationState() {
+    if (this.destroyed) return;
     if (!this.applicationCoordinator) {
       this.elements.courseApplication.hidden = true;
       return;
     }
     this.elements.courseApplication.hidden = false;
     const coordinator = this.applicationCoordinator.getSnapshot();
+    const checkReady = hasCurrentRepositoryCheck(this.applicationPlan, coordinator.repositoryCheck);
+    if (!checkReady) this.elements.confirmApplication.checked = false;
+    this.elements.repositoryCheckStatus.textContent = this.repositoryChecking
+      ? "Comprobación completa en curso sobre una copia temporal; espera el resultado."
+      : checkReady
+        ? `npm run check superado para este borrador (${coordinator.repositoryCheck.checkedAt}). Aplicar volverá a comprobarlo antes de integrar.`
+        : this.repositoryCheckError
+          ? `Comprobación fallida: ${this.repositoryCheckError}`
+          : "Comprobación completa pendiente. «Volver a comprobar servicio» valida el plan y ejecuta npm run check en una copia temporal; no aplica el borrador ni reinicia perfiles.";
+    this.elements.repositoryCheckStatus.dataset.level = this.repositoryCheckError ? "error" : checkReady ? "success" : "warning";
     this.elements.currentRevision.textContent = coordinator.currentEdition.revision;
     this.elements.currentSource.textContent = courseSourceLabel(this.courseEdition?.source);
     this.elements.helperStatus.textContent = this.helperStatusText;
@@ -1607,11 +1679,13 @@ export class EditorUIController {
       this.elements.applicationImpact.replaceChildren();
     }
     this.elements.confirmApplication.disabled = this.applicationBusy
+      || !checkReady
       || !this.applicationPlan?.changed
       || !maintenanceReady
       || Boolean(pending)
       || this.reloadRequired;
     this.elements.applyCourse.disabled = this.applicationBusy
+      || !checkReady
       || !this.applicationPlan?.changed
       || !this.elements.confirmApplication.checked
       || !maintenanceReady
@@ -1627,16 +1701,18 @@ export class EditorUIController {
             : !maintenanceReady
               ? "Aplicar permanece bloqueado hasta verificar el helper de mantenimiento y liberar el curso."
               : !this.applicationPlan
-                ? "Mantenimiento listo: valida la edición para calcular un plan aplicable."
+                ? "Mantenimiento listo: usa «Volver a comprobar servicio» para validar el plan y comprobar el borrador completo."
                 : !this.applicationPlan.changed
                   ? "La edición coincide con la revisión activa; no hay cambios que aplicar."
-                  : this.elements.confirmApplication.checked
+                  : !checkReady
+                    ? "Aplicar requiere una comprobación completa vigente. Pulsa «Volver a comprobar servicio»."
+                    : this.elements.confirmApplication.checked
                     ? "Confirmación registrada: puedes aplicar esta revisión local."
                     : "Mantenimiento listo: marca la confirmación para habilitar la aplicación.");
     this.elements.applyReadiness.textContent = readinessMessage;
     this.elements.applyReadiness.dataset.level = this.applicationActionMessage
       ? "warning"
-      : maintenanceReady
+      : maintenanceReady && checkReady
         ? "success"
         : "warning";
 

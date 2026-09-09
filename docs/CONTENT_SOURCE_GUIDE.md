@@ -21,7 +21,9 @@ Cambiar de nodo, cerrar el editor de fuente o recargar no debe perder el texto r
 
 La previsualización usa el mismo renderer, figuras y evaluación que ORBIT. Sus respuestas y
 etapas pertenecen únicamente a esa vista; no completan lugares ni conceden progreso real.
-**Validar** en Resumen comprueba el curso completo. **Aplicar** sigue necesitando mantenimiento,
+**Validar** en Resumen comprueba el curso completo. En mantenimiento, **Volver a comprobar
+servicio** prueba el borrador con la suite completa en una copia temporal y muestra los fallos
+antes de aplicar. **Aplicar** sigue necesitando mantenimiento, esa comprobación aprobada,
 revisión del impacto, confirmación y la sesión canónica de autoría.
 
 ## Sintaxis

@@ -28,6 +28,8 @@ El checkout de la cohorte **0.8.0** incorpora autor铆a acad茅mica en **Spider 鈫
 contenido**, con fuente restringida, preview compartido con ORBIT y documento editorial `v6`.
 Incluye ancho ajustable de paneles derechos. Su revisi贸n y aprobaci贸n se registran en la cola;
 consulta la [gu铆a de fuente acad茅mica](docs/CONTENT_SOURCE_GUIDE.md) para probarlo.
+En mantenimiento, **Volver a comprobar servicio** prueba el borrador en una copia temporal y
+explica los fallos antes de habilitar su aplicaci贸n.
 
 ## Qu茅 demuestra esta versi贸n
 

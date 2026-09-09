@@ -79,6 +79,11 @@ export class CourseApplicationCoordinator {
     this.documentOptions = documentOptions;
     this.descriptors = descriptors;
     this.plan = null;
+    this.repositoryCheck = null;
+    this.generation = 0;
+    this.checkGeneration = 0;
+    this.sessionIdentity = null;
+    this.connectionGeneration = 0;
     this.reloadRequired = false;
   }
 
@@ -86,22 +91,59 @@ export class CourseApplicationCoordinator {
     return {
       currentEdition: structuredClone(this.currentEdition),
       plan: this.plan ? structuredClone(this.plan) : null,
+      repositoryCheck: this.repositoryCheck ? structuredClone(this.repositoryCheck) : null,
       reloadRequired: this.reloadRequired,
     };
   }
 
   invalidate() {
+    this.generation += 1;
     this.plan = null;
+    this.invalidateCheck();
+  }
+
+  invalidateCheck() {
+    this.checkGeneration += 1;
+    this.repositoryCheck = null;
+  }
+
+  disconnect() {
+    this.connectionGeneration += 1;
+    this.sessionIdentity = null;
+    this.invalidateCheck();
+  }
+
+  #assertGeneration(generation) {
+    if (generation !== this.generation) {
+      throw new CourseApplicationCoordinatorError(
+        "application-plan-stale",
+        "El borrador cambió durante la comprobación; vuelve a comprobar el servicio.",
+      );
+    }
   }
 
   async #connectAuthorSession() {
-    const session = await this.authorClient.connect();
+    const connection = ++this.connectionGeneration;
+    let session;
+    try {
+      session = await this.authorClient.connect();
+    } catch (error) {
+      if (connection === this.connectionGeneration) this.disconnect();
+      throw error;
+    }
+    if (connection !== this.connectionGeneration) {
+      throw new CourseApplicationCoordinatorError("author-session-stale", "La sesión cambió durante la conexión; vuelve a comprobar el servicio.");
+    }
     if (session?.courseId !== this.currentEdition.courseId) {
+      this.disconnect();
       throw new CourseApplicationCoordinatorError(
         "wrong-author-course",
         `El helper pertenece a ${String(session?.courseId)} y no a ${this.currentEdition.courseId}. No se realizará ninguna escritura.`,
       );
     }
+    const identity = JSON.stringify([session.token, session.courseId, session.currentRevision]);
+    if (identity !== this.sessionIdentity || session.pending) this.invalidateCheck();
+    this.sessionIdentity = identity;
     return session;
   }
 
@@ -112,14 +154,61 @@ export class CourseApplicationCoordinator {
         "La fuente anterior fue restaurada. Recarga ORBIT Editor antes de validar otra edición.",
       );
     }
-    this.plan = await createCourseApplicationPlan({
+    this.invalidate();
+    const generation = this.generation;
+    const plan = await createCourseApplicationPlan({
       currentEdition: this.currentEdition,
-      candidateDocument,
+      candidateDocument: structuredClone(candidateDocument),
       storage: this.storage,
       appliedAt,
       documentOptions: this.documentOptions,
     });
+    this.#assertGeneration(generation);
+    this.plan = plan;
     return structuredClone(this.plan);
+  }
+
+  async check(candidateDocument) {
+    const document = structuredClone(candidateDocument);
+    const plan = await this.validate(document);
+    const generation = this.generation;
+    const session = await this.#connectAuthorSession();
+    this.#assertGeneration(generation);
+    if (session.pending) {
+      throw new CourseApplicationCoordinatorError(
+        "pending-course-application", "Resuelve la aplicación pendiente antes de comprobar el borrador.",
+        { detail: session.pending },
+      );
+    }
+    if (session.currentRevision !== plan.currentRevision) {
+      throw new CourseApplicationCoordinatorError("revision-conflict", "La fuente cambió; recarga el Editor antes de comprobar el borrador.");
+    }
+    const checkGeneration = this.checkGeneration;
+    const result = await this.authorClient.check({ document, expectedPreviousRevision: plan.currentRevision });
+    this.#assertGeneration(generation);
+    if (checkGeneration !== this.checkGeneration) {
+      throw new CourseApplicationCoordinatorError("repository-check-stale", "La sesión cambió durante la comprobación; vuelve a comprobar el servicio.");
+    }
+    if (
+      result?.ok !== true
+      || result.kind !== "orbit-editor-author-check"
+      || result.schemaVersion !== 1
+      || result.courseId !== this.currentEdition.courseId
+      || result.currentRevision !== plan.currentRevision
+      || result.targetRevision !== plan.targetRevision
+      || result.check?.code !== 0
+      || typeof result.checkedAt !== "string"
+      || !Number.isFinite(Date.parse(result.checkedAt))
+    ) {
+      throw new CourseApplicationCoordinatorError(
+        "invalid-repository-check", "El helper no confirmó exactamente el curso y las revisiones del plan; aplicar sigue bloqueado.",
+      );
+    }
+    this.repositoryCheck = {
+      courseId: result.courseId, currentRevision: result.currentRevision,
+      targetRevision: result.targetRevision, checkedAt: result.checkedAt, code: 0,
+    };
+    return { plan: structuredClone(plan), repositoryCheck: structuredClone(this.repositoryCheck) };
   }
 
   async apply(candidateDocument) {
@@ -130,7 +219,10 @@ export class CourseApplicationCoordinator {
       );
     }
     const plan = structuredClone(this.plan);
+    const generation = this.generation;
+    candidateDocument = structuredClone(candidateDocument);
     const digest = await digestEditorDocument(candidateDocument, this.documentOptions);
+    this.#assertGeneration(generation);
     if (validatedDocumentRevision(candidateDocument, digest) !== plan.targetRevision) {
       this.invalidate();
       throw new CourseApplicationCoordinatorError(
@@ -152,6 +244,7 @@ export class CourseApplicationCoordinator {
     return withExclusiveCourseLock(
       async () => {
         const session = await this.#connectAuthorSession();
+        this.#assertGeneration(generation);
         if (session.pending) {
           throw new CourseApplicationCoordinatorError(
             "pending-course-application",
@@ -160,7 +253,19 @@ export class CourseApplicationCoordinator {
           );
         }
 
+        if (
+          !this.repositoryCheck
+          || this.repositoryCheck.targetRevision !== plan.targetRevision
+          || this.repositoryCheck.currentRevision !== plan.currentRevision
+          || session.currentRevision !== plan.currentRevision
+        ) {
+          throw new CourseApplicationCoordinatorError(
+            "repository-check-required", "Usa «Volver a comprobar servicio» para ejecutar npm run check sobre este borrador antes de confirmar.",
+          );
+        }
+
         let repositoryResult;
+        this.invalidateCheck();
         try {
           repositoryResult = await this.authorClient.apply({
             document: candidateDocument,

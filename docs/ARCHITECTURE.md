@@ -211,6 +211,13 @@ estados transitorios y despierta con `focus`, `pageshow` o al recuperar visibili
 pestaña que validó en `dev` puede reconocer `editor:author` sin perder el plan ligado al digest.
 La ruta no canónica `/editor.html/` redirige a `/editor.html` antes de servir el shell.
 
+La comprobación explícita de la candidata 0.8.0 usa `POST /__orbit/author/check` con el documento
+y la revisión anterior. `scripts/editor-check-copy.mjs` copia los insumos del check a una raíz
+temporal, instala allí el candidato y aísla también la caché npm. Verifica que la huella del
+repositorio no cambió y retira la copia al terminar. El coordinador conserva evidencia efímera
+ligada al digest y la sesión; Aplicar exige esa evidencia y vuelve a ejecutar el check real con
+su protocolo de respaldo y rollback. Los sondeos automáticos solo detectan el servicio.
+
 `src/core/local-service-mode.js` sondea el protocolo local desde una pestaña ORBIT iniciada en
 `dev`. Si el servicio reaparece como autoría después de una interrupción, el runtime vuelve
 inerte el shell, detiene monitor, juego, audio y preferencias, libera el bloqueo compartido y

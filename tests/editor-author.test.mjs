@@ -468,6 +468,9 @@ test("el recorrido editorial completo sincroniza fuente, dist y navegador con re
   assert.deepEqual(plan.diff.changedAreaAppearances, ["electrostatics"]);
   assert.deepEqual(plan.impact.resetProfiles, ["student", "teacher", "debug"]);
 
+  const checked = await coordinator.check(candidate);
+  assert.equal(checked.repositoryCheck.targetRevision, plan.targetRevision);
+  assert.equal(browserStorage.getItem(editorStorageKey), teacherDraftBefore);
   const result = await coordinator.apply(candidate);
   const sourcePath = resolve(
     root,
@@ -516,7 +519,10 @@ test("el recorrido editorial completo sincroniza fuente, dist y navegador con re
       .requirements.completedLocations.includes("vector-workshop"),
     true,
   );
-  assert.equal(runnerCalls.filter((call) => call.args?.includes("check")).length, 2);
+  const checks = runnerCalls.filter((call) => call.args?.includes("check"));
+  assert.equal(checks.length, 3);
+  assert.equal(checks.filter((call) => call.cwd === root).length, 2);
+  assert.equal(checks.filter((call) => call.cwd !== root).length, 1);
 });
 
 test("el rollback token restaura la edición fuente previa y reconstruye", async (t) => {

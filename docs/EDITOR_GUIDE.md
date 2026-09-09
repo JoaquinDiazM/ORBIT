@@ -334,7 +334,16 @@ Después de detener `dev` e iniciar `editor:author`, la misma pestaña de Editor
 el servicio al recuperar foco, al volver desde segundo plano y mediante reintentos mientras el
 origen no responde. El plan ya validado se conserva si el borrador no cambió; no es necesario
 repetir la validación. **Volver a comprobar servicio** fuerza un sondeo inmediato y muestra el
-origen y el código del fallo si el servicio sigue sin poder identificarse.
+origen y el código del fallo si el servicio sigue sin poder identificarse. En mantenimiento,
+además valida el borrador y ejecuta `npm run check` sobre una copia temporal con ese contenido.
+La comprobación puede tardar alrededor de un minuto; mientras se ejecuta muestra su estado y
+mantiene bloqueada la aplicación. Los sondeos automáticos no ejecutan esa suite.
+
+La copia excluye Git, sesiones, respaldos y cachés existentes. Su build y caché npm se retiran al
+terminar, también si falla; fuente, dist y progreso canónicos permanecen intactos. Un fallo muestra
+el diagnóstico de las pruebas, incluidas sus salidas stdout y stderr. El resultado aprobado queda
+ligado al borrador y a la sesión actual: editar, perder la conexión o reiniciar el helper exige
+volver a comprobar. Un cambio del repositorio durante la prueba invalida su resultado.
 
 El origen de mantenimiento es fijo: `http://127.0.0.1:4173`. No cambies `PORT` y detén primero
 `npm run dev`; usar otro puerto separaría los Web Locks y los tres progresos locales que deben
@@ -348,7 +357,7 @@ Si una pestaña de ORBIT quedó abierta al detener `dev`, detecta la aparición 
 la interfaz, libera su bloqueo compartido y recarga hacia esa barrera. Cierra igualmente las
 demás pestañas antes de aplicar; el mecanismo coordina este navegador/origen, no otros equipos.
 
-El helper no acepta apagarse desde la interfaz mientras ejecuta una aplicación o existe un
+El helper no acepta apagarse desde la interfaz mientras ejecuta una comprobación, una aplicación o existe un
 journal pendiente. Finaliza o recupera primero la transacción. Fuera de esas fases, el apagado
 controlado responde al navegador, cierra el listener, libera el lock del helper y permite volver
 a ejecutar el comando en 4173.
@@ -362,11 +371,14 @@ En **Resumen**, el flujo seguro es:
    eliminados, posiciones, conexiones y apariencias, junto con la tabla de impacto
    de Estudiante, Docente y Debug. Cada fila informa si el guardado es legible y cuántos lugares
    completados y conceptos adquiridos se eliminarán.
-3. Leer el alcance del reinicio y activar la confirmación accesible en línea. Una edición posterior
-   invalida el plan y obliga a validar de nuevo.
-4. Elegir **Aplicar**. El helper verifica que la revisión anterior coincida, escribe de forma
+3. Pulsar **Volver a comprobar servicio** en mantenimiento y esperar la comprobación aprobada del
+   borrador. También puede pulsarse antes de **Validar**: calcula el plan y después comprueba la
+   copia. Un fallo se muestra aquí, antes de reemplazar archivos o reiniciar perfiles.
+4. Leer el alcance del reinicio y activar la confirmación accesible en línea. Una edición posterior
+   invalida el plan y su comprobación; hay que revisar y comprobar de nuevo.
+5. Elegir **Aplicar**. El helper verifica que la revisión anterior coincida, escribe de forma
    atómica `public/data/courses/electromagnetism-applied.edition.json`, ejecuta
-   `npm run check` y prepara el build. Después el navegador instala la edición y reinicia los tres
+   nuevamente `npm run check` y prepara el build. Después el navegador instala la edición y reinicia los tres
    perfiles; el helper cierra el journal solo al completar ambas partes.
 
 Los rechazos de sesión, revisión o bloqueo aparecen junto al control y también como

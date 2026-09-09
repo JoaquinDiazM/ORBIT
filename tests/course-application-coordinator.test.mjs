@@ -47,6 +47,153 @@ async function edition(document = createEditorDocument(), options = {}) {
   });
 }
 
+function authorSession(current, overrides = {}) {
+  return { token: "s".repeat(64), courseId: current.courseId, currentRevision: current.revision, pending: null, ...overrides };
+}
+
+function checkingClient(current) {
+  return {
+    async check({ document, expectedPreviousRevision }) {
+      const target = await edition(document);
+      return {
+        ok: true, kind: "orbit-editor-author-check", schemaVersion: 1,
+        courseId: current.courseId, currentRevision: expectedPreviousRevision,
+        targetRevision: target.revision, checkedAt: "2026-09-10T00:00:00.000Z", check: { code: 0 },
+      };
+    },
+  };
+}
+
+function deferred() {
+  let resolve;
+  const promise = new Promise((done) => { resolve = done; });
+  return { promise, resolve };
+}
+
+async function checkFixture() {
+  const current = await edition();
+  const candidate = createEditorDocument();
+  candidate.areas.find((area) => area.id === "electrostatics").appearance.paletteId = "polar";
+  const storage = new BrowserStorage([["progress", "preserved"]]);
+  let session = authorSession(current);
+  let posts = 0;
+  let applies = 0;
+  const successfulCheck = checkingClient(current).check;
+  const client = {
+    async connect() { return structuredClone(session); },
+    async check(payload) { posts += 1; return successfulCheck(payload); },
+    async apply() { applies += 1; throw new Error("No debe escribir fuente"); },
+  };
+  const coordinator = new CourseApplicationCoordinator({ currentEdition: current, authorClient: client, storage, lockManager });
+  return { current, candidate, storage, client, coordinator, successfulCheck,
+    session: (next) => { session = next; }, posts: () => posts, applies: () => applies };
+}
+
+test("check crea el plan sin Validar previo, conserva todos los perfiles y sondeos no repiten check", async () => {
+  const fixture = await checkFixture();
+  const before = [...fixture.storage.values];
+  const result = await fixture.coordinator.check(fixture.candidate);
+  assert.equal(result.plan.changed, true);
+  assert.equal(result.repositoryCheck.targetRevision, result.plan.targetRevision);
+  assert.deepEqual([...fixture.storage.values], before);
+  await fixture.coordinator.inspectPending();
+  await fixture.coordinator.inspectPending();
+  assert.equal(fixture.posts(), 1);
+  assert.deepEqual(fixture.coordinator.getSnapshot().repositoryCheck, result.repositoryCheck);
+});
+
+test("fallo de check conserva plan y diagnóstico pero bloquea Apply sin escribir", async () => {
+  const fixture = await checkFixture();
+  fixture.client.check = async () => { throw Object.assign(new Error("stdout: prueba de registro fallida"), { code: "repository-check-failed" }); };
+  await assert.rejects(fixture.coordinator.check(fixture.candidate), (error) => error.code === "repository-check-failed" && error.message.includes("registro"));
+  assert.equal(fixture.coordinator.getSnapshot().plan.changed, true);
+  assert.equal(fixture.coordinator.getSnapshot().repositoryCheck, null);
+  await assert.rejects(fixture.coordinator.apply(fixture.candidate), { code: "repository-check-required" });
+  assert.equal(fixture.applies(), 0);
+  assert.deepEqual([...fixture.storage.values], [["progress", "preserved"]]);
+});
+
+test("check rechaza éxito para otro curso, revisión o resultado incompleto", async (context) => {
+  for (const variant of [
+    { courseId: "otro" }, { currentRevision: "otra" }, { targetRevision: "otra" },
+    { check: { code: 1 } }, { checkedAt: "ayer" }, { kind: "otra" }, { ok: false }, { schemaVersion: 2 },
+  ]) {
+    await context.test(JSON.stringify(variant), async () => {
+      const fixture = await checkFixture();
+      fixture.client.check = async (payload) => ({ ...await fixture.successfulCheck(payload), ...variant });
+      await assert.rejects(fixture.coordinator.check(fixture.candidate), { code: "invalid-repository-check" });
+      assert.equal(fixture.coordinator.getSnapshot().repositoryCheck, null);
+    });
+  }
+});
+
+test("edición, reinicio, desconexión y otra revisión invalidan check antes de aplicar", async (context) => {
+  for (const variant of ["edit", "restart", "disconnect", "revision", "pending"]) {
+    await context.test(variant, async () => {
+      const fixture = await checkFixture();
+      await fixture.coordinator.check(fixture.candidate);
+      if (variant === "edit") fixture.coordinator.invalidate();
+      if (variant === "disconnect") fixture.coordinator.disconnect();
+      if (variant === "restart") fixture.session(authorSession(fixture.current, { token: "new-token" }));
+      if (variant === "revision") fixture.session(authorSession(fixture.current, { currentRevision: "sha256:new" }));
+      if (variant === "pending") fixture.session(authorSession(fixture.current, { pending: {} }));
+      await assert.rejects(fixture.coordinator.apply(fixture.candidate), (error) => [
+        "application-plan-required", "repository-check-required", "pending-course-application",
+      ].includes(error.code));
+      assert.equal(fixture.coordinator.getSnapshot().repositoryCheck, null);
+      assert.equal(fixture.applies(), 0);
+    });
+  }
+});
+
+test("check bloquea fuente distinta o journal pendiente antes de POST y sin recuperación local", async (context) => {
+  for (const variant of [{ currentRevision: "otra" }, { pending: { status: "awaiting-browser" } }]) {
+    await context.test(JSON.stringify(variant), async () => {
+      const fixture = await checkFixture();
+      fixture.session(authorSession(fixture.current, variant));
+      await assert.rejects(fixture.coordinator.check(fixture.candidate), (error) => ["revision-conflict", "pending-course-application"].includes(error.code));
+      assert.equal(fixture.posts(), 0);
+      assert.deepEqual([...fixture.storage.values], [["progress", "preserved"]]);
+    });
+  }
+});
+
+test("respuesta tardía de check tras editar o desconectar no revalida evidencia", async (context) => {
+  for (const variant of ["invalidate", "disconnect"]) {
+    await context.test(variant, async () => {
+      const fixture = await checkFixture();
+      const entered = deferred();
+      const completed = deferred();
+      fixture.client.check = async (payload) => { entered.resolve(); await completed.promise; return fixture.successfulCheck(payload); };
+      const checking = fixture.coordinator.check(fixture.candidate);
+      await entered.promise;
+      fixture.coordinator[variant]();
+      completed.resolve();
+      await assert.rejects(checking, (error) => ["application-plan-stale", "repository-check-stale"].includes(error.code));
+      assert.equal(fixture.coordinator.getSnapshot().repositoryCheck, null);
+    });
+  }
+});
+
+test("respuesta de un check anterior no reemplaza la evidencia de un borrador posterior", async () => {
+  const fixture = await checkFixture();
+  const entered = deferred();
+  const completed = deferred();
+  let call = 0;
+  fixture.client.check = async (payload) => {
+    if (++call === 1) { entered.resolve(); await completed.promise; }
+    return fixture.successfulCheck(payload);
+  };
+  const first = fixture.coordinator.check(fixture.candidate);
+  await entered.promise;
+  const next = structuredClone(fixture.candidate);
+  next.areas.find((area) => area.id === "electrostatics").appearance.contourId = "double";
+  const second = await fixture.coordinator.check(next);
+  completed.resolve();
+  await assert.rejects(first, { code: "application-plan-stale" });
+  assert.deepEqual(fixture.coordinator.getSnapshot().repositoryCheck, second.repositoryCheck);
+});
+
 function pendingFor(previous, target) {
   return {
     status: "awaiting-browser",
@@ -64,9 +211,10 @@ test("aplicar exige plan vigente, instala navegador y finaliza el helper", async
   candidate.areas.find((area) => area.id === "electrostatics").appearance.paletteId = "polar";
   const calls = [];
   const authorClient = {
+    ...checkingClient(current),
     async connect() {
       calls.push("connect");
-      return { courseId: "electromagnetism-applied", pending: null };
+      return authorSession(current);
     },
     async apply({ document, expectedPreviousRevision }) {
       calls.push(["apply", expectedPreviousRevision]);
@@ -111,6 +259,7 @@ test("aplicar exige plan vigente, instala navegador y finaliza el helper", async
   const plan = await coordinator.validate(candidate, {
     appliedAt: "2026-08-31T00:00:00.000Z",
   });
+  await coordinator.check(candidate);
   const result = await coordinator.apply(candidate);
 
   assert.equal(result.edition.revision, plan.targetRevision);
@@ -124,6 +273,7 @@ test("aplicar exige plan vigente, instala navegador y finaliza el helper", async
     plan.targetRevision,
   );
   assert.deepEqual(calls, [
+    "connect",
     "connect",
     ["apply", current.revision],
     ["finalize", "rollback-token"],
@@ -141,9 +291,10 @@ test("un cambio posterior a validar invalida el plan antes de llamar al helper",
     storage: new BrowserStorage(),
     lockManager,
     authorClient: {
+      ...checkingClient(current),
       async connect() {
         connected = true;
-        return { courseId: "electromagnetism-applied", pending: null };
+        return authorSession(current);
       },
     },
   });
@@ -173,9 +324,10 @@ test("un plan sin diferencias termina como no-op sin contactar ni bloquear el he
       },
     },
     authorClient: {
+      ...checkingClient(current),
       async connect() {
         helperCalls += 1;
-        return { courseId: "electromagnetism-applied", pending: null };
+        return authorSession(current);
       },
     },
   });
@@ -199,6 +351,7 @@ test("una sesión de otro curso falla cerrada en apply, inspección y recuperaci
     storage: new BrowserStorage(),
     lockManager,
     authorClient: {
+      ...checkingClient(current),
       async connect() {
         return { courseId: "another-course", pending: null };
       },
@@ -246,8 +399,9 @@ test("un rollback local no verificable conserva recovery-required aunque la fuen
   }
   let repositoryRollbacks = 0;
   const authorClient = {
+    ...checkingClient(current),
     async connect() {
-      return { courseId: "electromagnetism-applied", pending: null };
+      return authorSession(current);
     },
     async apply({ document, expectedPreviousRevision }) {
       return {
@@ -270,7 +424,7 @@ test("un rollback local no verificable conserva recovery-required aunque la fuen
     storage,
     lockManager,
   });
-  await coordinator.validate(candidate);
+  await coordinator.check(candidate);
 
   await assert.rejects(
     coordinator.apply(candidate),
@@ -299,8 +453,9 @@ test("pending con la revisión objetivo en el navegador solo finaliza", async ()
     storage,
     lockManager,
     authorClient: {
+      ...checkingClient(current),
       async connect() {
-        return { courseId: "electromagnetism-applied", pending };
+        return { ...authorSession(current), pending };
       },
       async finalize(token) {
         calls.push(["finalize", token]);
@@ -335,8 +490,9 @@ test("pending sin la revisión objetivo restaura fuente y exige recargar", async
     storage: new BrowserStorage(),
     lockManager,
     authorClient: {
+      ...checkingClient(current),
       async connect() {
-        return { courseId: "electromagnetism-applied", pending };
+        return { ...authorSession(current), pending };
       },
       async finalize(token) {
         calls.push(["finalize", token]);
@@ -375,9 +531,10 @@ test("pending con una tercera revisión queda bloqueado sin finalize ni rollback
     storage,
     lockManager,
     authorClient: {
+      ...checkingClient(current),
       async connect() {
         return {
-          courseId: "electromagnetism-applied",
+          ...authorSession(current),
           pending: pendingFor(current, target),
         };
       },
@@ -432,9 +589,10 @@ test("pending objetivo no finaliza si reaparece progreso o diverge el envelope",
         storage,
         lockManager,
         authorClient: {
+      ...checkingClient(current),
           async connect() {
             return {
-              courseId: "electromagnetism-applied",
+              ...authorSession(current),
               pending: pendingFor(current, target),
             };
           },
@@ -487,8 +645,9 @@ test("un journal de navegador fuera de alcance exige recuperación tras restaura
     storage,
     lockManager,
     authorClient: {
+      ...checkingClient(current),
       async connect() {
-        return { courseId: "electromagnetism-applied", pending: null };
+        return authorSession(current);
       },
       async apply({ document: editorDocument, expectedPreviousRevision }) {
         return {
@@ -505,7 +664,7 @@ test("un journal de navegador fuera de alcance exige recuperación tras restaura
       },
     },
   });
-  await coordinator.validate(candidate);
+  await coordinator.check(candidate);
   await assert.rejects(
     coordinator.apply(candidate),
     (error) => error instanceof CourseApplicationCoordinatorError

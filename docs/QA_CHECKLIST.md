@@ -347,6 +347,10 @@ externo; el agente no modifica el checkout entre Validar y el resultado de Aplic
       actividades en esa vista no cambia progreso ni concede recompensas.
 - [ ] Fuente y JSON editorial exportados conservan contenido al reimportar. Resumen → Validar
       identifica los nodos cuyo cuerpo cambió y ofrece la aplicación recuperable habitual.
+- [ ] **Volver a comprobar servicio** en mantenimiento comprueba el borrador en una copia,
+      muestra progreso y un diagnóstico de prueba si falla, antes de reemplazar fuente o resetear.
+      Si pasa, habilita la confirmación; editar, desconectar o reiniciar el helper invalida esa
+      evidencia. Los sondeos de foco no vuelven a ejecutar la suite.
 - [ ] Tras Aplicar y reiniciar dev según la guía, el contenido modificado coincide en ORBIT,
       fuente, dist y build-info; se comprueban los tres perfiles y el reset humano previsto.
 - [ ] En ORBIT y Editor el borde izquierdo permite ampliar, reducir y restaurar ventanas; el

@@ -15,7 +15,8 @@ import { extname, isAbsolute, relative, resolve, sep } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
-import { isDeepStrictEqual } from "node:util";
+import { isDeepStrictEqual, stripVTControlCharacters } from "node:util";
+import { withEditorCheckCopy } from "./editor-check-copy.mjs";
 
 import {
   COURSE_EDITION_SOURCE_URL,
@@ -292,21 +293,21 @@ async function atomicWrite(path, text) {
   }
 }
 
-async function defaultRunner({ command, args, cwd }) {
+async function defaultRunner({ command, args, cwd, env = {} }) {
   return new Promise((resolveResult) => {
     const child = spawn(command, args, {
       cwd,
       shell: false,
       windowsHide: true,
-      env: process.env,
+      env: { ...process.env, ...env },
     });
     let stdout = "";
     let stderr = "";
     child.stdout.on("data", (chunk) => {
-      stdout += chunk;
+      stdout = (stdout + chunk).slice(-262_144);
     });
     child.stderr.on("data", (chunk) => {
-      stderr += chunk;
+      stderr = (stderr + chunk).slice(-262_144);
     });
     child.once("error", (error) => {
       resolveResult({ code: 1, stdout, stderr: `${stderr}${error.message}` });
@@ -330,9 +331,14 @@ function npmInvocation(script) {
   };
 }
 
-async function runNpmScript(root, script, runner) {
+async function runNpmScript(root, script, runner, env) {
   const invocation = npmInvocation(script);
-  return runner({ ...invocation, cwd: root });
+  return runner({ ...invocation, cwd: root, ...(env ? { env } : {}) });
+}
+
+function checkFailureMessage(check) {
+  const output = stripVTControlCharacters([check.stdout, check.stderr].filter(Boolean).join("\n")).trim();
+  return `La edición no superó npm run check (código ${check.code}).${output ? `\n${output.slice(-8000)}` : " El proceso no devolvió detalles del fallo."}`;
 }
 
 async function assertRepositoryRoot(root) {
@@ -679,6 +685,62 @@ async function inspectRepositoryApplication(root) {
     : { pending: false, incomplete: true, action: journal.status, transaction };
 }
 
+async function prepareRepositoryEdition(repositoryRoot, document, expectedPreviousRevision, appliedAt) {
+  const paths = transactionPaths(repositoryRoot);
+  const previousSourceBytes = await readOptionalBytes(paths.target);
+  const current = previousSourceBytes === null
+    ? null
+    : await materializeCourseEdition(JSON.parse(previousSourceBytes.toString("utf8")));
+  const currentRevision = current?.edition.revision ?? null;
+  if (expectedPreviousRevision === undefined) {
+    throw new EditorAuthorError("missing-expected-previous-revision", "La aplicación debe declarar la revisión fuente usada para construir el plan.");
+  }
+  if (expectedPreviousRevision !== currentRevision) {
+    throw new EditorAuthorError("revision-conflict", `La fuente cambió desde el plan: se esperaba ${String(expectedPreviousRevision)} y existe ${String(currentRevision)}.`);
+  }
+  let normalizedDocument;
+  try {
+    normalizedDocument = applyEditorDocument(document, { baseDocument: current?.editorDocument }).document;
+  } catch (cause) {
+    throw new EditorAuthorError("invalid-editor-document", "La edición enviada no supera el contrato editorial vigente.", { cause });
+  }
+  if (!isDeepStrictEqual(document, normalizedDocument)) {
+    throw new EditorAuthorError("noncanonical-editor-document", "La edición enviada omite o altera estado editorial publicado. Recarga el Editor antes de volver a validar.");
+  }
+  const edition = await createCourseEdition(normalizedDocument, {
+    previousRevision: currentRevision, acceptsUnversionedProgress: false, appliedAt,
+    baseDocument: current?.editorDocument,
+  });
+  return { paths, previousSourceBytes, currentRevision, edition, targetText: `${JSON.stringify(edition, null, 2)}\n` };
+}
+
+export async function checkEditionForRepository({
+  root, document, expectedPreviousRevision, runner = defaultRunner,
+  checkedAt = new Date().toISOString(),
+} = {}) {
+  const repositoryRoot = resolve(root ?? process.cwd());
+  await assertRepositoryRoot(repositoryRoot);
+  if (await exists(transactionPaths(repositoryRoot).journal)) {
+    throw new EditorAuthorError("pending-browser-finalization", "Resuelve la aplicación pendiente antes de comprobar otro borrador.");
+  }
+  return withEditorCheckCopy(repositoryRoot, async (copyRoot) => {
+    const prepared = await prepareRepositoryEdition(copyRoot, document, expectedPreviousRevision, checkedAt);
+    await mkdir(resolve(prepared.paths.target, ".."), { recursive: true });
+    await atomicWrite(prepared.paths.target, prepared.targetText);
+    const check = await runNpmScript(copyRoot, "check", runner, {
+      npm_config_cache: resolve(copyRoot, ".npm-cache"),
+      npm_config_update_notifier: "false",
+    });
+    if (check.code !== 0) throw new EditorAuthorError("repository-check-failed", checkFailureMessage(check));
+    return {
+      ok: true, kind: "orbit-editor-author-check", schemaVersion: 1,
+      courseId: prepared.edition.courseId, currentRevision: prepared.currentRevision,
+      targetRevision: prepared.edition.revision, checkedAt,
+      check: { code: 0, stdout: stripVTControlCharacters(check.stdout ?? "").slice(-8000), stderr: stripVTControlCharacters(check.stderr ?? "").slice(-8000) },
+    };
+  });
+}
+
 export async function applyEditionToRepository({
   root,
   document,
@@ -695,49 +757,9 @@ export async function applyEditionToRepository({
       "Existe una edición aplicada a fuentes que espera finalizar o revertir su transacción del navegador.",
     );
   }
-  const paths = transactionPaths(repositoryRoot);
-  const previousSourceBytes = await readOptionalBytes(paths.target);
-  const current = previousSourceBytes === null
-    ? null
-    : await materializeCourseEdition(JSON.parse(previousSourceBytes.toString("utf8")));
-  const currentRevision = current?.edition.revision ?? null;
-  if (expectedPreviousRevision === undefined) {
-    throw new EditorAuthorError(
-      "missing-expected-previous-revision",
-      "La aplicación debe declarar la revisión fuente usada para construir el plan.",
-    );
-  }
-  if (expectedPreviousRevision !== currentRevision) {
-    throw new EditorAuthorError(
-      "revision-conflict",
-      `La fuente cambió desde el plan: se esperaba ${String(expectedPreviousRevision)} y existe ${String(currentRevision)}.`,
-    );
-  }
-  let normalizedDocument;
-  try {
-    normalizedDocument = applyEditorDocument(document, {
-      baseDocument: current?.editorDocument,
-    }).document;
-  } catch (cause) {
-    throw new EditorAuthorError(
-      "invalid-editor-document",
-      "La edición enviada no supera el contrato editorial vigente.",
-      { cause },
-    );
-  }
-  if (!isDeepStrictEqual(document, normalizedDocument)) {
-    throw new EditorAuthorError(
-      "noncanonical-editor-document",
-      "La edición enviada omite o altera estado editorial publicado. Recarga el Editor antes de volver a validar.",
-    );
-  }
-  const edition = await createCourseEdition(normalizedDocument, {
-    previousRevision: currentRevision,
-    acceptsUnversionedProgress: false,
-    appliedAt,
-    baseDocument: current?.editorDocument,
-  });
-  const targetText = `${JSON.stringify(edition, null, 2)}\n`;
+  const { paths, previousSourceBytes, currentRevision, edition, targetText } = await prepareRepositoryEdition(
+    repositoryRoot, document, expectedPreviousRevision, appliedAt,
+  );
   const targetSourceBytes = Buffer.from(targetText, "utf8");
   const rollbackToken = token();
   const previousExisted = previousSourceBytes !== null;
@@ -777,7 +799,7 @@ export async function applyEditionToRepository({
     if (check.code !== 0) {
       throw new EditorAuthorError(
         "repository-check-failed",
-        `La edición no superó npm run check. ${check.stderr.trim()}`,
+        checkFailureMessage(check),
       );
     }
     await atomicWrite(
@@ -1059,6 +1081,10 @@ export async function createEditorAuthorServer({
           return;
         }
         const pending = await inspectRepositoryApplication(repositoryRoot);
+        const sourceBytes = await readOptionalBytes(transactionPaths(repositoryRoot).target);
+        const currentSource = sourceBytes === null
+          ? null
+          : await materializeCourseEdition(JSON.parse(sourceBytes.toString("utf8")));
         if (busy) {
           sendJson(response, 409, {
             ok: false,
@@ -1080,7 +1106,9 @@ export async function createEditorAuthorServer({
           schemaVersion: 1,
           token: sessionToken,
           courseId: "electromagnetism-applied",
+          currentRevision: currentSource?.edition.revision ?? null,
           endpoints: {
+            check: "/__orbit/author/check",
             apply: "/__orbit/author/apply",
             finalize: "/__orbit/author/finalize",
             rollback: "/__orbit/author/rollback",
@@ -1110,7 +1138,14 @@ export async function createEditorAuthorServer({
         try {
           const body = await readJsonBody(request);
           let result;
-          if (url.pathname === "/__orbit/author/apply") {
+          if (url.pathname === "/__orbit/author/check") {
+            result = await checkEditionForRepository({
+              root: repositoryRoot,
+              document: body.document,
+              expectedPreviousRevision: body.expectedPreviousRevision,
+              runner,
+            });
+          } else if (url.pathname === "/__orbit/author/apply") {
             result = await applyEditionToRepository({
               root: repositoryRoot,
               document: body.document,

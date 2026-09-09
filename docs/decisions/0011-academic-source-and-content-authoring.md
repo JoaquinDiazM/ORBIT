@@ -82,6 +82,22 @@ La preferencia se guarda por producto, mediante `ProgressStorage`, fuera del pro
 documento de curso y digest. La cancelación restaura el ancho anterior y se liberan captura y
 listeners al cerrar la sesión. El movimiento del mapa continúa siendo libre.
 
+### Comprobación anterior a la aplicación
+
+La revisión humana de UPD-021 detectó que un fallo de `npm run check` se informaba recién después
+de reemplazar la fuente y se perdía el diagnóstico emitido por stdout. **Volver a comprobar
+servicio** ejecuta por petición explícita una comprobación del candidato en una copia temporal
+de los insumos del repositorio, con caché npm propia. No modifica el checkout, su build, Git,
+journals, respaldos ni progreso. Se verifica la huella de los insumos antes y después; un cambio
+concurrente invalida la comprobación. La copia se retira al terminar, incluso al fallar.
+
+El endpoint POST de comprobación conserva origen, token, límite de cuerpo y exclusión de
+operaciones del helper. La evidencia del cliente queda ligada a curso, revisión, digest y sesión;
+editar o cambiar la sesión la invalida. Los sondeos automáticos no lanzan suites. La aplicación
+exige evidencia vigente, mantiene su comprobación real, su rollback y el protocolo de reset.
+Las salidas de diagnóstico se acotan y presentan como texto; una comprobación no implica
+aprobación humana ni publicación.
+
 ## Alternativas y costo
 
 - Markdown/MDX completo con parser externo añade una dependencia, mantenimiento y una
