@@ -249,7 +249,7 @@ Sin propuestas pendientes de clasificar.
 
 ### UPD-022 — Actualizar las capturas del README para ORBIT 0.7.0
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `documentación`
 - Versión objetivo: `0.7.1`
 - Impacto sugerido: `Z`; renueva evidencia visual sin cambiar contratos ni comportamiento.
@@ -295,14 +295,14 @@ El README debe usar capturas de la versión 0.7.0 que acaba de cerrar.
 - Preflight del entorno: captura realizada en una copia temporal del commit publicado, sin datos
   previos ni herramientas Debug; contexto de navegador y servidor aislados ya cerrados, sin usar
   Edge ni el perfil persistente del usuario.
-- Revisión manual humana: pendiente — abrir las tres imágenes en Edge, comprobarlas al 100 % y
+- Revisión manual humana: aprobada — abrir las tres imágenes en Edge, comprobarlas al 100 % y
   200 %, y confirmar que son legibles, corresponden a 0.7.0 y no muestran datos privados,
   depuración, carga ni errores.
 - Observaciones del usuario: solicita screenshots representativos de la versión 0.7.0. Se que siempre le haces mantencion al texto del readme, pero tambien manten las figuras actualizadas, no en TODAS las versiones, pero si cada 2 o 3.
 
 ### UPD-023 — Teletransporte con Ctrl+clic y audio propio
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `feature`
 - Versión objetivo: `0.7.1`
 - Impacto sugerido: `Z`; añade una interacción compatible y un evento de audio sin cambiar el
@@ -357,7 +357,7 @@ solaparse con el cambio ordinario de zona mediante WASD.
   `46898662fa36a5321acf540e691a947dc449218dae9dc409e561feab0641e5eb`; fuente RunnerPack bajo
   CC BY 4.0 y cadena antecedente de ejfortin bajo Sampling+ 1.0 documentadas. `dist` fue
   regenerado y coincide con las fuentes y la revisión canónica del curso.
-- Revisión manual humana: pendiente — en una terminal visible de VS Code ejecutar `npm run dev`,
+- Revisión manual humana: aprobada — en una terminal visible de VS Code ejecutar `npm run dev`,
   abrir la URL indicada en Edge externo y probar Estudiante, Docente y Debug: salto centrado a
   zona abierta, rechazo de zona cerrada, `Ctrl` + flechas, persistencia tras recargar, ausencia de
   concesiones, un solo cue, arrastre/clic/modificadores sin salto, cruce WASD ordinario, volumen de
@@ -367,7 +367,7 @@ solaparse con el cambio ordinario de zona mediante WASD.
 
 ### UPD-021 — Editor de contenido interactivo y paneles redimensionables
 
-- Estado: `propuesto`
+- Estado: `autorizado`
 - Tipo: `épica`
 - Versión objetivo: `0.8.0`
 - Impacto sugerido: `Y`; convierte Spider en una herramienta de autoría académica y amplía el
