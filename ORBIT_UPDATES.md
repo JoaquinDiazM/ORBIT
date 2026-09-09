@@ -249,7 +249,7 @@ Sin propuestas pendientes de clasificar.
 
 ### UPD-022 — Actualizar las capturas del README para ORBIT 0.7.0
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `documentación`
 - Versión objetivo: `0.7.1`
 - Impacto sugerido: `Z`; renueva evidencia visual sin cambiar contratos ni comportamiento.
@@ -302,7 +302,7 @@ El README debe usar capturas de la versión 0.7.0 que acaba de cerrar.
 
 ### UPD-023 — Teletransporte con Ctrl+clic y audio propio
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `0.7.1`
 - Impacto sugerido: `Z`; añade una interacción compatible y un evento de audio sin cambiar el

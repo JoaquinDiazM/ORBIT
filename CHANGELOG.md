@@ -2,6 +2,32 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [0.7.1] - 2026-09-09
+
+### Añadido
+
+- `Ctrl` + clic primario permite saltar al centro de una zona abierta en Estudiante, Docente y
+  Debug. `Ctrl` + flecha ofrece la alternativa con teclado y foco en el mapa.
+- El teletransporte persiste la posición, conserva el progreso y reproduce un cue exclusivo sin
+  generar el sonido de cruce ordinario para ese traslado. Rechaza zonas cerradas, arrastres y
+  combinaciones conflictivas de modificadores.
+- Sexto audio local: `weapAppear.wav` de RunnerPack, con manifiesto, metadatos, atribución CC BY
+  4.0 y antecedente Sampling+ 1.0, control por volumen de efectos y prueba accesible en Debug.
+
+### Cambiado
+
+- README muestra capturas de ORBIT, Spider y Bee reproducidas desde la versión publicada 0.7.0.
+  Se documenta su renovación cada dos o tres versiones y se conservan las imágenes históricas.
+
+### Verificación y alcance
+
+- Cohorte cerrada `UPD-022` y `UPD-023`, con revisión humana aprobada por JoaquinDiazM en la cola.
+- Revalidación integral: 487 pruebas, 485 aprobadas, 0 fallos y 2 omisiones esperadas de symlink
+  en Windows; contenido, sintaxis, enlaces y build estático correctos.
+- Se conservan 19 zonas, 20 conceptos y 30 lugares activos alcanzables, progreso `v4`, IDs,
+  movimiento libre y apertura territorial derivada. No cambia la edición académica del curso ni
+  se añaden dependencias.
+
 ## [0.7.0] - 2026-09-04
 
 ### Añadido
