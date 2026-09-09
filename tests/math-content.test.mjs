@@ -5,6 +5,7 @@ import { getLocationSteps } from "../src/core/location-steps.js";
 import { LOCATIONS } from "../src/data/locations.js";
 import { CONSTANTS, FORMULAS, GLOSSARY, SYMBOLS } from "../src/data/reference/index.js";
 import { KATEX_RENDER_OPTIONS, getEquationTex } from "../src/ui/math-renderer.js";
+import { tokenizeAcademicText } from "../src/ui/academic-text.js";
 
 function equationsFromSections(sections, locationId, path) {
   return (sections ?? []).flatMap((section, sectionIndex) =>
@@ -115,4 +116,32 @@ test("todas las ecuaciones usan el esquema estructurado y una descripción acces
       `${locationId}, sección ${sectionIndex}: equation.caption no puede estar vacío.`,
     );
   }
+});
+
+test("la matemática delimitada en prosa, consignas y revelaciones compila con KaTeX", () => {
+  const formulas = [];
+  function collect(value, path) {
+    if (typeof value === "string") {
+      for (const token of tokenizeAcademicText(value)) {
+        if (token.type === "math") formulas.push({ ...token, path });
+      }
+    } else if (Array.isArray(value)) value.forEach((item, index) => collect(item, `${path}[${index}]`));
+    else if (value && typeof value === "object") {
+      for (const [key, item] of Object.entries(value)) {
+        if (!["tex", "promptPrefix"].includes(key)) collect(item, `${path}.${key}`);
+      }
+    }
+  }
+  collect(LOCATIONS, "locations");
+  assert.ok(formulas.length >= 8);
+  for (const { value, displayMode, path } of formulas) {
+    assert.doesNotThrow(() => katex.renderToString(value, {
+      ...KATEX_RENDER_OPTIONS, displayMode,
+    }), path);
+  }
+  const workshop = LOCATIONS.find(({ id }) => id === "vector-workshop");
+  const guided = workshop.steps.find(({ id }) => id === "guided-cartesian-potential");
+  const tokens = tokenizeAcademicText(guided.sections[0].paragraphs[0]);
+  assert.ok(tokens.some(({ type, value }) => type === "math" && value.includes("\\nabla f")));
+  assert.ok(!tokens.some(({ type, value }) => type === "text" && value.includes("F = ∇f")));
 });

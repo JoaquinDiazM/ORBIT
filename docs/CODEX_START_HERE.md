@@ -31,7 +31,11 @@ deliberadamente separadas y un flujo por cohortes con autorización y revisión 
 - **ORBIT Editor** en `editor.html`, con acceso Docente completo por defecto, Spider/Bee de solo
   lectura y Bowerbird personal para Estudiante, y bloqueo Debug.
 
-El producto ya incluye:
+El checkout incluye también la candidata 0.8.0 (UPD-021 y UPD-024), todavía sujeta a revisión
+según la cola. El documento v6 y la autoría académica descritos abajo pertenecen a esa candidata;
+el artefacto académico publicado sigue conservando su firma histórica v5.
+
+El producto del checkout incluye:
 
 - movimiento continuo en Canvas 2D;
 - 19 hexágonos en tres niveles: base, seis fundamentos y doce aplicaciones;
@@ -69,7 +73,7 @@ El producto ya incluye:
 - Editor con docks **General** y **Editor** retractables: Docente usa Spider, Bee y Bowerbird;
   Estudiante consulta con Spider/Bee sin mutaciones y usa Bowerbird personal; Debug no inicia el
   modelo;
-- documento `orbit-editor-project` `v5`, con migración exacta `v3 → v4 → v5`, catálogo visual,
+- documento `orbit-editor-project` `v6`, con migración exacta `v3 → v4 → v5 → v6`, catálogo visual,
   metadatos de niveles, entidades editoriales e inventario; preferencias Estudiante aisladas;
 - `orbit-course-edition` con revisión/digest y aplicación local recuperable mediante
   `npm run editor:author`, sin backend público ni dependencia nueva;
@@ -86,7 +90,7 @@ figuras/Gadgets, las posiciones de cargas y el contexto
 liga cada clave de progreso al curso/revisión. Una edición distinta reinicia en vez de reactivar
 avance; la compatibilidad histórica es una decisión explícita del artefacto.
 
-El documento Docente usa `orbit-editor:v5:electromagnetism-applied`; Estudiante guarda solo sus
+El documento Docente usa `orbit-editor:v6:electromagnetism-applied`; Estudiante guarda solo sus
 overrides Bowerbird en `orbit-bowerbird:v1:electromagnetism-applied:student`. Importar o exportar
 JSON nunca mezcla ambos. **Resumen** valida, muestra diff/impacto y puede aplicar mediante el
 helper loopback: este escribe el artefacto canónico, ejecuta check/build y coordina un reset
@@ -120,7 +124,7 @@ Antes de implementar una tarea, identifica cuáles puede afectar:
 - alcanzabilidad de la progresión;
 - IDs persistentes;
 - esquema de guardado;
-- separación entre progreso `v4`, documento Docente `v5`, preferencias Bowerbird `v1` y edición
+- separación entre progreso `v4`, documento Docente `v6`, preferencias Bowerbird `v1` y edición
   de curso `v1`;
 - IDs persistentes, secuencia monotónica y tombstones que impiden reutilizar un nodo eliminado;
 - raíz única y alcanzabilidad de todos los nodos académicos activos —la edición 0.7.0 publica
@@ -285,9 +289,9 @@ Prefiere funciones puras y pruebas unitarias. Si una nueva mecánica requiere es
 Las figuras SVG y las políticas de expresión introducidas en `0.3.1` no autorizan por sí solas un sistema de gráficos 3D, álgebra simbólica general, backend o dependencia nueva. La visión transversal de ORBIT tampoco autoriza a declarar soporte multicurso sin un contrato curricular verificable. Amplía primero los contratos nativos existentes y conserva límites explícitos de entrada y costo.
 
 La base actual de ORBIT Editor autoriza crear `lesson`, `mission` y `npc` con contenido genérico y
-editar sus nombres, ciclo de vida, posición y conexiones; no autoriza todavía editar en profundidad
-párrafos, ejercicios, fuentes, concesiones o multimedia, ni añade autenticación, colaboración o
-despliegue automático. La vista Estudiante puede consultar Spider y Bee y modificar únicamente su
+editar sus nombres, ciclo de vida, posición y conexiones. UPD-021 incorpora la fuente académica
+restringida de párrafos, ejercicios, fuentes y concesiones conocidas, con preview compartido,
+según ADR 0011. No añade multimedia arbitraria, autenticación, colaboración ni despliegue automático. La vista Estudiante puede consultar Spider y Bee y modificar únicamente su
 Bowerbird personal; no puede mutar el documento compartido. Versiona por separado
 documento editorial, catálogo/preferencias, edición publicada y progreso. No incrementes
 `progressSchemaVersion` por un cambio que solo pertenezca a otra rama; sí debes cambiar la

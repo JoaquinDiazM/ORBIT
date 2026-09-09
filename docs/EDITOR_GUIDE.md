@@ -65,12 +65,13 @@ Al comenzar, el Editor carga la edición publicada, migra si corresponde el borr
 crea un documento Docente independiente. Cada cambio válido se guarda automáticamente bajo:
 
 ```text
-orbit-editor:v5:electromagnetism-applied
+orbit-editor:v6:electromagnetism-applied
 ```
 
-El documento `orbit-editor-project` `v5` reúne Spider, Bee y las apariencias Bowerbird que
-Docente pretende publicar. Las migraciones puras `v1 → v2 → v3 → v4 → v5` preservan el mapa:
-`v4` incorpora nombres y rótulos de nivel; `v5`, definiciones y ciclo de vida de lugares. Un
+El documento `orbit-editor-project` `v6` reúne Spider, Bee y las apariencias Bowerbird que
+Docente pretende publicar. Las migraciones puras `v1 → v2 → v3 → v4 → v5 → v6` preservan el mapa:
+`v4` incorpora nombres y rótulos de nivel; `v5`, definiciones y ciclo de vida; `v6`, la fuente
+académica editable sin duplicar su contenido compilado. Un
 esquema o catálogo desconocido se rechaza sin sobrescribir el original.
 En ese caso la copia visible de la edición base es de recuperación: las ediciones ordinarias permanecen
 bloqueadas hasta que Docente usa **Restaurar** o importa explícitamente un documento válido.
@@ -165,14 +166,15 @@ Durante una reorganización sí puede existir temporalmente más de una raíz o 
 inalcanzable. **Validar** y **Aplicar** permanecen bloqueados hasta recuperar la raíz única y la
 alcanzabilidad integral.
 
-Esta política conserva una única fuente de verdad: el documento `v5` declara explícitamente la
+Esta política conserva una única fuente de verdad: el documento `v6` declara explícitamente la
 pertenencia y conexiones académicas; conceptos y recompensas continúan como resultados.
 
 ### Modificar y crear
 
 **Modificar** muestra el ID estable como solo lectura y permite cambiar `title` y `shortTitle`
-de `lesson`, `mission` y `npc`. La edición de párrafos, ejercicios, fuentes, concesiones y
-multimedia permanece deshabilitada bajo **Próximamente**.
+de `lesson`, `mission` y `npc`. **Editar contenido** abre la fuente académica con diagnósticos,
+plantillas y preview. La [guía de fuente](CONTENT_SOURCE_GUIDE.md) explica la sintaxis, el
+borrador recuperable y la matemática delimitada. Renombrar conserva el cuerpo.
 
 **Crear** admite los mismos tres tipos. ORBIT asigna un ID monotónico `new-node-NNNN` que no
 depende del título y nunca vuelve a utilizarse. Una lección o misión nueva contiene una etapa y
@@ -239,7 +241,7 @@ progreso.
 
 El alcance depende del perfil:
 
-- **Docente** edita la apariencia publicada dentro del documento común `v5`. Esos cambios
+- **Docente** edita la apariencia publicada dentro del documento común `v6`. Esos cambios
   participan en deshacer/rehacer, importación, exportación, diff y aplicación.
 - **Estudiante** edita únicamente sus overrides personales. No cambia el historial ni el JSON
   Docente y sus preferencias se conservan durante una aplicación del curso.
@@ -275,7 +277,7 @@ Los atajos del historial editorial no interceptan la edición de campos de texto
 ## Exportar e importar
 
 **Exportar JSON** descarga una instantánea versionada del documento Docente. El archivo identifica
-su tipo (`orbit-editor-project`), esquema `v5`, catálogo visual, curso y versión de datos base;
+su tipo (`orbit-editor-project`), esquema `v6`, catálogo visual, curso y versión de datos base;
 contiene nombres, coordenadas y apariencias de zonas, rótulos de nivel, definiciones y ciclo de
 vida de nodos, tombstones, `areaId + offset` y
 `learningNetwork.nodeIds + connections`. No contiene respuestas de usuarios, progreso ni preferencias
@@ -283,7 +285,7 @@ Bowerbird Estudiante.
 Descargarlo no modifica la edición que usa ORBIT.
 
 Solo los formatos heredados `v1`–`v4` pueden descartar con advertencia IDs desconocidos al
-migrarse. En `v5`, un ID de zona o lugar desconocido se rechaza sin reemplazar el borrador. Si
+migrarse. En el documento vigente, un ID de zona o lugar desconocido se rechaza sin reemplazar el borrador. Si
 una migración restaura entidades ausentes o rebasa otra versión base, el Editor abre **Resumen**,
 muestra cada advertencia y conserva el detalle hasta la siguiente edición. Un JSON incompatible,
 malformado o estructuralmente inválido no reemplaza el
@@ -372,7 +374,7 @@ alerta temporal; una respuesta positiva ya no puede quedar visualmente como un b
 
 El reinicio total elimina logros, posición, transporte activo, ajustes y overrides de depuración
 de Estudiante, Docente y Debug, incluidas sus claves legadas compatibles. Conserva el documento
-Docente `v5`, las preferencias Bowerbird Estudiante y cualquier dato no relacionado. Nunca usa
+Docente `v6`, las preferencias Bowerbird Estudiante y cualquier dato no relacionado. Nunca usa
 `localStorage.clear()`.
 
 Si falla la validación, la comprobación o el build, no se instala la edición. Si una interrupción
@@ -400,7 +402,7 @@ Aplicar localmente no despliega el sitio.
 
 Esta versión amplía la base del editor cartográfico y visual. Todavía no permite:
 
-- editar enunciados, ejercicios, soluciones, fórmulas o referencias;
+- crear nuevas figuras interactivas o medios remotos desde la fuente académica;
 - crear o eliminar zonas, conceptos o recompensas;
 - trasladar zonas entre los anillos 1 y 2;
 - gestionar varias rutas o cursos;
@@ -409,8 +411,9 @@ Esta versión amplía la base del editor cartográfico y visual. Todavía no per
 - crear commits, preparar el índice, hacer push o publicar automáticamente;
 - cargar imágenes o assets Bowerbird arbitrarios: las opciones pertenecen al catálogo versionado.
 
-La edición de contenido, la publicación remota y la arquitectura multicurso requieren contratos y
-revisiones posteriores. Consulta también [Arquitectura](ARCHITECTURE.md), [Diseño del mundo y la
+La autoría académica restringida de la cohorte 0.8.0 se define en el
+[ADR 0011](decisions/0011-academic-source-and-content-authoring.md). La publicación remota y la
+arquitectura multicurso requieren contratos y revisiones posteriores. Consulta también [Arquitectura](ARCHITECTURE.md), [Diseño del mundo y la
 Red de aprendizaje](WORLD_AND_KNOWLEDGE_DESIGN.md), [Checklist de QA](QA_CHECKLIST.md), [ADR
 0007](decisions/0007-static-local-editor.md) y [ADR
 0008](decisions/0008-scoped-appearance-and-local-course-application.md), enmendados por [ADR

@@ -148,7 +148,7 @@ edición activa.
 
 Los demás contratos persistidos permanecen separados:
 
-- documento Docente: `orbit-editor:v5:electromagnetism-applied`;
+- documento Docente: `orbit-editor:v6:electromagnetism-applied`;
 - preferencias visuales Estudiante: `orbit-bowerbird:v1:electromagnetism-applied:student`;
 - edición instalada en el navegador: `orbit-course-edition:v1:electromagnetism-applied`;
 - edición canónica publicada: `public/data/courses/electromagnetism-applied.edition.json`.
@@ -175,7 +175,7 @@ los selects Bowerbird cuando una escritura compatible falla.
 `src/core/course-edition.js` define `orbit-course-edition` `v1`. El artefacto contiene el
 documento Docente raw firmado, revisión anterior, revisión nueva, política de reset, fecha y
 digest SHA-256. Una fuente histórica se autentica en su propio esquema antes de migrarse en
-memoria; una edición nueva usa documento `v5`. Al arrancar, ORBIT y Editor validan la fuente,
+memoria; una edición nueva usa documento `v6`. Al arrancar, ORBIT y Editor validan la fuente,
 combinan el catálogo canónico con la autoridad editorial y materializan nombres/apariencias de
 zonas, definiciones y lugares activos, `areaId + offset` y `learningNetwork`. Conceptos,
 recompensas, `tier` e IDs canónicos conservan su catálogo fuente; IDs creados y estados de ciclo
@@ -322,6 +322,13 @@ cálculo RF completo.
 
 `src/ui/math-renderer.js` entrega a KaTeX únicamente expresiones editoriales TeX y conserva un fallback textual; el build sirve KaTeX localmente y nunca desde CDN.
 
+`src/ui/content-view.js` concentra el renderer de secciones, ejercicios, etapas y figuras.
+`UIController` conecta sus callbacks con `ProgressionModel`; el preview editorial usa la misma
+clase con estado efímero y no concede progreso. `src/core/content-source.js` compila la fuente
+restringida, y `src/core/math-typesetting.js` comparte tokenización y configuración KaTeX entre
+validación y presentación. La sesión de autoría mantiene texto incompleto fuera del documento
+aplicable; véase [la guía de fuente](CONTENT_SOURCE_GUIDE.md).
+
 `src/core/area-appearance.js` mantiene el catálogo versionado de paletas, motivos y contornos.
 `src/core/bowerbird-preferences.js` sanea únicamente overrides personales Estudiante. El renderer
 resuelve **personal → publicada → canónica** para una zona abierta; una bloqueada ignora esas
@@ -339,7 +346,7 @@ personal mutable; permite recorrer, encuadrar y consultar, y solo exporta sus pr
 Bowerbird personales: nunca importa ni exporta el documento Docente. Con `?profile=debug` muestra
 el bloqueo y no crea el modelo editorial.
 
-El documento editorial `orbit-editor-project` usa esquema `v5` y contiene:
+El documento editorial `orbit-editor-project` usa esquema `v6` y contiene:
 
 - nombres, coordenadas axiales y apariencias de las 19 zonas;
 - texto y offset cartográfico de los dos rótulos de nivel;
@@ -373,7 +380,7 @@ puede renombrar `title`/`shortTitle` con ID estable y cambiar texto/offset de ca
 
 **Bowerbird** opera sobre el triple `paletteId + motifId + contourId`. En Docente modifica el
 documento común y participa en historial/exportación/aplicación; en Estudiante modifica solo el
-documento de preferencias. Las migraciones `v1 → v2 → v3 → v4 → v5` añaden apariencia,
+documento de preferencias. Las migraciones `v1 → v2 → v3 → v4 → v5 → v6` añaden apariencia,
 convierten la topología efectiva anterior en la red académica explícita e incorporan metadatos y
 ciclo de vida sin reactivar lugares inventariados.
 
@@ -471,7 +478,8 @@ Persistido por Editor, de forma completamente separada:
 
 ```text
 kind: orbit-editor-project
-schemaVersion: 5
+schemaVersion: 6
+contentSourceVersion: 1
 appearanceCatalogVersion: 1
 courseId
 baseDataVersion
@@ -481,7 +489,7 @@ locations[]
   id + kind + title + shortTitle + areaId + offset
   lifecycle: active | inventory | deleted
   provenance: canonical | editor-created
-  content (solo para entidades creadas por el Editor)
+  contentSource (fuente del cuerpo de lesson/mission/npc; AST y contenido derivados)
 nextLocationSequence
 learningNetwork
   nodeIds[]
@@ -530,9 +538,9 @@ La arquitectura admite, sin exigirlos todavía:
 - migraciones de progreso;
 - pruebas de integración en navegador.
 
-La ampliación vigente permite crear entidades con plantillas genéricas y renombrarlas, pero no
-implica todavía edición profunda de contenido académico, conceptos o referencias, colaboración,
-autenticación, varias rutas ni publicación remota. El helper local es un puente de mantenimiento
+La cohorte 0.8.0 incorpora fuente académica editable y un renderer compartido entre preview y
+curso, con migración v6 y diagnósticos. No incluye creación de conceptos o colecciones de
+referencias, colaboración, autenticación, varias rutas ni publicación remota. El helper local es un puente de mantenimiento
 para una ruta y un archivo fijo, no un backend.
 
 Cada incorporación que requiera dependencias debe documentarse mediante ADR.

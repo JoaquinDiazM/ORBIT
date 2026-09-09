@@ -75,7 +75,7 @@ export const LOCATIONS = Object.freeze([
               tex: String.raw`f:\Omega\subseteq\mathbb{R}^3\to\mathbb{R}
                 \qquad
                 \mathbf{F}:\Omega\subseteq\mathbb{R}^3\to\mathbb{R}^3`,
-              caption: "Tipos de entrada y salida de un campo escalar f y un campo vectorial F.",
+              caption: "Tipos de entrada y salida de un campo escalar $f$ y un campo vectorial $\\mathbf{F}$.",
             },
           },
         ],
@@ -129,7 +129,7 @@ export const LOCATIONS = Object.freeze([
           {
             title: "Elementos diferenciales cilíndricos",
             paragraphs: [
-              "El arco azimutal mide r dφ; ese factor geométrico también aparece en las superficies y el volumen correspondientes.",
+              "El arco azimutal mide $r\\,d\\varphi$; ese factor geométrico también aparece en las superficies y el volumen correspondientes.",
             ],
             equation: {
               tex: String.raw`\begin{aligned}
@@ -145,7 +145,7 @@ export const LOCATIONS = Object.freeze([
           {
             title: "Elementos diferenciales esféricos",
             paragraphs: [
-              "Con θ como ángulo polar y φ como ángulo azimutal, los factores r y r sen θ reflejan las longitudes de arco de la base esférica.",
+              "Con $\\theta$ como ángulo polar y $\\varphi$ como ángulo azimutal, los factores r y $r\\sin\\theta$ reflejan las longitudes de arco de la base esférica.",
               "En este nodo basta reconocer estas expresiones; la derivación completa de los factores de escala y las integrales asociadas se estudiará más adelante.",
             ],
             equation: {
@@ -195,7 +195,7 @@ export const LOCATIONS = Object.freeze([
           {
             title: "Campos conservativos",
             paragraphs: [
-              "Un campo que deriva de un potencial es irrotacional si el potencial es suficientemente regular. El recíproco necesita además una condición sobre el dominio: en un abierto simplemente conexo —conectado y sin agujeros topológicos—, un campo C¹ con rotacional nulo admite un potencial.",
+              "Un campo que deriva de un potencial es irrotacional si el potencial es suficientemente regular. El recíproco necesita además una condición sobre el dominio: en un abierto simplemente conexo —conectado y sin agujeros topológicos—, un campo $C^1$ con rotacional nulo admite un potencial.",
             ],
             equation: {
               tex: String.raw`\mathbf{F}=\nabla f\quad\Longrightarrow\quad\nabla\times\mathbf{F}=\mathbf{0}`,
@@ -212,7 +212,7 @@ export const LOCATIONS = Object.freeze([
           {
             title: "Dos campos bajo las mismas condiciones",
             paragraphs: [
-              "Ambos campos están definidos en ℝ². Compara la dirección de sus flechas dentro de una misma ventana de visualización, con escala y densidad de muestreo comunes.",
+              "Ambos campos están definidos en $\\mathbb{R}^2$. Compara la dirección de sus flechas dentro de una misma ventana de visualización, con escala y densidad de muestreo comunes.",
               "Antes de responder, las etiquetas son deliberadamente neutrales. Las expresiones algebraicas y el análisis se mostrarán solo después de acertar.",
             ],
           },
@@ -267,7 +267,7 @@ export const LOCATIONS = Object.freeze([
                   {
                     title: "Campo B después de responder",
                     paragraphs: [
-                      "Las flechas son tangentes a círculos alrededor del origen. El rotacional vale 2b y no se anula porque el intervalo del parámetro excluye b = 0.",
+                      "Las flechas son tangentes a círculos alrededor del origen. El rotacional vale $2b$ y no se anula porque el intervalo del parámetro excluye $b = 0$.",
                     ],
                     equation: {
                       tex: String.raw`\begin{aligned}
@@ -284,7 +284,7 @@ export const LOCATIONS = Object.freeze([
           ],
           answerId: "field-a",
           retryExplanation: "Aún no. Compara si las direcciones pueden provenir del crecimiento de una sola función escalar; las fórmulas permanecerán ocultas durante el reintento.",
-          explanation: "Campo A es conservativo: existe f_A con F_A = ∇f_A. Campo B posee circulación y rotacional no nulo.",
+          explanation: "Campo A es conservativo: existe $f_A$ con $\\mathbf{F}_A = \\nabla f_A$. Campo B posee circulación y rotacional no nulo.",
         },
       },
       {
@@ -294,7 +294,7 @@ export const LOCATIONS = Object.freeze([
           {
             title: "Campo y objetivo",
             paragraphs: [
-              "Sea el siguiente campo definido en Ω = ℝ³. Determina una función escalar f tal que F = ∇f y concluye si el campo es conservativo.",
+              "Sea el siguiente campo definido en $\\Omega = \\mathbb{R}^3$. Determina una función escalar $f$ tal que $\\mathbf{F} = \\nabla f$ y concluye si el campo es conservativo.",
               "El desarrollo está dividido en exactamente cinco intervenciones. Entre ellas, ORBIT mostrará únicamente el paso necesario para continuar el procedimiento.",
             ],
             equation: {
@@ -313,7 +313,7 @@ export const LOCATIONS = Object.freeze([
             {
               id: "choose-method",
               type: "choice",
-              prompt: "Al tratar y y z como parámetros, ¿cómo se resuelve ∂f/∂x = y² cos(x) + z³?",
+              prompt: "Al tratar y y z como parámetros, ¿cómo se resuelve $\\frac{\\partial f}{\\partial x} = y^2 \\cos(x) + z^3$?",
               choices: [
                 { id: "direct-integration", label: "Integración directa respecto de x" },
                 { id: "separation", label: "Separación de variables" },
@@ -328,10 +328,10 @@ export const LOCATIONS = Object.freeze([
               type: "choice",
               prompt: "Selecciona el resultado correcto de la primera integración respecto de x.",
               choices: [
-                { id: "function-of-yz", label: "y² sin(x) + xz³ + C(y,z)" },
-                { id: "numeric-constant", label: "y² sin(x) + xz³ + C₀" },
-                { id: "function-of-x", label: "y² sin(x) + xz³ + C(x)" },
-                { id: "missing-x", label: "y² sin(x) + z³ + C(y,z)" },
+                { id: "function-of-yz", label: "$y^2 \\sin(x) + xz^3 + C(y,z)$" },
+                { id: "numeric-constant", label: "$y^2 \\sin(x) + xz^3 + C_0$" },
+                { id: "function-of-x", label: "$y^2 \\sin(x) + xz^3 + C(x)$" },
+                { id: "missing-x", label: "$y^2 \\sin(x) + z^3 + C(y,z)$" },
               ],
               answerId: "function-of-yz",
               explanation: "La constante de integración puede depender de y y z porque esas variables se mantuvieron fijas al integrar respecto de x.",
@@ -350,7 +350,7 @@ export const LOCATIONS = Object.freeze([
             {
               id: "match-y-component",
               type: "expression",
-              prompt: "De ∂f/∂y = 2y sin(x) + ∂C/∂y, ingresa la expresión para ∂C/∂y que reproduce la componente y de F.",
+              prompt: "De $\\frac{\\partial f}{\\partial y} = 2y \\sin(x) + \\frac{\\partial C}{\\partial y}$, ingresa la expresión para $\\frac{\\partial C}{\\partial y}$ que reproduce la componente y de F.",
               promptPrefix: String.raw`\frac{\partial C}{\partial y}=`,
               placeholder: "Escribe solo el miembro derecho",
               answerPolicy: {
@@ -377,7 +377,7 @@ export const LOCATIONS = Object.freeze([
             {
               id: "match-z-component",
               type: "expression",
-              prompt: "Si f = y² sin(x) + xz³ − 4y + D(z), ingresa D′(z) para reproducir la componente z de F.",
+              prompt: "Si $f = y^2 \\sin(x) + xz^3 - 4y + D(z)$, ingresa $D'(z)$ para reproducir la componente z de F.",
               promptPrefix: String.raw`D'(z)=`,
               placeholder: "Escribe solo el miembro derecho",
               answerPolicy: {
@@ -404,7 +404,7 @@ export const LOCATIONS = Object.freeze([
             {
               id: "final-cartesian-expression",
               type: "expression",
-              prompt: "Escribe una función escalar final f cuyo gradiente reproduzca F. Puedes omitir o añadir una constante aditiva.",
+              prompt: "Escribe una función escalar final $f$ cuyo gradiente reproduzca $\\mathbf{F}$. Puedes omitir o añadir una constante aditiva.",
               placeholder: "Escribe f(x,y,z)",
               answerPolicy: {
                 kind: "gradient-equivalent",
@@ -424,7 +424,7 @@ export const LOCATIONS = Object.freeze([
                   {
                     title: "Verificación cartesiana",
                     paragraphs: [
-                      "Las tres componentes coinciden con F. Por tanto, F = ∇f; la integral de línea depende solo de los extremos y el campo es conservativo en ℝ³.",
+                      "Las tres componentes coinciden con $\\mathbf{F}$. Por tanto, $\\mathbf{F} = \\nabla f$; la integral de línea depende solo de los extremos y el campo es conservativo en $\\mathbb{R}^3$.",
                     ],
                     equation: {
                       tex: String.raw`\begin{aligned}
@@ -450,7 +450,7 @@ export const LOCATIONS = Object.freeze([
           {
             title: "Campo y dominio",
             paragraphs: [
-              "En coordenadas cilíndricas (r, φ, z), considera el siguiente campo en una región de trabajo con r > 0 y componente azimutal nula.",
+              "En coordenadas cilíndricas $(r, \\varphi, z)$, considera el siguiente campo en una región de trabajo con $r > 0$ y componente azimutal nula.",
               "Esta evaluación consta de dos intervenciones y no entrega pistas durante la resolución. La primera respuesta se valida como una expresión completa, no como una cadena literal.",
             ],
             equation: {
@@ -458,7 +458,7 @@ export const LOCATIONS = Object.freeze([
                 =\frac{rz}{(r^2+z^2)^{3/2}}\,\hat{\mathbf{r}}
                 -\frac{r^2}{(r^2+z^2)^{3/2}}\,\hat{\mathbf{z}},
                 \qquad F_{\varphi}=0`,
-              caption: "Campo vectorial definido en la región cilíndrica r > 0; la evaluación usa puntos interiores de esa región.",
+              caption: "Campo vectorial definido en la región cilíndrica $r > 0$; la evaluación usa puntos interiores de esa región.",
             },
           },
         ],
@@ -469,7 +469,7 @@ export const LOCATIONS = Object.freeze([
             {
               id: "cylindrical-expression",
               type: "expression",
-              prompt: "Encuentra una expresión f(r, φ, z) cuyo gradiente reproduzca el campo F.",
+              prompt: "Encuentra una expresión $f(r, \\varphi, z)$ cuyo gradiente reproduzca el campo F.",
               placeholder: "Escribe f(r,phi,z)",
               answerPolicy: {
                 kind: "gradient-equivalent",
@@ -497,7 +497,7 @@ export const LOCATIONS = Object.freeze([
                   {
                     title: "Verificación posterior",
                     paragraphs: [
-                      "Una forma válida es f = −z/√(r² + z²) + C. La constante aditiva no modifica el gradiente.",
+                      "Una forma válida es $f = -\\frac{z}{\\sqrt{r^2 + z^2}} + C$. La constante aditiva no modifica el gradiente.",
                     ],
                     equation: {
                       tex: String.raw`\begin{aligned}
@@ -522,14 +522,14 @@ export const LOCATIONS = Object.freeze([
               choices: [
                 {
                   id: "gradient-definition",
-                  label: "Porque existe f en el dominio con F = ∇f; por el teorema fundamental, la integral depende solo de los extremos.",
+                  label: "Porque existe $f$ en el dominio con $\\mathbf{F} = \\nabla f$; por el teorema fundamental, la integral depende solo de los extremos.",
                 },
                 { id: "zero-divergence", label: "Porque la divergencia se anula en el dominio y esa condición basta para garantizar conservación." },
-                { id: "no-phi", label: "Porque las componentes no dependen de φ y toda independencia angular garantiza conservación." },
+                { id: "no-phi", label: "Porque las componentes no dependen de $\\varphi$ y toda independencia angular garantiza conservación." },
                 { id: "decay", label: "Porque la magnitud decrece con la distancia y todo campo decreciente es conservativo." },
               ],
               answerId: "gradient-definition",
-              explanation: "La existencia de f con F = ∇f en el dominio establece la independencia de trayectoria por el teorema fundamental de las integrales de línea.",
+              explanation: "La existencia de $f$ con $\\mathbf{F} = \\nabla f$ en el dominio establece la independencia de trayectoria por el teorema fundamental de las integrales de línea.",
             },
           ],
         },
@@ -605,7 +605,7 @@ export const LOCATIONS = Object.freeze([
       "Álgebra vectorial y derivadas parciales elementales",
       "Física general: fuerza, trabajo y energía potencial",
     ],
-    model: "Cargas puntuales estacionarias en el vacío, superposición lineal, campo eléctrico E y potencial escalar V con E = −∇V fuera de las fuentes.",
+    model: "Cargas puntuales estacionarias en el vacío, superposición lineal, campo eléctrico E y potencial escalar V con $\\mathbf{E} = -\\nabla V$ fuera de las fuentes.",
     application: "Estimación de fuerzas, campos y diferencias de potencial producidas por configuraciones discretas de carga.",
     steps: [
       {
@@ -629,7 +629,7 @@ export const LOCATIONS = Object.freeze([
           {
             title: "Convención de potencial electrostático",
             paragraphs: [
-              "En electrostática se define el potencial para que el campo apunte hacia donde V disminuye con mayor rapidez. El signo menos es una convención física esencial y no contradice la relación F = ∇f estudiada para un campo matemático general.",
+              "En electrostática se define el potencial para que el campo apunte hacia donde $V$ disminuye con mayor rapidez. El signo menos es una convención física esencial y no contradice la relación $\\mathbf{F} = \\nabla f$ estudiada para un campo matemático general.",
             ],
             equation: {
               tex: String.raw`V(\mathbf r)=\frac{1}{4\pi\varepsilon_0}
@@ -708,7 +708,7 @@ export const LOCATIONS = Object.freeze([
           absoluteTolerance: 1.5e-8,
           unit: "N",
           placeholder: "Ej.: 8,99e-7",
-          explanation: "F = 8,99×10⁹·(10⁻⁹)²/(0,10)² ≈ 8,99×10⁻⁷ N. Es repulsiva porque ambas cargas tienen el mismo signo.",
+          explanation: "$F = \\frac{8{,}99\\times10^9\\cdot(10^{-9})^2}{(0{,}10)^2} \\approx 8{,}99\\times10^{-7}\\,\\mathrm{N}$. Es repulsiva porque ambas cargas tienen el mismo signo.",
         },
       },
       {
@@ -718,7 +718,7 @@ export const LOCATIONS = Object.freeze([
           {
             title: "Una carga puntual y su dominio",
             paragraphs: [
-              "Considera una carga q en el origen y el dominio Ω = ℝ³∖{0}. El origen se excluye porque allí el modelo de carga puntual es singular. Reconstruiremos el campo desde V y terminaremos conectando el cálculo local con la independencia de trayectoria.",
+              "Considera una carga q en el origen y el dominio $\\Omega = \\mathbb{R}^3\\setminus\\{\\mathbf{0}\\}$. El origen se excluye porque allí el modelo de carga puntual es singular. Reconstruiremos el campo desde V y terminaremos conectando el cálculo local con la independencia de trayectoria.",
               "La demostración tiene exactamente siete intervenciones. Cada paso validado revela la pieza algebraica o conceptual necesaria para el siguiente.",
             ],
             equation: {
@@ -735,22 +735,22 @@ export const LOCATIONS = Object.freeze([
             {
               id: "choose-point-potential",
               type: "choice",
-              prompt: "¿Qué potencial corresponde a una carga puntual q si se toma V → 0 cuando R → ∞?",
+              prompt: "¿Qué potencial corresponde a una carga puntual q si se toma $V \\to 0$ cuando $R \\to \\infty$?",
               choices: [
-                { id: "inverse-radius", label: "V = kₑq/R" },
-                { id: "inverse-square", label: "V = kₑq/R²" },
-                { id: "linear-radius", label: "V = kₑqR" },
-                { id: "constant", label: "V = kₑq" },
+                { id: "inverse-radius", label: "$V = \\frac{k_e q}{R}$" },
+                { id: "inverse-square", label: "$V = \\frac{k_e q}{R^2}$" },
+                { id: "linear-radius", label: "$V = k_e qR$" },
+                { id: "constant", label: "$V = k_e q$" },
               ],
               answerId: "inverse-radius",
-              explanation: "El potencial de una carga puntual decrece como 1/R y la referencia elegida elimina una constante aditiva.",
+              explanation: "El potencial de una carga puntual decrece como $1/R$ y la referencia elegida elimina una constante aditiva.",
               reveal: {
                 sections: [
                   {
                     title: "Potencial candidato",
                     equation: {
                       tex: String.raw`V(x,y,z)=\frac{k_eq}{\sqrt{x^2+y^2+z^2}}`,
-                      caption: "Potencial de la carga puntual en Ω.",
+                      caption: "Potencial de la carga puntual en $\\Omega$.",
                     },
                   },
                 ],
@@ -759,7 +759,7 @@ export const LOCATIONS = Object.freeze([
             {
               id: "differentiate-x",
               type: "expression",
-              prompt: "Escribe ∂V/∂x para V = kq/√(x²+y²+z²).",
+              prompt: "Escribe $\\frac{\\partial V}{\\partial x}$ para $V = \\frac{kq}{\\sqrt{x^2+y^2+z^2}}$.",
               promptPrefix: String.raw`\frac{\partial V}{\partial x}=`,
               placeholder: "Escribe solo el miembro derecho",
               answerPolicy: {
@@ -791,7 +791,7 @@ export const LOCATIONS = Object.freeze([
             {
               id: "differentiate-y",
               type: "expression",
-              prompt: "Aplica la misma regla de la cadena y escribe ∂V/∂y.",
+              prompt: "Aplica la misma regla de la cadena y escribe $\\frac{\\partial V}{\\partial y}$.",
               promptPrefix: String.raw`\frac{\partial V}{\partial y}=`,
               placeholder: "Escribe solo el miembro derecho",
               answerPolicy: {
@@ -823,7 +823,7 @@ export const LOCATIONS = Object.freeze([
             {
               id: "differentiate-z",
               type: "expression",
-              prompt: "Completa el gradiente escribiendo ∂V/∂z.",
+              prompt: "Completa el gradiente escribiendo $\\frac{\\partial V}{\\partial z}$.",
               promptPrefix: String.raw`\frac{\partial V}{\partial z}=`,
               placeholder: "Escribe solo el miembro derecho",
               answerPolicy: {
@@ -855,12 +855,12 @@ export const LOCATIONS = Object.freeze([
             {
               id: "assemble-electric-field",
               type: "choice",
-              prompt: "¿Qué campo resulta al aplicar la convención electrostática E = −∇V?",
+              prompt: "¿Qué campo resulta al aplicar la convención electrostática $\\mathbf{E} = -\\nabla V$?",
               choices: [
-                { id: "outward-field", label: "E = kₑq(x x̂ + y ŷ + z ẑ)/R³" },
-                { id: "inward-field", label: "E = −kₑq(x x̂ + y ŷ + z ẑ)/R³" },
-                { id: "constant-field", label: "E = kₑq(x̂ + ŷ + ẑ)" },
-                { id: "scalar-field", label: "E = kₑq/R" },
+                { id: "outward-field", label: "$\\mathbf{E} = \\frac{k_e q(x\\hat{\\mathbf{x}} + y\\hat{\\mathbf{y}} + z\\hat{\\mathbf{z}})}{R^3}$" },
+                { id: "inward-field", label: "$\\mathbf{E} = -\\frac{k_e q(x\\hat{\\mathbf{x}} + y\\hat{\\mathbf{y}} + z\\hat{\\mathbf{z}})}{R^3}$" },
+                { id: "constant-field", label: "$\\mathbf{E} = k_e q(\\hat{\\mathbf{x}} + \\hat{\\mathbf{y}} + \\hat{\\mathbf{z}})$" },
+                { id: "scalar-field", label: "$\\mathbf{E} = \\frac{k_e q}{R}$" },
               ],
               answerId: "outward-field",
               explanation: "El signo menos cancela el signo del gradiente. Para q positiva, el campo apunta radialmente hacia afuera.",
@@ -882,25 +882,25 @@ export const LOCATIONS = Object.freeze([
             {
               id: "curl-conclusion",
               type: "choice",
-              prompt: "¿Por qué se anula ∇×E en Ω?",
+              prompt: "¿Por qué se anula $\\nabla\\times\\mathbf{E}$ en $\\Omega$?",
               choices: [
-                { id: "curl-gradient", label: "Porque E = −∇V y el rotor de un gradiente C² se anula" },
+                { id: "curl-gradient", label: "Porque $\\mathbf{E} = -\\nabla V$ y el rotor de un gradiente $C^2$ se anula" },
                 { id: "zero-divergence", label: "Porque toda divergencia nula obliga a que el rotor sea nulo" },
                 { id: "radial-only", label: "Porque cualquier campo radial tiene rotor nulo, incluso si depende del ángulo" },
-                { id: "inverse-square-only", label: "Porque cualquier magnitud proporcional a 1/R² es conservativa" },
+                { id: "inverse-square-only", label: "Porque cualquier magnitud proporcional a $1/R^2$ es conservativa" },
               ],
               answerId: "curl-gradient",
-              explanation: "En Ω el potencial es suficientemente regular; por la identidad ∇×(∇V)=0, también ∇×E=0.",
+              explanation: "En $\\Omega$ el potencial es suficientemente regular; por la identidad $\\nabla\\times(\\nabla V)=\\mathbf{0}$, también $\\nabla\\times\\mathbf{E}=\\mathbf{0}$.",
             },
             {
               id: "path-independence",
               type: "choice",
               prompt: "¿Qué afirmación completa la demostración del carácter conservativo?",
               choices: [
-                { id: "endpoint-only", label: "∫Aᴮ E·dℓ = V(A) − V(B) y, para una curva cerrada, ∮E·dℓ = 0" },
+                { id: "endpoint-only", label: "$\\int_A^B \\mathbf{E}\\cdot d\\boldsymbol{\\ell} = V(A) - V(B)$ y, para una curva cerrada, $\\oint\\mathbf{E}\\cdot d\\boldsymbol{\\ell} = 0$" },
                 { id: "length-only", label: "La integral depende solo de la longitud total del camino" },
                 { id: "always-positive", label: "La integral es positiva para cualquier orientación del recorrido" },
-                { id: "source-included", label: "La misma demostración sigue siendo regular en el punto R = 0" },
+                { id: "source-included", label: "La misma demostración sigue siendo regular en el punto $R = 0$" },
               ],
               answerId: "endpoint-only",
               explanation: "La integral depende únicamente de los extremos. En un lazo, ambos extremos coinciden y la circulación electrostática es cero; el punto fuente permanece fuera del dominio.",
@@ -912,7 +912,7 @@ export const LOCATIONS = Object.freeze([
                       tex: String.raw`\int_A^B\mathbf E\cdot\mathrm d\boldsymbol\ell
                         =V(A)-V(B),\qquad
                         \oint_C\mathbf E\cdot\mathrm d\boldsymbol\ell=0`,
-                      caption: "Independencia de trayectoria y circulación nula para curvas cerradas contenidas en Ω.",
+                      caption: "Independencia de trayectoria y circulación nula para curvas cerradas contenidas en $\\Omega$.",
                     },
                   },
                 ],
@@ -928,7 +928,7 @@ export const LOCATIONS = Object.freeze([
           {
             title: "Un dipolo sobre el eje x",
             paragraphs: [
-              "Ubica +1 nC en x = −0,10 m y −1 nC en x = +0,10 m. El origen está a igual distancia de ambas cargas. Evalúa por separado potencial y campo: uno suma escalares y el otro, vectores.",
+              "Ubica +1 nC en $x = -0{,}10\\,\\mathrm{m}$ y −1 nC en $x = +0{,}10\\,\\mathrm{m}$. El origen está a igual distancia de ambas cargas. Evalúa por separado potencial y campo: uno suma escalares y el otro, vectores.",
             ],
             equation: {
               tex: String.raw`V(\mathbf 0)=k_e\left(\frac{+q}{a}+\frac{-q}{a}\right)=0`,
@@ -943,12 +943,12 @@ export const LOCATIONS = Object.freeze([
             {
               id: "dipole-field-value",
               type: "numeric",
-              prompt: "Calcula la componente Ex en el origen. Usa kₑ = 8,99×10⁹ N m²/C² y responde en N/C.",
+              prompt: "Calcula la componente $E_x$ en el origen. Usa $k_e = 8{,}99\\times10^9\\,\\mathrm{N\\,m^2/C^2}$ y responde en N/C.",
               expected: 1798,
               absoluteTolerance: 20,
               unit: "N/C",
               placeholder: "Ej.: 1,80e3",
-              explanation: "Ambas contribuciones apuntan hacia +x y cada una vale kₑq/a² ≈ 899 N/C; por tanto Ex ≈ 1,80×10³ N/C.",
+              explanation: "Ambas contribuciones apuntan hacia $+x$ y cada una vale $k_e q/a^2 \\approx 899\\,\\mathrm{N/C}$; por tanto $E_x \\approx 1{,}80\\times10^3\\,\\mathrm{N/C}$.",
             },
             {
               id: "zero-potential-interpretation",
@@ -956,7 +956,7 @@ export const LOCATIONS = Object.freeze([
               prompt: "¿Cómo puede V ser cero mientras E no lo es en el origen?",
               choices: [
                 { id: "value-versus-gradient", label: "V es un valor escalar local; E depende de su gradiente, que puede ser no nulo donde V cruza por cero" },
-                { id: "field-must-vanish", label: "No puede ocurrir: si V = 0 en un punto, E también debe anularse allí" },
+                { id: "field-must-vanish", label: "No puede ocurrir: si $V = 0$ en un punto, E también debe anularse allí" },
                 { id: "units-cancel", label: "Ocurre porque volt y newton por coulomb son la misma unidad" },
                 { id: "only-positive", label: "Ocurre únicamente si ambas cargas son positivas" },
               ],
@@ -1039,7 +1039,7 @@ export const LOCATIONS = Object.freeze([
       absoluteTolerance: 0.02,
       unit: "A",
       placeholder: "Ej.: 2,0",
-      explanation: "Se elige la ley de Ohm porque el elemento es resistivo: I = V/R = 12/6 = 2 A; el signo depende de la referencia elegida.",
+      explanation: "Se elige la ley de Ohm porque el elemento es resistivo: $I = V/R = 12/6 = 2\\,\\mathrm{A}$; el signo depende de la referencia elegida.",
     },
     sources: [
       {
@@ -1074,7 +1074,7 @@ export const LOCATIONS = Object.freeze([
         equation: {
           tex: String.raw`\frac{\mathrm{d}V}{\mathrm{d}t}+\frac{1}{RC}V=0,
             \qquad V(t)=V_0e^{-t/(RC)}`,
-          caption: "Descarga ideal de un circuito RC con constante de tiempo τ = RC.",
+          caption: "Descarga ideal de un circuito RC con constante de tiempo $\\tau = RC$.",
         },
         paragraphs: [
           "El producto RC fija la escala temporal y permite juzgar si una respuesta calculada es razonable.",
@@ -1086,7 +1086,7 @@ export const LOCATIONS = Object.freeze([
       prompt: "Si R se duplica y C permanece fija, ¿qué ocurre con el tiempo característico RC?",
       choices: ["Se reduce a la mitad", "No cambia", "Se duplica", "Se anula"],
       answerIndex: 2,
-      explanation: "La constante τ = RC se duplica; la descarga es más lenta y conserva unidades de segundo.",
+      explanation: "La constante $\\tau = RC$ se duplica; la descarga es más lenta y conserva unidades de segundo.",
     },
     sources: [
       {
@@ -1123,7 +1123,7 @@ export const LOCATIONS = Object.freeze([
           caption: "Campo magnético de un conductor rectilíneo largo.",
         },
         paragraphs: [
-          "La dirección φ̂ es tangente a circunferencias centradas en el conductor.",
+          "La dirección $\\hat{\\boldsymbol{\\varphi}}$ es tangente a circunferencias centradas en el conductor.",
         ],
       },
     ],
@@ -1217,7 +1217,7 @@ export const LOCATIONS = Object.freeze([
       absoluteTolerance: 0.02,
       unit: "V",
       placeholder: "Ej.: 2.0",
-      explanation: "|ℰ| = N|ΔΦ|/Δt = 100·0.020/1.0 = 2.0 V.",
+      explanation: "$|\\mathcal{E}| = N|\\Delta\\Phi|/\\Delta t = 100\\cdot0.020/1.0 = 2.0\\,\\mathrm{V}$.",
     },
     sources: [
       {
@@ -1271,12 +1271,12 @@ export const LOCATIONS = Object.freeze([
       prompt: "¿Qué término permite extender la ley de Ampère a situaciones con campo eléctrico variable?",
       choices: [
         "La densidad de carga estática",
-        "La corriente de desplazamiento, proporcional a ∂E/∂t",
+        "La corriente de desplazamiento, proporcional a $\\frac{\\partial\\mathbf{E}}{\\partial t}$",
         "El potencial gravitacional",
         "La resistencia eléctrica del vacío",
       ],
       answerIndex: 1,
-      explanation: "El término μ₀ε₀∂E/∂t restaura la consistencia con campos variables y conservación de carga.",
+      explanation: "El término $\\mu_0\\varepsilon_0\\frac{\\partial\\mathbf{E}}{\\partial t}$ restaura la consistencia con campos variables y conservación de carga.",
     },
     sources: [
       {
@@ -1322,7 +1322,7 @@ export const LOCATIONS = Object.freeze([
       absoluteTolerance: 5e6,
       unit: "m/s",
       placeholder: "Ej.: 3.0e8",
-      explanation: "La aproximación estándar es c ≈ 3.00×10⁸ m/s.",
+      explanation: "La aproximación estándar es $c \\approx 3.00\\times10^8\\,\\mathrm{m/s}$.",
     },
     sources: [
       {
@@ -1385,7 +1385,7 @@ export const LOCATIONS = Object.freeze([
         title: "Modelo mínimo",
         equation: {
           tex: String.raw`\Delta V=S_B\,\Delta B`,
-          caption: "Respuesta lineal de un sensor magnético con sensibilidad S_B.",
+          caption: "Respuesta lineal de un sensor magnético con sensibilidad $S_B$.",
         },
         paragraphs: ["Esta relación permite dimensionar amplificación y resolución del conversor."],
       },
@@ -1397,7 +1397,7 @@ export const LOCATIONS = Object.freeze([
       absoluteTolerance: 0.005,
       unit: "V",
       placeholder: "Ej.: 0,20",
-      explanation: "ΔV = 50 mV/mT·4 mT = 200 mV = 0.20 V; las unidades de mT se cancelan.",
+      explanation: "$\\Delta V = 50\\,\\mathrm{mV/mT}\\cdot4\\,\\mathrm{mT} = 200\\,\\mathrm{mV} = 0.20\\,\\mathrm{V}$; las unidades de mT se cancelan.",
     },
     sources: [{ label: "NIST — Sensors", url: "https://www.nist.gov/topics/sensors" }],
   },
@@ -1434,12 +1434,12 @@ export const LOCATIONS = Object.freeze([
     ],
     exercise: {
       type: "numeric",
-      prompt: "Si kΦ = 0.8 N·m/A e I = 3 A, calcula el torque ideal.",
+      prompt: "Si $k\\Phi = 0.8\\,\\mathrm{N\\cdot m/A}$ e $I = 3\\,\\mathrm{A}$, calcula el torque ideal.",
       expected: 2.4,
       absoluteTolerance: 0.03,
       unit: "N·m",
       placeholder: "Ej.: 2,4",
-      explanation: "τ = (0.8 N·m/A)(3 A) = 2.4 N·m. El resultado ideal no incluye pérdidas.",
+      explanation: "$\\tau = (0.8\\,\\mathrm{N\\cdot m/A})(3\\,\\mathrm{A}) = 2.4\\,\\mathrm{N\\cdot m}$. El resultado ideal no incluye pérdidas.",
     },
     sources: [
       {
@@ -1485,7 +1485,7 @@ export const LOCATIONS = Object.freeze([
       absoluteTolerance: 5,
       unit: "W",
       placeholder: "Ej.: 920",
-      explanation: "P = 230·5·0.8 = 920 W. La potencia aparente sería 1150 VA.",
+      explanation: "$P = 230\\cdot5\\cdot0.8 = 920\\,\\mathrm{W}$. La potencia aparente sería 1150 VA.",
     },
     sources: [
       {
@@ -1529,7 +1529,7 @@ export const LOCATIONS = Object.freeze([
       prompt: "En un método de segundo orden, ¿qué se espera al reducir h a la mitad en el régimen asintótico?",
       choices: ["El error se duplica", "El error baja aproximadamente a un cuarto", "No cambia", "Se anula exactamente"],
       answerIndex: 1,
-      explanation: "Con p = 2, (h/2)²/h² = 1/4. Es una expectativa de convergencia, no exactitud absoluta.",
+      explanation: "Con $p = 2$, $(h/2)^2/h^2 = 1/4$. Es una expectativa de convergencia, no exactitud absoluta.",
     },
     sources: [
       {
@@ -1569,12 +1569,12 @@ export const LOCATIONS = Object.freeze([
     ],
     exercise: {
       type: "numeric",
-      prompt: "Una señal tiene período T = 2 ms. Calcula su frecuencia fundamental.",
+      prompt: "Una señal tiene período $T = 2\\,\\mathrm{ms}$. Calcula su frecuencia fundamental.",
       expected: 500,
       absoluteTolerance: 2,
       unit: "Hz",
       placeholder: "Ej.: 500",
-      explanation: "T = 0.002 s, por lo que f₀ = 1/T = 500 Hz.",
+      explanation: "$T = 0.002\\,\\mathrm{s}$, por lo que $f_0 = 1/T = 500\\,\\mathrm{Hz}$.",
     },
     sources: [
       {
@@ -1617,7 +1617,7 @@ export const LOCATIONS = Object.freeze([
       prompt: "Al pasar de un medio con mayor índice a otro con menor índice, la reflexión interna total puede ocurrir cuando…",
       choices: ["El ángulo de incidencia supera el crítico", "La frecuencia es cero", "Ambos índices son idénticos", "La incidencia es siempre normal"],
       answerIndex: 0,
-      explanation: "Para n₁ > n₂ existe un ángulo crítico; sobre él no hay ángulo transmitido real en el modelo ideal.",
+      explanation: "Para $n_1 > n_2$ existe un ángulo crítico; sobre él no hay ángulo transmitido real en el modelo ideal.",
     },
     sources: [
       {
@@ -1691,14 +1691,14 @@ export const LOCATIONS = Object.freeze([
       {
         title: "Modelo inicial y sus límites",
         paragraphs: [
-          "Representamos la transición mediante una temperatura crítica T_c. Por encima de ella el material posee resistencia; por debajo puede entrar en estado superconductor si tampoco se exceden sus límites críticos de corriente y campo.",
+          "Representamos la transición mediante una temperatura crítica $T_c$. Por encima de ella el material posee resistencia; por debajo puede entrar en estado superconductor si tampoco se exceden sus límites críticos de corriente y campo.",
           "Este modelo es provisional: no explica el mecanismo microscópico, la respuesta magnética ni cómo dependen los límites críticos del material y la geometría.",
         ],
         equation: {
           tex: String.raw`R(T)>0\quad (T>T_c),\qquad R(T)\approx 0\quad (T<T_c)`,
           caption: "Esquema cualitativo de una transición resistiva; no representa una curva universal ni reemplaza los límites críticos del material.",
         },
-        callout: "La aproximación R ≈ 0 describe una medición de corriente continua dentro de su resolución; no autoriza a tratar cualquier material frío como superconductor.",
+        callout: "La aproximación $R \\approx 0$ describe una medición de corriente continua dentro de su resolución; no autoriza a tratar cualquier material frío como superconductor.",
       },
     ],
     exercise: {
@@ -1723,7 +1723,7 @@ export const LOCATIONS = Object.freeze([
         },
       ],
       answerId: "abrupt-zero-resistance",
-      explanation: "La evidencia inicial es una transición abrupta alrededor de T_c. Este criterio introductorio todavía no explica el mecanismo ni sustituye el estudio de respuesta magnética y límites críticos.",
+      explanation: "La evidencia inicial es una transición abrupta alrededor de $T_c$. Este criterio introductorio todavía no explica el mecanismo ni sustituye el estudio de respuesta magnética y límites críticos.",
     },
     sources: [],
   },
@@ -1751,19 +1751,19 @@ export const LOCATIONS = Object.freeze([
         title: "Modelo mínimo",
         equation: {
           tex: String.raw`f_{c,10}=\frac{c}{2a}`,
-          caption: "Frecuencia de corte del modo TE10 en una guía rectangular llena de aire.",
+          caption: "Frecuencia de corte del modo $\\mathrm{TE}_{10}$ en una guía rectangular llena de aire.",
         },
         paragraphs: ["Esta escala guía la elección de dimensiones en alimentación de antenas y sistemas de microondas."],
       },
     ],
     exercise: {
       type: "numeric",
-      prompt: "Para una guía de aire con lado ancho a = 3.0 cm, estima f_c del modo TE10.",
+      prompt: "Para una guía de aire con lado ancho $a = 3.0\\,\\mathrm{cm}$, estima $f_c$ del modo $\\mathrm{TE}_{10}$.",
       expected: 5e9,
       absoluteTolerance: 1e8,
       unit: "Hz",
       placeholder: "Ej.: 5,0e9",
-      explanation: "f_c = 3.00×10⁸/(2·0.030) = 5.0×10⁹ Hz. Bajo esa frecuencia el modo es evanescente.",
+      explanation: "$f_c = \\frac{3.00\\times10^8}{2\\cdot0.030} = 5.0\\times10^9\\,\\mathrm{Hz}$. Bajo esa frecuencia el modo es evanescente.",
     },
     sources: [
       {
@@ -1796,19 +1796,19 @@ export const LOCATIONS = Object.freeze([
         title: "Modelo mínimo",
         equation: {
           tex: String.raw`\Gamma_L=\frac{Z_L-Z_0}{Z_L+Z_0}`,
-          caption: "Coeficiente de reflexión de tensión en una carga Z_L.",
+          caption: "Coeficiente de reflexión de tensión en una carga $Z_L$.",
         },
-        paragraphs: ["La adaptación Γ = 0 maximiza la transferencia hacia una carga ideal en este modelo."],
+        paragraphs: ["La adaptación $\\Gamma = 0$ maximiza la transferencia hacia una carga ideal en este modelo."],
       },
     ],
     exercise: {
       type: "numeric",
-      prompt: "Una línea de 50 Ω termina en 100 Ω. Calcula Γ_L.",
+      prompt: "Una línea de 50 Ω termina en 100 Ω. Calcula $\\Gamma_L$.",
       expected: 0.3333333333,
       absoluteTolerance: 0.015,
       unit: "adimensional",
       placeholder: "Ej.: 0,33",
-      explanation: "Γ_L = (100−50)/(100+50) = 1/3. El signo positivo indica reflexión sin inversión de tensión.",
+      explanation: "$\\Gamma_L = \\frac{100-50}{100+50} = 1/3$. El signo positivo indica reflexión sin inversión de tensión.",
     },
     sources: [
       {
@@ -1831,13 +1831,13 @@ export const LOCATIONS = Object.freeze([
     grants: { rewards: ["gadgets:smith-chart"] },
     objective: "Reconocer la carta de Smith como una representación del coeficiente de reflexión normalizado.",
     prerequisites: ["Zona de Líneas de Transmisión abierta"],
-    model: "Plano complejo del coeficiente de reflexión Γ dentro de la circunferencia unidad.",
+    model: "Plano complejo del coeficiente de reflexión $\\Gamma$ dentro de la circunferencia unidad.",
     application: "Referencia visual preliminar para adaptación de impedancias en líneas de transmisión.",
     sections: [
       {
         title: "Un esqueleto antes de la herramienta completa",
         paragraphs: [
-          "La carta de Smith organiza en el plano Γ familias de impedancia normalizada. En esta primera entrega se conserva únicamente su estructura geométrica de referencia.",
+          "La carta de Smith organiza en el plano $\\Gamma$ familias de impedancia normalizada. En esta primera entrega se conserva únicamente su estructura geométrica de referencia.",
           "El gadget todavía no convierte impedancias, no calcula razón de onda estacionaria y no traza recorridos sobre una línea.",
         ],
         equation: {
@@ -1891,7 +1891,7 @@ export const LOCATIONS = Object.freeze([
       absoluteTolerance: 0.02,
       unit: "m",
       placeholder: "Ej.: 0,50",
-      explanation: "λ = 3.00×10⁸/3.00×10⁸ = 1.0 m; una media onda ideal mide 0.50 m.",
+      explanation: "$\\lambda = \\frac{3.00\\times10^8}{3.00\\times10^8} = 1.0\\,\\mathrm{m}$; una media onda ideal mide 0.50 m.",
     },
     sources: [
       {
@@ -1931,12 +1931,12 @@ export const LOCATIONS = Object.freeze([
     ],
     exercise: {
       type: "numeric",
-      prompt: "Con P_t = 20 dBm, G_t = 10 dB, G_r = 10 dB y pérdida de trayecto de 100 dB, sin otras pérdidas, calcula P_r.",
+      prompt: "Con $P_t = 20\\,\\mathrm{dBm}$, $G_t = 10\\,\\mathrm{dB}$, $G_r = 10\\,\\mathrm{dB}$ y pérdida de trayecto de 100 dB, sin otras pérdidas, calcula $P_r$.",
       expected: -60,
       absoluteTolerance: 0.5,
       unit: "dBm",
       placeholder: "Ej.: -60",
-      explanation: "P_r = 20 + 10 + 10 − 100 = −60 dBm. Aún falta compararlo con ruido y sensibilidad.",
+      explanation: "$P_r = 20 + 10 + 10 - 100 = -60\\,\\mathrm{dBm}$. Aún falta compararlo con ruido y sensibilidad.",
     },
     sources: [
       {
@@ -2031,12 +2031,12 @@ export const LOCATIONS = Object.freeze([
     ],
     exercise: {
       type: "numeric",
-      prompt: "Usando la distancia media Tierra–Luna de 3.844×10⁸ m, estima el tiempo de vuelo unidireccional de la señal, en segundos.",
+      prompt: "Usando la distancia media Tierra–Luna de $3.844\\times10^8\\,\\mathrm{m}$, estima el tiempo de vuelo unidireccional de la señal, en segundos.",
       expected: 1.2813333333,
       absoluteTolerance: 0.03,
       unit: "s",
       placeholder: "Ej.: 1.28",
-      explanation: "t = d/c ≈ 3.844×10⁸ / 3.00×10⁸ ≈ 1.28 s.",
+      explanation: "$t = d/c \\approx \\frac{3.844\\times10^8}{3.00\\times10^8} \\approx 1.28\\,\\mathrm{s}$.",
     },
     sources: [
       {

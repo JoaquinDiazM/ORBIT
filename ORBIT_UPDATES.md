@@ -241,19 +241,19 @@ Sin propuestas pendientes de clasificar.
 
 - Versión: `0.8.0`
 - Estado de la cohorte: `abierta`
-- IDs: `UPD-021`
+- IDs: `UPD-021`, `UPD-024`
 - Apertura registrada tras publicar ORBIT 0.7.1: 2026-09-09.
 
 ## Actualizaciones activas
 
 ### UPD-021 — Editor de contenido interactivo y paneles redimensionables
 
-- Estado: `autorizado`
+- Estado: `en-revision`
 - Tipo: `épica`
 - Versión objetivo: `0.8.0`
 - Impacto sugerido: `Y`; convierte Spider en una herramienta de autoría académica y amplía el
   contrato declarativo de ventanas interactivas.
-- Próximo responsable: JoaquinDiazM, que podrá autorizar la épica cuando 0.7.1 haya terminado.
+- Próximo responsable: JoaquinDiazM, revisión humana y decisión de aprobación.
 
 #### Solicitud original
 
@@ -297,17 +297,87 @@ F = ∇f» en la etapa 5 del Taller Vectorial no debe aparecer como texto matem�
 
 #### Implementación y revisión
 
-- Base revisada: ORBIT 0.7.0 publicada en `c2e706f` y contrato editorial v5.
-- Rutas propias: se concretarán en el preflight de 0.8.0 después de redactar el ADR de sintaxis,
-  AST, autoridad y migración.
-- Resultado: no iniciada; especificación desbloqueada el 2026-09-04, pendiente de autorización y
-  de que finalice la cohorte inmediata 0.7.1.
-- Pruebas automáticas: no aplican todavía.
-- Preflight del entorno: pendiente.
-- Revisión manual humana: pendiente — deberá cubrir autoría, preview, persistencia y ventanas
-  redimensionables en Edge externo.
+- Base revisada: ORBIT 0.7.1, cierre `0ba83ff71688447dceb7f5e1611471d36cbcf27a`,
+  contrato editorial v5 y edición académica `69b47331…`.
+- Rutas propias: compilador de fuente académica, documento/modelo/editor, materialización y diff
+  de curso, renderer compartido y preview, paneles derechos, estilos, ADR 0011, guías y pruebas.
+- Resultado: implementado el 2026-09-09. Fuente restringida con compilador y renderer compartido,
+  autoría en Modificar, preview efímero, borrador recuperable, historial, importación/exportación,
+  plantillas y diff de contenido. Documento v6 con firma histórica v5 conservada; paneles derechos
+  ajustables con puntero/teclado y persistencia separada. Se delimitaron y compilaron 123
+  expresiones matemáticas en prosa, consignas y alternativas, sin cambiar respuestas ni física.
+- Invariantes revisados: fuente académica como autoridad única del cuerpo, migración editorial
+  no destructiva, IDs y progreso v4 estables, red y territorio derivados, sitio estático,
+  saneamiento sin ejecución, teclado y almacenamiento separado. No se añaden dependencias.
+- Pruebas automáticas: `npm run check` termina con código cero: 543 casos, 541 aprobados y dos
+  symlinks omitidos por Windows; cero fallos. Validación de alcanzabilidad, 137 archivos JS,
+  enlaces de 45 documentos y build aprobados. Ida y vuelta de los 29 nodos editables, migración,
+  firma, aplicación aislada, recuperación, renderer, matemática y redimensionado cubiertos. Se
+  adaptó la fixture de aplicación al esquema v6 conservando todas sus aserciones.
+- Preflight del entorno: 2026-09-09, cambios del checkout limitados a esta cohorte; 4173 libre,
+  sin servicio, journal, tombstone ni lock de autoría. Se conserva únicamente el directorio de
+  respaldos preexistente. Coinciden los 97 archivos fuente/public con dist y ambas entradas HTML
+  con su transformación KaTeX; fuente y build-info conservan revisión/digest `69b47331…`.
+  Ocho recursos HTTP devolvieron `Cache-Control: no-store` en una raíz temporal, PID 13004 y
+  puerto aislado 58665; proceso terminado, puerto liberado y raíz retirada. Sin navegador ni
+  perfiles/cachés del desarrollador usados, sin servidores de agente activos.
+- Revisión manual humana: pendiente. Desde terminal visible de VS Code iniciar `npm run dev` y
+  revisar en Edge externo los pasos de `docs/CONTENT_SOURCE_GUIDE.md` y la sección 0.8.0 de
+  `docs/QA_CHECKLIST.md`. Cubrir autoría, recuperación, preview, historial y paneles; para Aplicar,
+  seguir el cambio a mantenimiento de `docs/EDITOR_GUIDE.md`. El agente congela escrituras desde
+  la validación del borrador hasta el resultado humano de Aplicar. No se atribuye revisión humana
+  a las pruebas automatizadas con almacenamiento inyectado.
 - Observaciones del usuario: prioriza una base escalable que puedan usar tanto docentes como
   desarrolladores, no una sucesión indefinida de parches por tipo de ventana. Para la primera pregunta, si. Respecto a la segunda pregunta tambien si.
+
+### UPD-024 — Sincronizar la prueba de desconexión del servidor en Linux
+
+- Estado: `en-revision`
+- Tipo: `infraestructura`
+- Versión objetivo: `0.8.0`
+- Impacto sugerido: `Z`; estabiliza una comprobación preexistente del control local.
+- Próximo responsable: JoaquinDiazM, decisión de aprobación; CI Linux tras publicación autorizada.
+
+#### Solicitud original
+
+Incidencia descubierta durante la activación de 2026-09-09: CI falla en Ubuntu en la prueba
+del socket abortado, tanto en el cierre de 0.7.0 como en el release de 0.7.1. El check Windows
+pasa. La prueba espera el cierre del cliente, pero no el cierre observado por el servidor.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: comprobar de forma determinista que una petición desconectada antes de
+  terminar la comprobación final no deja el apagado pendiente y permite reintentar.
+- Criterios de aceptación: sincronizar el evento de desconexión en el servidor, conservar las
+  aserciones de ausencia de apagado y reintento exitoso, sin sleeps arbitrarios ni omitir el test;
+  probar el caso en aislamiento y con la suite completa. Si la reproducción revela un defecto
+  del controlador, corregir únicamente la liberación del estado al abortar la petición.
+- Fuera de alcance: cambiar la política de apagado, puertos, autenticación local, aplicación o
+  progreso; silenciar errores de CI o modificar el release 0.7.1 ya aprobado.
+- Dependencias, invariantes o ADR: conserva el origen único y el control cooperativo; no requiere
+  dependencias ni ADR nuevo.
+
+#### Preguntas bloqueantes
+
+- Ninguna. JoaquinDiazM autorizó UPD-024 explícitamente el 2026-09-09 en este chat.
+
+#### Implementación y revisión
+
+- Base revisada: runs `33920564879` (0.7.0) y `34379950918` (0.7.1), mismo fallo en
+  `tests/dev-server-origin.test.mjs:403`, archivos idénticos entre ambas versiones.
+- Rutas propias: `tests/dev-server-origin.test.mjs`; el controlador de producción no cambió.
+- Resultado: sincroniza el cierre observado por el servidor, la finalización del handler y la
+  llamada de apagado del reintento mediante eventos reales, sin sleeps ni aserciones omitidas.
+- Pruebas automáticas: suite aislada sobre una copia temporal de 0.7.1 con este test corregido:
+  seis aprobadas y un symlink omitido; copia retirada. Check integrado de 0.8.0: 541 aprobadas,
+  dos symlinks omitidos, cero fallos. El fallo Linux previo está documentado en ambos runs de
+  base; la corrección todavía no se ha ejecutado en Linux y se verificará en el próximo CI
+  autorizado. No se presenta la aprobación Windows como evidencia Linux.
+- Preflight del entorno: pruebas con servidores acotados y raíces temporales retiradas; 4173
+  libre, sin servicios ni recursos de agente persistentes. Comparte el preflight final de UPD-021.
+- Revisión manual humana: no requiere gestos de navegador porque solo cambia el test; pendiente
+  de aprobación de JoaquinDiazM y de cerrar la cohorte 0.8.0 para publicar.
+- Observaciones del usuario: «Autorizar UPD-024», recibido el 2026-09-09.
 
 ### UPD-002 — Sistema de servidor online
 

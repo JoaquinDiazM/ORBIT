@@ -5,6 +5,7 @@ import {
   DEFAULT_AREA_APPEARANCE,
 } from "../core/area-appearance.js";
 import { EditorServiceMonitor } from "./editor-service-monitor.js";
+import { ContentSourceEditor } from "./content-source-editor.js";
 
 const EDITOR_AUTHOR_ORIGIN = "http://127.0.0.1:4173";
 const SERVICE_STOPPED_ACTION_MESSAGE =
@@ -527,6 +528,7 @@ export class EditorUIController {
       diffTierLabels: query("#editor-diff-tier-labels"),
       diffCreatedLocations: query("#editor-diff-created-locations"),
       diffRenamedLocations: query("#editor-diff-renamed-locations"),
+      diffContentLocations: query("#editor-diff-content-locations"),
       diffInventoriedLocations: query("#editor-diff-inventoried-locations"),
       diffRestoredLocations: query("#editor-diff-restored-locations"),
       diffDeletedLocations: query("#editor-diff-deleted-locations"),
@@ -635,6 +637,12 @@ export class EditorUIController {
       toastRegion: query("#toast-region"),
     };
 
+    this.contentEditor = new ContentSourceEditor({
+      model,
+      root: query("#editor-content-source"),
+      button: query("#editor-edit-location-content"),
+      toast: (...args) => this.toast(...args),
+    });
     if (this.readOnly) this.#applyReadOnlyControls();
     this.elements.courseApplication.hidden = !this.applicationCoordinator;
     this.elements.shutdownButton.hidden = true;
@@ -664,6 +672,7 @@ export class EditorUIController {
     this.unsubscribeModel?.();
     this.unsubscribeBowerbird?.();
     this.unsubscribeApp?.();
+    this.contentEditor.destroy();
     this.serviceMonitor?.destroy();
     window.removeEventListener("keydown", this.onKeyDown);
     if (this.toastTimer !== null) window.clearTimeout(this.toastTimer);
@@ -1566,6 +1575,9 @@ export class EditorUIController {
       );
       this.elements.diffCreatedLocations.textContent = listSummary(diff.createdLocations);
       this.elements.diffRenamedLocations.textContent = listSummary(diff.renamedLocations);
+      this.elements.diffContentLocations.textContent = listSummary(
+        (diff.contentChangedLocations ?? []).map(({ id, title }) => `${title} · ${id}`),
+      );
       this.elements.diffInventoriedLocations.textContent = listSummary(diff.inventoriedLocations);
       this.elements.diffRestoredLocations.textContent = listSummary(diff.restoredLocations);
       this.elements.diffDeletedLocations.textContent = listSummary(diff.deletedLocations);
@@ -2216,6 +2228,7 @@ export class EditorUIController {
     this.elements.locationTitle.disabled = !editable || this.readOnly;
     this.elements.locationShortTitle.disabled = !editable || this.readOnly;
     this.elements.applyLocationName.disabled = !editable || this.readOnly;
+    this.contentEditor.sync(selected, snapshot);
 
     const memberIds = new Set(snapshot.learningNetworkLocationIds ?? []);
     const academic = isAcademicLocation(selected);

@@ -1,5 +1,7 @@
+import { extractLocationContent, serializeContentSource } from "../src/core/content-source.js";
 import assert from "node:assert/strict";
 import test from "node:test";
+import { LOCATIONS } from "../src/data/locations.js";
 
 import { APP_CONFIG } from "../src/config.js";
 import { createEditorDocument } from "../src/editor/editor-document.js";
@@ -40,6 +42,24 @@ async function publishedEdition() {
     acceptsUnversionedProgress: true,
   });
 }
+
+test("el plan describe los cuerpos modificados y contiene exactamente la fuente validada", async () => {
+  const currentEdition = await publishedEdition();
+  const candidateDocument = structuredClone(currentEdition.document);
+  const body = extractLocationContent(LOCATIONS.find(({ id }) => id === "vector-workshop"));
+  body.objective = "Un objetivo nuevo revisable en el resumen de aplicación.";
+  const record = candidateDocument.locations.find(({ id }) => id === "vector-workshop");
+  record.contentSource = serializeContentSource(body);
+  const storage = new BrowserStorage();
+  const plan = await createCourseApplicationPlan({ currentEdition, candidateDocument, storage });
+  assert.equal(plan.changed, true);
+  assert.equal(plan.contentChangeCount, 1);
+  assert.deepEqual(plan.diff.contentChangedLocations, [{ id: record.id, title: record.title }]);
+  assert.deepEqual(plan.diff.movedLocations, []);
+  assert.deepEqual(plan.diff.addedConnections, []);
+  assert.deepEqual(plan.edition.document.learningNetwork, currentEdition.document.learningNetwork);
+  assert.equal(plan.edition.document.locations.find(({ id }) => id === record.id).contentSource, record.contentSource);
+});
 
 test("el impacto cuenta lugares y conceptos en los tres perfiles", () => {
   const entries = [
@@ -124,6 +144,7 @@ test("el orden de nodeIds queda canónico y no produce una aplicación vacía", 
     movedLocations: [],
     createdLocations: [],
     renamedLocations: [],
+    contentChangedLocations: [],
     inventoriedLocations: [],
     restoredLocations: [],
     deletedLocations: [],
@@ -138,7 +159,7 @@ test("el orden de nodeIds queda canónico y no produce una aplicación vacía", 
   );
 });
 
-test("el diff v5 distingue nombres, niveles y ciclo de vida de lugares", () => {
+test("el diff editorial distingue nombres, niveles y ciclo de vida de lugares", () => {
   const current = createEditorDocument();
   const candidate = structuredClone(current);
   candidate.areas[1].title = "Campo electrostático";

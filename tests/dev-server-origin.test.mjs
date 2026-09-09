@@ -340,6 +340,12 @@ test("un socket abortado durante la comprobación final no bloquea el control lo
   let shutdownCount = 0;
   let releaseFinalCheck;
   let announceFinalCheck;
+  let announceServerClose;
+  let announceHandled;
+  let announceShutdown;
+  const serverClosed = new Promise((resolve) => { announceServerClose = resolve; });
+  const requestHandled = new Promise((resolve) => { announceHandled = resolve; });
+  const shutdownCalled = new Promise((resolve) => { announceShutdown = resolve; });
   const finalCheckReached = new Promise((resolve) => {
     announceFinalCheck = resolve;
   });
@@ -359,15 +365,17 @@ test("un socket abortado durante la comprobación final no bloquea el control lo
     },
     shutdown: () => {
       shutdownCount += 1;
+      announceShutdown();
     },
   });
   const server = createServer((request, response) => {
+    response.once("close", announceServerClose);
     void control.handle({
       request,
       response,
       requestOrigin: ORBIT_DEV_CANONICAL_ORIGIN,
       url: new URL(request.url, ORBIT_DEV_CANONICAL_ORIGIN),
-    });
+    }).finally(announceHandled);
   });
   await new Promise((resolve, reject) => {
     server.once("error", reject);
@@ -396,8 +404,11 @@ test("un socket abortado durante la comprobación final no bloquea el control lo
   const socketClosed = new Promise((resolve) => socket.once("close", resolve));
   socket.destroy();
   await socketClosed;
+  // Closing the client is not evidence that the server has observed it yet.
+  // Hold the final check until the response closes on the server as well.
+  await serverClosed;
   releaseFinalCheck();
-  await new Promise((resolve) => setImmediate(resolve));
+  await requestHandled;
 
   assert.equal(shutdownCount, 0);
   assert.equal(control.shutdownPending, false);
@@ -411,7 +422,7 @@ test("un socket abortado durante la comprobación final no bloquea el control lo
     body,
   });
   assert.equal(retry.status, 202);
-  await new Promise((resolve) => setImmediate(resolve));
+  await shutdownCalled;
   assert.equal(shutdownCount, 1);
 });
 

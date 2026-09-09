@@ -329,6 +329,33 @@
       reaparición o envelope divergente conserva la evidencia para recuperación.
 - [ ] El helper no crea commits, no prepara el índice, no hace push y no se copia a `dist`.
 
+## Autoría académica y paneles — candidata 0.8.0
+
+Estas comprobaciones humanas siguen pendientes hasta registrar el resultado en UPD-021. El
+servicio lo inicia el desarrollador en el terminal visible de VS Code y la revisión usa Edge
+externo; el agente no modifica el checkout entre Validar y el resultado de Aplicar.
+
+- [ ] En Docente, Spider → Modificar → Editar contenido abre Taller Vectorial; su etapa 5
+      compila la notación de campo y gradiente y el preview conserva los ejercicios originales.
+- [ ] Editar un párrafo actualiza el preview y se autoguarda sin abandonar el campo; Deshacer y
+      Rehacer recuperan las fuentes, y renombrar el nodo conserva el cuerpo.
+- [ ] Una fuente incompleta señala línea/columna, conserva el texto tras recargar y mantiene la
+      última fuente válida fuera de ese borrador; exportar/importar recupera el texto.
+- [ ] Las plantillas cubren texto, ecuaciones, figuras, tipos de pregunta y etapas; los NPC
+      conservan cierres no evaluativos. Figuras inéditas y contenido ejecutable se rechazan.
+- [ ] La ventana multietapa de Coulomb funciona en preview, incluidas cargas y secuencia; resolver
+      actividades en esa vista no cambia progreso ni concede recompensas.
+- [ ] Fuente y JSON editorial exportados conservan contenido al reimportar. Resumen → Validar
+      identifica los nodos cuyo cuerpo cambió y ofrece la aplicación recuperable habitual.
+- [ ] Tras Aplicar y reiniciar dev según la guía, el contenido modificado coincide en ORBIT,
+      fuente, dist y build-info; se comprueban los tres perfiles y el reset humano previsto.
+- [ ] En ORBIT y Editor el borde izquierdo permite ampliar, reducir y restaurar ventanas; el
+      ancho persiste por producto y no tapa los docks ni los paneles vecinos.
+- [ ] Tab enfoca el borde, las flechas ajustan el ancho y Escape cancela un arrastre sin cerrar
+      la ventana. En compacto el foco permanece en controles visibles y no escapa del panel.
+- [ ] Al terminar se detiene el servicio desde el terminal visible o su control verificado y se
+      registra cualquier recurso que el desarrollador decida dejar activo.
+
 ## Audio
 
 - [ ] No se reproduce nada antes del primer gesto del usuario.

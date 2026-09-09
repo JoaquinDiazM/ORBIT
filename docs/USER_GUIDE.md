@@ -48,6 +48,11 @@ perfil o reiniciarlo actualiza el indicador desde su propio avance, sin crear un
 
 ## Movimiento
 
+En escritorio puedes ampliar las ventanas derechas arrastrando su borde izquierdo. Con teclado,
+enfoca ese borde con Tab y usa las flechas izquierda/derecha; Shift aumenta el paso. Inicio o
+**Restaurar ancho** recupera el tamaño predeterminado. El ancho se recuerda por producto y se
+ajusta al espacio disponible; en móvil se conserva la ventana compacta.
+
 - `WASD` o flechas: mover al personaje libremente.
 - `Ctrl` + clic primario sobre un hexágono: saltar a su centro si esa zona ya está abierta.
 - `Ctrl` + flecha, con foco en el mapa: saltar al centro de la zona abierta más cercana en esa

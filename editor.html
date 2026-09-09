@@ -10,7 +10,9 @@
     <meta name="theme-color" content="#08111f" />
     <link rel="icon" href="./public/favicon.svg" type="image/svg+xml" sizes="any" />
     <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./node_modules/katex/dist/katex.min.css" />
     <link rel="stylesheet" href="./src/editor/editor.css" />
+    <link rel="stylesheet" href="./src/editor/content-source-editor.css" />
     <title>ORBIT Editor · Electromagnetismo</title>
   </head>
   <body>
@@ -217,8 +219,45 @@
                 <label>Etiqueta breve<input id="editor-location-short-title" type="text" maxlength="48" /></label>
                 <button id="editor-apply-location-name" type="button">Guardar nombres</button>
               </div>
-              <button id="editor-edit-location-content" type="button" disabled aria-describedby="editor-content-coming-soon">Editar contenido</button>
-              <p id="editor-content-coming-soon" class="callout"><strong>Próximamente:</strong> etapas, preguntas, fuentes y recompensas.</p>
+              <button id="editor-edit-location-content" type="button" aria-expanded="false" aria-controls="editor-content-source">Editar contenido</button>
+              <section id="editor-content-source" class="content-source-editor" aria-labelledby="content-editor-title" hidden>
+                <h3 id="content-editor-title">Contenido académico</h3>
+                <p>Escribe párrafos y bloques ORBIT. Delimita matemáticas con <code>$…$</code> o <code>\(…\)</code>. Solo la fuente válida se guarda en el documento aplicable; el texto incompleto se conserva por separado.</p>
+                <div class="content-editor-actions">
+                  <button id="content-editor-save" type="button">Comprobar y guardar</button>
+                  <button id="content-editor-undo" type="button">Deshacer guardado</button>
+                  <button id="content-editor-redo" type="button">Rehacer guardado</button>
+                  <button id="content-editor-export" type="button">Exportar fuente</button>
+                  <label class="content-import-control">Importar fuente<input id="content-editor-import" type="file" accept=".md,.txt,.orbit,text/plain,text/markdown" /></label>
+                  <button id="content-editor-close" type="button">Cerrar contenido</button>
+                </div>
+                <p id="content-editor-status" class="callout" role="status" aria-live="polite"></p>
+                <div class="content-editor-actions">
+                  <button id="content-editor-rebase" type="button" hidden>Usar mi texto sobre la fuente actual</button>
+                  <button id="content-editor-discard" type="button" hidden>Volver a la última fuente guardada</button>
+                </div>
+                <ul id="content-editor-diagnostics" class="content-editor-diagnostics" aria-label="Diagnósticos de la fuente"></ul>
+                <div class="content-editor-columns">
+                  <div>
+                    <label class="field-label" for="content-editor-source">Fuente académica</label>
+                    <textarea id="content-editor-source" class="content-editor-source" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="content-editor-status content-editor-diagnostics"></textarea>
+                  </div>
+                  <div>
+                    <h4>Previsualización interactiva</h4>
+                    <p id="content-editor-preview-status" class="content-preview-notice"></p>
+                    <div id="content-editor-preview" class="content-editor-preview prose" tabindex="0" aria-label="Previsualización del contenido"></div>
+                  </div>
+                </div>
+                <details class="content-editor-templates">
+                  <summary>Plantillas de contenido y figuras registradas</summary>
+                  <p>Consulta o descarga un ejemplo completo. Para usarlo, impórtalo como fuente; puedes deshacer los guardados válidos con el historial.</p>
+                  <label class="field-label" for="content-editor-template">Estructura</label>
+                  <select id="content-editor-template"></select>
+                  <label class="field-label" for="content-editor-template-source">Fuente del ejemplo</label>
+                  <textarea id="content-editor-template-source" class="content-editor-source" readonly aria-readonly="true" spellcheck="false"></textarea>
+                  <button id="content-editor-template-export" type="button">Descargar plantilla</button>
+                </details>
+              </section>
             </section>
 
             <section id="editor-spider-create-view" class="editor-spider-view" data-editor-spider-view="create" aria-labelledby="editor-spider-tab-create" hidden>
@@ -428,6 +467,7 @@
                   <div><dt>Rótulos de nivel</dt><dd id="editor-diff-tier-labels">0</dd></div>
                   <div><dt>Nodos creados</dt><dd id="editor-diff-created-locations">0</dd></div>
                   <div><dt>Nodos renombrados</dt><dd id="editor-diff-renamed-locations">0</dd></div>
+                  <div><dt>Contenido académico modificado</dt><dd id="editor-diff-content-locations">0</dd></div>
                   <div><dt>Nodos inventariados</dt><dd id="editor-diff-inventoried-locations">0</dd></div>
                   <div><dt>Nodos restaurados</dt><dd id="editor-diff-restored-locations">0</dd></div>
                   <div><dt>Nodos eliminados</dt><dd id="editor-diff-deleted-locations">0</dd></div>
@@ -532,6 +572,9 @@
     </main>
 
     <script src="./src/startup-guard.js"></script>
+    <script type="importmap">
+      { "imports": { "katex": "./node_modules/katex/dist/katex.mjs" } }
+    </script>
     <script type="module" src="./src/editor/editor-bootstrap.js"></script>
   </body>
 </html>

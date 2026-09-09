@@ -1,3 +1,4 @@
+import { compileContentSource, extractLocationContent, serializeContentSource } from "../src/core/content-source.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -19,6 +20,7 @@ import {
   materializeEditorDraft,
   migrateEditorDocumentV3ToV4,
   migrateEditorDocumentV4ToV5,
+  migrateEditorDocumentV5ToV6,
   sanitizeEditorDraft,
   sanitizeEditorDocument,
   serializeEditorDraft,
@@ -34,6 +36,108 @@ function document() {
 function errorCodes(result) {
   return new Set(result.errors.map((entry) => entry.code));
 }
+
+function legacyV5Document() {
+  const candidate = document();
+  candidate.schemaVersion = 5;
+  delete candidate.contentSourceVersion;
+  for (const record of candidate.locations) delete record.contentSource;
+  return candidate;
+}
+
+test("v6 conserva una sola fuente del cuerpo y no convierte los nodos de sistema en autoría", () => {
+  const candidate = document();
+  assert.equal(candidate.contentSourceVersion, 1);
+  for (const record of candidate.locations) {
+    const editable = ["lesson", "mission", "npc"].includes(record.kind);
+    assert.equal(typeof record.contentSource === "string", editable, record.id);
+    assert.equal("content" in record, false);
+  }
+});
+
+test("v5→v6 conserva cuerpo efectivo, IDs, inventario y tombstones sin adoptar contenido ignorado", () => {
+  const candidate = legacyV5Document();
+  candidate.locations.find(({ id }) => id === "vector-workshop").title = "Taller renombrado";
+  candidate.locations.find(({ id }) => id === "atacama-array").lifecycle = "inventory";
+  candidate.locations.push({
+    id: "new-node-0001", kind: "npc", title: "Archivo retirado", shortTitle: "Archivo",
+    areaId: "origin", offset: { x: 0, y: 0 }, lifecycle: "deleted", provenance: "editor-created",
+    content: { ignoredByV5: "Este cuerpo nunca fue autoritativo." },
+  });
+  candidate.nextLocationSequence = 2;
+  const before = structuredClone(candidate);
+  const migrated = migrateEditorDocumentV5ToV6(candidate);
+  assert.deepEqual(candidate, before);
+  assert.equal(migrated.schemaVersion, 6);
+  assert.equal(migrated.contentSourceVersion, 1);
+  assert.equal(migrated.nextLocationSequence, 2);
+  assert.deepEqual(migrated.learningNetwork, candidate.learningNetwork);
+  for (const location of LOCATIONS.filter(({ kind }) => ["lesson", "mission", "npc"].includes(kind))) {
+    const record = migrated.locations.find(({ id }) => id === location.id);
+    const result = compileContentSource(record.contentSource, { kind: record.kind });
+    assert.equal(result.ok, true, location.id);
+    assert.deepEqual(result.content, extractLocationContent(location), location.id);
+  }
+  assert.equal(migrated.locations.find(({ id }) => id === "vector-workshop").title, "Taller renombrado");
+  assert.equal(migrated.locations.find(({ id }) => id === "atacama-array").lifecycle, "inventory");
+  const tombstone = migrated.locations.at(-1);
+  assert.equal(tombstone.lifecycle, "deleted");
+  assert.equal("content" in tombstone, false);
+  assert.deepEqual(
+    compileContentSource(tombstone.contentSource, { kind: "npc" }).content,
+    extractLocationContent(createGenericLocationContent("npc", tombstone.title)),
+  );
+});
+
+test("fuente inválida, autoridad duplicada y formato futuro no reemplazan un documento válido", () => {
+  const initial = document();
+  for (const mutate of [
+    (candidate) => { candidate.contentSourceVersion = 99; },
+    (candidate) => { candidate.locations.find(({ id }) => id === "vector-workshop").contentSource = "Fuente sin cabecera"; },
+    (candidate) => { candidate.locations.find(({ id }) => id === "vector-workshop").content = {}; },
+    (candidate) => { candidate.locations[0].contentSource = initial.locations.find(({ id }) => id === "vector-workshop").contentSource; },
+  ]) {
+    const candidate = structuredClone(initial);
+    mutate(candidate);
+    const result = sanitizeEditorDraft(candidate);
+    assert.equal(result.ok, false);
+    assert.equal(result.document, null);
+    assert.ok(result.errors.length);
+  }
+  assert.equal(sanitizeEditorDraft(initial).ok, true);
+});
+
+test("una importación cartográfica v5 hereda los cuerpos de la edición v6 aplicada", () => {
+  const legacy = legacyV5Document();
+  const baseDocument = document();
+  const record = baseDocument.locations.find(({ id }) => id === "vector-workshop");
+  const body = compileContentSource(record.contentSource, { kind: record.kind }).content;
+  body.objective = "Objetivo ya publicado por el docente.";
+  record.contentSource = serializeContentSource(body);
+  const result = sanitizeEditorDraft(legacy, { baseDocument });
+  assert.equal(result.ok, true);
+  assert.equal(
+    result.document.locations.find(({ id }) => id === record.id).contentSource,
+    record.contentSource,
+  );
+});
+
+test("la fuente v6 sustituye el cuerpo completo conservando identidad y la Red de aprendizaje", () => {
+  const candidate = document();
+  const vector = candidate.locations.find(({ id }) => id === "vector-workshop");
+  const replacement = extractLocationContent(createGenericLocationContent("lesson", vector.title));
+  replacement.objective = "Comprobar una sustitución completa del cuerpo.";
+  vector.contentSource = serializeContentSource(replacement);
+  const applied = applyEditorDocument(candidate);
+  const runtime = applied.locations.find(({ id }) => id === vector.id);
+  assert.deepEqual(extractLocationContent(runtime), replacement);
+  assert.equal("steps" in runtime, false);
+  assert.equal(runtime.id, vector.id);
+  assert.equal(runtime.title, vector.title);
+  assert.deepEqual(runtime.offset, vector.offset);
+  assert.deepEqual(applied.document.learningNetwork, candidate.learningNetwork);
+  assert.equal("content" in applied.document.locations.find(({ id }) => id === vector.id), false);
+});
 
 test("el documento canónico publica layout, apariencia y dependencias explícitas", () => {
   const candidate = document();
@@ -162,7 +266,7 @@ test("la topología del editor contiene únicamente relaciones académicas expl�
   );
 });
 
-test("v5 rechaza IDs desconocidos de zona o lugar", () => {
+test("v6 rechaza IDs desconocidos de zona o lugar", () => {
   const candidate = document();
   candidate.areas.push({ id: "future-ghost", q: 8, r: 8 });
   candidate.locations.push({
@@ -239,7 +343,7 @@ test("la versión base distinta se rebasa con advertencia", () => {
   assert.equal(result.warnings.some((entry) => entry.code === "base-version-rebased"), true);
 });
 
-test("un borrador v1 de 0.4.0 migra a v5, restaura Smith como lugar lateral y no lo conecta", () => {
+test("un borrador v1 de 0.4.0 migra a v6, restaura Smith como lugar lateral y no lo conecta", () => {
   const legacy = document();
   legacy.treeTwoConnections = legacy.learningNetwork.connections.map((connection) => ({
     ...connection,
@@ -258,7 +362,7 @@ test("un borrador v1 de 0.4.0 migra a v5, restaura Smith como lugar lateral y no
   const result = sanitizeEditorDocument(legacy);
 
   assert.equal(result.ok, true);
-  assert.equal(result.document.schemaVersion, 5);
+  assert.equal(result.document.schemaVersion, EDITOR_DOCUMENT_SCHEMA_VERSION);
   assert.equal(result.document.appearanceCatalogVersion, 1);
   assert.equal(result.document.locations.length, LOCATIONS.length);
   assert.equal(
@@ -281,7 +385,7 @@ test("un borrador v1 de 0.4.0 migra a v5, restaura Smith como lugar lateral y no
   assert.equal(result.warnings.some(({ code }) => code === "editor-schema-migrated"), true);
 });
 
-test("un borrador v2 migra a v5 con la topología efectiva y descarta laterales", () => {
+test("un borrador v2 migra a v6 con la topología efectiva y descarta laterales", () => {
   const legacy = document();
   const derivedLegacyPairs = new Set([
     "antenna-range->atacama-array",
@@ -314,7 +418,7 @@ test("un borrador v2 migra a v5 con la topología efectiva y descarta laterales"
   const result = sanitizeEditorDraft(legacy);
 
   assert.equal(result.ok, true);
-  assert.equal(result.document.schemaVersion, 5);
+  assert.equal(result.document.schemaVersion, EDITOR_DOCUMENT_SCHEMA_VERSION);
   assert.equal(result.document.learningNetwork.nodeIds.length, 21);
   assert.equal(result.document.learningNetwork.connections.length, 30);
   assert.equal(
@@ -381,7 +485,7 @@ test("los IDs creados exigen secuencia segura y representación canónica", () =
       offset: { x: 0, y: 0 },
       lifecycle: "active",
       provenance: "editor-created",
-      content: createGenericLocationContent("npc", "Nodo inválido"),
+      contentSource: serializeContentSource(extractLocationContent(createGenericLocationContent("npc", "Nodo inválido"))),
     });
     candidate.nextLocationSequence = 2;
     const result = sanitizeEditorDraft(candidate);
@@ -403,7 +507,7 @@ test("baseDocument reserva también los huecos anteriores a su contador monotón
     offset: { x: 0, y: 0 },
     lifecycle: "active",
     provenance: "editor-created",
-    content: createGenericLocationContent("npc", "ID reciclado"),
+    contentSource: serializeContentSource(extractLocationContent(createGenericLocationContent("npc", "ID reciclado"))),
   });
 
   const result = sanitizeEditorDraft(candidate, { baseDocument });
@@ -424,7 +528,7 @@ test("un borrador nunca se valida si no cabe en la solicitud del helper", () => 
       offset: { x: 0, y: 0 },
       lifecycle: "active",
       provenance: "editor-created",
-      content: createGenericLocationContent("npc", title),
+      contentSource: serializeContentSource(extractLocationContent(createGenericLocationContent("npc", title))),
     });
   }
   candidate.nextLocationSequence = 2_001;
@@ -465,7 +569,7 @@ test("baseDocument rebasa presentación, entidades dinámicas y ciclos de vida o
     offset: { x: 30, y: 14 },
     lifecycle: "active",
     provenance: "editor-created",
-    content: createGenericLocationContent("lesson", "Lección publicada"),
+    contentSource: serializeContentSource(extractLocationContent(createGenericLocationContent("lesson", "Lección publicada"))),
   };
   const inventoryLocation = {
     id: "new-node-0002",
@@ -476,7 +580,7 @@ test("baseDocument rebasa presentación, entidades dinámicas y ciclos de vida o
     offset: { x: -30, y: 14 },
     lifecycle: "inventory",
     provenance: "editor-created",
-    content: createGenericLocationContent("npc", "Personaje guardado"),
+    contentSource: serializeContentSource(extractLocationContent(createGenericLocationContent("npc", "Personaje guardado"))),
   };
   const deletedLocation = {
     id: "new-node-0003",
@@ -487,7 +591,7 @@ test("baseDocument rebasa presentación, entidades dinámicas y ciclos de vida o
     offset: { x: 0, y: -20 },
     lifecycle: "deleted",
     provenance: "editor-created",
-    content: createGenericLocationContent("npc", "Personaje eliminado"),
+    contentSource: serializeContentSource(extractLocationContent(createGenericLocationContent("npc", "Personaje eliminado"))),
   };
   appliedBase.locations.push(activeLocation, inventoryLocation, deletedLocation);
   appliedBase.locations.find(({ id }) => id === "gauss-guide-post").lifecycle = "deleted";
@@ -590,7 +694,7 @@ test("Spider materializa un nodo creado con contenido provisional y autoridad es
     offset: { x: 42, y: 18 },
     lifecycle: "active",
     provenance: "editor-created",
-    content: createGenericLocationContent("lesson", "Lección de prueba"),
+    contentSource: serializeContentSource(extractLocationContent(createGenericLocationContent("lesson", "Lección de prueba"))),
   };
   candidate.locations.push(created);
   candidate.nextLocationSequence = 2;
@@ -641,7 +745,7 @@ test("inventario y tombstones excluyen nodos sin restaurar aristas ni reutilizar
     offset: { x: 0, y: 0 },
     lifecycle: "deleted",
     provenance: "editor-created",
-    content: createGenericLocationContent("npc", "NPC retirado"),
+    contentSource: serializeContentSource(extractLocationContent(createGenericLocationContent("npc", "NPC retirado"))),
   });
   candidate.nextLocationSequence = 1;
   const rebased = sanitizeEditorDraft(candidate);

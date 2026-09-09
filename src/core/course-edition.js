@@ -6,6 +6,7 @@ import {
   EDITOR_COURSE_ID,
   EDITOR_DOCUMENT_SCHEMA_VERSION,
   applyEditorDocument,
+  createGenericLocationContent,
 } from "../editor/editor-document.js";
 
 export const COURSE_EDITION_KIND = "orbit-course-edition";
@@ -49,6 +50,19 @@ function equalJsonValues(first, second) {
   return firstKeys.length === secondKeys.length
     && firstKeys.every((key, index) =>
       key === secondKeys[index] && equalJsonValues(first[key], second[key]));
+}
+
+function historicalV5Document(document) {
+  const historical = structuredClone(document);
+  historical.schemaVersion = 5;
+  delete historical.contentSourceVersion;
+  for (const record of historical.locations) {
+    delete record.contentSource;
+    if (record.provenance === "editor-created") {
+      record.content = createGenericLocationContent(record.kind, record.title);
+    }
+  }
+  return historical;
 }
 
 function parseCandidate(candidate) {
@@ -287,12 +301,10 @@ export async function validateCourseEdition(candidate, options = {}) {
   try {
     const computedDigest = await digestRawEditorDocument(source.document);
     if (computedDigest !== source.digest) {
-      errors.push(
-        issue(
-          "course-edition-digest-mismatch",
-          "El contenido editorial no coincide con el digest declarado.",
-          "digest",
-        ),
+      throw new CourseEditionError(
+        "course-edition-digest-mismatch",
+        "El contenido editorial no coincide con el digest declarado.",
+        [issue("course-edition-digest-mismatch", "El contenido editorial no coincide con el digest declarado.", "digest")],
       );
     }
   } catch (error) {
@@ -306,7 +318,7 @@ export async function validateCourseEdition(candidate, options = {}) {
     return failureFromError(error, warnings, errors);
   }
   if (
-    source.document.schemaVersion === EDITOR_DOCUMENT_SCHEMA_VERSION
+    source.document.schemaVersion >= 5
     && materialized.document.nextLocationSequence >= Number.MAX_SAFE_INTEGER - 1
   ) {
     errors.push(
@@ -317,14 +329,17 @@ export async function validateCourseEdition(candidate, options = {}) {
       ),
     );
   }
+  const canonicalDocument = source.document.schemaVersion === 5
+    ? historicalV5Document(materialized.document)
+    : materialized.document;
   if (
-    source.document.schemaVersion === EDITOR_DOCUMENT_SCHEMA_VERSION
-    && !equalJsonValues(source.document, materialized.document)
+    source.document.schemaVersion >= 5
+    && !equalJsonValues(source.document, canonicalDocument)
   ) {
     errors.push(
       issue(
         "noncanonical-editor-document",
-        "El documento editorial v5 publicado debe coincidir exactamente con su forma validada.",
+        "El documento editorial vigente publicado debe coincidir exactamente con su forma validada.",
         "document",
       ),
     );

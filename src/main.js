@@ -23,6 +23,7 @@ import { createLegacyProgressKeys } from "./core/storage.js";
 import { validateProjectData } from "./core/validator.js";
 import { GameApp } from "./game/game-app.js";
 import { UIController } from "./ui/ui-controller.js";
+import { setupPanelResizers } from "./ui/panel-resizer.js";
 
 async function startOrbitRuntime() {
   let runtimeLock = null;
@@ -125,6 +126,7 @@ async function startOrbitRuntime() {
       areas: course.areas,
       locations: course.locations,
     });
+    const panelResizers = setupPanelResizers({ product: "orbit" });
     const game = new GameApp({
       canvas,
       progression,
@@ -220,6 +222,8 @@ async function startOrbitRuntime() {
         for (const [label, release] of [
           ["monitor de mantenimiento", () => maintenanceMonitor?.stop()],
           ["juego", () => game.destroy()],
+          ["ancho de paneles", () => panelResizers.destroy()],
+          ["contenido de la interfaz", () => ui.destroy()],
           ["audio", () => audio.destroy()],
           ["suscripción de audio", () => unsubscribeAudioSettings()],
           ["preferencias Bowerbird", () => bowerbirdPreferences?.destroy()],

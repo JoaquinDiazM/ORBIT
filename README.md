@@ -24,6 +24,11 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
 
 > **Estado:** base publicada `0.7.1`; la siguiente cohorte operativa se controla en `ORBIT_UPDATES.md`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
 
+El checkout de la cohorte **0.8.0** incorpora autoría académica en **Spider → Modificar → Editar
+contenido**, con fuente restringida, preview compartido con ORBIT y documento editorial `v6`.
+Incluye ancho ajustable de paneles derechos. Su revisión y aprobación se registran en la cola;
+consulta la [guía de fuente académica](docs/CONTENT_SOURCE_GUIDE.md) para probarlo.
+
 ## Qué demuestra esta versión
 
 - Movimiento continuo en 2D con teclado; el personaje no está restringido a nodos ni caminos.

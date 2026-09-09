@@ -2,7 +2,11 @@
 
 ## Estado actual
 
-El contenido se define en objetos JavaScript dentro de `src/data/`. Esta decisión mantiene el prototipo sin parser ni dependencia adicional. Una migración futura a Markdown/MDX requiere ADR.
+El catálogo base se define en objetos JavaScript dentro de `src/data/`. La cohorte 0.8.0 añade
+fuente académica editable para lecciones, misiones y NPC en Spider, bajo el
+[ADR 0011](decisions/0011-academic-source-and-content-authoring.md). La gramática restringida
+usa módulos nativos y conserva KaTeX como única dependencia. La
+[guía de fuente](CONTENT_SOURCE_GUIDE.md) describe sintaxis, preview y recuperación.
 
 La fuente declarativa actual corresponde a la ruta de Electromagnetismo de **ORBIT —
 Open Roadmap for Building Intuition and Theory**. Una ruta futura de otro curso deberá declarar
@@ -110,7 +114,11 @@ Esqueleto mínimo:
 }
 ```
 
-Las ecuaciones usan TeX compatible con KaTeX y siempre incluyen una descripción visible. La UI genera DOM y MathML mediante `katex.render`; no introduzcas HTML, delimitadores `$$...$$` ni comandos que requieran `trust: true`. `npm test` compila todas las expresiones con la configuración de producción.
+Las ecuaciones usan TeX compatible con KaTeX y siempre incluyen una descripción visible. La UI
+genera DOM y MathML mediante `katex.render`; el campo `equation.tex` contiene TeX sin
+delimitadores. En prosa y consignas usa `$...$` o `\(...\)` para matemática inline, y `$$...$$`
+para matemática de bloque. No introduzcas HTML ni comandos que requieran `trust: true`.
+`npm test` compila las expresiones con la configuración de producción.
 
 Crear una entidad `lesson` o `mission` con Spider la incorpora activa a la Red de aprendizaje,
 pero sin conexiones. Declara al menos una conexión entrante antes de aplicar; solo

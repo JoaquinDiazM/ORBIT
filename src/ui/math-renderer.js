@@ -1,13 +1,7 @@
 import katex from "katex";
 
-export const KATEX_RENDER_OPTIONS = Object.freeze({
-  output: "htmlAndMathml",
-  throwOnError: true,
-  trust: false,
-  strict: "error",
-  maxExpand: 1000,
-  maxSize: 20,
-});
+import { KATEX_RENDER_OPTIONS } from "../core/math-typesetting.js";
+export { KATEX_RENDER_OPTIONS } from "../core/math-typesetting.js";
 
 let equationId = 0;
 
@@ -43,7 +37,7 @@ export function renderMath(target, equation, { displayMode = true } = {}) {
   }
 }
 
-export function createEquationFigure(equation) {
+export function createEquationFigure(equation, { renderCaption = (node, text) => { node.textContent = text; } } = {}) {
   const figure = document.createElement("figure");
   figure.className = "equation-card";
 
@@ -61,7 +55,7 @@ export function createEquationFigure(equation) {
     const caption = document.createElement("figcaption");
     caption.className = "equation-caption";
     caption.id = `equation-caption-${equationId}`;
-    caption.textContent = captionText;
+    renderCaption(caption, captionText);
     viewport.setAttribute("aria-describedby", caption.id);
     figure.append(viewport, caption);
   } else {

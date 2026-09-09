@@ -1,5 +1,8 @@
+import { compileContentSource, extractLocationContent, serializeContentSource } from "../src/core/content-source.js";
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFile } from "node:fs/promises";
+import { LOCATIONS } from "../src/data/locations.js";
 
 import {
   EDITOR_DOCUMENT_SCHEMA_VERSION,
@@ -73,6 +76,52 @@ async function legacyV3Edition() {
     document,
   };
 }
+
+test("la edición pública v5 conserva su firma raw al materializar cuerpos v6", async () => {
+  const source = JSON.parse(await readFile(new URL(
+    "./fixtures/course-edition-v5.json", import.meta.url,
+  ), "utf8"));
+  const before = structuredClone(source);
+  assert.equal(source.document.schemaVersion, 5);
+  assert.match(source.digest, /^69b47331/);
+  const result = await validateCourseEdition(source);
+  assert.equal(result.ok, true, result.errors.map(({ message }) => message).join("\n"));
+  assert.deepEqual(source, before);
+  assert.deepEqual(result.edition, source);
+  assert.equal(result.editorDocument.schemaVersion, 6);
+  assert.equal(result.editorDocument.contentSourceVersion, 1);
+  for (const id of ["vector-workshop", "coulomb-observatory"]) {
+    const record = result.editorDocument.locations.find((location) => location.id === id);
+    assert.deepEqual(
+      compileContentSource(record.contentSource, { kind: record.kind }).content,
+      extractLocationContent(result.locations.find((location) => location.id === id)),
+    );
+  }
+  const missing = structuredClone(source);
+  missing.document.locations = missing.document.locations.filter(({ id }) => id !== "gauss-guide-post");
+  missing.digest = await digestRawEditorDocument(missing.document);
+  missing.revision = `sha256:${missing.digest}`;
+  const rejected = await validateCourseEdition(missing);
+  assert.equal(rejected.ok, false);
+  assert.ok(rejected.errors.some(({ code }) => code === "noncanonical-editor-document"));
+});
+
+test("la fuente v6 participa en firma, conserva el cuerpo y rechaza una alteración posterior", async () => {
+  const original = await edition();
+  const document = structuredClone(original.document);
+  const body = extractLocationContent(LOCATIONS.find(({ id }) => id === "vector-workshop"));
+  body.objective = "Objetivo de autoría ligado al digest de esta edición.";
+  document.locations.find(({ id }) => id === "vector-workshop").contentSource = serializeContentSource(body);
+  const updated = await edition(document, { previousRevision: original.revision });
+  assert.notEqual(updated.digest, original.digest);
+  const materialized = await materializeCourseEdition(updated);
+  assert.deepEqual(extractLocationContent(materialized.locations.find(({ id }) => id === "vector-workshop")), body);
+  const tampered = structuredClone(updated);
+  tampered.document.locations.find(({ id }) => id === "vector-workshop").contentSource += "\nTexto inyectado";
+  const result = await validateCourseEdition(tampered);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some(({ code }) => code === "course-edition-digest-mismatch"));
+});
 
 test("orbit-course-edition v1 materializa Spider, Bee y Bowerbird", async () => {
   const document = createEditorDocument();
@@ -222,7 +271,7 @@ test("una edición firmada v3 rechaza un contador v5 inyectado", async () => {
   );
 });
 
-test("una edición firmada v5 rechaza datos omitidos aunque el saneamiento pueda reponerlos", async () => {
+test("una edición firmada vigente rechaza datos omitidos aunque el saneamiento pueda reponerlos", async () => {
   const noncanonical = await edition();
   noncanonical.document.locations = noncanonical.document.locations.filter(
     ({ id }) => id !== "gauss-guide-post",
@@ -261,6 +310,8 @@ test("la edición rechaza manipulación, campos raíz y catálogo futuros", asyn
 
   const futureCatalog = structuredClone(valid);
   futureCatalog.document.appearanceCatalogVersion = 99;
+  futureCatalog.digest = await digestRawEditorDocument(futureCatalog.document);
+  futureCatalog.revision = `sha256:${futureCatalog.digest}`;
   assert.equal(
     (await validateCourseEdition(futureCatalog)).errors.some(
       (entry) => entry.code === "unsupported-appearance-catalog",
@@ -326,7 +377,7 @@ test("el hook rechaza un descendiente local que omite tombstones de la publicaci
     offset: { x: 0, y: 0 },
     lifecycle: "deleted",
     provenance: "editor-created",
-    content: createGenericLocationContent("npc", "Identidad retirada"),
+    contentSource: serializeContentSource(extractLocationContent(createGenericLocationContent("npc", "Identidad retirada"))),
   });
   publishedDocument.nextLocationSequence = 2;
   const published = await edition(publishedDocument, { acceptsUnversionedProgress: true });

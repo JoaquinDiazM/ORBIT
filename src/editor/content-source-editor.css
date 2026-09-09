@@ -1,0 +1,48 @@
+.content-source-editor {
+  container-type: inline-size;
+  border-top: 1px solid var(--line, #344765);
+  margin-top: 1rem;
+  padding-top: 1rem;
+  min-width: 0;
+}
+.content-source-editor[hidden] { display: none; }
+.content-editor-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-block: .75rem; }
+.content-editor-columns { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+.content-editor-columns > div { min-width: 0; }
+.content-editor-source {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 20rem;
+  max-height: 65vh;
+  resize: vertical;
+  padding: .8rem;
+  border: 1px solid #637895;
+  border-radius: .6rem;
+  background: #091624;
+  color: #e8eff8;
+  font: .85rem/1.6 Consolas, "Cascadia Code", monospace;
+  tab-size: 2;
+}
+.content-editor-source[aria-invalid="true"] { border-style: dashed; border-width: 2px; }
+.content-editor-preview {
+  min-height: 15rem;
+  max-height: 65vh;
+  overflow: auto;
+  padding: .75rem;
+  border: 1px solid #637895;
+  border-radius: .6rem;
+}
+.content-editor-preview .equation-render { overflow-x: auto; }
+.content-preview-notice { font-size: .82rem; }
+.content-editor-diagnostics { padding-left: 1.2rem; }
+.content-editor-diagnostics button { text-align: left; white-space: normal; }
+.content-editor-templates { margin-top: 1rem; }
+.content-editor-templates summary { cursor: pointer; }
+.content-editor-templates textarea { margin-block: .5rem; min-height: 10rem; }
+.content-import-control { display: grid; gap: .25rem; max-width: 100%; }
+.content-import-control input { max-width: 100%; }
+.content-source-editor :focus-visible { outline: 2px solid #8fdcff; outline-offset: 3px; }
+@container (min-width: 700px) {
+  .content-editor-columns { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}

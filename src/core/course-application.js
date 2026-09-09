@@ -194,6 +194,13 @@ export function diffEditorDocuments(currentDocument, candidateDocument) {
       candidateDocument.locations,
       ({ title, shortTitle }) => ({ title, shortTitle }),
     ),
+    contentChangedLocations: candidateDocument.locations
+      .filter((entry) => {
+        const previous = currentLocations.get(entry.id);
+        return previous && entry.contentSource !== previous.contentSource;
+      })
+      .map(({ id, title }) => ({ id, title }))
+      .sort((first, second) => first.id.localeCompare(second.id)),
     inventoriedLocations: candidateDocument.locations
       .filter((entry) =>
         locationLifecycle(entry) === "inventory"
@@ -267,6 +274,7 @@ export async function createCourseApplicationPlan({
     changed,
     edition: candidate.edition,
     diff,
+    contentChangeCount: diff.contentChangedLocations.length,
     impact: {
       profiles: impacts,
       resetProfiles: [...COURSE_APPLICATION_RESET_PROFILES],

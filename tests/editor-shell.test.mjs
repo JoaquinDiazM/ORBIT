@@ -216,7 +216,12 @@ test("el shell del editor expone Spider, Bee y Bowerbird en menús retractables"
     editor,
     /Puedes decorar cualquier zona\. En ORBIT, la apariencia de una zona bloqueada se mostrará cuando la desbloquees; decorar no abre zonas ni concede progreso\./,
   );
-  assert.doesNotMatch(editor, /node_modules\//);
+  assert.match(editor, /node_modules\/katex\/dist\/katex\.min\.css/);
+  assert.match(editor, /"katex":\s*"\.\/node_modules\/katex\/dist\/katex\.mjs"/);
+  assert.doesNotMatch(editor, /https?:\/\/[^"\s]+(?:\.js|\.css)["\s]/);
+  assert.match(editor, /id="editor-edit-location-content"[^>]+aria-controls="editor-content-source"/);
+  assert.match(editor, /id="content-editor-source"[^>]+aria-describedby="content-editor-status content-editor-diagnostics"/);
+  assert.match(editor, /id="editor-diff-content-locations"/);
   assert.match(
     editor,
     /id="editor-shutdown-local"[\s\S]*?aria-pressed="false"[\s\S]*?hidden[\s\S]*?>Detener servidor<\/button>/,

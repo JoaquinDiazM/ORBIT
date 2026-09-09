@@ -1,12 +1,13 @@
+import { compileContentSource, extractLocationContent, serializeContentSource } from "../src/core/content-source.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 
 import { ProgressStorage } from "../src/core/storage.js";
-import { createEditorDocument } from "../src/editor/editor-document.js";
+import { createEditorDocument, EDITOR_DOCUMENT_SCHEMA_VERSION } from "../src/editor/editor-document.js";
 import { EditorModel } from "../src/editor/editor-model.js";
 import { LOCATIONS } from "../src/data/locations.js";
 
-const EDITOR_KEY = "orbit-editor:v5:electromagnetism-applied";
+const EDITOR_KEY = "orbit-editor:v6:electromagnetism-applied";
 
 class MemoryStorage {
   constructor(candidate = null) {
@@ -116,6 +117,7 @@ test("el perfil estudiante consulta el borrador sin persistir ni mutar", () => {
     editor.setTierLabelText(1, "Otro anillo"),
     editor.setTierLabelOffset(1, { x: 20, y: 10 }),
     editor.renameLocation("vector-workshop", { title: "Otro taller", shortTitle: "Otro" }),
+    editor.updateLocationContent("vector-workshop", location(editor.getSnapshot(), "vector-workshop").contentSource),
     editor.createLocation({ kind: "npc", areaId: "origin" }),
     editor.inventoryLocation("vector-workshop"),
     editor.undo(),
@@ -448,7 +450,7 @@ test("Spider crea, conecta, inventaría y restaura sin recuperar aristas", () =>
   assert.equal(created.ok, true);
   assert.equal(locationId, "new-node-0001");
   assert.equal(editor.getSnapshot().validation.valid, false);
-  assert.equal(location(editor.getSnapshot(), locationId).content.exercise.type, "choice");
+  assert.equal(editor.getSnapshot().locations.find(({ id }) => id === locationId).exercise.type, "choice");
 
   assert.equal(editor.connectLocations("vector-workshop", locationId).ok, true);
   assert.equal(editor.validate().valid, true);
@@ -502,7 +504,7 @@ test("el inventario elimina de forma irreversible solo desde tombstone y protege
 
   const created = editor.createLocation({ kind: "npc", areaId: "origin" });
   const locationId = created.detail.locationId;
-  assert.equal(location(editor.getSnapshot(), locationId).content.exercise.type, "acknowledge");
+  assert.equal(editor.getSnapshot().locations.find(({ id }) => id === locationId).exercise.type, "acknowledge");
   assert.equal(editor.deleteInventoryLocation(locationId).reason, "location-not-in-inventory");
   assert.equal(editor.inventoryLocation(locationId).ok, true);
   const deleted = editor.deleteInventoryLocation(locationId);
@@ -831,7 +833,7 @@ test("baseDocument impide reutilizar un ID publicado con otro tipo", () => {
   assert.equal(location(editor.getSnapshot(), locationId).kind, "lesson");
 });
 
-test("Docente persiste como v5 un borrador v1 válido sin alterar su cartografía", () => {
+test("Docente persiste como v6 un borrador v1 válido sin alterar su cartografía", () => {
   const legacy = createEditorDocument({ updatedAt: "2026-08-28T00:00:00.000Z" });
   legacy.treeTwoConnections = legacy.learningNetwork.connections.map((connection) => ({
     ...connection,
@@ -851,7 +853,7 @@ test("Docente persiste como v5 un borrador v1 válido sin alterar su cartografí
   const editor = new EditorModel({ storage, clock: tickingClock() });
 
   assert.equal(storage.saveCount, 1);
-  assert.equal(storage.value.schemaVersion, 5);
+  assert.equal(storage.value.schemaVersion, EDITOR_DOCUMENT_SCHEMA_VERSION);
   assert.equal(storage.value.appearanceCatalogVersion, 1);
   assert.equal(storage.value.locations.length, LOCATIONS.length);
   assert.equal(editor.validate().valid, true);
@@ -1090,7 +1092,7 @@ test("un borrador de esquema futuro exige una recuperación editorial explícita
   const recovery = editor.resetDraft();
   assert.equal(recovery.ok, true);
   assert.equal(editor.getSnapshot().persistenceBlocked, false);
-  assert.equal(storage.value.schemaVersion, 5);
+  assert.equal(storage.value.schemaVersion, EDITOR_DOCUMENT_SCHEMA_VERSION);
   assert.equal(storage.saveCount, 1);
 
   assert.equal(
@@ -1147,4 +1149,121 @@ test("exportDocument es estable mientras no hay una mutación", () => {
   assert.equal(first, second);
   assert.deepEqual(JSON.parse(first), editor.getSnapshot().document);
   assert.deepEqual(editor.validate().errors, []);
+});
+
+test("editar contenido válido persiste, se deshace y rehace sin perderlo al renombrar", () => {
+  const storage = new MemoryStorage();
+  const editor = model(storage);
+  const original = location(editor.getSnapshot(), "vector-workshop").contentSource;
+  const body = extractLocationContent(LOCATIONS.find(({ id }) => id === "vector-workshop"));
+  body.objective = "Objetivo revisado conservando todas las etapas.";
+  const source = serializeContentSource(body);
+  const events = [];
+  editor.subscribe((event) => events.push(event));
+  const result = editor.updateLocationContent("vector-workshop", source);
+  assert.equal(result.ok, true);
+  assert.equal(result.changed, true);
+  assert.equal(events.at(-1).type, "location-content-updated");
+  assert.equal(location(storage.value, "vector-workshop").contentSource, source);
+  assert.equal(editor.getSnapshot().locations.find(({ id }) => id === "vector-workshop").objective, body.objective);
+  assert.equal(editor.undo().ok, true);
+  assert.equal(location(editor.getSnapshot(), "vector-workshop").contentSource, original);
+  assert.equal(editor.redo().ok, true);
+  assert.equal(location(editor.getSnapshot(), "vector-workshop").contentSource, source);
+  assert.equal(editor.renameLocation("vector-workshop", { title: "Otro nombre", shortTitle: "Otro" }).ok, true);
+  assert.equal(location(editor.getSnapshot(), "vector-workshop").contentSource, source);
+  const reloaded = model(storage);
+  assert.equal(location(reloaded.getSnapshot(), "vector-workshop").contentSource, source);
+  const imported = model();
+  assert.equal(imported.importDocument(editor.exportDocument()).ok, true);
+  assert.equal(location(imported.getSnapshot(), "vector-workshop").contentSource, source);
+  assert.equal("content" in location(imported.getSnapshot(), "vector-workshop"), false);
+});
+
+test("cargar la clave v5 guarda v6 conservando el documento antiguo y el progreso ajeno", () => {
+  const legacy = createEditorDocument();
+  legacy.schemaVersion = 5;
+  delete legacy.contentSourceVersion;
+  for (const record of legacy.locations) delete record.contentSource;
+  const legacyKey = "orbit-editor:v5:electromagnetism-applied";
+  const serialized = JSON.stringify(legacy);
+  const values = new Map([
+    [legacyKey, serialized],
+    ["orbit-progress:v4:student", "progreso conservado"],
+  ]);
+  const backend = {
+    getItem(key) { return values.get(key) ?? null; },
+    setItem(key, value) { values.set(key, value); },
+    removeItem(key) { values.delete(key); },
+  };
+  const editor = model(new ProgressStorage(EDITOR_KEY, backend, [legacyKey]));
+  assert.equal(editor.getSnapshot().document.schemaVersion, 6);
+  assert.equal(JSON.parse(values.get(EDITOR_KEY)).contentSourceVersion, 1);
+  assert.equal(values.get(legacyKey), serialized);
+  assert.equal(values.get("orbit-progress:v4:student"), "progreso conservado");
+  const record = location(editor.getSnapshot(), "coulomb-observatory");
+  assert.deepEqual(
+    compileContentSource(record.contentSource, { kind: record.kind }).content,
+    extractLocationContent(LOCATIONS.find(({ id }) => id === record.id)),
+  );
+});
+
+test("un formato futuro de fuente bloquea las escrituras sin borrar el borrador crudo", () => {
+  const future = createEditorDocument();
+  future.contentSourceVersion = 99;
+  const storage = new MemoryStorage(future);
+  const editor = model(storage);
+  assert.equal(editor.getSnapshot().persistenceBlocked, true);
+  const source = location(editor.getSnapshot(), "vector-workshop").contentSource;
+  const result = editor.updateLocationContent("vector-workshop", `${source}\n`);
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, "stored-document-incompatible");
+  assert.deepEqual(storage.value, future);
+  assert.equal(storage.saveCount, 0);
+});
+
+test("contenido creado se conserva al renombrar, inventariar y reservar un ID eliminado", () => {
+  const editor = model();
+  const id = editor.createLocation({ kind: "npc", areaId: "origin" }).detail.locationId;
+  const before = location(editor.getSnapshot(), id).contentSource;
+  const body = compileContentSource(before, { kind: "npc" }).content;
+  body.objective = "Un cuerpo docente escrito después de crear el personaje.";
+  const source = serializeContentSource(body);
+  assert.equal(editor.updateLocationContent(id, source).ok, true);
+  assert.equal(editor.renameLocation(id, { title: "Nombre nuevo", shortTitle: "Nuevo" }).ok, true);
+  assert.equal(editor.inventoryLocation(id).ok, true);
+  assert.equal(editor.getInventoryLocations()[0].contentSource, source);
+  body.objective = "Contenido revisado desde inventario.";
+  const inventorySource = serializeContentSource(body);
+  assert.equal(editor.updateLocationContent(id, inventorySource).ok, true);
+  assert.equal(editor.deleteInventoryLocation(id).ok, true);
+  assert.equal(editor.updateLocationContent(id, source).reason, "location-not-editable");
+  assert.equal(editor.undo().ok, true);
+  assert.equal(location(editor.getSnapshot(), id).lifecycle, "deleted");
+  assert.equal(location(editor.getSnapshot(), id).contentSource, inventorySource);
+});
+
+test("fuente inválida o fallo de persistencia no altera cuerpo, historial ni eventos", () => {
+  const storage = new RejectingStorage();
+  const editor = model(storage);
+  const before = editor.exportDocument();
+  const beforeSaves = storage.saveCount;
+  const events = [];
+  editor.subscribe((event) => events.push(event));
+  const invalid = editor.updateLocationContent("vector-workshop", "Fuente incompleta");
+  assert.equal(invalid.ok, false);
+  assert.ok(invalid.errors.some((error) => Number.isInteger(error.line)));
+  assert.equal(editor.exportDocument(), before);
+  assert.equal(storage.saveCount, beforeSaves);
+  assert.equal(editor.getSnapshot().canUndo, false);
+  const body = extractLocationContent(LOCATIONS.find(({ id }) => id === "vector-workshop"));
+  body.objective = "No se debe guardar si el almacenamiento falla.";
+  storage.rejectWrites = true;
+  const rejected = editor.updateLocationContent("vector-workshop", serializeContentSource(body));
+  assert.equal(rejected.reason, "storage-write-failed");
+  assert.equal(editor.exportDocument(), before);
+  assert.equal(editor.getSnapshot().canUndo, false);
+  assert.equal(events.length, 0);
+  assert.equal(editor.updateLocationContent("missing", "Fuente").reason, "unknown-location");
+  assert.equal(editor.updateLocationContent("base-camp", "Fuente").reason, "location-not-editable");
 });

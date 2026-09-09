@@ -8,6 +8,11 @@ import {
 import { LOCATIONS } from "../data/locations.js";
 import { AREAS, WORLD_CONFIG } from "../data/world.js";
 import {
+  compileContentSource,
+  extractLocationContent,
+  serializeContentSource,
+} from "../core/content-source.js";
+import {
   DEFAULT_EDITOR_TIER_LABELS,
   EDITOR_EDITABLE_LOCATION_KINDS,
   EDITOR_LOCATION_SAFE_MARGIN,
@@ -431,7 +436,12 @@ export class EditorModel {
     return {
       document: structuredClone(this.document),
       areas: structuredClone(this.areas),
-      locations: structuredClone(this.locations),
+      locations: this.locations.map((location) => ({
+        ...structuredClone(location),
+        ...(this.locationRecordById.get(location.id)?.contentSource === undefined ? {} : {
+          contentSource: this.locationRecordById.get(location.id).contentSource,
+        }),
+      })),
       tierLabels: structuredClone(this.tierLabels),
       inventoryLocations: structuredClone(inventoryLocations),
       activeLocationIds: this.document.locations
@@ -713,12 +723,15 @@ export class EditorModel {
       ({ sourceId, targetId }) => sourceId === locationId || targetId === locationId,
     );
     const canonical = this.baseLocationById.get(locationId);
+    const content = isEditorEditableLocation(record)
+      ? compileContentSource(record.contentSource, { kind: record.kind }).content
+      : canonical;
     return {
       location: structuredClone(record),
       incidentConnections: structuredClone(incidentConnections),
       removedConnectionCount: incidentConnections.length,
-      grantedConceptIds: [...(canonical?.grants?.concepts ?? record.content?.grants?.concepts ?? [])],
-      grantedRewardIds: [...(canonical?.grants?.rewards ?? record.content?.grants?.rewards ?? [])],
+      grantedConceptIds: [...(content?.grants?.concepts ?? [])],
+      grantedRewardIds: [...(content?.grants?.rewards ?? [])],
       protected: isEditorProtectedLocationId(locationId),
     };
   }
@@ -751,10 +764,24 @@ export class EditorModel {
     const target = candidate.locations.find(({ id }) => id === locationId);
     target.title = title;
     target.shortTitle = shortTitle;
-    if (target.provenance === "editor-created") {
-      target.content = createGenericLocationContent(target.kind, title);
-    }
     return this.#commit(candidate, "location-renamed", { locationId, title, shortTitle });
+  }
+
+  updateLocationContent(locationId, source) {
+    const current = this.document.locations.find(({ id }) => id === locationId);
+    if (!current) {
+      return mutationFailure(this, "unknown-location", [
+        localIssue("unknown-location", `No existe el nodo ${String(locationId)}.`),
+      ]);
+    }
+    if (!isEditorEditableLocation(current) || current.lifecycle === "deleted") {
+      return mutationFailure(this, "location-not-editable", [
+        localIssue("location-not-editable", "Solo se edita el contenido de lecciones, misiones y personajes activos o inventariados."),
+      ]);
+    }
+    const candidate = structuredClone(this.document);
+    candidate.locations.find(({ id }) => id === locationId).contentSource = source;
+    return this.#commit(candidate, "location-content-updated", { locationId });
   }
 
   createLocation({ kind, areaId, offset = { x: 0, y: 0 }, title, shortTitle } = {}) {
@@ -805,7 +832,9 @@ export class EditorModel {
       offset: { x: offset?.x, y: offset?.y },
       lifecycle: "active",
       provenance: "editor-created",
-      content: createGenericLocationContent(kind, resolvedTitle),
+      contentSource: serializeContentSource(
+        extractLocationContent(createGenericLocationContent(kind, resolvedTitle)),
+      ),
     };
     const candidate = structuredClone(this.document);
     candidate.locations.push(record);

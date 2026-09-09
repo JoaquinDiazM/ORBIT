@@ -20,6 +20,7 @@ import { CourseApplicationCoordinator } from "./course-application-coordinator.j
 import { EditorAuthorClient } from "./editor-author-client.js";
 import { EditorLocalServiceClient } from "./editor-local-service-client.js";
 import { EDITOR_DOCUMENT_SCHEMA_VERSION } from "./editor-document.js";
+import { setupPanelResizers } from "../ui/panel-resizer.js";
 import { EditorApp } from "./editor-app.js";
 import { EditorBowerbirdSession } from "./bowerbird-session.js";
 import { EditorModel } from "./editor-model.js";
@@ -134,6 +135,7 @@ if (editorAccess === "blocked") {
     storageKey,
     undefined,
     [
+      `orbit-editor:v5:${course.courseId}`,
       `orbit-editor:v4:${course.courseId}`,
       `orbit-editor:v3:${course.courseId}`,
       `orbit-editor:v2:${course.courseId}`,
@@ -191,6 +193,7 @@ if (editorAccess === "blocked") {
     courseEdition: course,
     courseWarnings,
   });
+  const panelResizers = setupPanelResizers({ product: "editor" });
   app.start();
   finishStartup();
 
@@ -218,6 +221,7 @@ if (editorAccess === "blocked") {
               "setTierLabel(tier, { text, offset })",
               "resetTierLabel(tier)",
               "renameLocation(id, { title, shortTitle })",
+              "updateLocationContent(id, source)",
               "createLocation({ kind, areaId, offset, title, shortTitle })",
               "inventoryLocation(id)",
               "restoreLocation(id, placement)",
@@ -275,6 +279,7 @@ if (editorAccess === "blocked") {
           setTierLabel: (tier, changes) => model.setTierLabel(tier, changes),
           resetTierLabel: (tier) => model.resetTierLabel(tier),
           renameLocation: (id, names) => model.renameLocation(id, names),
+          updateLocationContent: (id, source) => model.updateLocationContent(id, source),
           createLocation: (options) => model.createLocation(options),
           inventoryLocation: (id) => model.inventoryLocation(id),
           restoreLocation: (id, placement) => model.restoreLocation(id, placement),
@@ -302,6 +307,7 @@ if (editorAccess === "blocked") {
   window.addEventListener("pagehide", (event) => {
     if (event.persisted || editorDestroyed) return;
     editorDestroyed = true;
+    panelResizers.destroy();
     ui.destroy();
     app.destroy();
     bowerbird.destroy();

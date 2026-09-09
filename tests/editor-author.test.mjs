@@ -13,6 +13,7 @@ import {
 import { progressStorageDescriptors } from "../src/core/course-application.js";
 import { createBowerbirdStorageKey } from "../src/core/bowerbird-preferences.js";
 import { ProgressStorage } from "../src/core/storage.js";
+import { extractLocationContent, serializeContentSource } from "../src/core/content-source.js";
 import { WORLD_CONFIG } from "../src/data/world.js";
 import { CourseApplicationCoordinator } from "../src/editor/course-application-coordinator.js";
 import { EditorAuthorClient } from "../src/editor/editor-author-client.js";
@@ -248,7 +249,7 @@ test("Aplicar rechaza omitir entidades publicadas y rebajar tombstones o secuenc
       offset: { x: 0, y: 0 },
       lifecycle: "active",
       provenance: "editor-created",
-      content: createGenericLocationContent("npc", "Personaje publicado"),
+      contentSource: serializeContentSource(extractLocationContent(createGenericLocationContent("npc", "Personaje publicado"))),
     },
     {
       id: "new-node-0002",
@@ -259,7 +260,7 @@ test("Aplicar rechaza omitir entidades publicadas y rebajar tombstones o secuenc
       offset: { x: 12, y: 0 },
       lifecycle: "deleted",
       provenance: "editor-created",
-      content: createGenericLocationContent("npc", "Personaje eliminado"),
+      contentSource: serializeContentSource(extractLocationContent(createGenericLocationContent("npc", "Personaje eliminado"))),
     },
   );
   published.nextLocationSequence = 6;
@@ -304,7 +305,7 @@ test("Aplicar rechaza omitir entidades publicadas y rebajar tombstones o secuenc
     offset: { x: -12, y: 0 },
     lifecycle: "active",
     provenance: "editor-created",
-    content: createGenericLocationContent("npc", "ID reciclado"),
+    contentSource: serializeContentSource(extractLocationContent(createGenericLocationContent("npc", "ID reciclado"))),
   });
   await assert.rejects(
     applyEditionToRepository({

@@ -13,9 +13,15 @@ import {
 } from "../core/area-appearance.js";
 import { LOCATIONS } from "../data/locations.js";
 import { AREAS, WORLD_CONFIG } from "../data/world.js";
+import {
+  CONTENT_SOURCE_VERSION,
+  compileContentSource,
+  extractLocationContent,
+  serializeContentSource,
+} from "../core/content-source.js";
 
 export const EDITOR_DOCUMENT_KIND = "orbit-editor-project";
-export const EDITOR_DOCUMENT_SCHEMA_VERSION = 5;
+export const EDITOR_DOCUMENT_SCHEMA_VERSION = 6;
 export const EDITOR_COURSE_ID = "electromagnetism-applied";
 export const EDITOR_BASE_DATA_VERSION = "0.7.0";
 export const EDITOR_LOCATION_SAFE_MARGIN = 28;
@@ -79,6 +85,12 @@ function normalizeZero(value) {
 
 function isRecord(value) {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function contentSemanticValue(value) {
+  if (Array.isArray(value)) return value.map(contentSemanticValue);
+  if (!isRecord(value)) return value;
+  return Object.fromEntries(Object.keys(value).sort().map((key) => [key, contentSemanticValue(value[key])]));
 }
 
 function dateString(value, fallback) {
@@ -335,6 +347,9 @@ function canonicalLocationRecord(location, placement = location) {
     },
     lifecycle: "active",
     provenance: "canonical",
+    ...(isEditorEditableLocation(location)
+      ? { contentSource: serializeContentSource(extractLocationContent(location)) }
+      : {}),
   };
 }
 
@@ -363,6 +378,7 @@ export function createEditorDocument(options = {}) {
   return {
     kind: EDITOR_DOCUMENT_KIND,
     schemaVersion: EDITOR_DOCUMENT_SCHEMA_VERSION,
+    contentSourceVersion: CONTENT_SOURCE_VERSION,
     appearanceCatalogVersion: AREA_APPEARANCE_CATALOG_VERSION,
     courseId: context.courseId,
     baseDataVersion: context.baseDataVersion,
@@ -434,6 +450,7 @@ export function migrateEditorDocumentV4ToV5(candidate, options = {}) {
       const canonical = context.locationById.get(placement?.id);
       if (!canonical) return null;
       const baseline = baselineLocationRecord(canonical, context);
+      delete baseline.contentSource;
       return {
         ...baseline,
         areaId: placement.areaId ?? baseline.areaId,
@@ -442,6 +459,54 @@ export function migrateEditorDocumentV4ToV5(candidate, options = {}) {
     })
     .filter(Boolean);
   result.nextLocationSequence = 1;
+  return result;
+}
+
+export function migrateEditorDocumentV5ToV6(candidate, options = {}) {
+  if (!isRecord(candidate) || candidate.schemaVersion !== 5) {
+    throw new TypeError("La migración v5→v6 requiere un documento editorial v5.");
+  }
+  const context = canonicalContext(options);
+  const result = structuredClone(candidate);
+  result.schemaVersion = 6;
+  result.contentSourceVersion = CONTENT_SOURCE_VERSION;
+  result.locations = (Array.isArray(result.locations) ? result.locations : []).map((entry) => {
+    if (!isRecord(entry)) return entry;
+    const record = { ...entry };
+    delete record.content;
+    delete record.contentSource;
+    const canonical = context.locationById.get(entry.id);
+    const kind = canonical?.kind ?? entry.kind;
+    if (EDITABLE_LOCATION_KIND_SET.has(kind)) {
+      const baseline = context.editorBaselineLocationById.get(entry.id);
+      const baselineContent = typeof baseline?.contentSource === "string"
+        ? compileContentSource(baseline.contentSource, { kind })
+        : null;
+      // v5 always materialized canonical bodies or its fixed provisional template.
+      // Ignored content in a legacy record must never become new executable authority.
+      // A legacy layout imported over an applied v6 edition inherits its body.
+      const content = baselineContent?.ok
+        ? baselineContent.content
+        : canonical
+          ? extractLocationContent(canonical)
+          : extractLocationContent(createGenericLocationContent(kind, entry.title));
+      record.contentSource = baselineContent?.ok
+        ? baseline.contentSource
+        : serializeContentSource(content);
+      const compiled = compileContentSource(record.contentSource, { kind });
+      if (
+        !compiled.ok
+        || JSON.stringify(contentSemanticValue(compiled.content))
+          !== JSON.stringify(contentSemanticValue(content))
+      ) {
+        throw new EditorDocumentError(
+          "No se pudo preservar el cuerpo académico durante la migración v5→v6.",
+          [issue("legacy-content-migration-failed", `El nodo ${entry.id} no supera la ida y vuelta semántica.`)],
+        );
+      }
+    }
+    return record;
+  });
   return result;
 }
 
@@ -487,7 +552,7 @@ function rebaseAreas(
         issue(
           rejectUnknown ? "unknown-area" : "unknown-area-ignored",
           rejectUnknown
-            ? `El documento v5 declara una zona desconocida: ${entry.id}.`
+            ? `El documento vigente declara una zona desconocida: ${entry.id}.`
             : `Se ignoró la zona desconocida ${entry.id}.`,
           path,
         ),
@@ -706,7 +771,7 @@ function sanitizeLocationRecords(
           issue(
             rejectUnknown ? "unknown-location" : "unknown-location-ignored",
             rejectUnknown
-              ? `El documento v5 declara un nodo desconocido: ${entry.id}.`
+              ? `El documento vigente declara un nodo desconocido: ${entry.id}.`
               : `Se ignoró el nodo desconocido ${entry.id}.`,
             path,
           ),
@@ -848,18 +913,32 @@ function sanitizeLocationRecords(
       lifecycle,
       provenance: expectedProvenance,
     };
-    if (!canonical) {
-      const content = createGenericLocationContent(kind, title);
-      if (entry.content !== undefined && JSON.stringify(entry.content) !== JSON.stringify(content)) {
-        warnings.push(
-          issue(
-            "created-location-content-rebased",
-            `Se restauró la plantilla provisional de ${entry.id}.`,
-            `${path}.content`,
-          ),
-        );
+    if (entry.content !== undefined) {
+      errors.push(issue(
+        "duplicate-content-authority",
+        "El documento v6 guarda únicamente contentSource; content se deriva al compilar.",
+        `${path}.content`,
+      ));
+    }
+    if (EDITABLE_LOCATION_KIND_SET.has(kind)) {
+      const compilation = compileContentSource(entry.contentSource, { kind });
+      if (!compilation.ok) {
+        for (const diagnostic of compilation.diagnostics) {
+          errors.push({
+            ...issue(diagnostic.code, diagnostic.message, `${path}.contentSource`),
+            line: diagnostic.line,
+            column: diagnostic.column,
+          });
+        }
+      } else {
+        record.contentSource = entry.contentSource;
       }
-      record.content = content;
+    } else if (entry.contentSource !== undefined) {
+      errors.push(issue(
+        "non-editable-location-content",
+        "Los lugares de sistema conservan su contenido canónico.",
+        `${path}.contentSource`,
+      ));
     }
     records.set(entry.id, record);
   }
@@ -1320,15 +1399,11 @@ function materializeEditorDocument(document, context) {
   for (const record of document.locations) {
     if (record.lifecycle !== "active") continue;
     const canonical = context.locationById.get(record.id);
-    const source = canonical
-      ? structuredClone(canonical)
-      : {
-          id: record.id,
-          kind: record.kind,
-          title: record.title,
-          shortTitle: record.shortTitle,
-          ...structuredClone(record.content),
-        };
+    const source = canonical ? structuredClone(canonical) : {};
+    if (isEditorEditableLocation(record)) {
+      for (const key of Object.keys(extractLocationContent(source))) delete source[key];
+      Object.assign(source, compileContentSource(record.contentSource, { kind: record.kind }).content);
+    }
     const requirements = normalizeRequirements(source.requirements);
     const completedLocations = isEditorLearningLocation(record)
       ? learningNodeIds.has(record.id)
@@ -1626,7 +1701,7 @@ export function sanitizeEditorDraft(candidate, options = {}) {
     );
   }
   const sourceSchemaVersion = source.schemaVersion;
-  if (![1, 2, 3, 4, EDITOR_DOCUMENT_SCHEMA_VERSION].includes(sourceSchemaVersion)) {
+  if (![1, 2, 3, 4, 5, EDITOR_DOCUMENT_SCHEMA_VERSION].includes(sourceSchemaVersion)) {
     errors.push(
       issue(
         "unsupported-editor-schema",
@@ -1636,7 +1711,7 @@ export function sanitizeEditorDraft(candidate, options = {}) {
     );
   }
   if (
-    [2, 3, 4, EDITOR_DOCUMENT_SCHEMA_VERSION].includes(sourceSchemaVersion)
+    [2, 3, 4, 5, EDITOR_DOCUMENT_SCHEMA_VERSION].includes(sourceSchemaVersion)
     && source.appearanceCatalogVersion !== AREA_APPEARANCE_CATALOG_VERSION
   ) {
     errors.push(
@@ -1655,6 +1730,16 @@ export function sanitizeEditorDraft(candidate, options = {}) {
         "courseId",
       ),
     );
+  }
+  if (
+    sourceSchemaVersion === EDITOR_DOCUMENT_SCHEMA_VERSION
+    && source.contentSourceVersion !== CONTENT_SOURCE_VERSION
+  ) {
+    errors.push(issue(
+      "unsupported-content-source-version",
+      `Se esperaba contentSourceVersion ${CONTENT_SOURCE_VERSION}.`,
+      "contentSourceVersion",
+    ));
   }
   if (source.baseDataVersion !== context.baseDataVersion) {
     warnings.push(
@@ -1704,6 +1789,26 @@ export function sanitizeEditorDraft(candidate, options = {}) {
       ),
     );
   }
+  if (working.schemaVersion === 5) {
+    try {
+      working = migrateEditorDocumentV5ToV6(working, options);
+    } catch (error) {
+      return {
+        ok: false,
+        document: null,
+        errors: error instanceof EditorDocumentError ? error.issues : [issue(
+          "legacy-content-migration-failed",
+          "No se pudo convertir el cuerpo académico; se conservó el documento original.",
+        )],
+        warnings,
+      };
+    }
+    warnings.push(issue(
+      "editor-schema-v5-v6-migrated",
+      "Se convirtió el cuerpo efectivo a fuente académica editable sin cambiar sus IDs.",
+      "schemaVersion",
+    ));
+  }
   if (sourceSchemaVersion < EDITOR_DOCUMENT_SCHEMA_VERSION) {
     warnings.push(
       issue(
@@ -1715,7 +1820,7 @@ export function sanitizeEditorDraft(candidate, options = {}) {
   }
 
   const fallbackTimestamp = new Date().toISOString();
-  const rejectUnknown = sourceSchemaVersion === EDITOR_DOCUMENT_SCHEMA_VERSION;
+  const rejectUnknown = sourceSchemaVersion >= 5;
   const areas = rebaseAreas(
     working.areas,
     context,
@@ -1758,6 +1863,7 @@ export function sanitizeEditorDraft(candidate, options = {}) {
   const document = {
     kind: EDITOR_DOCUMENT_KIND,
     schemaVersion: EDITOR_DOCUMENT_SCHEMA_VERSION,
+    contentSourceVersion: CONTENT_SOURCE_VERSION,
     appearanceCatalogVersion: AREA_APPEARANCE_CATALOG_VERSION,
     courseId: context.courseId,
     baseDataVersion: context.baseDataVersion,

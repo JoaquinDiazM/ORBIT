@@ -44,10 +44,15 @@ if (builtIndex.includes("node_modules/")) {
 }
 await writeFile(resolve(dist, "index.html"), builtIndex, "utf8");
 const sourceEditor = await readFile(resolve(root, "editor.html"), "utf8");
-if (sourceEditor.includes("node_modules/")) {
-  throw new Error("editor.html debe funcionar sin rutas directas hacia node_modules.");
+const editorReferenceCount = sourceEditor.split(developmentKatexBase).length - 1;
+if (editorReferenceCount !== 2) {
+  throw new Error("editor.html debe contener exactamente dos referencias locales de KaTeX.");
 }
-await writeFile(resolve(dist, "editor.html"), sourceEditor, "utf8");
+const builtEditor = sourceEditor.replaceAll(developmentKatexBase, productionKatexBase);
+if (builtEditor.includes("node_modules/")) {
+  throw new Error("El Editor construido no puede conservar rutas hacia node_modules.");
+}
+await writeFile(resolve(dist, "editor.html"), builtEditor, "utf8");
 await cp(resolve(root, "src"), resolve(dist, "src"), {
   recursive: true,
   filter: (source) => !source.endsWith("AGENTS.md"),
