@@ -1485,3 +1485,138 @@ personajes secundarios; gadgets y transportes siguen reservados a desarrolladore
   elimina por completo las conexiones enumeradas; solo `vector-workshop` y
   `coulomb-observatory` están protegidos contra borrado entre los tipos editables; y la aprobación
   comprende el documento aplicado completo con Taller de fasores activo y Malla V-D inventariada.
+
+## ORBIT 0.7.1 — 2026-09-09
+
+- Estado de la cohorte: `publicado`
+- IDs: `UPD-022`, `UPD-023`
+- Commit de release: `48954d7c769d2c98e12e0c3da638e95aed8998ec`
+- Verificación remota: hash confirmado por fetch y lectura de `refs/heads/main`.
+- CI remota: el run `34379950918` falla en la prueba preexistente de socket abortado
+  (`tests/dev-server-origin.test.mjs:403`); el cierre de 0.7.0 ya presentaba el mismo fallo en
+  `33920564879`. Ambos archivos implicados permanecen idénticos. El check local de 0.7.1 pasa
+  con 485 pruebas aprobadas y dos omisiones Windows; no se declara validación Linux superada.
+
+### UPD-022 — Actualizar las capturas del README para ORBIT 0.7.0
+
+- Estado: `publicado`
+- Tipo: `documentación`
+- Versión publicada: `0.7.1`
+- Fecha: 2026-09-09.
+- Commit de release: `48954d7c769d2c98e12e0c3da638e95aed8998ec`
+- Resultado: capturas de ORBIT, Spider y Bee actualizadas, aprobadas y verificadas en el release.
+- Impacto sugerido: `Z`; renueva evidencia visual sin cambiar contratos ni comportamiento.
+- Próximo responsable: JoaquinDiazM, que revisa las tres capturas definitivas en Edge externo.
+
+#### Solicitud original
+
+El README debe usar capturas de la versión 0.7.0 que acaba de cerrar.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: reemplazar las capturas obsoletas por imágenes reproducibles de ORBIT
+  0.7.0 que representen tanto la experiencia de aprendizaje como las capacidades principales del
+  Editor.
+- Decisiones confirmadas: las imágenes forman parte del repositorio, no dependen de servicios
+  externos y deben corresponder al estado publicado, sin datos locales privados ni herramientas
+  de depuración visibles por accidente.
+- Criterios de aceptación: README muestra al menos una captura principal de ORBIT y una del
+  Editor con Bee/Spider 0.7.0; las imágenes son legibles en GitHub, tienen texto alternativo,
+  dimensiones y peso razonables, y pasan la comprobación de assets y enlaces. JoaquinDiazM revisa
+  las capturas finales en Edge externo.
+- Fuera de alcance: rediseñar la marca, cambiar la interfaz para embellecer la captura, producir
+  video promocional o documentar capacidades aún no publicadas.
+- Dependencias, invariantes o ADR: requiere 0.7.0 publicada y conserva la fuente canónica de marca;
+  no necesita esquema, dependencia ni ADR nuevo.
+
+#### Preguntas bloqueantes
+
+- Ninguna para autorizar el alcance inicial; la composición exacta puede decidirse al capturar.
+
+#### Implementación y revisión
+
+- Base revisada: ORBIT 0.7.0 cerrada en `22bede41cbb842658196575a3c30ff16d12b054d`.
+- Rutas propias: `README.md`, `docs/screenshots/README.md`,
+  `docs/screenshots/orbit-0.7.0.png`, `docs/screenshots/editor-spider-0.7.0.png`,
+  `docs/screenshots/editor-bee-0.7.0.png` y `tests/brand-assets.test.mjs`.
+- Resultado: implementada el 2026-09-04. El README muestra ORBIT Estudiante, Spider y Bee desde
+  una reproducción exacta y aislada de 0.7.0; las capturas históricas se conservan para no romper
+  documentación anterior.
+- Pruebas automáticas: la prueba de marca verifica enlaces, texto alternativo, PNG 1280 × 720 y
+  peso máximo de 800 kB; forma parte de la suite completa aprobada (487 pruebas, 485 aprobadas y
+  2 omitidas por enlaces simbólicos no disponibles en Windows).
+- Preflight del entorno: captura realizada en una copia temporal del commit publicado, sin datos
+  previos ni herramientas Debug; contexto de navegador y servidor aislados ya cerrados, sin usar
+  Edge ni el perfil persistente del usuario.
+- Revisión manual humana: aprobada — abrir las tres imágenes en Edge, comprobarlas al 100 % y
+  200 %, y confirmar que son legibles, corresponden a 0.7.0 y no muestran datos privados,
+  depuración, carga ni errores.
+- Observaciones del usuario: solicita screenshots representativos de la versión 0.7.0. Se que siempre le haces mantencion al texto del readme, pero tambien manten las figuras actualizadas, no en TODAS las versiones, pero si cada 2 o 3.
+
+### UPD-023 — Teletransporte con Ctrl+clic y audio propio
+
+- Estado: `publicado`
+- Tipo: `feature`
+- Versión publicada: `0.7.1`
+- Fecha: 2026-09-09.
+- Commit de release: `48954d7c769d2c98e12e0c3da638e95aed8998ec`
+- Resultado: teletransporte accesible a zonas abiertas y cue propio publicados y verificados.
+- Impacto sugerido: `Z`; añade una interacción compatible y un evento de audio sin cambiar el
+  modelo de progreso.
+- Próximo responsable: JoaquinDiazM, que prueba la interacción y el audio en Edge externo.
+
+#### Solicitud original
+
+Permitir que cualquier perfil de ORBIT use Ctrl+clic para trasladarse inmediatamente al centro
+de una zona. El agente debe obtener, si es posible, el sonido y su atribución desde
+`https://freesound.org/people/RunnerPack/sounds/87043/`. El sonido de teletransporte no debe
+solaparse con el cambio ordinario de zona mediante WASD.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: Ctrl+clic sobre un hexágono válido mueve al explorador a su centro mediante
+  una acción inequívoca, reproducible en Estudiante, Docente y Debug, con señal sonora exclusiva.
+- Decisiones confirmadas: el asset se descarga y versiona localmente junto con licencia,
+  autoría, URL y fecha de consulta verificadas; ORBIT nunca depende de Freesound en runtime. El
+  teletransporte emite un solo cue y suprime el cue ordinario de cruce de zona para ese traslado.
+- Criterios de aceptación: hit-testing correcto con cámara y zoom; Ctrl+clic sin
+  arrastre ni activación accidental; destino exactamente centrado y persistido; alternativa de
+  teclado accesible; ningún cambio de progreso, conceptos o desbloqueos; audio sometido al volumen
+  de Interfaz y efectos, sin superposición ni reproducción antes del primer gesto; degradación a
+  silencio si falla; pruebas de los tres perfiles, zonas limítrofes y modificadores.
+- Fuera de alcance: teletransporte en ORBIT Editor, viaje entre cursos, animación compleja,
+  cooldown, coste, backend o modificación de la apertura territorial.
+- Dependencias, invariantes o ADR: reutiliza cámara, movimiento, persistencia, servicio y
+  manifiesto de audio. La licencia del recurso indicado debe permitir su inclusión y atribución
+  antes de incorporarlo; no se añade dependencia npm ni ADR salvo que cambie progresión.
+
+#### Preguntas bloqueantes
+
+- Ninguna. JoaquinDiazM confirmó el 2026-09-04 que Estudiante, Docente y Debug solo pueden usar
+  este teletransporte hacia zonas ya abiertas.
+
+#### Implementación y revisión
+
+- Base revisada: ORBIT 0.7.0 cerrada en `22bede41cbb842658196575a3c30ff16d12b054d`.
+- Rutas propias: `index.html`, `src/game/game-app.js`, `src/game/input-controller.js`,
+  `src/ui/ui-controller.js`, manifiesto, Ogg, sidecar y atribución de audio, documentación viva y
+  pruebas focalizadas.
+- Resultado: implementada el 2026-09-04. `Ctrl` + clic primario centra y persiste en una zona
+  abierta; `Ctrl` + flecha ofrece la alternativa de teclado. Ambos funcionan en los tres perfiles,
+  rechazan zonas cerradas, no alteran progreso y solicitan un único cue `teleport` sin el cue de
+  cruce ordinario. Arrastre, otros botones y modificadores combinados no disparan la acción.
+- Pruebas automáticas: 58/58 focalizadas y suite completa de 487 pruebas —485 aprobadas y 2
+  omitidas por enlaces simbólicos no disponibles en Windows—; validación de contenido, sintaxis,
+  enlaces, versión y build estático aprobada. Incluye cámara/zoom/DPR, fronteras, tres perfiles,
+  teclado, captura, rollback de persistencia, audio y accesibilidad.
+- Preflight del entorno: asset Ogg local verificado por SHA-256
+  `46898662fa36a5321acf540e691a947dc449218dae9dc409e561feab0641e5eb`; fuente RunnerPack bajo
+  CC BY 4.0 y cadena antecedente de ejfortin bajo Sampling+ 1.0 documentadas. `dist` fue
+  regenerado y coincide con las fuentes y la revisión canónica del curso.
+- Revisión manual humana: aprobada — en una terminal visible de VS Code ejecutar `npm run dev`,
+  abrir la URL indicada en Edge externo y probar Estudiante, Docente y Debug: salto centrado a
+  zona abierta, rechazo de zona cerrada, `Ctrl` + flechas, persistencia tras recargar, ausencia de
+  concesiones, un solo cue, arrastre/clic/modificadores sin salto, cruce WASD ordinario, volumen de
+  efectos en cero, botón Debug **Teletransporte** y conservación de `Shift` + clic Debug.
+- Observaciones del usuario: el cue de teletransporte no debe solaparse con el sonido de cruce
+  provocado por WASD. Sobre la pregunta, si, solo se permiten saltos dentro de la zona del mapa desbloqueado.
