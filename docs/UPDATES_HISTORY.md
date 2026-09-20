@@ -1671,3 +1671,187 @@ solaparse con el cambio ordinario de zona mediante WASD.
   efectos en cero, botón Debug **Teletransporte** y conservación de `Shift` + clic Debug.
 - Observaciones del usuario: el cue de teletransporte no debe solaparse con el sonido de cruce
   provocado por WASD. Sobre la pregunta, si, solo se permiten saltos dentro de la zona del mapa desbloqueado.
+
+## ORBIT 0.8.0 — 2026-09-19
+
+- Estado de la cohorte: `publicado`
+- IDs: `UPD-021`, `UPD-024`
+- Commit de release: `6fc998a1afe019dff2dfa6d1949bff362e687479`
+- Verificación remota: hash exacto confirmado mediante fetch y lectura de `refs/heads/main`.
+- Autorización de publicación: instrucción explícita de JoaquinDiazM en el chat el 2026-09-19.
+- Revalidación Windows del release: `npm run check` aprobado, 578 pruebas aprobadas y dos
+  symlinks omitidos; validación, sintaxis, enlaces y build correctos.
+- CI Linux del release: [run 35483033614](https://github.com/JoaquinDiazM/ORBIT/actions/runs/35483033614)
+  completado correctamente en Ubuntu: 580 pruebas aprobadas, cero fallos y cero omisiones;
+  instalación reproducible, validación, sintaxis, enlaces y build aprobados. El job
+  `106004156991` confirma el éxito de la prueba del socket abortado de UPD-024. Esta evidencia
+  posterior resuelve la comprobación Linux pendiente que conservan las fichas originales.
+- Cotejo de archivo: manifiesto y cuerpos completos comparados directamente con la cola del
+  commit de release verificado, sin omisiones ni duplicados.
+- Preflight del cierre: 97 archivos fuente/public y tres entradas HTML concordantes con dist;
+  versión 0.8.0, edición `69b47331…` y build-info concordantes. Puerto 4173 libre y sin locks,
+  journals ni tombstones; respaldos históricos conservados, sin sesiones de agente activas.
+
+### UPD-021 — Editor de contenido interactivo y paneles redimensionables
+
+- Estado: `publicado`
+- Tipo: `épica`
+- Versión publicada: `0.8.0`
+- Fecha: 2026-09-19.
+- Commit de release: `6fc998a1afe019dff2dfa6d1949bff362e687479`
+- Resultado: Autoría académica v6, paneles redimensionables y comprobación previa del borrador publicados y verificados.
+- Impacto sugerido: `Y`; convierte Spider en una herramienta de autoría académica y amplía el
+  contrato declarativo de ventanas interactivas.
+- Próximo responsable: agente, subir y verificar el release 0.8.0; archivar tras verificarlo.
+
+#### Solicitud original
+
+Spider → Modificar → Editar contenido debe ofrecer a docentes y desarrolladores una fuente
+editable similar a Markdown junto a su previsualización, capaz de componer texto, ecuaciones,
+figuras, preguntas y etapas sin seguir acumulando parches incompatibles. Las ventanas derechas de
+ORBIT y ORBIT Editor también deben poder ampliarse horizontalmente con el ratón. Toda expresión
+matemática debe marcarse y renderizarse en un entorno adecuado; por ejemplo, «escalar f tal que
+F = ∇f» en la etapa 5 del Taller Vectorial no debe aparecer como texto matemático sin compilar.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: una única herramienta versionada transforma una fuente académica legible
+  en el mismo documento declarativo que ORBIT valida y renderiza, con previsualización inmediata y
+  paridad entre la vista Docente y el runtime Estudiante.
+- Decisiones confirmadas: el editor vive dentro de **Modificar**, conserva el ID estable del nodo
+  y debe cubrir párrafos, matemáticas, figuras declarativas, ejercicios y etapas. Usará una
+  sintaxis declarativa restringida y extensible —Markdown más bloques ORBIT—, sin HTML,
+  JavaScript ni paquetes arbitrarios. La primera entrega cubrirá todas las estructuras ya
+  soportadas; las figuras inéditas seguirán siendo componentes registrados por desarrolladores.
+  El ancho de las ventanas derechas se ajusta con puntero y alternativa de teclado, respeta
+  límites responsive y ofrece restaurar el valor predeterminado.
+- Criterios de aceptación: fuente y preview sincronizados; errores localizados sin
+  perder el borrador; TeX delimitado y renderizado por KaTeX con alternativa accesible; plantillas
+  para estructuras vigentes; autoguardado, undo/redo, importación/exportación, digest, diff y
+  aplicación; saneamiento sin HTML o JavaScript ejecutable; migración no destructiva de los nodos
+  existentes; ancho persistente por producto sin ocultar controles; prueba de ida y vuelta sobre
+  Taller Vectorial y una ventana multietapa.
+- Fuera de alcance: ejecutar código arbitrario escrito por un docente, instalar
+  paquetes desde la fuente editorial, colaboración online, multimedia remota y servidor de
+  UPD-002.
+- Dependencias, invariantes o ADR: requiere un ADR nuevo para sintaxis, AST, autoridad entre fuente
+  y documento compilado, catálogo de figuras, migración y límites de seguridad. Debe reutilizar
+  KaTeX local y el esquema editorial, sin crear un segundo motor de contenido incongruente.
+- Corrección autorizada tras revisión humana: reparar el fallo de check al aplicar Fasores y
+  ampliar **Volver a comprobar servicio** para comprobar el borrador antes de Aplicar, con errores
+  útiles y sin reemplazar fuente, dist o progreso durante esa comprobación.
+
+#### Preguntas bloqueantes
+
+- Ninguna. JoaquinDiazM confirmó ambas recomendaciones el 2026-09-04: sintaxis declarativa
+  restringida y paridad inicial con las estructuras existentes, dejando figuras nuevas en el
+  catálogo de componentes registrados.
+
+#### Implementación y revisión
+
+- Base revisada: ORBIT 0.7.1, cierre `0ba83ff71688447dceb7f5e1611471d36cbcf27a`,
+  contrato editorial v5 y edición académica `69b47331…`.
+- Rutas propias: compilador de fuente académica, documento/modelo/editor, materialización y diff
+  de curso, renderer compartido y preview, paneles derechos, estilos, ADR 0011, guías y pruebas.
+- Resultado: implementado el 2026-09-09. Fuente restringida con compilador y renderer compartido,
+  autoría en Modificar, preview efímero, borrador recuperable, historial, importación/exportación,
+  plantillas y diff de contenido. Documento v6 con firma histórica v5 conservada; paneles derechos
+  ajustables con puntero/teclado y persistencia separada. Se delimitaron y compilaron 123
+  expresiones matemáticas en prosa, consignas y alternativas, sin cambiar respuestas ni física.
+- Invariantes revisados: fuente académica como autoridad única del cuerpo, migración editorial
+  no destructiva, IDs y progreso v4 estables, red y territorio derivados, sitio estático,
+  saneamiento sin ejecución, teclado y almacenamiento separado. No se añaden dependencias.
+- Pruebas automáticas: `npm run check` termina con código cero: 580 casos, 578 aprobados y dos
+  symlinks omitidos por Windows; cero fallos. Validación de alcanzabilidad, 140 archivos JS,
+  enlaces de 45 documentos y build aprobados. Ida y vuelta de los 29 nodos editables, migración,
+  firma, aplicación aislada, recuperación, renderer, matemática y redimensionado cubiertos. Se
+  adaptó la fixture de aplicación al esquema v6 conservando todas sus aserciones. La corrección
+  añade cobertura de copia aislada, autenticación, exclusión mutua, diagnósticos stdout/stderr,
+  cambios concurrentes, revisión/sesión, respuestas tardías y eventos reales de los controles UI
+  con DOM y almacenamiento aislados. El nuevo precheck ejecutó también el check completo real
+  sobre un borrador válido de Fasores: 578 aprobadas, fuente y dist canónicos idénticos y copia
+  temporal/caché npm retirados. No se modificó el contenido académico persistente.
+- Preflight del entorno: 2026-09-09, cambios del checkout limitados a esta cohorte; 4173 libre,
+  sin servicio, journal, tombstone ni lock de autoría. Se conserva únicamente el directorio de
+  respaldos preexistente. Coinciden los 97 archivos fuente/public con dist y ambas entradas HTML
+  con su transformación KaTeX; fuente y build-info conservan revisión/digest `69b47331…`.
+  El nuevo endpoint de comprobación devuelve `Cache-Control: no-store` en una raíz y puerto
+  temporales, retirados al terminar. Preflight repetido tras la corrección: 4173 sin listeners,
+  cero procesos Node de ORBIT o de pruebas; sin navegador ni perfiles/cachés del desarrollador
+  usados. Build de 2026-09-09T19:28:26.787Z concordante con fuente; sin recursos de agente activos.
+- Revisión manual humana: JoaquinDiazM registró que el primer intento falló y el segundo,
+  después de la corrección, pasó; marcó UPD-021 aprobado. Evidencia recibida en la activación
+  del 2026-09-19. Se conserva a continuación el guion entregado para esa revisión.
+  Desde terminal visible de VS Code iniciar `npm run dev` y
+  revisar en Edge externo los pasos de `docs/CONTENT_SOURCE_GUIDE.md` y la sección 0.8.0 de
+  `docs/QA_CHECKLIST.md`. Cubrir autoría, recuperación, preview, historial y paneles; para Aplicar,
+  seguir el cambio a mantenimiento de `docs/EDITOR_GUIDE.md`, con el helper reiniciado para cargar
+  esta corrección. En Resumen, pulsar **Volver a comprobar servicio**, esperar el resultado y
+  revisar/confirmar el plan antes de Aplicar; comprobar que un fallo aparece antes de habilitarlo.
+  El agente congela escrituras desde
+  la validación del borrador hasta el resultado humano de Aplicar. No se atribuye revisión humana
+  a las pruebas automatizadas con almacenamiento inyectado.
+- Diagnóstico de la reactivación (2026-09-09): una edición válida de Fasores reproducida en copia
+  aislada falla únicamente en la prueba del registro: la cohorte marcada `cerrada` carecía de la
+  línea de fecha de cierre. Se registra el cierre ya indicado por JoaquinDiazM; el helper además
+  descartaba stdout y perdía la explicación. Corregido: el botón comprueba el candidato completo
+  en copia temporal y muestra los detalles antes de habilitar Aplicar. Editar o cambiar de sesión
+  invalida la evidencia; Aplicar conserva su check y recuperación propios. La reproducción
+  aislada del fallo original, corregida únicamente con la fecha de cierre, superó la aplicación
+  real y su reversión sin alterar la fuente canónica.
+- Observaciones del usuario: prioriza una base escalable que puedan usar tanto docentes como
+  desarrolladores, no una sucesión indefinida de parches por tipo de ventana. Para la primera pregunta, si. Respecto a la segunda pregunta tambien si.
+- Observaciones del usuario (2): Al intentar aplicar las modificaciones que hice a un nodo, el de fasores, salto la notificacion de "La edición no superó npm run check." esto no solo hay que arreglarlo, en caso de que vuelva a pasar debe ser algo que se notifique antes, con el boton de comprobar servicio.
+
+### UPD-024 — Sincronizar la prueba de desconexión del servidor en Linux
+
+- Estado: `publicado`
+- Tipo: `infraestructura`
+- Versión publicada: `0.8.0`
+- Fecha: 2026-09-19.
+- Commit de release: `6fc998a1afe019dff2dfa6d1949bff362e687479`
+- Resultado: Sincronización por eventos de la prueba de desconexión publicada, conservando todas sus aserciones.
+- Impacto sugerido: `Z`; estabiliza una comprobación preexistente del control local.
+- Próximo responsable: agente, subir y verificar el release 0.8.0 y su CI Linux; archivar tras verificarlo.
+
+#### Solicitud original
+
+Incidencia descubierta durante la activación de 2026-09-09: CI falla en Ubuntu en la prueba
+del socket abortado, tanto en el cierre de 0.7.0 como en el release de 0.7.1. El check Windows
+pasa. La prueba espera el cierre del cliente, pero no el cierre observado por el servidor.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: comprobar de forma determinista que una petición desconectada antes de
+  terminar la comprobación final no deja el apagado pendiente y permite reintentar.
+- Criterios de aceptación: sincronizar el evento de desconexión en el servidor, conservar las
+  aserciones de ausencia de apagado y reintento exitoso, sin sleeps arbitrarios ni omitir el test;
+  probar el caso en aislamiento y con la suite completa. Si la reproducción revela un defecto
+  del controlador, corregir únicamente la liberación del estado al abortar la petición.
+- Fuera de alcance: cambiar la política de apagado, puertos, autenticación local, aplicación o
+  progreso; silenciar errores de CI o modificar el release 0.7.1 ya aprobado.
+- Dependencias, invariantes o ADR: conserva el origen único y el control cooperativo; no requiere
+  dependencias ni ADR nuevo.
+
+#### Preguntas bloqueantes
+
+- Ninguna. JoaquinDiazM autorizó UPD-024 explícitamente el 2026-09-09 en este chat.
+
+#### Implementación y revisión
+
+- Base revisada: runs `33920564879` (0.7.0) y `34379950918` (0.7.1), mismo fallo en
+  `tests/dev-server-origin.test.mjs:403`, archivos idénticos entre ambas versiones.
+- Rutas propias: `tests/dev-server-origin.test.mjs`; el controlador de producción no cambió.
+- Resultado: sincroniza el cierre observado por el servidor, la finalización del handler y la
+  llamada de apagado del reintento mediante eventos reales, sin sleeps ni aserciones omitidas.
+- Pruebas automáticas: suite aislada sobre una copia temporal de 0.7.1 con este test corregido:
+  seis aprobadas y un symlink omitido; copia retirada. Check integrado de 0.8.0: 541 aprobadas,
+  dos symlinks omitidos, cero fallos. El fallo Linux previo está documentado en ambos runs de
+  base; la corrección todavía no se ha ejecutado en Linux y se verificará en el próximo CI
+  autorizado. No se presenta la aprobación Windows como evidencia Linux.
+- Preflight del entorno: pruebas con servidores acotados y raíces temporales retiradas; 4173
+  libre, sin servicios ni recursos de agente persistentes. Comparte el preflight final de UPD-021.
+- Revisión manual humana: no requiere gestos de navegador porque solo cambia el test.
+  JoaquinDiazM lo marcó aprobado y cerró la cohorte el 2026-09-09; UPD-021 también está aprobado
+  en la activación del 2026-09-19.
+- Observaciones del usuario: «Autorizar UPD-024», recibido el 2026-09-09.
