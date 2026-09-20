@@ -235,7 +235,7 @@ Añade aquí una idea en lenguaje natural. No necesita ID ni detalles técnicos.
   Descripción:
 -->
 
-Sin propuestas pendientes de clasificar. La política editorial solicitada se registró como UPD-025.
+Sin propuestas pendientes de clasificar. Navegación y lanzamiento se registraron como UPD-026 y UPD-027.
 
 ## Cohorte inmediata
 
@@ -244,17 +244,22 @@ Sin propuestas pendientes de clasificar. La política editorial solicitada se re
 - Cierre confirmado por JoaquinDiazM: 2026-09-09.
 - IDs: `UPD-021`, `UPD-024`
 - Apertura registrada tras publicar ORBIT 0.7.1: 2026-09-09.
+- Revalidación de publicación: 2026-09-19, `npm run check` aprobado (578 pruebas aprobadas,
+  cero fallos, dos omisiones Windows); auditoría de commits y audio sin discrepancias.
+- Publicación confirmada explícitamente por JoaquinDiazM en el chat el 2026-09-19:
+  «Actívate, recuerda subir 0.8.0 y archivar los updates descartados o ya versionados del archivo
+  de updates». Esta instrucción resuelve el bloqueo de revisión automática de la activación anterior.
 
 ## Actualizaciones activas
 
 ### UPD-021 — Editor de contenido interactivo y paneles redimensionables
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `épica`
 - Versión objetivo: `0.8.0`
 - Impacto sugerido: `Y`; convierte Spider en una herramienta de autoría académica y amplía el
   contrato declarativo de ventanas interactivas.
-- Próximo responsable: JoaquinDiazM, repetir la revisión de Comprobar servicio y Aplicar.
+- Próximo responsable: agente, revalidar y publicar la cohorte aprobada 0.8.0.
 
 #### Solicitud original
 
@@ -331,7 +336,9 @@ F = ∇f» en la etapa 5 del Taller Vectorial no debe aparecer como texto matem�
   temporales, retirados al terminar. Preflight repetido tras la corrección: 4173 sin listeners,
   cero procesos Node de ORBIT o de pruebas; sin navegador ni perfiles/cachés del desarrollador
   usados. Build de 2026-09-09T19:28:26.787Z concordante con fuente; sin recursos de agente activos.
-- Revisión manual humana: el primer intento falló; corrección lista, repetición pendiente.
+- Revisión manual humana: JoaquinDiazM registró que el primer intento falló y el segundo,
+  después de la corrección, pasó; marcó UPD-021 aprobado. Evidencia recibida en la activación
+  del 2026-09-19. Se conserva a continuación el guion entregado para esa revisión.
   Desde terminal visible de VS Code iniciar `npm run dev` y
   revisar en Edge externo los pasos de `docs/CONTENT_SOURCE_GUIDE.md` y la sección 0.8.0 de
   `docs/QA_CHECKLIST.md`. Cubrir autoría, recuperación, preview, historial y paneles; para Aplicar,
@@ -353,13 +360,14 @@ F = ∇f» en la etapa 5 del Taller Vectorial no debe aparecer como texto matem�
   desarrolladores, no una sucesión indefinida de parches por tipo de ventana. Para la primera pregunta, si. Respecto a la segunda pregunta tambien si.
 - Observaciones del usuario (2): Al intentar aplicar las modificaciones que hice a un nodo, el de fasores, salto la notificacion de "La edición no superó npm run check." esto no solo hay que arreglarlo, en caso de que vuelva a pasar debe ser algo que se notifique antes, con el boton de comprobar servicio.
 
+
 ### UPD-024 — Sincronizar la prueba de desconexión del servidor en Linux
 
 - Estado: `aprobado`
 - Tipo: `infraestructura`
 - Versión objetivo: `0.8.0`
 - Impacto sugerido: `Z`; estabiliza una comprobación preexistente del control local.
-- Próximo responsable: agente, publicación cuando UPD-021 también quede aprobado; CI Linux posterior.
+- Próximo responsable: agente, publicar la cohorte aprobada y verificar CI Linux.
 
 #### Solicitud original
 
@@ -399,63 +407,16 @@ pasa. La prueba espera el cierre del cliente, pero no el cierre observado por el
 - Preflight del entorno: pruebas con servidores acotados y raíces temporales retiradas; 4173
   libre, sin servicios ni recursos de agente persistentes. Comparte el preflight final de UPD-021.
 - Revisión manual humana: no requiere gestos de navegador porque solo cambia el test.
-  JoaquinDiazM lo marcó aprobado y cerró la cohorte el 2026-09-09; espera la aprobación de UPD-021.
+  JoaquinDiazM lo marcó aprobado y cerró la cohorte el 2026-09-09; UPD-021 también está aprobado
+  en la activación del 2026-09-19.
 - Observaciones del usuario: «Autorizar UPD-024», recibido el 2026-09-09.
 
-### UPD-002 — Sistema de servidor online
-
-- Estado: `pospuesto`
-- Tipo: `épica`
-- Versión objetivo: `auto`
-- Impacto sugerido: se decidirá al dividir la épica; una operación real multiusuario será un
-  hito mayor que una especificación o prototipo aislado.
-- Próximo responsable: JoaquinDiazM.
-
-#### Solicitud original
-
-Operar ORBIT desde un computador del cuerpo docente, con reinicio recuperable, cuentas de
-curso, progreso separado por estudiante, checkpoints solicitados por docentes, presencia de
-otros usuarios en el mapamundi, estadísticas generales, un rol docente y actualizaciones de
-contenido mediante ORBIT Editor durante mantenciones planificadas.
-
-#### Especificación elaborada por el agente
-
-- Objetivo observable: la primera entrega segura será una especificación/ADR; no el servidor
-  completo.
-- Decisiones confirmadas: debe tolerar reinicios sin perder el último estado persistido y
-  diferenciar estudiantes de personal docente.
-- Criterios de aceptación provisionales: arquitectura, modelo de datos, amenazas, respaldo,
-  recuperación, despliegue, actualización y rollback documentados antes de código productivo.
-- Fuera de alcance provisional: escoger tecnologías o exponer datos personales sin requisitos
-  operativos y de privacidad.
-- Dependencias, invariantes o ADR: backend, autenticación, persistencia y colaboración requieren
-  uno o más ADR; contradicen deliberadamente la restricción estática vigente y deben reemplazarla
-  de forma explícita, no accidental.
-
-#### Preguntas bloqueantes
-
-1. ¿La primera instalación deberá funcionar solo dentro de la red universitaria/VPN o también
-   desde Internet público? Recomendación inicial: red institucional o VPN, salvo necesidad real
-   de acceso público.
-2. ¿Qué sistema operativo usará el computador docente y se permite instalar servicios,
-   contenedores y una base de datos?
-3. ¿Cuántos estudiantes simultáneos y cuántos cursos debe soportar la primera instalación?
-4. ¿Aceptamos guardar cada avance relevante inmediatamente y usar los checkpoints como copias
-   recuperables? Guardar únicamente al crear un checkpoint podría perder progreso entre cortes.
-5. ¿Los demás estudiantes aparecerán con nombre real, seudónimo o avatar anónimo?
-
-#### Implementación y revisión
-
-- Resultado: no iniciada; debe dividirse en diseño, persistencia, cuentas, presencia, rol
-  docente, estadísticas, respaldo y publicación editorial.
-- Pruebas: no aplican todavía.
-- Observaciones del usuario: pendientes.
 
 ### UPD-025 — Edición de contenido por agentes mediante ORBIT Editor/Spider
 
 - Estado: `propuesto`
 - Tipo: `documentación`
-- Versión objetivo: `auto`
+- Versión objetivo: `0.8.1`
 - Impacto sugerido: `Z`; establece el procedimiento operativo de autoría de contenido.
 - Próximo responsable: JoaquinDiazM, autorización para una cohorte posterior a 0.8.0.
 
@@ -491,6 +452,115 @@ Quiero que de ahora en adelante los agentes adopten la politica de incorporar ca
 - Pruebas automáticas: no aplican todavía.
 - Preflight del entorno: no aplica a la clasificación.
 - Revisión manual humana: pendiente de autorización e implementación.
+
+
+### UPD-026 — Navegación global y directa del mapamundi
+
+- Estado: `faltan-detalles`
+- Tipo: `feature`
+- Versión objetivo: `0.9.0`
+- Impacto sugerido: `Y`; nueva representación navegable y límite de conectividad académica.
+- Próximo responsable: JoaquinDiazM, confirmar recorrido y alcance antes de autorizar.
+
+#### Solicitud original
+
+Navegacion global y directa
+
+Quiero un modo de navegacion en el mapamundi que sea VISUALMENTE diferente al actual, el actual lo podemos llamar el modo global y el nuevo lo podremos llamar el modo directo. La gracia del nuevo modo es que solo se vea el hexagono/zona actual del usuario, cualquiera sea su perfil, y 6 adyacentes. La logica para seleccionar las 6 zonas adyacentes debe ser tal que priorice las zonas que tienen al menos un nodo que tienen lazo con algun nodo del hexagono en el que se encuantra el usuario, ya sea de requisito hacia o desde. Luego priorice el hexagono base y luego aleatoriamente los demas. Puede darse el caso de que haya mas de 6 zonas conoectadas al hexagono actual, quiero que no exista eso desde el inicio, modifica el validador del editor para que no pase eso, la filosofia es que si hay una zona demasiado interconectada, la zona es demasiado general y perjudica el aprendizaje. Tener 6 conceptos relacionados al que estas estudiando es, a mi juicio, el maximo antes de que el aprendizaje se vuelva demasiado enrevesado. Todo este cambio es pricipalmente visual, por lo que tienes permitido en invertir recursos en animaciones o estudio de diferentes arboles de aprendizaje aprobados. La forma en la que quiero que se active esto es en la pestaña o menu visual de ORBIT, ORBIT Editor solo se ve afectado en su validador, nada mas.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: selector de navegación Global/Directa en Visual para los tres perfiles.
+  Directa muestra la zona actual y seis zonas, reorganizadas a su alrededor por relaciones
+  académicas; esta reorganización fue confirmada en el chat el 2026-09-19.
+- Selección solicitada: priorizar zonas con al menos una conexión académica entrante o saliente
+  respecto de un nodo de la zona actual, luego Base si cabe y completar al azar sin repeticiones.
+  Propuesta técnica pendiente de autorización: azar estable por zona y revisión para evitar
+  cambios de vecinos al renderizar.
+- Criterios de aceptación propuestos: contar zonas distintas, deduplicando aristas y excluyendo
+  inventario; máximo seis zonas relacionadas en el validador editorial, con diagnóstico reparable;
+  conservar borradores inválidos; separar el selector del modo existente Directo de la Red;
+  interacción libre, teclado, legibilidad, bloqueos visibles y movimiento reducido.
+- Compatibilidad detectada: la edición aplicada `69b47331…` cumple el máximo seis; la semilla
+  canónica de `createEditorDocument()` tiene siete zonas relacionadas con `applications`.
+  La solución debe definir ajuste o migración conservando IDs; añadir solo el rechazo rompería
+  esa base. No se modificaron datos ni conexiones durante esta clasificación.
+- Fuera de alcance: nuevas herramientas o presentación de ORBIT Editor; solo su validación.
+  No implementar ni cambiar geometría, progreso o apertura territorial hasta acordar el recorrido.
+- Dependencias, invariantes o ADR: una única Red académica, estado derivado, IDs estables y
+  movimiento libre. Si las fronteras visuales nuevas pasan a ser transitables, documentar por ADR
+  la adyacencia efectiva, apertura territorial, retorno al recentrar y coherencia entre modos.
+
+#### Preguntas bloqueantes
+
+1. ¿Se podrá caminar hacia las zonas reorganizadas aunque no fueran vecinas en el mapa global,
+   o la reorganización será solo de presentación? Pregunta enviada en el chat.
+2. Si cambia el recorrido: acordar cómo se abren esas zonas, cómo se conserva la posición al
+   alternar modos y cómo se garantiza el retorno después de recentrar la zona actual.
+3. Concretar el ajuste compatible de la semilla con siete zonas relacionadas antes de activar
+   el límite del validador; no retirar conexiones académicas silenciosamente.
+
+#### Implementación y revisión
+
+- Resultado: propuesta clasificada con auditoría de compatibilidad; implementación no iniciada.
+- Pruebas automáticas: validación documental de la cola; futura cobertura de selección,
+  conectividad, movimiento, apertura, persistencia y compatibilidad.
+- Preflight del entorno: no se abrió navegador ni se alteraron mapas o perfiles.
+- Revisión manual humana: pendiente de decisiones, autorización e implementación.
+
+### UPD-027 — Lanzamiento de ORBIT para usuarios reales
+
+- Estado: `faltan-detalles`
+- Tipo: `épica`
+- Versión objetivo: `1.0.0`
+- Impacto sugerido: `X`; distribución pública, cuentas y cursos compartidos.
+- Próximo responsable: JoaquinDiazM, decisiones de operación y alcance del piloto.
+
+#### Solicitud original
+
+Release optimo
+
+Este update es inicialmente para orientarme sobre como lanzar el producto y posteriormente para aplicar dichos cambios, quiero mandar a probar esto, pero no tengo experiencia. Hazme preguntas de como se tiene que lanzar esta version de forma que el cualquiera puede llegar a github, por ejemplo, darle click a un boton y tener el software de ORBIT (Quiero lanzar ORBIT con un template basico, el curso de electromagnetismo, el cual todavia no esta construido, es para mas tarde cuando tenga tiempo de crear contenido). Al mismo tiempo quiero poder seguir haciendo actualizaciones, no solo de contenido, sino tambien de produccion, justo como hemos venido haciendo ahora. Este update va a absorber el trabajo de hacer la logica del servidor, el curso, las cuentas, etc, por lo que vamos a llamarlo el update 1.0.0.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: una persona llega al repositorio, encuentra un acceso claro y utiliza
+  ORBIT sin preparar un entorno de desarrollo; docentes y estudiantes trabajan con cuentas y
+  cursos compartidos, y el producto sigue admitiendo actualizaciones de motor y contenido.
+- Decisiones confirmadas en este chat el 2026-09-19: ofrecer navegador y aplicación para Windows;
+  cuentas y cursos compartidos desde 1.0.0. Lanzar con una plantilla básica; el curso completo
+  de Electromagnetismo se desarrollará después y no se presentará como terminado.
+- Primer entregable propuesto: especificación y ADR de arquitectura, distribución, operación y
+  actualización; después dividir la implementación autorizada en cohortes verificables.
+- Criterios de aceptación: acceso e instalación documentados; identidad y roles reales;
+  aislamiento de cursos y avances; persistencia recuperable, copias y restauración verificadas;
+  publicación de contenido y actualización del producto versionadas; migraciones, compatibilidad
+  y recuperación definidas; cliente web y descargable con reglas de progreso coherentes.
+- Fuera de alcance de esta clasificación: instalar servicios, contratar proveedores, publicar
+  datos, elegir dependencias, completar el curso o implementar capacidades todavía no autorizadas.
+- Dependencias, invariantes o ADR: absorbe la planificación de servidor/cuentas/cursos de UPD-002,
+  cuya ficha descartada se conserva en `docs/UPDATES_HISTORY.md`. Evitar dos implementaciones
+  paralelas. Backend,
+  autenticación y persistencia remota necesitan ADR y una enmienda explícita de los límites
+  estáticos actuales. Los perfiles locales existentes no constituyen cuentas ni autorización.
+
+#### Preguntas bloqueantes
+
+1. ¿Servicio central administrado por JoaquinDiazM, servidor instalado por cada docente o
+   comparación de costos/mantenimiento antes de elegir? Pregunta enviada en el chat.
+2. ¿La aplicación descargable puede requerir conexión o debe estudiar sin conexión y sincronizar
+   después? Pregunta enviada en el chat.
+3. Antes de implementar: concretar escala del piloto, creación de
+   cuentas/cursos, roles, distribución de la plantilla y política de datos/respaldos.
+
+#### Implementación y revisión
+
+- Resultado: propuesta clasificada y primeras decisiones registradas; producto no implementado.
+- Pruebas automáticas: validación documental de la cola; las pruebas del producto se definirán
+  con la arquitectura acordada.
+- Preflight del entorno: sin servicios nuevos, cuentas, instalaciones ni cambios de navegador.
+- Revisión manual humana: pendiente de especificación, autorización e implementación.
+
 
 ## Historial
 

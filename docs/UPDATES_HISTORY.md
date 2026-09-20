@@ -41,6 +41,57 @@ La sección de descartes usa la ficha original y añade únicamente su fecha de 
 
 ## Actualizaciones descartadas
 
+### UPD-002 — Sistema de servidor online
+
+- Estado: `descartado`
+- Tipo: `épica`
+- Versión objetivo: `auto`
+- Fecha de descarte: 2026-09-19.
+- Impacto sugerido: se decidirá al dividir la épica; una operación real multiusuario será un
+  hito mayor que una especificación o prototipo aislado.
+- Próximo responsable: JoaquinDiazM.
+
+#### Solicitud original
+
+Operar ORBIT desde un computador del cuerpo docente, con reinicio recuperable, cuentas de
+curso, progreso separado por estudiante, checkpoints solicitados por docentes, presencia de
+otros usuarios en el mapamundi, estadísticas generales, un rol docente y actualizaciones de
+contenido mediante ORBIT Editor durante mantenciones planificadas.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: la primera entrega segura será una especificación/ADR; no el servidor
+  completo.
+- Decisiones confirmadas: debe tolerar reinicios sin perder el último estado persistido y
+  diferenciar estudiantes de personal docente.
+- Criterios de aceptación provisionales: arquitectura, modelo de datos, amenazas, respaldo,
+  recuperación, despliegue, actualización y rollback documentados antes de código productivo.
+- Fuera de alcance provisional: escoger tecnologías o exponer datos personales sin requisitos
+  operativos y de privacidad.
+- Dependencias, invariantes o ADR: backend, autenticación, persistencia y colaboración requieren
+  uno o más ADR; contradicen deliberadamente la restricción estática vigente y deben reemplazarla
+  de forma explícita, no accidental.
+
+#### Preguntas bloqueantes
+
+1. ¿La primera instalación deberá funcionar solo dentro de la red universitaria/VPN o también
+   desde Internet público? Recomendación inicial: red institucional o VPN, salvo necesidad real
+   de acceso público.
+2. ¿Qué sistema operativo usará el computador docente y se permite instalar servicios,
+   contenedores y una base de datos?
+3. ¿Cuántos estudiantes simultáneos y cuántos cursos debe soportar la primera instalación?
+4. ¿Aceptamos guardar cada avance relevante inmediatamente y usar los checkpoints como copias
+   recuperables? Guardar únicamente al crear un checkpoint podría perder progreso entre cortes.
+5. ¿Los demás estudiantes aparecerán con nombre real, seudónimo o avatar anónimo?
+
+#### Implementación y revisión
+
+- Resultado: no iniciada; debe dividirse en diseño, persistencia, cuentas, presencia, rol
+  docente, estadísticas, respaldo y publicación editorial.
+- Pruebas: no aplican todavía.
+- Observaciones del usuario: pendientes.
+
+
 ### UPD-003 — Exportar aplicaciones ejecutables
 
 - Estado: `descartado`
