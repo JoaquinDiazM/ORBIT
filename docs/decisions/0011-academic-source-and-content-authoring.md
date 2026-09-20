@@ -1,6 +1,6 @@
 # ADR 0011: fuente académica editable y renderer compartido
 
-- Estado: aceptado para implementar UPD-021; pendiente de revisión de la cohorte 0.8.0.
+- Estado: aceptado; implementado en ORBIT 0.8.0 mediante UPD-021.
 - Fecha: 2026-09-09
 - Enmienda: [ADR 0005](0005-local-katex-rendering.md),
   [ADR 0008](0008-scoped-appearance-and-local-course-application.md) y

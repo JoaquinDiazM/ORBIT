@@ -254,12 +254,12 @@ Sin propuestas pendientes de clasificar. Navegación y lanzamiento se registraro
 
 ### UPD-021 — Editor de contenido interactivo y paneles redimensionables
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `épica`
 - Versión objetivo: `0.8.0`
 - Impacto sugerido: `Y`; convierte Spider en una herramienta de autoría académica y amplía el
   contrato declarativo de ventanas interactivas.
-- Próximo responsable: agente, revalidar y publicar la cohorte aprobada 0.8.0.
+- Próximo responsable: agente, subir y verificar el release 0.8.0; archivar tras verificarlo.
 
 #### Solicitud original
 
@@ -363,11 +363,11 @@ F = ∇f» en la etapa 5 del Taller Vectorial no debe aparecer como texto matem�
 
 ### UPD-024 — Sincronizar la prueba de desconexión del servidor en Linux
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `infraestructura`
 - Versión objetivo: `0.8.0`
 - Impacto sugerido: `Z`; estabiliza una comprobación preexistente del control local.
-- Próximo responsable: agente, publicar la cohorte aprobada y verificar CI Linux.
+- Próximo responsable: agente, subir y verificar el release 0.8.0 y su CI Linux; archivar tras verificarlo.
 
 #### Solicitud original
 

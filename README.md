@@ -22,12 +22,12 @@ El autor sitúa el origen pedagógico de esta primera ruta en su experiencia doc
 
 La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra lineal y física clásica, especialmente quienes consideran estudiar Ingeniería Eléctrica o comienzan los primeros semestres de la especialidad.
 
-> **Estado:** base publicada `0.7.1`; la siguiente cohorte operativa se controla en `ORBIT_UPDATES.md`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
+> **Estado:** base publicada `0.8.0`; la siguiente cohorte operativa se controla en `ORBIT_UPDATES.md`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
 
-El checkout de la cohorte **0.8.0** incorpora autoría académica en **Spider → Modificar → Editar
+ORBIT **0.8.0** incorpora autoría académica en **Spider → Modificar → Editar
 contenido**, con fuente restringida, preview compartido con ORBIT y documento editorial `v6`.
-Incluye ancho ajustable de paneles derechos. Su revisión y aprobación se registran en la cola;
-consulta la [guía de fuente académica](docs/CONTENT_SOURCE_GUIDE.md) para probarlo.
+Incluye ancho ajustable de paneles derechos; consulta la
+[guía de fuente académica](docs/CONTENT_SOURCE_GUIDE.md) para utilizarlo.
 En mantenimiento, **Volver a comprobar servicio** prueba el borrador en una copia temporal y
 explica los fallos antes de habilitar su aplicación.
 
@@ -78,13 +78,14 @@ explica los fallos antes de habilitar su aplicación.
   renombra zonas y configura los rótulos de nivel; **Bowerbird** prepara la apariencia publicada.
   Estudiante mantiene Spider y Bee en solo lectura, pero dispone de su propio Bowerbird personal;
   Debug queda bloqueado antes de crear el modelo editorial.
-- Documento Docente `v5` con autoguardado, historial, importación y exportación JSON. Incluye
-  cartografía, metadatos de nivel, ciclo de vida de nodos, conexiones académicas explícitas y
-  apariencias, pero nunca incorpora progreso ni preferencias Bowerbird privadas de Estudiante.
+- Documento Docente `v6` con autoguardado, historial, importación y exportación JSON. Incluye
+  fuente académica, cartografía, metadatos de nivel, ciclo de vida de nodos, conexiones académicas
+  explícitas y apariencias, pero nunca incorpora progreso ni preferencias Bowerbird privadas
+  de Estudiante.
 - Catálogo visual versionado de paletas, motivos y contornos. Las zonas bloqueadas conservan una
   apariencia neutral y los motivos animados respetan `prefers-reduced-motion`.
 - Edición publicada validable bajo `public/data/courses/`, con revisión y digest SHA-256. El
-  flujo local **Validar → revisar impacto → confirmar → aplicar** usa respaldo y recuperación,
+  flujo local **Validar → Volver a comprobar servicio → revisar impacto → confirmar → aplicar** usa respaldo y recuperación,
   exige cerrar otras pestañas de ORBIT y reinicia únicamente los progresos Estudiante, Docente y
   Debug; conserva el documento Docente y las preferencias Bowerbird Estudiante.
 - `npm run dev` es el modo normal: sirve ORBIT y Editor, permite editar y validar, pero bloquea
@@ -93,7 +94,7 @@ explica los fallos antes de habilitar su aplicación.
   después de verificar la sesión local y el bloqueo exclusivo.
 - Los perfiles y bloqueos son modos locales elegibles, no cuentas, autenticación ni control de
   acceso real.
-- Una dependencia npm fijada y documentada: KaTeX 0.18.1; la cohorte `0.7.0` no añade paquetes,
+- Una dependencia npm fijada y documentada: KaTeX 0.18.1; la versión `0.8.0` no añade paquetes,
   backend público, autenticación, render 3D ni CDN.
 
 ### Cambios centrales de 0.7.0
@@ -219,7 +220,7 @@ La entrada separada `editor.html` inaugura **ORBIT Editor**, una herramienta loc
 
 Spider permite arrastrar nodos, cambiar su `areaId + offset` y añadir o retirar únicamente requisitos directos `completedLocations`. Las relaciones que proceden de conceptos o recompensas permanecen visibles y de solo lectura; se impiden relaciones propias, duplicadas o cíclicas. Bee intercambia coordenadas axiales entre dos zonas del mismo `tier`: Campamento Base queda fijo, las seis zonas teóricas permanecen en el anillo 1 y las doce aplicaciones en el anillo 2.
 
-El borrador inaugurado en 0.4.0 usaba `orbit-editor:v1:electromagnetism-applied`; el contrato vigente se autoguarda bajo `orbit-editor:v5:electromagnetism-applied` y migra las claves `v1`–`v4`. Este esquema editorial es independiente del progreso estudiantil. El JSON exportado debe revisarse y aplicarse al repositorio antes de ejecutar validación, build y despliegue manual; abrir el Editor no cambia lo que ve Estudiante y la entrada separada no constituye autenticación.
+El borrador inaugurado en 0.4.0 usaba `orbit-editor:v1:electromagnetism-applied`; el contrato vigente se autoguarda bajo `orbit-editor:v6:electromagnetism-applied` y migra las claves `v1`–`v5`. Este esquema editorial es independiente del progreso estudiantil. El JSON exportado debe revisarse y aplicarse al repositorio antes de ejecutar validación, build y despliegue manual; abrir el Editor no cambia lo que ve Estudiante y la entrada separada no constituye autenticación.
 
 Consulta la [Guía de ORBIT Editor](docs/EDITOR_GUIDE.md) y el [ADR 0007](docs/decisions/0007-static-local-editor.md).
 
@@ -365,10 +366,10 @@ activa. Estudiante recupera claves históricas solo cuando la edición declara e
 Docente y Debug continúan en sus propias claves. Cambiar el selector recarga el modo elegido, no
 copia logros entre perfiles.
 
-ORBIT Editor opera sobre ramas de estado separadas: un documento Docente `v5`, las preferencias
+ORBIT Editor opera sobre ramas de estado separadas: un documento Docente `v6`, las preferencias
 visuales personales de Estudiante y la edición publicada `v1`. El documento Docente conserva
-zonas, rótulos, definiciones y ciclo de vida de lugares, la Red de aprendizaje explícita y
-apariencias, pero no respuestas ni logros. El
+fuente académica, zonas, rótulos, definiciones y ciclo de vida de lugares, la Red de aprendizaje
+explícita y apariencias, pero no respuestas ni logros. El
 flujo de aplicación local consume ese documento completo, muestra el impacto y reinicia el
 progreso de los tres perfiles; no mezcla ni elimina el borrador o las preferencias personales.
 

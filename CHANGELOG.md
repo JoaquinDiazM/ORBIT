@@ -2,6 +2,44 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [0.8.0] - 2026-09-19
+
+### Añadido
+
+- Autoría académica en **Spider → Modificar → Editar contenido**, con fuente restringida,
+  plantillas, errores localizados y previsualización interactiva compartida con ORBIT.
+- Recuperación de borradores incompletos, autoguardado, deshacer/rehacer e importación/exportación
+  de fuente, sin incorporar contenido inválido al documento aplicable.
+- Paneles derechos redimensionables con puntero o teclado, restauración y preferencias separadas
+  para ORBIT y Editor.
+- **Volver a comprobar servicio** valida el borrador completo en una copia temporal y exige un
+  resultado vigente antes de Aplicar; muestra los fallos antes de reemplazar fuentes o progreso.
+
+### Cambiado
+
+- Documento editorial `v6`, con fuente académica única y migración explícita desde `v5`,
+  preservando identidades, contenido, inventario y firmas históricas de la edición publicada.
+- Matemáticas delimitadas en prosa, consignas, alternativas y retroalimentación, con validación
+  compartida y render local KaTeX/MathML. Se conservan respuestas y contenido físico.
+
+### Corregido
+
+- Los fallos de comprobación incluyen detalles legibles de stdout y stderr. La evidencia previa
+  se invalida al editar o cambiar de sesión; Aplicar mantiene su check, respaldo y recuperación.
+- La prueba de desconexión del servidor espera los eventos observados por el servidor y la
+  finalización del handler, conservando las aserciones del reintento sin sleeps arbitrarios.
+
+### Verificación y alcance
+
+- Cohorte cerrada `UPD-021` y `UPD-024`, aprobada por JoaquinDiazM y con publicación confirmada
+  explícitamente en el chat el 2026-09-19.
+- Revalidación integral: 580 pruebas, 578 aprobadas, cero fallos y dos omisiones esperadas de
+  symlink en Windows; contenido, 140 archivos JavaScript, enlaces de 45 documentos y build
+  estático correctos. La comprobación Linux se registra al verificar CI del release.
+- Se conservan 19 zonas, 20 conceptos y 30 lugares activos alcanzables, progreso `v4`, IDs,
+  movimiento libre, red académica única y apertura territorial derivada. La edición del curso
+  mantiene la revisión `69b47331…`; no se añaden dependencias.
+
 ## [0.7.1] - 2026-09-09
 
 ### Añadido

@@ -22,7 +22,7 @@ En este orden:
 
 ## 2. Estado actual
 
-La base publicada es `0.7.1` y la siguiente cohorte operativa se controla en
+La base publicada es `0.8.0` y la siguiente cohorte operativa se controla en
 `ORBIT_UPDATES.md`. El prototipo sigue siendo estático, conserva una dependencia local
 respaldada por ADR, dos entradas
 deliberadamente separadas y un flujo por cohortes con autorización y revisión humana:
@@ -31,9 +31,9 @@ deliberadamente separadas y un flujo por cohortes con autorización y revisión 
 - **ORBIT Editor** en `editor.html`, con acceso Docente completo por defecto, Spider/Bee de solo
   lectura y Bowerbird personal para Estudiante, y bloqueo Debug.
 
-El checkout incluye también la candidata 0.8.0 (UPD-021 y UPD-024), todavía sujeta a revisión
-según la cola. El documento v6 y la autoría académica descritos abajo pertenecen a esa candidata;
-el artefacto académico publicado sigue conservando su firma histórica v5.
+ORBIT 0.8.0 incorpora UPD-021 y UPD-024: documento editorial v6, autoría académica,
+paneles redimensionables y comprobación previa del borrador. El artefacto académico publicado
+sigue conservando su firma histórica v5 y se migra en memoria.
 
 El producto del checkout incluye:
 
@@ -41,7 +41,7 @@ El producto del checkout incluye:
 - 19 hexágonos en tres niveles: base, seis fundamentos y doce aplicaciones;
 - fronteras físicas derivadas de la apertura de zonas por adyacencia y elegibilidad académica;
 - 30 lugares activos: 22 lecciones/misiones en una Red de aprendizaje aplicada de 31 parejas
-  explícitas y ocho lugares Base/laterales/Debug fuera de ella; el documento v5 conserva además
+  explícitas y ocho lugares Base/laterales/Debug fuera de ella; el artefacto académico histórico v5 conserva además
   un nodo creado en Inventario. Un panel **Visual** separado de **Zonas · Red**,
   accesible desde **Ajustes**, con modos **Oculta**, **Directo** y **Total**;
 - ejercicios de alternativa, número, expresión segura, secuencia y confirmación;
