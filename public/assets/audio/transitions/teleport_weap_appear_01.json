@@ -2,7 +2,7 @@
   "asset_id": "teleport_weap_appear_01",
   "runtime_file": "teleport_weap_appear_01.ogg",
   "category": "transitions",
-  "intended_use": "Efecto exclusivo del teletransporte solicitado mediante Ctrl+clic o Ctrl+flecha; no acompaña el cruce ordinario de zona por movimiento.",
+  "intended_use": "Efecto de teletransporte solicitado mediante Ctrl+clic, Ctrl+flecha o Volver a la zona anterior en navegación Directa; no acompaña el cruce ordinario de zona por movimiento.",
   "playback": {
     "loop": false,
     "suggested_volume": 0.65

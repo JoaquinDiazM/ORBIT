@@ -260,11 +260,11 @@ activarla después de publicar 0.8.1. Release y cierre documental de 0.8.1 verif
 
 ### UPD-026 — Navegación global y directa del mapamundi
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `feature`
 - Versión objetivo: `0.9.0`
 - Impacto sugerido: `Y`; nueva representación navegable y límite de conectividad académica.
-- Próximo responsable: JoaquinDiazM, revisión humana y aprobación de UPD-026.
+- Próximo responsable: agente, publicación de la cohorte cerrada 0.9.0.
 
 #### Solicitud original
 
@@ -343,12 +343,11 @@ Quiero un modo de navegacion en el mapamundi que sea VISUALMENTE diferente al ac
   padre 24852 y sondeo PID 27112 terminados; pestaña propia cerrada. Copia de autoría retirada;
   solo queda el export anterior. Backups preexistentes del desarrollador preservados. Audio:
   seis recursos y sidecars coinciden con manifiesto, atribuciones y consumidores, sin cambios.
-- Revisión manual humana: **pendiente**, según [guion UPD-026](docs/reviews/UPD-026.md).
-  Iniciar `npm run dev` desde terminal visible de VS Code y probar en Edge externo. Verificar
-  modos, cruces, bloqueo, regreso, recarga, foco, tres perfiles, consola y límite editorial.
-  Esta evidencia del agente no sustituye esa revisión; desde Validar hasta comunicar Aplicar
-  se mantiene la congelación del checkout. Esperar aprobación antes de versionar o publicar.
-- Observaciones del usuario: Respuesta 1 -> Si, justo esa es la idea del modo de navegacion directa, la "cercania visual" entre nodos y zonas relacionadas". Respuesta 2: Lo dejo a tu criterio, lo mas logico que sea apropiado para una experiencia pedadogica de alguien que ya esta avanzado en el curso, este modo esta pensado para usuarios que ya tengan desbloqueados varias o todas las zonas. Pregunta 3: Precisamente, el que manda es el arbol de conocimientos, ya sabes que las zonas y como se abren son, de hecho, dependientes del arbol de conocimientos..
+- Revisión manual humana: aprobada por JoaquinDiazM el 2026-09-20, quien registró que
+  «la prueba manual paso de manera expedita» y pidió expresamente publicar 0.9.0 en el chat.
+  El [guion UPD-026](docs/reviews/UPD-026.md) queda como referencia de regresión.
+- Observaciones del usuario: Respuesta 1 -> Si, justo esa es la idea del modo de navegacion directa, la "cercania visual" entre nodos y zonas relacionadas". Respuesta 2: Lo dejo a tu criterio, lo mas logico que sea apropiado para una experiencia pedadogica de alguien que ya esta avanzado en el curso, este modo esta pensado para usuarios que ya tengan desbloqueados varias o todas las zonas. Pregunta 3: Precisamente, el que manda es el arbol de conocimientos, ya sabes que las zonas y como se abren son, de hecho, dependientes del arbol de conocimientos.
+-  Observaciones del usuario (2): Excelente implementacion, la prueba manual paso de manera expedita:
 
 ### UPD-027 — Lanzamiento de ORBIT para usuarios reales
 
