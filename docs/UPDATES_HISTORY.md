@@ -1855,3 +1855,94 @@ pasa. La prueba espera el cierre del cliente, pero no el cierre observado por el
   JoaquinDiazM lo marcó aprobado y cerró la cohorte el 2026-09-09; UPD-021 también está aprobado
   en la activación del 2026-09-19.
 - Observaciones del usuario: «Autorizar UPD-024», recibido el 2026-09-09.
+
+## ORBIT 0.8.1 — 2026-09-19
+
+- Estado de la cohorte: `publicado`
+- IDs: `UPD-025`
+- Commit de release: `78386d79c82d293d645074d95644c06f4e73e82a`
+- Verificación remota: hash exacto confirmado en origin/main y refs/heads/main.
+- Publicación y archivado confirmados explícitamente por JoaquinDiazM en el chat.
+- Revalidación Windows del release: npm run check correcto; 578 pruebas aprobadas,
+  cero fallos y dos omisiones por permisos de symlink.
+- CI Linux: [run 35484878742](https://github.com/JoaquinDiazM/ORBIT/actions/runs/35484878742)
+  completado correctamente; instalación reproducible, validación, pruebas y build aprobados.
+- Cotejo de archivo: ficha completa y manifiesto comparados con la cola leída directamente
+  del commit de release verificado, sin omisiones ni duplicados.
+
+### UPD-025 — Edición de contenido por agentes mediante ORBIT Editor/Spider
+
+- Estado: `publicado`
+- Tipo: `documentación`
+- Versión publicada: `0.8.1`
+- Fecha: 2026-09-19.
+- Commit de release: `78386d79c82d293d645074d95644c06f4e73e82a`
+- Resultado: política de autoría mediante Spider publicada y verificada; ficha completa archivada.
+- Impacto sugerido: `Z`; establece el procedimiento operativo de autoría de contenido.
+- Próximo responsable: agente, publicar la cohorte aprobada 0.8.1 y archivar su ficha.
+
+#### Solicitud original
+
+Politica de agentes actualizada
+
+Quiero que de ahora en adelante los agentes adopten la politica de incorporar cambios atravez de ORBIT Editor, hablo en particular de los cambios a nivel de contenido tienen que usar el modo de modificar en la herramienta de spider para verificar que el motor y lengueje creado siempre esta lo mas actualizado posible y en caso de encontrar dificultades, bajar a nivel del backend del motor de creacion de contenido para mejorar la experiencia de uso tanto de agentes como de usuarios docentes.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: incorporar cambios académicos mediante ORBIT Editor → Spider → Modificar
+  → Editar contenido, usando la fuente, compilador y preview disponibles para docentes.
+- Decisiones expresadas: esa ruta editorial debe ser obligatoria para contenido; las dificultades
+  deben servir para mejorar el motor y la experiencia de autoría local. UPD-025 es el único ID
+  de la cohorte 0.8.1, cerrada por el usuario; pruebas manuales dispensadas expresamente.
+- Criterios de aceptación: AGENTS.md y las guías describen el mismo procedimiento; cada cambio
+  registra nodo, fuente, validación y preview; una limitación del Editor se reproduce antes de
+  modificar sus módulos dentro del alcance autorizado y se vuelve a comprobar desde Spider.
+  Se conservan IDs, trazabilidad científica, sesiones identificadas, limpieza y aplicación humana.
+  La UI del agente requiere copia temporal y aislamiento comprobado; sin UI o aislamiento no se
+  sustituye por JSON/API/headless. Las guías distinguen autoría de contratos y fixtures internos.
+  La entrega identifica archivos/secciones de políticas y explica su lectura en cada activación.
+- Fuera de alcance: reabrir 0.8.0, añadir funciones al motor por esta ficha, backend remoto o
+  modificar perfiles/cachés del desarrollador.
+- Dependencias, invariantes o ADR: requiere UPD-021 publicada; conserva ADR 0011, fuente editorial
+  como autoridad y reglas de revisión humana. El motor es la implementación local existente.
+
+#### Preguntas bloqueantes
+
+- Ninguna para el alcance documental autorizado; se conserva la aplicación canónica humana.
+
+#### Implementación y revisión
+
+- Base revisada: `bac6b05`, igual a `origin/main` tras fetch; sin commits locales pendientes.
+- Rutas propias: `AGENTS.md`, `src/data/AGENTS.md`, `README.md`, `CONTRIBUTING.md`,
+  `docs/CODEX_START_HERE.md`, `docs/CONTENT_SOURCE_GUIDE.md`, `docs/CONTENT_AUTHORING.md`,
+  `docs/EDITOR_GUIDE.md` y esta cola.
+- Resultado: política documental implementada y revisada; release 0.8.1 preparado tras
+  confirmar el árbol aprobado en `56dfc31`. Cambian versión y changelog de la cohorte; se
+  conservan datos académicos, comportamiento del producto, dependencias y esquema persistente.
+- Pruebas automáticas: `npm run check` pasó (580 casos: 578 correctos, 0 fallos, 2 omitidos por
+  permisos de symlink en Windows); validación curricular, 140 archivos JS, enlaces de 45
+  Markdown y build correctos. Tras precisar el aislamiento en tres guías, `npm run repo-check`
+  pasó otra vez; los 8 casos de `tests/updates-workflow.test.mjs` y `git diff --check` también
+  pasaron. No se añadieron pruebas que solo reproduzcan texto documental.
+- Preflight del entorno: no se abrió navegador ni servicio de revisión; audio coherente
+  (seis recursos, sidecars, hashes y referencias), puerto 4173 libre, sin journals/locks/
+  tombstones activos. Los 97 archivos fuente/públicos, los tres HTML y `build-info.json`
+  concuerdan con `dist`, versión 0.8.0 y revisión `69b47331…`. `no-store` está cubierto por las
+  suites aisladas de dev/autoría; no se atribuye una comprobación manual nueva. Pruebas propias
+  terminadas; procesos ajenos intactos. WMI denegó inspeccionar sus líneas de comando, por lo
+  que no se certifica una atribución global de todos los procesos Node del equipo.
+- Revisión manual humana: pruebas manuales dispensadas por JoaquinDiazM; aprobación documental
+  confirmada por su cambio explícito a `aprobado`, leído en esta activación. Revalidación del
+  árbol aprobado: `npm run check` correcto, 578 pruebas aprobadas y dos omisiones de symlink.
+- Publicación confirmada: tras el rechazo automático inicial del checkpoint, JoaquinDiazM
+  confirmó explícitamente en el chat «Si, confirmo» a aprobar UPD-025, publicar 0.8.1 y archivar
+  su ficha. Se reanuda el flujo normal con esa confirmación, sin duplicar cambios.
+- Ubicación para revisar: `AGENTS.md` → **Autoría de contenido por agentes**, **Flujo obligatorio
+  para agentes**, **Entorno prístino para revisión humana**; `src/data/AGENTS.md` → **Antes de
+  editar**; `docs/CODEX_START_HERE.md` → **Dónde viven las instrucciones de agentes**;
+  `docs/CONTENT_SOURCE_GUIDE.md` → **Procedimiento obligatorio para agentes**.
+- Comprobación de instrucciones en este entorno: global vacío, sin `AGENTS.override.md` en la
+  cadena aplicable ni límite personalizado; global + raíz + `src/` + `src/data/` suman 20.301
+  bytes frente al límite predeterminado de 32 KiB. Se releyeron las políticas modificadas. Esta
+  comprobación local no promete carga universal en otras herramientas/configuraciones.
+- Observaciones del usuario: Esta sera la unica update de la version o cohorte 0.8.1. dada la naturaleza del update debes mostrarme en que archivo y que parte del mismo estan las politicas relacionadas a agentes para que pueda verificar que siempre entran en tu contexto, pruebas manuales no seran requeridas.
