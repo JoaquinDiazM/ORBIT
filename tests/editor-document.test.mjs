@@ -881,7 +881,7 @@ test("Spider puede guardar un borrador inválido, Validar lo rechaza y una conex
   );
 
   imported.document.learningNetwork.connections.push({
-    sourceId: "maxwell-archive",
+    sourceId: "ampere-foundry",
     targetId: "superconductivity-transition-lab",
   });
   assert.equal(sanitizeEditorDocument(imported.document).ok, true);

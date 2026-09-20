@@ -175,6 +175,7 @@ Incluye esa evaluación en tu resumen de cambios o en el mensaje de commit.
 | Calculadora y expresiones científicas de Gadgets | `src/core/scientific-expression.js`, `src/ui/gadget-hub.js` |
 | Avance dentro de una secuencia | `src/core/exercise-sequence.js` |
 | Derivación de zonas/fronteras | `src/core/world-graph.js` |
+| Navegación Global/Directa y límite de relaciones por zona | `src/core/direct-navigation.js`, `docs/decisions/0012-direct-world-navigation.md` |
 | Estado, progreso y guardado | `src/core/progression.js`, `src/core/storage.js` |
 | Migraciones de progreso | `src/core/progress-migrations.js` |
 | Apariencia y preferencias Bowerbird | `src/core/area-appearance.js`, `src/core/bowerbird-preferences.js` |

@@ -271,7 +271,7 @@ test("Aplicar rechaza la arista eliminada hasta que Docente repara el borrador",
   );
 
   candidate.learningNetwork.connections.push({
-    sourceId: "maxwell-archive",
+    sourceId: "ampere-foundry",
     targetId: "superconductivity-transition-lab",
   });
   const plan = await createCourseApplicationPlan({
@@ -285,7 +285,7 @@ test("Aplicar rechaza la arista eliminada hasta que Docente repara el borrador",
     "differential-equations-lab->superconductivity-transition-lab",
   ]);
   assert.deepEqual(plan.diff.addedConnections, [
-    "maxwell-archive->superconductivity-transition-lab",
+    "ampere-foundry->superconductivity-transition-lab",
   ]);
 });
 

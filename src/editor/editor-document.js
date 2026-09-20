@@ -7,6 +7,10 @@ import { axialDistance, axialKey, pointInHex } from "../core/hex.js";
 import { normalizeRequirements } from "../core/requirements.js";
 import { validateProjectData } from "../core/validator.js";
 import {
+  createDirectNavigationIndex,
+  getAreaRelationViolations,
+} from "../core/direct-navigation.js";
+import {
   AREA_APPEARANCE_CATALOG_VERSION,
   DEFAULT_AREA_APPEARANCE,
   sanitizeAreaAppearance,
@@ -384,7 +388,16 @@ export function createEditorDocument(options = {}) {
     baseDataVersion: context.baseDataVersion,
     areas: context.baseAreas.map(canonicalAreaRecord),
     tierLabels: defaultTierLabels(),
-    locations: context.baseLocations.map((location) => canonicalLocationRecord(location)),
+    locations: context.baseLocations.map((location) => {
+      const record = canonicalLocationRecord(location);
+      // Fresh seed only: placement exported from Spider for UPD-026. Historical
+      // catalogs, supplied drafts and migrations retain their original placement.
+      if (context.baseAreas === AREAS && context.baseLocations === LOCATIONS
+        && context.courseId === EDITOR_COURSE_ID && record.id === "atacama-array") {
+        record.areaId = "antennas";
+      }
+      return record;
+    }),
     nextLocationSequence: 1,
     learningNetwork: {
       nodeIds: academicLocationIds(context.baseLocations),
@@ -1566,12 +1579,33 @@ function validateDraftStructure(document, context) {
   return { errors, warnings };
 }
 
-function validatePublishableDocument(document, context) {
+function validatePublishableDocument(document, context, { allowExcessAreaRelations = false } = {}) {
   const errors = [];
   const warnings = [];
   const academicIds = activeAcademicRecordIds(document.locations);
   const academicIdSet = new Set(academicIds);
   const nodeIds = new Set(document.learningNetwork.nodeIds);
+  const navigationIndex = createDirectNavigationIndex({
+    areas: document.areas,
+    locations: document.locations.filter(({ id }) => nodeIds.has(id)),
+    connections: document.learningNetwork.connections,
+  });
+  for (const violation of getAreaRelationViolations(navigationIndex)) {
+    const area = navigationIndex.areasById.get(violation.areaId);
+    const diagnostics = allowExcessAreaRelations ? warnings : errors;
+    diagnostics.push({
+      ...issue(
+        "area-learning-degree-exceeded",
+        `La zona ${area.title} (${area.id}) se relaciona con ${violation.count} zonas distintas `
+          + `(máximo ${violation.max}): ${violation.relatedAreaIds.join(", ")}. `
+          + (allowExcessAreaRelations
+            ? "La edición se conserva en navegación Global; reorganiza el borrador antes de volver a aplicar."
+            : "Reorganiza sus nodos o conexiones antes de aplicar; el borrador se conserva."),
+        "learningNetwork.connections",
+      ),
+      ...violation,
+    });
+  }
   const incoming = new Map(academicIds.map((id) => [id, 0]));
   const adjacency = new Map(academicIds.map((id) => [id, []]));
   for (const connection of document.learningNetwork.connections) {
@@ -1965,6 +1999,30 @@ export function applyEditorDocument(candidate, options = {}) {
     document: structuredClone(result.document),
     ...materializeEditorDocument(result.document, context),
     warnings: structuredClone(result.warnings),
+  };
+}
+
+/** Read an already signed edition after its raw digest has been verified by the loader. */
+export function materializePublishedEditorDocument(candidate, options = {}) {
+  const context = canonicalContext(options);
+  const draft = sanitizeEditorDraft(candidate, options);
+  if (!draft.ok) {
+    throw new EditorDocumentError(
+      "La edición publicada no superó el saneamiento estructural.",
+      draft.errors,
+    );
+  }
+  const validation = validatePublishableDocument(draft.document, context, { allowExcessAreaRelations: true });
+  if (validation.errors.length > 0) {
+    throw new EditorDocumentError(
+      "La edición publicada no superó la validación.",
+      validation.errors,
+    );
+  }
+  return {
+    document: structuredClone(draft.document),
+    ...materializeEditorDocument(draft.document, context),
+    warnings: [...structuredClone(draft.warnings), ...structuredClone(validation.warnings)],
   };
 }
 

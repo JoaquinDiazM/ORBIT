@@ -248,18 +248,23 @@ Sin propuestas pendientes de clasificar. Navegación y lanzamiento se registraro
 
 ## Cohorte inmediata
 
-Sin cohorte inmediata. ORBIT 0.8.1 está publicada y verificada; el cierre documental de
-UPD-025 se completa antes de activar la cohorte 0.9.0 solicitada por JoaquinDiazM.
+- Versión: `0.9.0`
+- Estado de la cohorte: `cerrada`
+- IDs: `UPD-026`
+- Cierre confirmado por JoaquinDiazM: 2026-09-19.
+
+El usuario confirmó en el chat que UPD-026 será la única actualización de 0.9.0 y pidió
+activarla después de publicar 0.8.1. Release y cierre documental de 0.8.1 verificados en remoto.
 
 ## Actualizaciones activas
 
 ### UPD-026 — Navegación global y directa del mapamundi
 
-- Estado: `autorizado`
+- Estado: `en-revision`
 - Tipo: `feature`
 - Versión objetivo: `0.9.0`
 - Impacto sugerido: `Y`; nueva representación navegable y límite de conectividad académica.
-- Próximo responsable: agente, preflight y ADR cuando 0.9.0 sea la cohorte inmediata.
+- Próximo responsable: JoaquinDiazM, revisión humana y aprobación de UPD-026.
 
 #### Solicitud original
 
@@ -284,32 +289,65 @@ Quiero un modo de navegacion en el mapamundi que sea VISUALMENTE diferente al ac
   inventario; máximo seis zonas relacionadas en el validador editorial, con diagnóstico reparable;
   conservar borradores inválidos; separar el selector del modo existente Directo de la Red;
   interacción libre, teclado, legibilidad, bloqueos visibles y movimiento reducido.
-- Compatibilidad detectada: la edición aplicada `69b47331…` cumple el máximo seis; la semilla
-  canónica de `createEditorDocument()` tiene siete zonas relacionadas con `applications`.
-  La solución debe definir ajuste o migración conservando IDs; añadir solo el rechazo rompería
-  esa base. No se modificaron datos ni conexiones durante esta clasificación.
+- Compatibilidad resuelta: la edición aplicada `69b47331…` cumple el máximo seis y permanece
+  intacta. La semilla nueva reproduce el traslado de `atacama-array` desde `applications` a
+  `antennas` realizado en Spider; conserva offset, fuente, IDs y todas las conexiones.
+  Los documentos históricos mantienen sus posiciones y pueden repararse sin pérdida.
 - Fuera de alcance: nuevas herramientas o presentación de ORBIT Editor; solo su validación.
-  No adelantar implementación, geometría, progreso o apertura mientras 0.8.1 no esté publicada.
+  No añadir capacidades del lanzamiento 1.0.0 ni publicar antes de la revisión humana de 0.9.0.
 - Dependencias, invariantes o ADR: una única Red académica, estado derivado, IDs estables y
   movimiento libre. Las fronteras visuales nuevas serán transitables: documentar por ADR
   la adyacencia efectiva, apertura territorial, retorno al recentrar y coherencia entre modos.
 
 #### Preguntas bloqueantes
 
-- Las preguntas de recorrido y autoridad fueron respondidas; no se requiere repetirlas.
-- Antes de implementar, el agente debe concretar el ADR y el ajuste compatible de la semilla
-  con siete zonas relacionadas, preservando IDs y explicitando cualquier cambio de conexiones.
-  Si la auditoría revela una decisión pedagógica no cubierta por la delegación, se preguntará
-  ese punto concreto. El límite de seis no autoriza eliminar contenido silenciosamente.
+- Ninguna. Las decisiones delegadas y la compatibilidad de la semilla quedaron concretadas
+  en [ADR 0012](docs/decisions/0012-direct-world-navigation.md).
 
 #### Implementación y revisión
 
-- Resultado: propuesta clasificada con auditoría de compatibilidad; implementación no iniciada.
-- Pruebas automáticas: validación documental de la cola; futura cobertura de selección,
-  conectividad, movimiento, apertura, persistencia y compatibilidad.
-- Preflight del entorno: no se abrió navegador ni se alteraron mapas o perfiles.
-- Revisión manual humana: pendiente de una implementación futura; las respuestas de alcance
-  siguientes no constituyen una revisión del producto.
+- Base revisada: `5735f17`, igual a origin/main; 0.8.1 publicada y archivada.
+- Resultado: implementado Global/Directa en Visual para los tres perfiles. La posición
+  persistida y apertura permanecen canónicas; Directa deriva siete hexágonos transitables,
+  recentra al cruzar y conserva el offset. El regreso tiene historial efímero para la
+  selección asimétrica. La preferencia opcional conserva progreso v4 y el filtro de Red.
+- Editor: máximo seis zonas relacionadas por zona, diagnóstico completo e importación de
+  borradores reparables. Una edición histórica firmada que exceda el límite carga en Global
+  con explicación; se verifica su digest y no puede republicarse hasta corregir el exceso.
+- Rutas propias: `src/core/direct-navigation.js`, progresión/edición, documento editorial,
+  GameApp/renderer/main, UI/HTML/CSS; pruebas correspondientes, ADR 0012 y documentación.
+  Sin cambios de versión, changelog, edición aplicada ni dependencias.
+- Autoría mediante UI real, 2026-09-19/20: copia temporal de 0.8.1, navegador interno de Codex
+  separado de Edge y adaptador compartido en memoria sin acceso al almacenamiento persistente.
+  Spider → Modificar: `atacama-array`, Zona Antenas, Aplicar posición; Editar contenido,
+  compilación válida y preview del ejercicio con respuesta de fase/retardo correcta. Resumen
+  mostró un nodo movido, cero cambios de contenido/conexiones y 19 zonas/29 lugares/20 conceptos
+  alcanzables. No se pulsó Aplicar edición al curso.
+- Export UI conservado para revisión:
+  `C:\Users\joaqu\AppData\Local\Temp\orbit-author026-f392501f6fad4267b6d664af80544c9a\UPD-026-semilla-Spider.json`.
+  SHA-256 `c959d30b58c130dcd0f8d8cc8e993a2d25c1240d606ba7d0fad31bef0f96af3d`.
+  Comparación con baseline: solo `areaId` de Atacama y `updatedAt`; comparación con fábrica
+  nueva: idéntica. El evento de descarga de la herramienta agotó su espera, pero la descarga
+  real se produjo y el archivo fue verificado. Su duplicado en Descargas fue retirado.
+- Pruebas automáticas: 2026-09-20, `npm run check` código cero; 627 pruebas, 625 pasan,
+  cero fallos y dos omisiones por permisos de symlink de Windows. Sintaxis de 146 archivos,
+  enlaces de 47 documentos y build aprobados. Cubre seis cruces, prioridades/deduplicación,
+  regreso, teclado/teletransporte, proyección, recarga, rollback, migración e integridad histórica.
+  Tres fixtures antiguos de reparación se ajustaron al nuevo límite conservando sus aserciones.
+- Revisión cruzada: corrigió el regreso bloqueado por su propio panel; prueba conjunta con
+  UIController y GameApp reales demuestra cierre, restauración de foco y retorno. Sin otros
+  hallazgos materiales en la revisión independiente de proyección y runtime.
+- Preflight del entorno: 2026-09-20, fuente y dist coinciden en 98 archivos y tres HTML;
+  build-info confirma `69b47331…`. Cuatro respuestas HTTP 200 con `Cache-Control: no-store`.
+  Puerto 4173 libre al cerrar; sin locks, journals ni tombstones. Servidor temporal PID 24208,
+  padre 24852 y sondeo PID 27112 terminados; pestaña propia cerrada. Copia de autoría retirada;
+  solo queda el export anterior. Backups preexistentes del desarrollador preservados. Audio:
+  seis recursos y sidecars coinciden con manifiesto, atribuciones y consumidores, sin cambios.
+- Revisión manual humana: **pendiente**, según [guion UPD-026](docs/reviews/UPD-026.md).
+  Iniciar `npm run dev` desde terminal visible de VS Code y probar en Edge externo. Verificar
+  modos, cruces, bloqueo, regreso, recarga, foco, tres perfiles, consola y límite editorial.
+  Esta evidencia del agente no sustituye esa revisión; desde Validar hasta comunicar Aplicar
+  se mantiene la congelación del checkout. Esperar aprobación antes de versionar o publicar.
 - Observaciones del usuario: Respuesta 1 -> Si, justo esa es la idea del modo de navegacion directa, la "cercania visual" entre nodos y zonas relacionadas". Respuesta 2: Lo dejo a tu criterio, lo mas logico que sea apropiado para una experiencia pedadogica de alguien que ya esta avanzado en el curso, este modo esta pensado para usuarios que ya tengan desbloqueados varias o todas las zonas. Pregunta 3: Precisamente, el que manda es el arbol de conocimientos, ya sabes que las zonas y como se abren son, de hecho, dependientes del arbol de conocimientos..
 
 ### UPD-027 — Lanzamiento de ORBIT para usuarios reales

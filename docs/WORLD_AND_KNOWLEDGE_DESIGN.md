@@ -39,6 +39,24 @@ El movimiento no sigue caminos ni aristas del grafo. Dentro del espacio abierto,
 
 Las fronteras solo intervienen al intentar pasar entre dos hexágonos.
 
+### Navegación Global y Directa
+
+**Ajustes → Visual** selecciona Global (cartografía editorial completa) o Directa (zona
+actual y seis vecinas reorganizadas). Directa prioriza zonas relacionadas académicamente
+en cualquier dirección, después Base y luego un relleno pseudoaleatorio estable. Todos los
+nodos de una misma zona conservan su posición local. Al cruzar, la llegada pasa al centro.
+
+Ambos modos comparten la apertura derivada de la cartografía canónica y la Red. La proyección
+no concede acceso a zonas cerradas; entre dos vecinas proyectadas abiertas se puede caminar
+aunque estén separadas en Global. La posición guardada sigue siendo canónica. **Volver a la
+zona anterior** usa un historial de sesión cuando las prioridades no muestran la procedencia.
+La vista del mapa es independiente del filtro Oculta/Directo/Total de sus conexiones.
+
+El Editor admite como máximo seis zonas académicamente relacionadas por zona al validar una
+nueva publicación. Conserva los borradores que excedan el límite para repararlos. Una edición
+histórica válida que lo exceda funciona en Global y explica la indisponibilidad de Directa.
+Véase [ADR 0012](decisions/0012-direct-world-navigation.md).
+
 ## Red de aprendizaje y apertura territorial
 
 La Red de aprendizaje es un DAG explícito cuyos extremos solo pueden ser lugares `lesson` o

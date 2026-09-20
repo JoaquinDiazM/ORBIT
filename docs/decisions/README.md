@@ -14,6 +14,8 @@ Los ADR registran decisiones que afectan estructura, dependencias, persistencia 
 - [0008 — Apariencia por alcance y aplicación local recuperable](0008-scoped-appearance-and-local-course-application.md)
 - [0009 — Red única de aprendizaje y apertura territorial derivada](0009-single-learning-network.md)
 - [0010 — Metadatos cartográficos y ciclo de vida de entidades editoriales](0010-editorial-entities-and-map-metadata.md)
+- [0011 — Fuente académica y autoría de contenido](0011-academic-source-and-content-authoring.md)
+- [0012 — Navegación Global y Directa](0012-direct-world-navigation.md)
 
 ## Crear un ADR
 

@@ -154,6 +154,8 @@ async function startOrbitRuntime() {
       setDebugOption: (option, value) => game.setDebugOption(option, value),
       teleportToArea: (areaId) => game.teleportToArea(areaId),
       teleportToWorld: (x, y) => game.teleportToWorld(x, y),
+      returnToPreviousArea: () => game.returnToPreviousArea(),
+      canReturnToPreviousArea: () => game.canReturnToPreviousArea(),
       completeNearby: () => game.completeNearby(),
       syncPlayerFromProgress: () => game.syncPlayerFromProgress(),
       getDebugSnapshot: () => game.getDebugSnapshot(),

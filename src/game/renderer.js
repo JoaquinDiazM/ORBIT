@@ -220,6 +220,8 @@ export class CanvasRenderer {
 
     this.areas = areas;
     this.locations = locations;
+    this.canonicalAreas = areas;
+    this.canonicalLocations = locations;
     this.getPersonalAreaAppearance = typeof getPersonalAreaAppearance === "function"
       ? getPersonalAreaAppearance
       : () => null;
@@ -227,9 +229,21 @@ export class CanvasRenderer {
     this.height = 0;
     this.pixelRatio = 1;
     this.worldIndex = createWorldIndex(this.areas);
+    this.canonicalWorldIndex = this.worldIndex;
+    this.navigationMode = "global";
     this.locationById = new Map(this.locations.map((location) => [location.id, location]));
     this.stars = this.#createStars(WORLD_CONFIG.backgroundStars);
     this.resize();
+  }
+
+  setNavigationLayout(layout) {
+    this.navigationMode = layout ? "direct" : "global";
+    this.areas = layout?.areas ?? this.canonicalAreas;
+    this.worldIndex = layout?.worldIndex ?? this.canonicalWorldIndex;
+    this.locations = layout
+      ? this.canonicalLocations.filter((location) => layout.visibleAreaIds.has(location.areaId))
+      : this.canonicalLocations;
+    this.locationById = new Map(this.locations.map((location) => [location.id, location]));
   }
 
   #createStars(count) {
@@ -417,7 +431,8 @@ export class CanvasRenderer {
       if (debugState.showCoords) {
         context.font = `600 ${9 * lineScale}px ui-monospace, monospace`;
         context.fillStyle = "rgba(181, 224, 243, 0.55)";
-        context.fillText(`hex(${area.q}, ${area.r})`, center.x, center.y + WORLD_CONFIG.hexSize * 0.72);
+        const coordinateLabel = this.navigationMode === "direct" ? "vista" : "hex";
+        context.fillText(`${coordinateLabel}(${area.q}, ${area.r})`, center.x, center.y + WORLD_CONFIG.hexSize * 0.72);
       }
       context.restore();
     }

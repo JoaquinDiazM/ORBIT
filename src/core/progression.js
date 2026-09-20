@@ -2,6 +2,7 @@ import { APP_CONFIG } from "../config.js";
 import { CONCEPTS, REWARDS, getReward, parseRewardKey, rewardKey } from "../data/knowledge.js";
 import { LOCATIONS } from "../data/locations.js";
 import { AREAS, WORLD_CONFIG } from "../data/world.js";
+import { createDirectNavigationIndex, getAreaRelationViolations } from "./direct-navigation.js";
 import {
   TREE_TWO_VISUALIZATION_MODES,
   isLearningLocation,
@@ -16,6 +17,8 @@ import {
   getAreaCenter,
   getLocationWorldPosition,
 } from "./world-graph.js";
+
+export const NAVIGATION_MODES = Object.freeze(["global", "direct"]);
 
 function allKnownRewardKeys() {
   return new Set(
@@ -44,6 +47,7 @@ function createInitialState(profile, worldIndex, { courseId, courseRevision }) {
       ambienceVolume: 1,
       effectsVolume: 1,
       treeTwoVisualizationMode: "hidden",
+      navigationMode: "global",
     },
     player: {
       x: center.x + WORLD_CONFIG.spawnOffset.x,
@@ -105,6 +109,9 @@ export class ProgressionModel {
     this.concepts = CONCEPTS;
     this.rewards = REWARDS;
     this.worldIndex = createWorldIndex(this.areas);
+    this.navigationRelationViolations = getAreaRelationViolations(
+      createDirectNavigationIndex({ areas: this.areas, locations: this.locations }),
+    );
     this.storage = storage;
     this.listeners = new Set();
     const stored = this.storage.load();
@@ -231,6 +238,10 @@ export class ProgressionModel {
     )
       ? migratedSettings.treeTwoVisualizationMode
       : "hidden";
+    state.settings.navigationMode = migratedSettings.navigationMode === "direct"
+      && this.navigationRelationViolations.length === 0
+      ? "direct"
+      : "global";
 
     return state;
   }
@@ -503,6 +514,36 @@ export class ProgressionModel {
     this.state.settings.treeTwoVisualizationMode = mode;
     this.#save(previousState);
     this.#emit("tree-two-visualization-mode-changed", { mode });
+    return mode;
+  }
+
+  getNavigationModeAvailability() {
+    const violations = structuredClone(this.navigationRelationViolations);
+    const descriptions = violations.map(({ areaId, count }) => {
+      const title = this.worldIndex.byId.get(areaId)?.title ?? areaId;
+      return `${title}: ${count} zonas relacionadas`;
+    });
+    return {
+      directAvailable: violations.length === 0,
+      violations,
+      message: violations.length
+        ? `Navegación Directa no disponible: ${descriptions.join("; ")}. El máximo es seis. Esta edición conserva la navegación Global y todas sus conexiones; revisa las relaciones en ORBIT Editor.`
+        : "",
+    };
+  }
+
+  setNavigationMode(mode) {
+    if (!NAVIGATION_MODES.includes(mode)) return this.state.settings.navigationMode;
+    if (mode === "direct" && this.navigationRelationViolations.length > 0) {
+      const error = new Error(this.getNavigationModeAvailability().message);
+      error.code = "direct-navigation-unavailable";
+      throw error;
+    }
+    if (mode === this.state.settings.navigationMode) return mode;
+    const previousState = structuredClone(this.state);
+    this.state.settings.navigationMode = mode;
+    this.#save(previousState);
+    this.#emit("navigation-mode-changed", { mode });
     return mode;
   }
 

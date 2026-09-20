@@ -1,6 +1,12 @@
 import { APP_CONFIG, DEBUG_DEFAULTS } from "../config.js";
 import { WORLD_CONFIG } from "../data/world.js";
-import { getWorldBounds } from "../core/hex.js";
+import { AXIAL_DIRECTIONS, getWorldBounds } from "../core/hex.js";
+import {
+  canonicalToDisplay,
+  createDirectLayout,
+  createDirectNavigationIndex,
+  displayToCanonical,
+} from "../core/direct-navigation.js";
 import { getProfileCapabilities } from "../core/profile-policy.js";
 import { StoragePersistenceError } from "../core/storage.js";
 import {
@@ -140,6 +146,10 @@ export class GameApp {
     this.locations = locations;
     this.profileCapabilities = getProfileCapabilities(progression.profile);
     this.worldIndex = createWorldIndex(this.areas);
+    this.directNavigationIndex = createDirectNavigationIndex({ areas, locations });
+    this.navigationMode = "global";
+    this.navigationLayout = null;
+    this.navigationHistory = [];
     this.renderer = new CanvasRenderer(canvas, {
       areas: this.areas,
       locations: this.locations,
@@ -209,8 +219,20 @@ export class GameApp {
     this.canvas.addEventListener("pointercancel", this.onPointerCancel);
     this.canvas.addEventListener("lostpointercapture", this.onPointerCancel);
     this.unsubscribeProgression = this.progression.subscribe((event) => {
+      if (["reset", "state-imported"].includes(event.type)) {
+        this.navigationHistory = [];
+      }
       if (["reset", "state-imported", "player-teleported"].includes(event.type)) {
         this.syncPlayerFromProgress();
+      }
+      if (event.type === "navigation-mode-changed") {
+        // A settings save may precede the next periodic movement save. Never
+        // replace the live canonical position with that older saved position.
+        const saved = this.progression.getSnapshot().state.player;
+        if (saved.x !== this.player.x || saved.y !== this.player.y) {
+          this.#persistPlayerPosition(this.player.x, this.player.y);
+        }
+        this.#refreshNavigationLayout({ force: true });
       }
       const latestUnlock = reduceLatestTreeTwoUnlock(
         {
@@ -224,6 +246,7 @@ export class GameApp {
     });
     this.motionQuery?.addEventListener?.("change", this.onMotionPreferenceChanged);
 
+    this.#refreshNavigationLayout({ force: true, snapCamera: true });
     this.camera.resize(this.renderer.width, this.renderer.height);
   }
 
@@ -271,6 +294,103 @@ export class GameApp {
     }
   }
 
+  #playerArea(position = this.player) {
+    return getAreaAtWorldPosition(
+      position.x, position.y, WORLD_CONFIG.hexSize, this.worldIndex,
+    );
+  }
+
+  #displayPlayerPosition() {
+    if (!this.navigationLayout) return { x: this.player.x, y: this.player.y };
+    return canonicalToDisplay(this.navigationLayout, {
+      areaId: this.#playerArea()?.id,
+      x: this.player.x,
+      y: this.player.y,
+    }) ?? { x: this.player.x, y: this.player.y };
+  }
+
+  #displayWorldIndex() {
+    return this.navigationLayout?.worldIndex ?? this.worldIndex;
+  }
+
+  #setNavigationLayout(layout, { snapCamera = false } = {}) {
+    const previousDisplay = this.#displayPlayerPosition();
+    this.navigationLayout = layout;
+    this.navigationMode = layout ? "direct" : "global";
+    this.renderer.setNavigationLayout(layout);
+    const areas = layout?.areas ?? this.areas;
+    this.camera.bounds = getWorldBounds(areas, WORLD_CONFIG.hexSize, WORLD_CONFIG.hexSize * 2);
+    this.camera.focusBounds = layout ? getWorldBounds(areas, WORLD_CONFIG.hexSize) : undefined;
+    const display = this.#displayPlayerPosition();
+    this.camera.x = snapCamera ? display.x : this.camera.x + display.x - previousDisplay.x;
+    this.camera.y = snapCamera ? display.y : this.camera.y + display.y - previousDisplay.y;
+  }
+
+  #refreshNavigationLayout({ entry = null, force = false, snapCamera = false } = {}) {
+    const snapshot = this.progression.getSnapshot();
+    const mode = snapshot.state.settings?.navigationMode ?? "global";
+    const area = this.#playerArea();
+    if (!force && mode === this.navigationMode
+      && (mode !== "direct" || this.navigationLayout?.centerAreaId === area?.id)) return;
+    let layout = null;
+    if (mode === "direct" && area) {
+      try {
+        layout = createDirectLayout({
+          index: this.directNavigationIndex,
+          centerAreaId: area.id,
+          courseRevision: this.progression.courseRevision ?? snapshot.state.courseRevision ?? "",
+          hexSize: WORLD_CONFIG.hexSize,
+          entry,
+        });
+      } catch (error) {
+        if (!(error instanceof RangeError)) throw error;
+        this.ui.toast("Esta cartografía requiere navegación Global: hay más de seis zonas relacionadas.", "warning");
+      }
+    }
+    this.#setNavigationLayout(layout, { snapCamera });
+  }
+
+  #navigationEntry(fromAreaId, toAreaId, layout) {
+    if (!layout) return null;
+    const from = layout.worldIndex.byId.get(fromAreaId);
+    const to = layout.worldIndex.byId.get(toAreaId);
+    if (!from || !to) return null;
+    const direction = AXIAL_DIRECTIONS.findIndex(({ q, r }) =>
+      to.q - from.q === q && to.r - from.r === r);
+    return direction < 0 ? null : { fromAreaId, direction };
+  }
+
+  #rememberDeparture(position, destinationAreaId, layout = this.navigationLayout) {
+    const areaId = this.#playerArea(position)?.id;
+    if (!layout || !areaId || areaId === destinationAreaId) return;
+    if (this.navigationHistory.at(-1)?.areaId === destinationAreaId) {
+      this.navigationHistory.pop();
+    } else {
+      this.navigationHistory.push({ areaId, position: { x: position.x, y: position.y }, layout });
+      if (this.navigationHistory.length > 128) this.navigationHistory.shift();
+    }
+  }
+
+  canReturnToPreviousArea() {
+    if (this.navigationMode !== "direct") return false;
+    const previous = this.navigationHistory.at(-1);
+    return Boolean(previous && (this.debugState.noclip
+      || this.progression.getSnapshot().unlockedAreaIds.has(previous.areaId)));
+  }
+
+  returnToPreviousArea() {
+    if (!this.canReturnToPreviousArea() || this.ui.isBlockingModalOpen()) return false;
+    const previous = this.navigationHistory.at(-1);
+    if (!this.#persistPlayerPosition(previous.position.x, previous.position.y)) return false;
+    this.navigationHistory.pop();
+    Object.assign(this.player, previous.position, { velocityX: 0, velocityY: 0 });
+    this.currentArea = this.worldIndex.byId.get(previous.areaId);
+    this.#setNavigationLayout(previous.layout, { snapCamera: true });
+    void this.audio?.play?.(TELEPORT_AUDIO_KEY);
+    this.ui.toast(`Regreso: ${this.currentArea.title}.`, "success");
+    return true;
+  }
+
   #frame(timestamp) {
     if (!this.running) return;
     if (this.lastTimestamp === null) this.lastTimestamp = timestamp;
@@ -307,13 +427,19 @@ export class GameApp {
       }
     }
 
-    this.camera.follow(this.player.x, this.player.y, deltaSeconds);
-    this.ui.updateHUD({ area: this.currentArea, snapshot });
+    const displayPlayer = this.#displayPlayerPosition();
+    this.camera.follow(displayPlayer.x, displayPlayer.y, deltaSeconds);
+    this.ui.updateHUD({
+      area: this.currentArea,
+      snapshot,
+      navigationMode: this.navigationMode,
+      canReturnToPreviousArea: this.canReturnToPreviousArea(),
+    });
     this.ui.setInteraction(this.ui.isBlockingModalOpen() ? null : this.nearestLocation);
 
     this.renderer.render({
       camera: this.camera,
-      player: this.player,
+      player: { ...this.player, ...displayPlayer },
       snapshot,
       nearestLocation: this.nearestLocation,
       debugState: this.debugState,
@@ -393,26 +519,39 @@ export class GameApp {
     this.player.heading = Math.atan2(velocityY, velocityX);
 
     const snapshot = this.progression.getSnapshot();
+    const previous = { x: this.player.x, y: this.player.y };
+    const previousAreaId = this.#playerArea()?.id;
+    const previousLayout = this.navigationLayout;
+    const display = this.#displayPlayerPosition();
     const candidate = {
-      x: this.player.x + velocityX * deltaSeconds,
-      y: this.player.y + velocityY * deltaSeconds,
+      x: display.x + velocityX * deltaSeconds,
+      y: display.y + velocityY * deltaSeconds,
     };
 
+    let next = display;
     if (this.#canOccupy(candidate.x, candidate.y, snapshot)) {
-      this.player.x = candidate.x;
-      this.player.y = candidate.y;
-      return;
+      next = candidate;
+    } else {
+      const candidateX = { x: candidate.x, y: display.y };
+      if (this.#canOccupy(candidateX.x, candidateX.y, snapshot)) next = candidateX;
+      const candidateY = { x: next.x, y: candidate.y };
+      if (this.#canOccupy(candidateY.x, candidateY.y, snapshot)) next = candidateY;
     }
-
-    const candidateX = { x: candidate.x, y: this.player.y };
-    if (this.#canOccupy(candidateX.x, candidateX.y, snapshot)) this.player.x = candidateX.x;
-
-    const candidateY = { x: this.player.x, y: candidate.y };
-    if (this.#canOccupy(candidateY.x, candidateY.y, snapshot)) this.player.y = candidateY.y;
+    const canonical = previousLayout ? displayToCanonical(previousLayout, next) : next;
+    if (!canonical) return;
+    this.player.x = canonical.x;
+    this.player.y = canonical.y;
+    const destinationAreaId = this.#playerArea()?.id;
+    if (destinationAreaId !== previousAreaId) {
+      this.#rememberDeparture(previous, destinationAreaId, previousLayout);
+      this.#refreshNavigationLayout({
+        entry: this.#navigationEntry(previousAreaId, destinationAreaId, previousLayout),
+      });
+    }
   }
 
   #canOccupy(x, y, snapshot) {
-    const area = getAreaAtWorldPosition(x, y, WORLD_CONFIG.hexSize, this.worldIndex);
+    const area = getAreaAtWorldPosition(x, y, WORLD_CONFIG.hexSize, this.#displayWorldIndex());
     if (!area) return false;
     if (this.debugState.noclip) return true;
     return snapshot.unlockedAreaIds.has(area.id);
@@ -421,11 +560,14 @@ export class GameApp {
   #findNearestAccessibleLocation(snapshot) {
     let nearest = null;
     let nearestDistance = Number.POSITIVE_INFINITY;
+    const player = this.#displayPlayerPosition();
+    const worldIndex = this.#displayWorldIndex();
 
     for (const location of this.locations) {
       if (!snapshot.accessibleLocationIds.has(location.id)) continue;
-      const position = getLocationWorldPosition(location, this.worldIndex, WORLD_CONFIG.hexSize);
-      const distance = Math.hypot(this.player.x - position.x, this.player.y - position.y);
+      if (!worldIndex.byId.has(location.areaId)) continue;
+      const position = getLocationWorldPosition(location, worldIndex, WORLD_CONFIG.hexSize);
+      const distance = Math.hypot(player.x - position.x, player.y - position.y);
       const radius = location.interactionRadius ?? APP_CONFIG.interactionRadius;
       if (distance <= radius && distance < nearestDistance) {
         nearest = location;
@@ -464,17 +606,13 @@ export class GameApp {
       || !hasExclusivePointerModifier(event, "shift")
     ) return;
     const world = this.#worldPointFromPointerEvent(event);
-    const area = getAreaAtWorldPosition(world.x, world.y, WORLD_CONFIG.hexSize, this.worldIndex);
+    const canonical = this.navigationLayout ? displayToCanonical(this.navigationLayout, world) : world;
+    const area = canonical && this.#playerArea(canonical);
     if (!area) {
       this.ui.toast("El punto seleccionado está fuera de la cartografía definida.", "warning");
       return;
     }
-    this.player.x = world.x;
-    this.player.y = world.y;
-    if (!this.#persistPlayerPosition(world.x, world.y)) {
-      this.syncPlayerFromProgress();
-      return;
-    }
+    if (!this.teleportToWorld(canonical.x, canonical.y)) return;
     this.ui.toast(`Teletransporte de depuración: ${area.title}.`, "success");
   }
 
@@ -530,7 +668,7 @@ export class GameApp {
 
   #areaFromPointerEvent(event) {
     const world = this.#worldPointFromPointerEvent(event);
-    return getAreaAtWorldPosition(world.x, world.y, WORLD_CONFIG.hexSize, this.worldIndex);
+    return getAreaAtWorldPosition(world.x, world.y, WORLD_CONFIG.hexSize, this.#displayWorldIndex());
   }
 
   #worldPointFromPointerEvent(event) {
@@ -544,14 +682,9 @@ export class GameApp {
 
   #teleportInDirection(direction) {
     const snapshot = this.progression.getSnapshot();
-    const originArea = getAreaAtWorldPosition(
-      this.player.x,
-      this.player.y,
-      WORLD_CONFIG.hexSize,
-      this.worldIndex,
-    );
+    const originArea = this.#displayWorldIndex().byId.get(this.#playerArea()?.id);
     const destination = findDirectionalTeleportArea({
-      areas: this.areas,
+      areas: this.navigationLayout?.areas ?? this.areas,
       unlockedAreaIds: snapshot.unlockedAreaIds,
       originArea,
       direction,
@@ -600,6 +733,16 @@ export class GameApp {
   }
 
   teleportToArea(areaId, { suppressAreaTransitionCue = false } = {}) {
+    const snapshot = this.progression.getSnapshot();
+    const area = this.worldIndex.byId.get(areaId);
+    if (!area) return false;
+    if (!this.debugState.noclip && !snapshot.unlockedAreaIds.has(areaId)) {
+      this.ui.toast(`La zona ${area.title} todavía está bloqueada.`, "warning");
+      return false;
+    }
+    const previous = { x: this.player.x, y: this.player.y };
+    const previousLayout = this.navigationLayout;
+    const previousAreaId = this.#playerArea()?.id;
     let position;
     try {
       position = this.progression.teleportToArea(areaId);
@@ -612,8 +755,12 @@ export class GameApp {
     this.player.y = position.y;
     this.player.velocityX = 0;
     this.player.velocityY = 0;
-    this.camera.x = position.x;
-    this.camera.y = position.y;
+    this.#rememberDeparture(previous, areaId, previousLayout);
+    this.#refreshNavigationLayout({
+      entry: this.#navigationEntry(previousAreaId, areaId, previousLayout),
+      force: true,
+      snapCamera: true,
+    });
     if (suppressAreaTransitionCue) {
       this.currentArea = this.worldIndex.byId.get(areaId) ?? this.currentArea;
     }
@@ -623,14 +770,24 @@ export class GameApp {
   teleportToWorld(x, y) {
     const area = getAreaAtWorldPosition(x, y, WORLD_CONFIG.hexSize, this.worldIndex);
     if (!area) return false;
-    const previous = { x: this.player.x, y: this.player.y };
-    this.player.x = x;
-    this.player.y = y;
-    if (!this.#persistPlayerPosition(x, y)) {
-      this.player.x = previous.x;
-      this.player.y = previous.y;
+    if (!this.debugState.noclip && !this.progression.getSnapshot().unlockedAreaIds.has(area.id)) {
+      this.ui.toast(`La zona ${area.title} todavía está bloqueada.`, "warning");
       return false;
     }
+    const previous = { x: this.player.x, y: this.player.y };
+    const previousAreaId = this.#playerArea()?.id;
+    const previousLayout = this.navigationLayout;
+    if (!this.#persistPlayerPosition(x, y)) return false;
+    this.player.x = x;
+    this.player.y = y;
+    this.player.velocityX = 0;
+    this.player.velocityY = 0;
+    this.#rememberDeparture(previous, area.id, previousLayout);
+    this.#refreshNavigationLayout({
+      entry: this.#navigationEntry(previousAreaId, area.id, previousLayout),
+      force: true,
+      snapCamera: true,
+    });
     return true;
   }
 
@@ -640,29 +797,31 @@ export class GameApp {
     this.player.y = position.y;
     this.player.velocityX = 0;
     this.player.velocityY = 0;
-    this.camera.x = position.x;
-    this.camera.y = position.y;
+    this.#refreshNavigationLayout({ force: true, snapCamera: true });
   }
 
   completeNearby() {
     const snapshot = this.progression.getSnapshot();
+    const worldIndex = this.#displayWorldIndex();
+    const player = this.#displayPlayerPosition();
     const candidates = this.locations.filter((location) => {
       const hasProgressionEffect =
         (location.grants?.concepts?.length ?? 0) > 0 ||
         (location.grants?.rewards?.length ?? 0) > 0;
       return (
         hasProgressionEffect &&
+        worldIndex.byId.has(location.areaId) &&
         snapshot.accessibleLocationIds.has(location.id) &&
         !snapshot.completedLocationIds.has(location.id)
       );
     })
       .map((location) => ({
         location,
-        position: getLocationWorldPosition(location, this.worldIndex, WORLD_CONFIG.hexSize),
+        position: getLocationWorldPosition(location, worldIndex, WORLD_CONFIG.hexSize),
       }))
       .map((entry) => ({
         ...entry,
-        distance: Math.hypot(this.player.x - entry.position.x, this.player.y - entry.position.y),
+        distance: Math.hypot(player.x - entry.position.x, player.y - entry.position.y),
       }))
       .sort((a, b) => a.distance - b.distance);
 
@@ -704,6 +863,9 @@ export class GameApp {
           velocityY: Number(this.player.velocityY.toFixed(2)),
         },
         currentArea: this.currentArea?.id ?? null,
+        navigationMode: this.navigationMode,
+        navigationCenterArea: this.navigationLayout?.centerAreaId ?? null,
+        canReturnToPreviousArea: this.canReturnToPreviousArea(),
         nearestLocation: this.nearestLocation?.id ?? null,
       },
       progression: {

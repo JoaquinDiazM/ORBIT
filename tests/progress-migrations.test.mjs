@@ -138,6 +138,7 @@ test("el saneamiento v3 conserva categorías independientes y descarta campos ob
     ambienceVolume: 0.25,
     effectsVolume: 0.8,
     treeTwoVisualizationMode: "hidden",
+    navigationMode: "global",
   });
   progression.setAmbienceVolume(-4);
   progression.setEffectsVolume(4);

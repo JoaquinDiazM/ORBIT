@@ -6,6 +6,7 @@ import {
   EDITOR_COURSE_ID,
   EDITOR_DOCUMENT_SCHEMA_VERSION,
   applyEditorDocument,
+  materializePublishedEditorDocument,
   createGenericLocationContent,
 } from "../editor/editor-document.js";
 
@@ -313,7 +314,7 @@ export async function validateCourseEdition(candidate, options = {}) {
 
   let materialized;
   try {
-    materialized = applyEditorDocument(source.document, options);
+    materialized = materializePublishedEditorDocument(source.document, options);
   } catch (error) {
     return failureFromError(error, warnings, errors);
   }

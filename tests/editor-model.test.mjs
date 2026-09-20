@@ -319,7 +319,7 @@ test("Spider conserva un borrador inválido hasta que Docente repara la conexió
   });
   assert.equal(reloaded.validate().valid, false);
   const repaired = reloaded.connectLocations(
-    "maxwell-archive",
+    "ampere-foundry",
     "superconductivity-transition-lab",
   );
   assert.equal(repaired.ok, true);

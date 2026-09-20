@@ -230,7 +230,22 @@
           <button class="icon-button" data-close-panel="visual-panel" type="button" aria-label="Cerrar">×</button>
         </header>
         <div class="panel-body prose">
-          <p>Configura la información que ORBIT superpone sobre el mapa sin alterar tu progreso.</p>
+          <p>Elige cómo recorrer el mapa y qué conexiones mostrar. Tus logros y las zonas abiertas se conservan.</p>
+          <fieldset class="visual-layer-control" aria-describedby="navigation-help navigation-availability">
+            <legend>Navegación</legend>
+            <label>
+              <input type="radio" name="navigation-mode" value="global" checked />
+              <span><strong>Global</strong><small>Recorre la cartografía completa con sus posiciones habituales.</small></span>
+            </label>
+            <label>
+              <input type="radio" name="navigation-mode" value="direct" />
+              <span><strong>Directa</strong><small>La zona actual queda en el centro, rodeada por hasta seis zonas seleccionadas.</small></span>
+            </label>
+          </fieldset>
+          <p id="navigation-help">Directa reúne hasta siete zonas: primero las relacionadas por la Red, luego Base si cabe y después otras zonas con una selección aleatoria estable. Camina hacia las vecinas abiertas; al entrar, el mapa se reorganiza.</p>
+          <p id="navigation-availability" role="status" hidden></p>
+          <button id="navigation-return" type="button" aria-describedby="navigation-return-help" hidden disabled>Volver a la zona anterior</button>
+          <p id="navigation-return-help" hidden>El historial de regreso dura esta sesión.</p>
           <fieldset class="visual-layer-control">
             <legend>Red de aprendizaje</legend>
             <label>

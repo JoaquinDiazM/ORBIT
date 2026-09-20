@@ -81,6 +81,13 @@ la fuente pertinente una sola vez en la transición que desbloquea la entrada.
 
 ### Geometría
 
+`src/core/direct-navigation.js` prepara las relaciones entre zonas y la proyección de
+navegación Directa. GameApp conserva la posición canónica y transforma únicamente la
+representación y el espacio de movimiento; el renderer recibe la misma proyección. El estado
+de apertura sigue siendo el de `world-graph.js`, común a Global y Directa. La preferencia
+opcional `settings.navigationMode` pasa por `ProgressionModel`; el historial de regreso es
+efímero. Véase [ADR 0012](decisions/0012-direct-world-navigation.md).
+
 `src/core/hex.js` implementa conversiones axial–mundo, vértices, pertenencia a hexágonos, vecinos y utilidades de colisión.
 
 `src/core/world-graph.js` construye índices, deriva conectividad espacial y calcula posiciones absolutas de lugares.

@@ -108,6 +108,10 @@ export class UIController {
       visualModeInputs: [...document.querySelectorAll(
         'input[name="tree-two-visualization"]',
       )],
+      navigationModeInputs: [...document.querySelectorAll('input[name="navigation-mode"]')],
+      navigationAvailability: document.querySelector("#navigation-availability"),
+      navigationReturn: document.querySelector("#navigation-return"),
+      navigationReturnHelp: document.querySelector("#navigation-return-help"),
       referencePanel: document.querySelector("#reference-panel"),
       referenceEyebrow: document.querySelector("#reference-eyebrow"),
       referenceTitle: document.querySelector("#reference-title"),
@@ -186,6 +190,7 @@ export class UIController {
     this.elements.debugShowIds.checked = debug.showIds;
     this.elements.debugShowGraph.checked = debug.showGraph;
     this.elements.debugShowCoords.checked = debug.showCoords;
+    this.#updateNavigationReturn();
   }
 
   destroy() {
@@ -232,6 +237,24 @@ export class UIController {
         if (!result.ok) this.#updateVisualControls();
       });
     }
+    for (const input of this.elements.navigationModeInputs) {
+      input.addEventListener("change", () => {
+        if (!input.checked || input.disabled) return;
+        try {
+          this.#runPersistenceAction(() => this.progression.setNavigationMode(input.value));
+        } catch (error) {
+          if (error?.code !== "direct-navigation-unavailable") throw error;
+          this.toast(error.message, "warning");
+        }
+        this.#updateVisualControls();
+      });
+    }
+    this.elements.navigationReturn.addEventListener("click", () => {
+      if (this.elements.navigationReturn.hidden || this.elements.navigationReturn.disabled) return;
+      this.closePanel("visual-panel");
+      this.#runPersistenceAction(() => this.gameApi?.returnToPreviousArea());
+      this.#updateNavigationReturn();
+    });
     this.elements.soundAmbience.addEventListener("input", () => {
       const result = this.#runPersistenceAction(() =>
         this.progression.setAmbienceVolume(Number(this.elements.soundAmbience.value) / 100));
@@ -403,10 +426,16 @@ export class UIController {
     }, 320);
   }
 
-  updateHUD({ area, snapshot }) {
+  updateHUD({
+    area,
+    snapshot,
+    navigationMode = snapshot.state.settings.navigationMode ?? "global",
+    canReturnToPreviousArea = this.gameApi?.canReturnToPreviousArea?.() ?? false,
+  }) {
     this.elements.area.textContent = area?.title ?? "Fuera de la cartografía";
     this.elements.transport.textContent = snapshot.activeTransport.title;
     this.elements.mission.textContent = snapshot.nextMission;
+    this.#updateNavigationReturn(navigationMode, canReturnToPreviousArea);
   }
 
   #updateConceptProgress(snapshot) {
@@ -638,10 +667,40 @@ export class UIController {
   }
 
   #updateVisualControls() {
-    const mode = this.progression.getSnapshot().state.settings.treeTwoVisualizationMode
-      ?? "hidden";
+    const settings = this.progression.getSnapshot().state.settings;
+    const mode = settings.treeTwoVisualizationMode ?? "hidden";
     for (const input of this.elements.visualModeInputs) {
       input.checked = input.value === mode;
+    }
+    const availability = this.progression.getNavigationModeAvailability?.()
+      ?? { directAvailable: true, message: "" };
+    for (const input of this.elements.navigationModeInputs) {
+      input.checked = input.value === (settings.navigationMode ?? "global");
+      input.disabled = input.value === "direct" && !availability.directAvailable;
+    }
+    this.elements.navigationAvailability.hidden = availability.directAvailable;
+    this.elements.navigationAvailability.textContent = availability.message;
+    this.#updateNavigationReturn(settings.navigationMode ?? "global");
+  }
+
+  #updateNavigationReturn(
+    mode = this.progression.getSnapshot().state.settings.navigationMode ?? "global",
+    canReturn = this.gameApi?.canReturnToPreviousArea?.() ?? false,
+  ) {
+    const button = this.elements.navigationReturn;
+    const direct = mode === "direct";
+    const enabled = direct && canReturn;
+    if (document.activeElement === button && (!direct || !enabled)) {
+      this.elements.navigationModeInputs.find((input) => input.checked)?.focus();
+    }
+    button.hidden = !direct;
+    button.disabled = !enabled;
+    this.elements.navigationReturnHelp.hidden = !direct;
+    const help = canReturn
+      ? "Regresa a la última zona visitada, aunque no aparezca entre las seis vecinas actuales."
+      : "Aún no hay una zona anterior disponible. El historial de regreso dura esta sesión.";
+    if (this.elements.navigationReturnHelp.textContent !== help) {
+      this.elements.navigationReturnHelp.textContent = help;
     }
   }
 

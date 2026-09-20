@@ -24,6 +24,12 @@ La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra li
 
 > **Estado:** base publicada `0.8.1`; la siguiente cohorte operativa se controla en `ORBIT_UPDATES.md`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
 
+En el trabajo local de **UPD-026**, pendiente de aprobación para 0.9.0, **Ajustes → Visual →
+Navegación** permite alternar Global y Directa. Directa reúne la zona actual y seis
+vecinas por sus conexiones académicas, con Base y otras zonas cuando queda espacio. Conserva
+las zonas abiertas y la posición al alternar; **Volver a la zona anterior** permite regresar
+durante la sesión. Consulta el [guion de revisión](docs/reviews/UPD-026.md).
+
 ORBIT **0.8.0** incorpora autoría académica en **Spider → Modificar → Editar
 contenido**, con fuente restringida, preview compartido con ORBIT y documento editorial `v6`.
 Incluye ancho ajustable de paneles derechos; consulta la

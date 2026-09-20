@@ -64,6 +64,8 @@ La interfaz narrativa apoya el aprendizaje. No es el objetivo principal ni debe 
    - personajes, gadgets y transportes quedan fuera de la red y se habilitan para interactuar al
      abrir su zona.
 3. **Regla de aristas:** una frontera es transitable si y solo si los dos hexágonos que comparte están abiertos. Al abrir una zona, se abren automáticamente todas sus aristas compartidas con zonas previamente abiertas.
+   Global usa la adyacencia editorial; Directa usa la proyección derivada de siete zonas.
+   La apertura permanece canónica en ambos modos; véase ADR 0012.
 4. **Sin bloqueos autocausados:** ningún lugar puede requerir un concepto que él mismo concede. Ninguna zona puede depender únicamente de contenido situado detrás de su propia frontera.
 5. **Estado derivado:** zonas y lugares disponibles se calculan a partir de la Red de aprendizaje,
    los lugares completados, la apertura de su zona y los overrides de depuración. Conceptos y

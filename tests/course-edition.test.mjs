@@ -44,6 +44,25 @@ async function edition(document = createEditorDocument(), overrides = {}) {
   });
 }
 
+test("signed historical editions above six related areas remain readable but cannot be republished", async () => {
+  const original = await edition();
+  const document = structuredClone(original.document);
+  document.locations.find((location) => location.id === "atacama-array").areaId = "applications";
+  const digest = await digestRawEditorDocument(document);
+  const historical = { ...original, document, digest, revision: `sha256:${digest}` };
+  const loaded = await validateCourseEdition(historical);
+  assert.equal(loaded.ok, true, JSON.stringify(loaded.errors));
+  assert.equal(loaded.edition.revision, historical.revision);
+  assert.equal(loaded.locations.find((location) => location.id === "atacama-array").areaId, "applications");
+  assert.ok(loaded.warnings.some((warning) => warning.code === "area-learning-degree-exceeded"));
+  await assert.rejects(() => createCourseEdition(document));
+  const tampered = structuredClone(historical);
+  tampered.document.locations.find((location) => location.id === "atacama-array").areaId = "antennas";
+  const rejected = await validateCourseEdition(tampered);
+  assert.equal(rejected.ok, false);
+  assert.ok(rejected.errors.some((error) => error.code === "course-edition-digest-mismatch"));
+});
+
 async function legacyV3Edition() {
   const current = createEditorDocument({ updatedAt: "2026-08-30T00:00:00.000Z" });
   const document = {
