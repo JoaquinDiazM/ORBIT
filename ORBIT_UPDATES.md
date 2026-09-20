@@ -260,11 +260,12 @@ activarla después de publicar 0.8.1. Release y cierre documental de 0.8.1 verif
 
 ### UPD-026 — Navegación global y directa del mapamundi
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `0.9.0`
 - Impacto sugerido: `Y`; nueva representación navegable y límite de conectividad académica.
-- Próximo responsable: agente, publicación de la cohorte cerrada 0.9.0.
+- Próximo responsable: agente, verificar release 0.9.0 y archivar UPD-026.
+- Árbol aprobado: `f14daa64ac38db974b3aad8b00cddb56c1d3ec0c`; versión resuelta `0.9.0`.
 
 #### Solicitud original
 

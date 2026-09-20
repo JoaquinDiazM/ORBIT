@@ -2,6 +2,29 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [0.9.0] - 2026-09-20
+
+### Añadido
+
+- Navegación **Global/Directa** en Visual para Estudiante, Docente y Debug. Directa reúne la
+  zona actual y seis vecinas, priorizando relaciones académicas, Base y un relleno estable.
+- Movimiento libre entre vecinos reorganizados, recentrado al cruzar y regreso a la zona
+  anterior, conservando posición canónica, apertura y progreso al alternar o recargar.
+
+### Cambiado
+
+- El Editor limita cada zona a seis zonas relacionadas académicamente y conserva los
+  borradores que requieren reparación. Las ediciones históricas que exceden el límite siguen
+  disponibles en Global; la nueva semilla ajusta Atacama sin eliminar contenido ni conexiones.
+- Preferencia compatible con progreso v4, independiente del filtro de la Red. Sin nuevas
+  dependencias ni cambios de la edición académica aplicada.
+
+### Verificación
+
+- Cohorte cerrada `UPD-026`, revisión manual y publicación aprobadas por JoaquinDiazM.
+- `npm run check`: 625 pruebas correctas, cero fallos y dos omisiones por permisos de symlink
+  en Windows; validación curricular, sintaxis, documentación y build correctos.
+
 ## [0.8.1] - 2026-09-19
 
 ### Cambiado

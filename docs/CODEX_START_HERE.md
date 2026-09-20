@@ -44,7 +44,7 @@ límite si faltan reglas. No hace falta abrir sesiones auxiliares de Codex para 
 
 ## 2. Estado actual
 
-La base publicada es `0.8.1` y la siguiente cohorte operativa se controla en
+La base publicada es `0.9.0` y la siguiente cohorte operativa se controla en
 `ORBIT_UPDATES.md`. El prototipo sigue siendo estático, conserva una dependencia local
 respaldada por ADR, dos entradas
 deliberadamente separadas y un flujo por cohortes con autorización y revisión humana:
@@ -60,6 +60,8 @@ sigue conservando su firma histórica v5 y se migra en memoria.
 El producto del checkout incluye:
 
 - movimiento continuo en Canvas 2D;
+- navegación Global/Directa independiente del filtro de Red, con siete zonas proyectadas,
+  regreso y posición canónica; máximo seis zonas relacionadas al publicar desde Editor;
 - 19 hexágonos en tres niveles: base, seis fundamentos y doce aplicaciones;
 - fronteras físicas derivadas de la apertura de zonas por adyacencia y elegibilidad académica;
 - 30 lugares activos: 22 lecciones/misiones en una Red de aprendizaje aplicada de 31 parejas

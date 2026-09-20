@@ -1,6 +1,6 @@
 # ADR 0012: navegación Global y Directa sobre el mismo progreso
 
-- Estado: aceptado para implementar UPD-026; publicación pendiente de revisión humana.
+- Estado: aceptado; implementado en ORBIT 0.9.0 mediante UPD-026.
 - Fecha: 2026-09-19
 
 ## Contexto
@@ -70,4 +70,4 @@ El cambio de proyección es inmediato y conserva las preferencias de movimiento 
 
 Probar selección determinista, grado simétrico, apertura común, cruces y bloqueos, retorno,
 posición canónica, fallos de almacenamiento, guardados antiguos y ediciones históricas.
-JoaquinDiazM revisará teclado, legibilidad y recorrido real en Edge antes de aprobar 0.9.0.
+JoaquinDiazM aprobó la revisión manual y publicación de 0.9.0 el 2026-09-20.
