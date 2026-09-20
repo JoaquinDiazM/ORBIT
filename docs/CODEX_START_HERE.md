@@ -20,6 +20,28 @@ En este orden:
 7. `docs/WORLD_AND_KNOWLEDGE_DESIGN.md`;
 8. las decisiones de `docs/decisions/` relacionadas con la tarea.
 
+### Dónde viven las instrucciones de agentes
+
+| Archivo | Política que debe leerse |
+|---|---|
+| [`AGENTS.md`](../AGENTS.md#autoría-de-contenido-por-agentes) | Alcance global; **Autoría de contenido por agentes**, **Flujo obligatorio para agentes** y **Entorno prístino para revisión humana**. |
+| [`src/AGENTS.md`](../src/AGENTS.md) | Reglas adicionales de implementación en `src/`. |
+| [`src/data/AGENTS.md`](../src/data/AGENTS.md#antes-de-editar) | Reglas adicionales curriculares; exige la ruta editorial de la política raíz. |
+| [`ORBIT_UPDATES.md`](../ORBIT_UPDATES.md) | Autorizaciones, cohorte y separación de entornos vigentes. |
+| Esta guía y [`CONTENT_SOURCE_GUIDE.md`](CONTENT_SOURCE_GUIDE.md), [`CONTENT_AUTHORING.md`](CONTENT_AUTHORING.md), [`EDITOR_GUIDE.md`](EDITOR_GUIDE.md) | Lectura explícita del procedimiento y de los contratos aplicables; enlazarlas no las carga automáticamente. |
+
+Codex descubre instrucciones al iniciar una sesión: combina archivos globales y los del camino
+desde la raíz del repositorio al directorio de trabajo; `AGENTS.override.md` tiene prioridad en
+su directorio. El límite predeterminado combinado es 32 KiB. Una sesión nueva vuelve a descubrir
+los archivos; no requiere limpiar cachés. Véase la [documentación oficial de
+AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md).
+
+Por eso, además de esa carga inicial, este repositorio exige releer las instrucciones en cada
+activación y antes de editar una subcarpeta. Para verificar el contexto, pide al agente que
+identifique los archivos y cite la política concreta que acaba de leer. La ubicación por sí
+sola no garantiza la carga en cualquier herramienta o configuración; comprueba overrides y
+límite si faltan reglas. No hace falta abrir sesiones auxiliares de Codex para esta comprobación.
+
 ## 2. Estado actual
 
 La base publicada es `0.8.0` y la siguiente cohorte operativa se controla en
@@ -173,6 +195,10 @@ Incluye esa evaluación en tu resumen de cambios o en el mensaje de commit.
 | Validación estática | `src/core/validator.js`, `scripts/validate-content.mjs` |
 | Pruebas | `tests/` |
 
+Este mapa localiza la implementación, no autoriza a editar contenido académico directamente
+en sus archivos. La autoría usa Spider según la sección 7; los contratos de datos se consultan
+para comprender o mejorar el motor dentro del alcance autorizado.
+
 ## 5. Flujo mínimo de trabajo
 
 ```bash
@@ -256,7 +282,17 @@ No:
 
 ## 7. Qué hacer al ampliar el contenido
 
-Usa primero los archivos declarativos. Evita introducir lógica específica para una lección dentro del loop del juego.
+Usa la interfaz real de **ORBIT Editor → Spider → Modificar → Editar contenido**; para un nodo
+nuevo, usa **Crear** antes de modificar su fuente. Compila y recorre el preview compartido con
+la copia temporal, navegador y almacenamiento aislados exigidos por
+[`AGENTS.md`](../AGENTS.md#autoría-de-contenido-por-agentes). Si no puedes demostrar aislamiento
+o acceder a la UI, deja la autoría/preview pendientes: escribir JSON, datos o llamadas a modelos
+y APIs no reemplaza ese recorrido. Exporta el borrador temporal para revisión y aplicación
+canónica humanas. Nunca alteres el perfil persistente del desarrollador.
+
+Si el Editor no expresa lo necesario, reproduce la limitación, registra la evidencia y mejora
+el motor dentro del alcance autorizado; después comprueba el resultado otra vez en Spider.
+Evita introducir lógica específica para una lección dentro del loop del juego.
 
 Un nuevo lugar debe:
 

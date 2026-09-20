@@ -134,6 +134,15 @@ registrar su PID, terminarlo dentro de la misma prueba y demostrar que liberó s
 agente tampoco adopta o detiene procesos ajenos ni cambia la configuración global de Git para
 resolver diferencias de entorno o propietario.
 
+Para la autoría de contenido exigida por UPD-025, se permite además operar la UI real de
+Spider y su preview en una copia temporal y un navegador/perfil cuyo aislamiento esté
+comprobado. Rigen la identificación de raíz/origen/PID/almacenamiento, el origen fijo, el
+servicio en primer plano y la limpieza de recursos propios. Si no se demuestra ese aislamiento
+o falta acceso a la UI, se deja la autoría/preview pendiente; editar JSON o ejecutar APIs y
+pruebas headless no sustituye ese recorrido. Esta excepción no autoriza la revisión ni
+aplicación canónicas, el perfil real o un puerto alternativo para eludir barreras. El
+procedimiento completo vive en [AGENTS.md](AGENTS.md#autoría-de-contenido-por-agentes).
+
 Por autorización explícita de JoaquinDiazM del 2026-08-31, un agente puede iniciar el servicio
 canónico únicamente para leer datos o endpoints de diagnóstico, siempre que 4173 esté libre.
 Debe ejecutarlo en primer plano, no usar Edge ni perfiles persistentes, no pulsar **Aplicar**,
@@ -239,18 +248,26 @@ Sin propuestas pendientes de clasificar. Navegación y lanzamiento se registraro
 
 ## Cohorte inmediata
 
-Sin cohorte inmediata. ORBIT 0.8.0 está publicada y verificada; las propuestas siguientes
-esperan las decisiones y autorizaciones registradas en sus fichas.
+- Versión: `0.8.1`
+- Estado de la cohorte: `cerrada`
+- IDs: `UPD-025`
+- Cierre confirmado por JoaquinDiazM: 2026-09-19.
+
+JoaquinDiazM indicó que UPD-025 será la única actualización de esta versión. Eximió las pruebas
+manuales y pidió revisar la ubicación de las políticas; la aprobación documental sigue pendiente.
+
+ORBIT 0.8.0 está publicada y verificada. UPD-026 y UPD-027 esperan el cierre publicado de
+la cohorte inmediata antes de cualquier implementación propia.
 
 ## Actualizaciones activas
 
 ### UPD-025 — Edición de contenido por agentes mediante ORBIT Editor/Spider
 
-- Estado: `propuesto`
+- Estado: `en-revision`
 - Tipo: `documentación`
 - Versión objetivo: `0.8.1`
 - Impacto sugerido: `Z`; establece el procedimiento operativo de autoría de contenido.
-- Próximo responsable: JoaquinDiazM, autorización para una cohorte posterior a 0.8.0.
+- Próximo responsable: JoaquinDiazM, revisar las políticas documentadas y marcar `aprobado`.
 
 #### Solicitud original
 
@@ -263,11 +280,15 @@ Quiero que de ahora en adelante los agentes adopten la politica de incorporar ca
 - Objetivo observable: incorporar cambios académicos mediante ORBIT Editor → Spider → Modificar
   → Editar contenido, usando la fuente, compilador y preview disponibles para docentes.
 - Decisiones expresadas: esa ruta editorial debe ser obligatoria para contenido; las dificultades
-  deben servir para mejorar el motor y la experiencia de autoría local.
+  deben servir para mejorar el motor y la experiencia de autoría local. UPD-025 es el único ID
+  de la cohorte 0.8.1, cerrada por el usuario; pruebas manuales dispensadas expresamente.
 - Criterios de aceptación: AGENTS.md y las guías describen el mismo procedimiento; cada cambio
   registra nodo, fuente, validación y preview; una limitación del Editor se reproduce antes de
   modificar sus módulos dentro del alcance autorizado y se vuelve a comprobar desde Spider.
   Se conservan IDs, trazabilidad científica, sesiones identificadas, limpieza y aplicación humana.
+  La UI del agente requiere copia temporal y aislamiento comprobado; sin UI o aislamiento no se
+  sustituye por JSON/API/headless. Las guías distinguen autoría de contratos y fixtures internos.
+  La entrega identifica archivos/secciones de políticas y explica su lectura en cada activación.
 - Fuera de alcance: reabrir 0.8.0, añadir funciones al motor por esta ficha, backend remoto o
   modificar perfiles/cachés del desarrollador.
 - Dependencias, invariantes o ADR: requiere UPD-021 publicada; conserva ADR 0011, fuente editorial
@@ -275,23 +296,47 @@ Quiero que de ahora en adelante los agentes adopten la politica de incorporar ca
 
 #### Preguntas bloqueantes
 
-- Ninguna para el alcance documental propuesto; se conservan las reglas actuales de aplicación
-  canónica humana. Una ampliación sobre esa sesión debe quedar explícita en la autorización.
+- Ninguna para el alcance documental autorizado; se conserva la aplicación canónica humana.
 
 #### Implementación y revisión
 
-- Resultado: propuesta clasificada; no implementada ni añadida a la cohorte cerrada 0.8.0.
-- Pruebas automáticas: no aplican todavía.
-- Preflight del entorno: no aplica a la clasificación.
-- Revisión manual humana: pendiente de autorización e implementación.
+- Base revisada: `bac6b05`, igual a `origin/main` tras fetch; sin commits locales pendientes.
+- Rutas propias: `AGENTS.md`, `src/data/AGENTS.md`, `README.md`, `CONTRIBUTING.md`,
+  `docs/CODEX_START_HERE.md`, `docs/CONTENT_SOURCE_GUIDE.md`, `docs/CONTENT_AUTHORING.md`,
+  `docs/EDITOR_GUIDE.md` y esta cola.
+- Resultado: política documental implementada y revisada. No cambia producto,
+  datos académicos, versiones, changelog, dependencias ni esquema persistente.
+- Pruebas automáticas: `npm run check` pasó (580 casos: 578 correctos, 0 fallos, 2 omitidos por
+  permisos de symlink en Windows); validación curricular, 140 archivos JS, enlaces de 45
+  Markdown y build correctos. Tras precisar el aislamiento en tres guías, `npm run repo-check`
+  pasó otra vez; los 8 casos de `tests/updates-workflow.test.mjs` y `git diff --check` también
+  pasaron. No se añadieron pruebas que solo reproduzcan texto documental.
+- Preflight del entorno: no se abrió navegador ni servicio de revisión; audio coherente
+  (seis recursos, sidecars, hashes y referencias), puerto 4173 libre, sin journals/locks/
+  tombstones activos. Los 97 archivos fuente/públicos, los tres HTML y `build-info.json`
+  concuerdan con `dist`, versión 0.8.0 y revisión `69b47331…`. `no-store` está cubierto por las
+  suites aisladas de dev/autoría; no se atribuye una comprobación manual nueva. Pruebas propias
+  terminadas; procesos ajenos intactos. WMI denegó inspeccionar sus líneas de comando, por lo
+  que no se certifica una atribución global de todos los procesos Node del equipo.
+- Revisión manual humana: pruebas manuales dispensadas por JoaquinDiazM. Pendiente su revisión
+  documental y cambio de estado a `aprobado`; no se equipara la dispensa con aprobación.
+- Ubicación para revisar: `AGENTS.md` → **Autoría de contenido por agentes**, **Flujo obligatorio
+  para agentes**, **Entorno prístino para revisión humana**; `src/data/AGENTS.md` → **Antes de
+  editar**; `docs/CODEX_START_HERE.md` → **Dónde viven las instrucciones de agentes**;
+  `docs/CONTENT_SOURCE_GUIDE.md` → **Procedimiento obligatorio para agentes**.
+- Comprobación de instrucciones en este entorno: global vacío, sin `AGENTS.override.md` en la
+  cadena aplicable ni límite personalizado; global + raíz + `src/` + `src/data/` suman 20.301
+  bytes frente al límite predeterminado de 32 KiB. Se releyeron las políticas modificadas. Esta
+  comprobación local no promete carga universal en otras herramientas/configuraciones.
+- Observaciones del usuario: Esta sera la unica update de la version o cohorte 0.8.1. dada la naturaleza del update debes mostrarme en que archivo y que parte del mismo estan las politicas relacionadas a agentes para que pueda verificar que siempre entran en tu contexto, pruebas manuales no seran requeridas.
 
 ### UPD-026 — Navegación global y directa del mapamundi
 
-- Estado: `faltan-detalles`
+- Estado: `autorizado`
 - Tipo: `feature`
 - Versión objetivo: `0.9.0`
 - Impacto sugerido: `Y`; nueva representación navegable y límite de conectividad académica.
-- Próximo responsable: JoaquinDiazM, confirmar recorrido y alcance antes de autorizar.
+- Próximo responsable: agente, preflight y ADR cuando 0.9.0 sea la cohorte inmediata.
 
 #### Solicitud original
 
@@ -304,9 +349,13 @@ Quiero un modo de navegacion en el mapamundi que sea VISUALMENTE diferente al ac
 - Objetivo observable: selector de navegación Global/Directa en Visual para los tres perfiles.
   Directa muestra la zona actual y seis zonas, reorganizadas a su alrededor por relaciones
   académicas; esta reorganización fue confirmada en el chat el 2026-09-19.
+- Decisiones confirmadas por el usuario: se podrá caminar entre los vecinos reorganizados
+  aunque no fueran adyacentes en Global. El agente resolverá apertura, posición al alternar y
+  retorno con criterio pedagógico para personas con varias o todas las zonas abiertas. La Red
+  de aprendizaje conserva la autoridad; zonas y apertura se derivan de ella.
 - Selección solicitada: priorizar zonas con al menos una conexión académica entrante o saliente
   respecto de un nodo de la zona actual, luego Base si cabe y completar al azar sin repeticiones.
-  Propuesta técnica pendiente de autorización: azar estable por zona y revisión para evitar
+  Criterio técnico dentro de la decisión delegada: azar estable por zona y revisión para evitar
   cambios de vecinos al renderizar.
 - Criterios de aceptación propuestos: contar zonas distintas, deduplicando aristas y excluyendo
   inventario; máximo seis zonas relacionadas en el validador editorial, con diagnóstico reparable;
@@ -317,19 +366,18 @@ Quiero un modo de navegacion en el mapamundi que sea VISUALMENTE diferente al ac
   La solución debe definir ajuste o migración conservando IDs; añadir solo el rechazo rompería
   esa base. No se modificaron datos ni conexiones durante esta clasificación.
 - Fuera de alcance: nuevas herramientas o presentación de ORBIT Editor; solo su validación.
-  No implementar ni cambiar geometría, progreso o apertura territorial hasta acordar el recorrido.
+  No adelantar implementación, geometría, progreso o apertura mientras 0.8.1 no esté publicada.
 - Dependencias, invariantes o ADR: una única Red académica, estado derivado, IDs estables y
-  movimiento libre. Si las fronteras visuales nuevas pasan a ser transitables, documentar por ADR
+  movimiento libre. Las fronteras visuales nuevas serán transitables: documentar por ADR
   la adyacencia efectiva, apertura territorial, retorno al recentrar y coherencia entre modos.
 
 #### Preguntas bloqueantes
 
-1. ¿Se podrá caminar hacia las zonas reorganizadas aunque no fueran vecinas en el mapa global,
-   o la reorganización será solo de presentación? Pregunta enviada en el chat.
-2. Si cambia el recorrido: acordar cómo se abren esas zonas, cómo se conserva la posición al
-   alternar modos y cómo se garantiza el retorno después de recentrar la zona actual.
-3. Concretar el ajuste compatible de la semilla con siete zonas relacionadas antes de activar
-   el límite del validador; no retirar conexiones académicas silenciosamente.
+- Las preguntas de recorrido y autoridad fueron respondidas; no se requiere repetirlas.
+- Antes de implementar, el agente debe concretar el ADR y el ajuste compatible de la semilla
+  con siete zonas relacionadas, preservando IDs y explicitando cualquier cambio de conexiones.
+  Si la auditoría revela una decisión pedagógica no cubierta por la delegación, se preguntará
+  ese punto concreto. El límite de seis no autoriza eliminar contenido silenciosamente.
 
 #### Implementación y revisión
 
@@ -337,7 +385,9 @@ Quiero un modo de navegacion en el mapamundi que sea VISUALMENTE diferente al ac
 - Pruebas automáticas: validación documental de la cola; futura cobertura de selección,
   conectividad, movimiento, apertura, persistencia y compatibilidad.
 - Preflight del entorno: no se abrió navegador ni se alteraron mapas o perfiles.
-- Revisión manual humana: pendiente de decisiones, autorización e implementación.
+- Revisión manual humana: pendiente de una implementación futura; las respuestas de alcance
+  siguientes no constituyen una revisión del producto.
+- Observaciones del usuario: Respuesta 1 -> Si, justo esa es la idea del modo de navegacion directa, la "cercania visual" entre nodos y zonas relacionadas". Respuesta 2: Lo dejo a tu criterio, lo mas logico que sea apropiado para una experiencia pedadogica de alguien que ya esta avanzado en el curso, este modo esta pensado para usuarios que ya tengan desbloqueados varias o todas las zonas. Pregunta 3: Precisamente, el que manda es el arbol de conocimientos, ya sabes que las zonas y como se abren son, de hecho, dependientes del arbol de conocimientos..
 
 ### UPD-027 — Lanzamiento de ORBIT para usuarios reales
 
@@ -361,6 +411,15 @@ Este update es inicialmente para orientarme sobre como lanzar el producto y post
 - Decisiones confirmadas en este chat el 2026-09-19: ofrecer navegador y aplicación para Windows;
   cuentas y cursos compartidos desde 1.0.0. Lanzar con una plantilla básica; el curso completo
   de Electromagnetismo se desarrollará después y no se presentará como terminado.
+- Operación confirmada: cada equipo docente proporciona su máquina/servidor; ORBIT facilitará
+  instalarlo y mantenerlo, sin sostener un servidor global. El servidor deberá funcionar en
+  Windows y Linux desde 1.0.0. Se requiere estudiar sin conexión y sincronizar después.
+- Piloto confirmado: 10 estudiantes, 2 docentes y 2 cursos genéricos o plantilla, accesibles por
+  Internet; JoaquinDiazM probará también desde otro dispositivo. Son requisitos del lanzamiento,
+  no capacidades presentes del prototipo.
+- Cuentas e ingreso confirmados: alias y contraseña, recuperación a cargo del docente; el
+  docente crea cada cuenta y la matricula. El piloto no necesita correo electrónico ni registro
+  abierto. La recuperación deberá permitir restablecer credenciales sin revelar contraseñas.
 - Primer entregable propuesto: especificación y ADR de arquitectura, distribución, operación y
   actualización; después dividir la implementación autorizada en cohortes verificables.
 - Criterios de aceptación: acceso e instalación documentados; identidad y roles reales;
@@ -377,12 +436,16 @@ Este update es inicialmente para orientarme sobre como lanzar el producto y post
 
 #### Preguntas bloqueantes
 
-1. ¿Servicio central administrado por JoaquinDiazM, servidor instalado por cada docente o
-   comparación de costos/mantenimiento antes de elegir? Pregunta enviada en el chat.
-2. ¿La aplicación descargable puede requerir conexión o debe estudiar sin conexión y sincronizar
-   después? Pregunta enviada en el chat.
-3. Antes de implementar: concretar escala del piloto, creación de
-   cuentas/cursos, roles, distribución de la plantilla y política de datos/respaldos.
+- Las decisiones de servidor, conectividad, escala, cuentas e ingreso ya fueron respondidas.
+- Próxima decisión de permisos: ¿cada docente administra solo sus cursos y alumnos, con una
+  cuenta administradora separada para gestionar el servidor, o ambos docentes administran todo?
+  Se propone separar administración del servidor y permisos por curso.
+- Próxima decisión de datos: ¿basta registrar avance, respuestas e intentos por actividad,
+  visibles solo para docentes del curso y el propio estudiante, o el piloto necesita otros datos?
+  Se propone ese registro mínimo, sin telemetría ni datos personales adicionales.
+- Antes de implementar se concretarán respaldos/restauración, conexión segura por Internet y
+  sincronización al cambiar una edición. El diseño presentará alternativas comprensibles; no
+  se contratará infraestructura ni se ampliará la recopilación de datos por inferencia.
 
 #### Implementación y revisión
 
@@ -390,7 +453,15 @@ Este update es inicialmente para orientarme sobre como lanzar el producto y post
 - Pruebas automáticas: validación documental de la cola; las pruebas del producto se definirán
   con la arquitectura acordada.
 - Preflight del entorno: sin servicios nuevos, cuentas, instalaciones ni cambios de navegador.
-- Revisión manual humana: pendiente de especificación, autorización e implementación.
+- Revisión manual humana: pendiente; el usuario solicita mantener `faltan-detalles` mientras se
+  afinan decisiones materiales. No se inició implementación de 1.0.0.
+- Observaciones del usuario: Pregunta 1 -> El equipo docente debe de proveer la "maquina" del servidor, ya sea una IP + puerto o lo que sea usual, este proyecto no se hace cargo de sostener un servidor global, pero si debe entregar las facilidades para que los docentes puedan instalar el servidor de su curso con soltura. Pregunta 3 -> Precisamente, hay que concretar todo eso, cambia el estado de este update continuamente a faltan-detalles para que afinemos esos detalles.
+- Respuestas posteriores del chat: «Estudiar sin conexión y sincronizar desde 1.0.0»;
+  «Ambos desde 1.0.0» (servidor Windows/Linux); «10 estudiantes, 2 docentes y 2 cursos diferentes
+  genéricos o tipo template. El piloto ya debe poder conectarse por internet, yo mismo usare un
+  dispositivo diferente a este para hacer pruebas.»
+- Respuestas de cuentas del chat: «Alias y contraseña; recuperación por docente» y «El docente
+  crea cada cuenta y la matricula».
 
 ## Historial
 

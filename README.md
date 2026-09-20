@@ -220,7 +220,7 @@ La entrada separada `editor.html` inaugura **ORBIT Editor**, una herramienta loc
 
 Spider permite arrastrar nodos, cambiar su `areaId + offset` y añadir o retirar únicamente requisitos directos `completedLocations`. Las relaciones que proceden de conceptos o recompensas permanecen visibles y de solo lectura; se impiden relaciones propias, duplicadas o cíclicas. Bee intercambia coordenadas axiales entre dos zonas del mismo `tier`: Campamento Base queda fijo, las seis zonas teóricas permanecen en el anillo 1 y las doce aplicaciones en el anillo 2.
 
-El borrador inaugurado en 0.4.0 usaba `orbit-editor:v1:electromagnetism-applied`; el contrato vigente se autoguarda bajo `orbit-editor:v6:electromagnetism-applied` y migra las claves `v1`–`v5`. Este esquema editorial es independiente del progreso estudiantil. El JSON exportado debe revisarse y aplicarse al repositorio antes de ejecutar validación, build y despliegue manual; abrir el Editor no cambia lo que ve Estudiante y la entrada separada no constituye autenticación.
+El borrador inaugurado en 0.4.0 usaba `orbit-editor:v1:electromagnetism-applied`; el contrato vigente se autoguarda bajo `orbit-editor:v6:electromagnetism-applied` y migra las claves `v1`–`v5`. Este esquema editorial es independiente del progreso estudiantil. En el flujo vigente, un JSON exportado se importa en ORBIT Editor y el desarrollador valida, revisa y aplica el documento mediante el flujo de Resumen en mantenimiento. Abrir el Editor no cambia lo que ve Estudiante y la entrada separada no constituye autenticación.
 
 Consulta la [Guía de ORBIT Editor](docs/EDITOR_GUIDE.md) y el [ADR 0007](docs/decisions/0007-static-local-editor.md).
 
@@ -481,6 +481,12 @@ están `aprobado`. Puede haber commits locales de revisión, pero no pushes parc
 versión. Las fichas publicadas se conservan en `docs/UPDATES_HISTORY.md`. Las modificaciones
 grandes deben preservar los invariantes de progresión y acompañarse de pruebas. No se deben
 copiar evaluaciones, pautas o material docente protegido sin autorización explícita.
+
+La [política de autoría de contenido por agentes](AGENTS.md#autoría-de-contenido-por-agentes)
+exige usar **ORBIT Editor → Spider → Modificar → Editar contenido** para los cambios
+académicos. Las limitaciones se reproducen en esa interfaz; cualquier corrección del motor
+respeta el alcance autorizado y vuelve a comprobarse desde Spider. La revisión y aplicación
+canónicas permanecen a cargo del desarrollador, con su perfil y entorno preservados.
 
 ## Licencias
 

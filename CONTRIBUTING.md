@@ -24,6 +24,13 @@ un título y un párrafo; el agente completa la especificación. Las contribucio
 seguir usando issues y pull requests sin editar los estados o el cierre de cohorte reservados al
 mantenedor.
 
+Los agentes siguen la [política de autoría de contenido](AGENTS.md#autoría-de-contenido-por-agentes):
+los cambios académicos pasan por **ORBIT Editor → Spider → Modificar → Editar contenido**,
+con su fuente, validación y previsualización. Una limitación se reproduce antes de corregir el
+motor dentro del alcance autorizado y se vuelve a verificar desde esa misma interfaz. Los
+ejemplos programáticos sirven para desarrollar el motor y sus fixtures de prueba; no sustituyen
+la ruta de autoría por la UI. La revisión y aplicación canónicas siguen a cargo del desarrollador.
+
 Para una modificación conceptual grande, abre primero un issue que indique:
 
 - problema pedagógico o técnico;
@@ -52,16 +59,19 @@ npm run check
 
 Ese comando valida datos, ejecuta pruebas y genera el build estático.
 
-Para una prueba manual aislada:
+La revisión manual canónica la realiza JoaquinDiazM u otro desarrollador, con el servicio
+iniciado desde una terminal visible de VS Code y Edge externo. Para revisar Debug puede abrir:
 
 ```text
 http://127.0.0.1:4173/?debug=1&profile=debug
 ```
 
-ORBIT admite exactamente `student`, `teacher` y `debug`. Sus avances locales están aislados;
-los nombres arbitrarios ya no crean perfiles de prueba. Usa el selector de la interfaz para
-recorrer también Estudiante y Docente. El alias histórico `normal` se reserva para migrar el
-avance publicado hacia `student`.
+ORBIT admite exactamente `student`, `teacher` y `debug`, con avances separados por perfil.
+Esta URL usa el almacenamiento real de Debug y no crea un entorno de prueba aislado; los
+nombres arbitrarios tampoco crean perfiles de prueba. El desarrollador usa el selector para
+recorrer también Estudiante y Docente. Los agentes preservan esos perfiles y realizan sus
+comprobaciones en entornos temporales, según `AGENTS.md`. El alias histórico `normal` se
+reserva para migrar el avance publicado hacia `student`.
 
 ## Convenciones
 
@@ -76,6 +86,9 @@ avance publicado hacia `student`.
 
 ## Añadir una zona
 
+Ampliar el catálogo de zonas requiere un cambio técnico autorizado; estos pasos no sustituyen
+la autoría de su contenido académico mediante ORBIT Editor.
+
 1. Define la zona en `src/data/world.js` con coordenadas axiales enteras únicas.
 2. Asegura al menos una arista compartida con otra zona definida.
 3. Sitúa dentro una lección o misión cuya elegibilidad provenga de la Red de aprendizaje.
@@ -85,16 +98,21 @@ avance publicado hacia `student`.
 
 ## Añadir un lugar
 
-1. Define el lugar en `src/data/locations.js`.
-2. Comprueba que su `offset` quede dentro del margen seguro del hexágono.
-3. Si es `lesson` o `mission`, incorpóralo a la Red de aprendizaje y declara al menos un
-   predecesor, salvo la raíz `vector-workshop`; si es lateral, conserva una interacción propia.
-4. Incluye objetivo, explicación, aplicación, ejercicio y fuentes.
+1. Crea una lección, misión o personaje desde **ORBIT Editor → Spider → Crear** y edita su
+   fuente en **Modificar → Editar contenido**. Para un lugar existente, parte de Modificar.
+2. Sitúalo con Spider y comprueba que quede dentro del margen seguro del hexágono.
+3. Si es `lesson` o `mission`, incorpóralo a la Red de aprendizaje mediante Conectar y declara
+   al menos un predecesor, salvo la raíz `vector-workshop`; un personaje conserva una
+   interacción propia fuera de la red.
+4. Incluye objetivo, explicación, aplicación, ejercicio cuando corresponda y fuentes; revisa
+   los diagnósticos y la previsualización de la fuente.
 5. Verifica que no se exija a sí mismo ni el concepto que concede.
-6. Prueba el desbloqueo con Estudiante, el autocompletado evaluable con Docente y el avance
-   forzado con Debug.
+6. Registra la validación y prepara la revisión humana del desbloqueo con Estudiante, el
+   autocompletado evaluable con Docente y el avance forzado con Debug.
 
-Consulta `docs/CONTENT_AUTHORING.md`.
+Si el tipo o la capacidad requerida todavía no están soportados, reproduce la limitación y
+resuelve su alcance autorizado antes de ampliar el motor y comprobar nuevamente el flujo en
+Spider. Consulta [Autoría de contenido](docs/CONTENT_AUTHORING.md).
 
 ## Pull request
 

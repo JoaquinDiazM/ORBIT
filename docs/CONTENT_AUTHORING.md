@@ -19,11 +19,43 @@ obligatorio para el usuario ni como fuente runtime. El
 [ejemplo del Taller Vectorial](content-changes/examples/update-vector-workshop.example.md) tiene
 `apply: false` y no se importa durante el build.
 
-Antes de editar `src/data/`, lee `src/data/AGENTS.md`.
+## Ruta de autoría para agentes
 
-## Agregar un concepto
+Los cambios académicos autorizados se incorporan mediante la UI real de **ORBIT Editor →
+Spider → Modificar → Editar contenido**: objetivos, texto, TeX, etapas, ejercicios,
+explicaciones, fuentes y concesiones admitidas se editan y comprueban en el mismo flujo que usa
+Docente. Sigue el [procedimiento de autoría aislada](CONTENT_SOURCE_GUIDE.md#procedimiento-obligatorio-para-agentes)
+y las reglas de [AGENTS.md](../AGENTS.md) y [src/data/AGENTS.md](../src/data/AGENTS.md).
 
-En `src/data/knowledge.js`:
+El agente usa una copia temporal y un perfil de navegador con almacenamiento propio y aislamiento
+comprobado; identifica y cierra sus sesiones, servicios y cachés propios. Conserva las exportaciones temporales
+declaradas para el handoff. No usa ni limpia el perfil real del desarrollador ni ejecuta la
+aplicación canónica. Registra nodo/ID, fuente resultante, validación y recorrido del preview, y
+entrega la exportación del Editor para importación y aplicación humanas.
+
+Los ejemplos JavaScript siguientes describen contratos internos del catálogo y sirven para
+comprender el motor y construir pruebas; no indican una vía alternativa para editar contenido.
+No sustituyas Spider escribiendo `src/data/`, el JSON editorial o el artefacto publicado, ni
+mediante llamadas directas al modelo/API. Fixtures y pruebas API, DOM simulado o headless siguen
+permitidos como automatización del motor, pero no acreditan autoría o preview en la UI real.
+
+Si una capacidad falta o falla, reproduce el caso y su diagnóstico, realiza solo la corrección
+de motor comprendida en el alcance autorizado y vuelve a comprobar el contenido desde Spider.
+Los cambios de componentes, esquemas y pruebas se implementan en código; el contenido académico
+resultante conserva la ruta editorial obligatoria. Una capacidad nueva, como crear zonas o
+conceptos que el Editor todavía no admite, requiere alcance explícito en la cola. Si la UI no
+está disponible o no puedes demostrar aislamiento, deja la autoría y el preview pendientes;
+no eludas esa limitación con un JSON.
+
+La revisión canónica y **Aplicar** corresponden a JoaquinDiazM u otro desarrollador en Edge
+externo y con el servicio iniciado desde un terminal visible de VS Code. La autoría aislada y
+las pruebas no sustituyen esa evidencia; el checkout se congela entre la validación humana y
+su resultado de aplicación. UPD-025 establece esta política, sin autorizar cambios de motor o
+contenido por sí sola.
+
+## Contrato de un concepto
+
+Estructura del catálogo `src/data/knowledge.js`:
 
 ```js
 {
@@ -39,9 +71,9 @@ El ID es parte del formato de progreso. No lo renombres después de publicar una
 
 Un cambio de título visible no autoriza a cambiar el ID. En 0.3.2, por ejemplo, la Estación de Superconductividad conserva `electromagnetic-compatibility` para zona y concepto, y el NPC Onnes conserva `shielding-chamber`, porque esos valores ya formaban parte de perfiles publicados. El punto de aprendizaje separado usa el ID nuevo `superconductivity-transition-lab`.
 
-## Agregar una zona
+## Contrato de una zona
 
-En `src/data/world.js`:
+Estructura del catálogo `src/data/world.js`:
 
 ```js
 {
@@ -66,9 +98,9 @@ Criterios:
 - al menos una lección o misión interior conectada desde la Red de aprendizaje;
 - color y texto no usados como único indicador de estado.
 
-## Agregar un lugar
+## Contrato de un lugar
 
-Esqueleto mínimo:
+Esqueleto del contenido runtime compilado; para autoría usa la fuente de Spider:
 
 ```js
 {
@@ -141,7 +173,7 @@ requirements: {
 Todos los elementos de una categoría y todas las categorías declaradas son obligatorios en el
 contrato que los consume.
 
-La progresión académica usa una única Red de aprendizaje explícita del documento Editor `v5`.
+La progresión académica usa una única Red de aprendizaje explícita del documento Editor `v6`.
 Solo `lesson` y `mission` pueden pertenecer a ella; al materializarse, una conexión `A → B`
 produce `A` en `B.requirements.completedLocations`. En los lugares académicos no declares
 `concepts`, `rewards` ni `areas` como requisitos: no son otra vía de acceso. Los lugares
@@ -300,15 +332,15 @@ Un nodo listo para publicación debería incorporar:
 
 ## Control de calidad
 
-Después de añadir contenido:
+Además de la validación y el preview en Spider, ejecuta las comprobaciones automáticas:
 
 ```bash
-npm run validate
-npm test
-npm run build
+npm run check
 ```
 
-Después prueba manualmente:
+Usa fixtures y almacenamiento inyectado para las pruebas reproducibles y registra su resultado
+por separado del recorrido de autoría. Después entrega al desarrollador la revisión canónica
+en Edge externo, preservando su perfil y el checkout congelado durante validar/aplicar:
 
 - visibilidad antes y después del requisito;
 - lugar alcanzable físicamente;

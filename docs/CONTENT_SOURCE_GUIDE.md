@@ -1,8 +1,9 @@
 # Fuente académica en Spider
 
-Esta guía describe UPD-021 de la cohorte 0.8.0. El estado de revisión está en
-[`ORBIT_UPDATES.md`](../ORBIT_UPDATES.md). La primera ruta sigue siendo Electromagnetismo y el
-contenido de muestra continúa siendo provisional.
+Esta guía describe la autoría académica publicada en ORBIT 0.8.0 y el procedimiento de agentes
+de UPD-025. Las autorizaciones vigentes están en [`ORBIT_UPDATES.md`](../ORBIT_UPDATES.md) y las
+entregas publicadas en el [historial](UPDATES_HISTORY.md). La primera ruta sigue siendo
+Electromagnetismo y el contenido de muestra continúa siendo provisional.
 
 ## Editar un nodo
 
@@ -25,6 +26,51 @@ etapas pertenecen únicamente a esa vista; no completan lugares ni conceden prog
 servicio** prueba el borrador con la suite completa en una copia temporal y muestra los fallos
 antes de aplicar. **Aplicar** sigue necesitando mantenimiento, esa comprobación aprobada,
 revisión del impacto, confirmación y la sesión canónica de autoría.
+
+## Procedimiento obligatorio para agentes
+
+Todo cambio autorizado al cuerpo académico de una lección, misión o NPC se realiza mediante la
+UI real de **ORBIT Editor → Spider → Modificar → Editar contenido**. Esto incluye objetivos,
+texto, TeX, etapas, ejercicios, explicaciones, fuentes y concesiones admitidas. La regla de
+[AGENTS.md](../AGENTS.md) se aplica junto con la autorización de la cohorte inmediata; UPD-025
+documenta el procedimiento y no autoriza por sí sola contenido nuevo ni mejoras del motor.
+
+1. Identifica la UPD y los nodos afectados. Prepara una copia temporal del proyecto y un navegador
+   con perfil y almacenamiento propios, cuyo aislamiento del entorno del desarrollador compruebes.
+   Identifica la sesión, raíz, URL y PID; cualquier servicio debe ser acotado y estar en primer
+   plano. No ocupes una sesión canónica ni adoptes procesos ajenos.
+2. Abre la UI real en modo Docente, selecciona el nodo en Spider y edita su fuente mediante
+   **Modificar → Editar contenido**. Usa los controles de fuente, diagnósticos y plantillas;
+   conserva IDs y trazabilidad científica. Para un nodo nuevo, créalo primero con Spider y
+   continúa por esa misma ruta de modificación.
+3. Comprueba en esa ventana los diagnósticos, la fuente válida y la previsualización. Recorre las
+   etapas y las respuestas pertinentes, y valida el documento desde Resumen. Registra nodo/ID,
+   fuente o exportación resultante, validación y comportamiento observado en el preview.
+4. Exporta el borrador desde los controles del Editor a un archivo temporal para la posterior
+   importación y revisión humana. Identifica ese archivo en la entrega; no lo copies al
+   artefacto canónico ni lo versiones como sustituto de **Aplicar**. Cierra las sesiones y
+   procesos propios, retira la copia y sus cachés y declara cualquier exportación conservada
+   para la entrega. No uses ni limpies perfiles, cachés o progreso reales del desarrollador.
+
+Editar directamente `src/data/`, construir un JSON editorial fuera del Editor, llamar al modelo
+o a una API no sustituye este recorrido. Tampoco lo hacen un DOM simulado ni una prueba
+headless: registra esas ejecuciones como automatización, nunca como autoría o preview en la UI
+real. Los fixtures, compiladores, API y pruebas aisladas siguen permitidos para validar el motor.
+
+Si aparece una dificultad, reproduce el fallo y conserva la fuente mínima y el diagnóstico.
+Corrige el compilador, renderer o controlador solo dentro del alcance autorizado de la cohorte;
+una ampliación requiere registrarse y autorizarse en la cola. Tras la corrección, repite desde
+Spider el cambio y su preview. Si la UI no está disponible o no puedes demostrar el aislamiento,
+declara la autoría y el preview
+**pendientes**: puedes avanzar la automatización autorizada del motor, pero no editar el JSON o
+los datos directamente como atajo ni dar el recorrido por superado.
+
+Esta autoría aislada no es la revisión manual canónica. JoaquinDiazM u otro desarrollador
+realiza la importación, revisión y **Aplicar** en Edge externo, con el servicio canónico iniciado
+desde un terminal visible de VS Code. El agente no pulsa **Aplicar** sobre el curso o los
+perfiles reales y congela las escrituras al checkout desde la validación humana hasta recibir
+el resultado. Pruebas automáticas, autoría/preview aislados y revisión humana se registran por
+separado.
 
 ## Sintaxis
 

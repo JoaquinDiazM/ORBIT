@@ -6,10 +6,18 @@ Estas reglas se suman a los `AGENTS.md` superiores para `src/data/`.
 
 Lee:
 
+- la sección [Autoría de contenido por agentes](../../AGENTS.md#autoría-de-contenido-por-agentes);
 - `docs/PROJECT_BRIEF.md`;
 - `docs/WORLD_AND_KNOWLEDGE_DESIGN.md`;
 - `docs/CONTENT_AUTHORING.md`;
 - `docs/PEDAGOGICAL_PRINCIPLES.md`.
+
+Los archivos de esta carpeta describen contratos y datos internos; no son una vía alternativa
+para escribir contenido académico. Usa la UI de ORBIT Editor → Spider → Modificar → Editar
+contenido (Crear primero si es un nodo nuevo), con preview real y entorno aislado. Las
+ampliaciones del motor, migraciones y fixtures siguen siendo trabajo de código dentro de su
+alcance autorizado. Si falta capacidad editorial, reproduce la limitación, corrige el motor
+cuando esté autorizado y vuelve a Spider; no la evites escribiendo el contenido directamente.
 
 ## IDs y compatibilidad
 
@@ -49,4 +57,7 @@ Lee:
 
 ## Después de editar
 
-Ejecuta `npm run validate` y `npm run check`. Recorre la progresión normal desde un perfil vacío; no basta con `completeAll()`.
+Ejecuta `npm run validate` y `npm run check`. Comprueba automáticamente la progresión normal
+con almacenamiento inyectado; no basta con `completeAll()`. Entrega el recorrido canónico desde
+un perfil vacío al desarrollador según el protocolo humano del `AGENTS.md` raíz; no uses ni
+reinicies su perfil real. Distingue esa revisión del preview editorial aislado del agente.

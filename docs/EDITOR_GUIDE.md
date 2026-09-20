@@ -16,7 +16,14 @@ de mantenimiento pertenecen a la infraestructura que lo aloja.
 
 ## Abrir el Editor
 
-Con Node.js 24 LTS o posterior y las dependencias instaladas:
+Las instrucciones de inicio y aplicación canónicos de esta guía están destinadas al
+desarrollador. Los agentes siguen el [procedimiento de autoría aislada](CONTENT_SOURCE_GUIDE.md#procedimiento-obligatorio-para-agentes):
+copia temporal del proyecto, navegador con perfil y almacenamiento propios de aislamiento
+comprobado y servicios identificados y acotados, que se cierran al terminar. No usan ni limpian perfiles, cachés o
+progreso reales, ni dejan procesos para una revisión posterior.
+
+Con Node.js 24 LTS o posterior y las dependencias instaladas, inicia el servicio canónico desde
+un terminal visible de VS Code y abre Editor en Edge externo:
 
 ```bash
 npm install
@@ -176,6 +183,22 @@ de `lesson`, `mission` y `npc`. **Editar contenido** abre la fuente académica c
 plantillas y preview. La [guía de fuente](CONTENT_SOURCE_GUIDE.md) explica la sintaxis, el
 borrador recuperable y la matemática delimitada. Renombrar conserva el cuerpo.
 
+Para los agentes, este recorrido por la UI real es obligatorio para los cambios autorizados al
+cuerpo académico: editar fuente, comprobar diagnósticos y recorrer el preview desde Spider.
+Registra nodo/ID, fuente o exportación, validación y resultado observado. No equivale a escribir
+datos o JSON por fuera, llamar al modelo/API ni ejecutar pruebas con DOM simulado o headless.
+Estas pruebas y sus fixtures siguen siendo válidos para comprobar el motor, sin sustituir la
+autoría ni acreditarse como revisión manual canónica.
+
+Si el Editor falla, reproduce la dificultad, corrige el motor solo dentro del alcance autorizado
+y vuelve a verificarla desde Spider. Una ampliación necesita su autorización en la cola. Si no
+hay UI disponible o no puedes demostrar aislamiento, declara pendiente la autoría y el preview;
+la automatización independiente
+puede continuar, pero no permite introducir contenido por un atajo en JSON o `src/data/`.
+Exporta el resultado con los controles del Editor para la posterior importación y revisión
+humanas, sin sustituir directamente el artefacto publicado ni pulsar **Aplicar** sobre el
+entorno real. Esta política no autoriza cambios de código o contenido fuera de la cohorte.
+
 **Crear** admite los mismos tres tipos. ORBIT asigna un ID monotónico `new-node-NNNN` que no
 depende del título y nunca vuelve a utilizarse. Una lección o misión nueva contiene una etapa y
 una alternativa genéricas válidas; un NPC contiene contexto y cierre `acknowledge`, no una
@@ -315,6 +338,14 @@ publicaciones sucesivas pueden continuar avanzando porque cada edición validada
 piso confiable.
 
 ## Validar, revisar impacto y aplicar localmente
+
+La revisión y aplicación canónicas siguientes corresponden a JoaquinDiazM u otro desarrollador,
+en Edge externo y con el servicio iniciado desde un terminal visible de VS Code. El agente
+entrega el borrador exportado y la evidencia de su autoría aislada; no opera el perfil real ni
+ejecuta **Aplicar** sobre el curso canónico. Desde que el desarrollador valida hasta que comunica
+el resultado de aplicación, el agente no modifica fuente, build, cola ni Git. Si cambia la
+revisión o el digest, se informa y se prepara de nuevo el handoff sin sustituir silenciosamente
+el borrador humano.
 
 La aplicación asistida requiere el helper local, pero no un checkout limpio. Los demás cambios
 del repositorio permanecen intactos y la fuente canónica que será reemplazada se guarda

@@ -4,6 +4,39 @@
 
 Estas reglas se aplican a todo el repositorio. Los archivos `AGENTS.md` anidados pueden añadir restricciones locales, pero no contradecir este documento.
 
+## Autoría de contenido por agentes
+
+- Todo cambio de contenido académico se realiza en la interfaz real de **ORBIT Editor → Spider
+  → Modificar → Editar contenido**. Para un nodo nuevo, usa primero **Crear** y luego esa misma
+  ruta. Escribe la fuente editorial, comprueba su compilación y recorre el preview compartido.
+  Consulta `docs/CONTENT_SOURCE_GUIDE.md`, `docs/CONTENT_AUTHORING.md` y `docs/EDITOR_GUIDE.md`.
+- Usa una copia temporal de trabajo y un navegador/perfil con aislamiento comprobado de los
+  datos del desarrollador. Identifica raíz, origen, proceso y almacenamiento antes de operar;
+  cualquier servicio propio será acotado, en primer plano y cerrado al terminar. No eludas el
+  origen fijo ni sus barreras con otro puerto. Si el puerto requerido está ocupado, no adoptes
+  ni detengas el servicio ajeno. Esta excepción permite autoría y preview mediante UI aislada;
+  no sustituye la revisión manual canónica ni autoriza operar el perfil real.
+- Si las herramientas disponibles no permiten esa UI o no demuestran el aislamiento, registra
+  la autoría y el preview como pendientes. Editar JSON, archivos curriculares, modelos o APIs
+  directamente, o ejecutar pruebas headless, no acredita ni reemplaza el recorrido por Spider.
+- Ante una limitación, registra pasos, nodo, fuente, resultado esperado y resultado observado.
+  Corrige el motor local solo dentro del alcance ya autorizado y vuelve a comprobar el cambio
+  desde Spider. Una ampliación fuera de ese alcance necesita su propio punto en la cola; un
+  problema del Editor no autoriza automáticamente nuevas capacidades o dependencias.
+- El código de componentes, contratos, compilador, migraciones y fixtures de pruebas puede
+  modificarse como trabajo de motor. Distingue esos cambios de la autoría curricular: no uses
+  datos o código de producción para introducir contenido que eluda la interfaz editorial.
+- Exporta el borrador producido por la UI a un archivo temporal identificado para que el
+  desarrollador lo importe y revise. La validación/aplicación canónica corresponde al humano,
+  en Edge externo y con el servicio iniciado desde un terminal visible de VS Code. Conserva la
+  congelación del checkout entre su validación y el resultado de **Aplicar**.
+- Registra nodo/IDs, revisión base, fuente modificada, compilación, preview real, limitaciones
+  y comprobaciones tras corregirlas. Separa esta evidencia de las pruebas automáticas y de la
+  revisión humana; conserva trazabilidad científica, IDs y compatibilidad del progreso.
+- Al terminar, cierra las pestañas y procesos propios y retira solo los temporales propios que
+  ya no sean necesarios. Si un borrador debe quedar disponible para revisión, indica su ruta y
+  motivo. Nunca limpies perfiles, cachés, avances o procesos del desarrollador.
+
 ## Misión del proyecto
 
 Construir **ORBIT — Open Roadmap for Building Intuition and Theory**, un recurso educativo
@@ -93,8 +126,11 @@ una ruta futura deberá declarar con igual precisión su público, convenciones 
    `publicando`, confirma, haz el push del release y verifica. Solo entonces archiva las fichas
    completas en un commit breve, sube ese cierre documental y vuelve a verificar el remoto.
    Ninguno de esos pushes es una entrega parcial.
-4. Lee `README.md`, este archivo, el `AGENTS.md` más cercano, `docs/CODEX_START_HERE.md` y las
-   decisiones relevantes.
+4. En cada activación relee desde disco `README.md`, este archivo, los `AGENTS.md` anidados
+   aplicables, `docs/CODEX_START_HERE.md` y las decisiones relevantes. No supongas que una copia
+   de las instrucciones en el historial sigue vigente. Cuando el usuario pida verificar las
+   políticas, identifica los archivos y secciones leídos; las guías enlazadas requieren lectura
+   explícita, no se presume que el agente las cargue automáticamente.
 5. Solo los puntos `autorizado` de la cohorte inmediata pueden pasar a preflight e
    implementación. Si alguno todavía requiere una decisión material, cámbialo a
    `faltan-detalles`, escribe preguntas concretas y no modifiques el producto por ese punto.
