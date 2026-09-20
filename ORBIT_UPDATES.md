@@ -254,7 +254,7 @@ Sin propuestas pendientes de clasificar. Navegación y lanzamiento se registraro
 - Cierre confirmado por JoaquinDiazM: 2026-09-19.
 
 JoaquinDiazM indicó que UPD-025 será la única actualización de esta versión. Eximió las pruebas
-manuales y pidió revisar la ubicación de las políticas; la aprobación documental sigue pendiente.
+manuales y pidió revisar la ubicación de las políticas; aprobó UPD-025 mediante su estado en la cola.
 
 ORBIT 0.8.0 está publicada y verificada. UPD-026 y UPD-027 esperan el cierre publicado de
 la cohorte inmediata antes de cualquier implementación propia.
@@ -263,11 +263,11 @@ la cohorte inmediata antes de cualquier implementación propia.
 
 ### UPD-025 — Edición de contenido por agentes mediante ORBIT Editor/Spider
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `documentación`
 - Versión objetivo: `0.8.1`
 - Impacto sugerido: `Z`; establece el procedimiento operativo de autoría de contenido.
-- Próximo responsable: JoaquinDiazM, revisar las políticas documentadas y marcar `aprobado`.
+- Próximo responsable: agente, publicar la cohorte aprobada 0.8.1 y archivar su ficha.
 
 #### Solicitud original
 
@@ -318,8 +318,12 @@ Quiero que de ahora en adelante los agentes adopten la politica de incorporar ca
   suites aisladas de dev/autoría; no se atribuye una comprobación manual nueva. Pruebas propias
   terminadas; procesos ajenos intactos. WMI denegó inspeccionar sus líneas de comando, por lo
   que no se certifica una atribución global de todos los procesos Node del equipo.
-- Revisión manual humana: pruebas manuales dispensadas por JoaquinDiazM. Pendiente su revisión
-  documental y cambio de estado a `aprobado`; no se equipara la dispensa con aprobación.
+- Revisión manual humana: pruebas manuales dispensadas por JoaquinDiazM; aprobación documental
+  confirmada por su cambio explícito a `aprobado`, leído en esta activación. Revalidación del
+  árbol aprobado: `npm run check` correcto, 578 pruebas aprobadas y dos omisiones de symlink.
+- Publicación confirmada: tras el rechazo automático inicial del checkpoint, JoaquinDiazM
+  confirmó explícitamente en el chat «Si, confirmo» a aprobar UPD-025, publicar 0.8.1 y archivar
+  su ficha. Se reanuda el flujo normal con esa confirmación, sin duplicar cambios.
 - Ubicación para revisar: `AGENTS.md` → **Autoría de contenido por agentes**, **Flujo obligatorio
   para agentes**, **Entorno prístino para revisión humana**; `src/data/AGENTS.md` → **Antes de
   editar**; `docs/CODEX_START_HERE.md` → **Dónde viven las instrucciones de agentes**;
