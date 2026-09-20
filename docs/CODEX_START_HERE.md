@@ -44,7 +44,7 @@ límite si faltan reglas. No hace falta abrir sesiones auxiliares de Codex para 
 
 ## 2. Estado actual
 
-La base publicada es `0.8.0` y la siguiente cohorte operativa se controla en
+La base publicada es `0.8.1` y la siguiente cohorte operativa se controla en
 `ORBIT_UPDATES.md`. El prototipo sigue siendo estático, conserva una dependencia local
 respaldada por ADR, dos entradas
 deliberadamente separadas y un flujo por cohortes con autorización y revisión humana:

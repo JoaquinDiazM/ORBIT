@@ -2,6 +2,25 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [0.8.1] - 2026-09-19
+
+### Cambiado
+
+- Autoría académica de agentes mediante **ORBIT Editor → Spider → Modificar → Editar contenido**,
+  con interfaz aislada y evidencia de compilación y previsualización. La aplicación canónica
+  conserva su revisión humana.
+- Procedimiento para reproducir limitaciones del Editor, corregir el motor dentro del alcance
+  autorizado y comprobar el resultado nuevamente desde Spider.
+- Políticas de agentes localizadas en `AGENTS.md` y guías alineadas, con lectura explícita en
+  cada activación y distinción entre autoría, pruebas automáticas y revisión humana.
+
+### Verificación y alcance
+
+- Cohorte documental cerrada `UPD-025`, aprobada por JoaquinDiazM; publicación y archivado
+  confirmados explícitamente en el chat. Pruebas manuales dispensadas para esta entrega.
+- `npm run check` correcto: 578 pruebas aprobadas y dos omisiones por permisos de symlink en
+  Windows. Sin cambios de contenido académico, dependencias ni formatos de guardado.
+
 ## [0.8.0] - 2026-09-19
 
 ### Añadido

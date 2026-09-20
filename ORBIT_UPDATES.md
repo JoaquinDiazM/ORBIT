@@ -263,7 +263,7 @@ la cohorte inmediata antes de cualquier implementación propia.
 
 ### UPD-025 — Edición de contenido por agentes mediante ORBIT Editor/Spider
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `documentación`
 - Versión objetivo: `0.8.1`
 - Impacto sugerido: `Z`; establece el procedimiento operativo de autoría de contenido.
@@ -304,8 +304,9 @@ Quiero que de ahora en adelante los agentes adopten la politica de incorporar ca
 - Rutas propias: `AGENTS.md`, `src/data/AGENTS.md`, `README.md`, `CONTRIBUTING.md`,
   `docs/CODEX_START_HERE.md`, `docs/CONTENT_SOURCE_GUIDE.md`, `docs/CONTENT_AUTHORING.md`,
   `docs/EDITOR_GUIDE.md` y esta cola.
-- Resultado: política documental implementada y revisada. No cambia producto,
-  datos académicos, versiones, changelog, dependencias ni esquema persistente.
+- Resultado: política documental implementada y revisada; release 0.8.1 preparado tras
+  confirmar el árbol aprobado en `56dfc31`. Cambian versión y changelog de la cohorte; se
+  conservan datos académicos, comportamiento del producto, dependencias y esquema persistente.
 - Pruebas automáticas: `npm run check` pasó (580 casos: 578 correctos, 0 fallos, 2 omitidos por
   permisos de symlink en Windows); validación curricular, 140 archivos JS, enlaces de 45
   Markdown y build correctos. Tras precisar el aislamiento en tres guías, `npm run repo-check`
