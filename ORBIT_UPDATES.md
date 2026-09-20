@@ -248,107 +248,10 @@ Sin propuestas pendientes de clasificar. Navegación y lanzamiento se registraro
 
 ## Cohorte inmediata
 
-- Versión: `0.9.0`
-- Estado de la cohorte: `cerrada`
-- IDs: `UPD-026`
-- Cierre confirmado por JoaquinDiazM: 2026-09-19.
-
-El usuario confirmó en el chat que UPD-026 será la única actualización de 0.9.0 y pidió
-activarla después de publicar 0.8.1. Release y cierre documental de 0.8.1 verificados en remoto.
+Sin cohorte inmediata. ORBIT 0.9.0 está publicada y verificada; el cierre documental de
+UPD-026 se completa antes de activar UPD-027 para 1.0.0.
 
 ## Actualizaciones activas
-
-### UPD-026 — Navegación global y directa del mapamundi
-
-- Estado: `publicando`
-- Tipo: `feature`
-- Versión objetivo: `0.9.0`
-- Impacto sugerido: `Y`; nueva representación navegable y límite de conectividad académica.
-- Próximo responsable: agente, verificar release 0.9.0 y archivar UPD-026.
-- Árbol aprobado: `f14daa64ac38db974b3aad8b00cddb56c1d3ec0c`; versión resuelta `0.9.0`.
-
-#### Solicitud original
-
-Navegacion global y directa
-
-Quiero un modo de navegacion en el mapamundi que sea VISUALMENTE diferente al actual, el actual lo podemos llamar el modo global y el nuevo lo podremos llamar el modo directo. La gracia del nuevo modo es que solo se vea el hexagono/zona actual del usuario, cualquiera sea su perfil, y 6 adyacentes. La logica para seleccionar las 6 zonas adyacentes debe ser tal que priorice las zonas que tienen al menos un nodo que tienen lazo con algun nodo del hexagono en el que se encuantra el usuario, ya sea de requisito hacia o desde. Luego priorice el hexagono base y luego aleatoriamente los demas. Puede darse el caso de que haya mas de 6 zonas conoectadas al hexagono actual, quiero que no exista eso desde el inicio, modifica el validador del editor para que no pase eso, la filosofia es que si hay una zona demasiado interconectada, la zona es demasiado general y perjudica el aprendizaje. Tener 6 conceptos relacionados al que estas estudiando es, a mi juicio, el maximo antes de que el aprendizaje se vuelva demasiado enrevesado. Todo este cambio es pricipalmente visual, por lo que tienes permitido en invertir recursos en animaciones o estudio de diferentes arboles de aprendizaje aprobados. La forma en la que quiero que se active esto es en la pestaña o menu visual de ORBIT, ORBIT Editor solo se ve afectado en su validador, nada mas.
-
-#### Especificación elaborada por el agente
-
-- Objetivo observable: selector de navegación Global/Directa en Visual para los tres perfiles.
-  Directa muestra la zona actual y seis zonas, reorganizadas a su alrededor por relaciones
-  académicas; esta reorganización fue confirmada en el chat el 2026-09-19.
-- Decisiones confirmadas por el usuario: se podrá caminar entre los vecinos reorganizados
-  aunque no fueran adyacentes en Global. El agente resolverá apertura, posición al alternar y
-  retorno con criterio pedagógico para personas con varias o todas las zonas abiertas. La Red
-  de aprendizaje conserva la autoridad; zonas y apertura se derivan de ella.
-- Selección solicitada: priorizar zonas con al menos una conexión académica entrante o saliente
-  respecto de un nodo de la zona actual, luego Base si cabe y completar al azar sin repeticiones.
-  Criterio técnico dentro de la decisión delegada: azar estable por zona y revisión para evitar
-  cambios de vecinos al renderizar.
-- Criterios de aceptación propuestos: contar zonas distintas, deduplicando aristas y excluyendo
-  inventario; máximo seis zonas relacionadas en el validador editorial, con diagnóstico reparable;
-  conservar borradores inválidos; separar el selector del modo existente Directo de la Red;
-  interacción libre, teclado, legibilidad, bloqueos visibles y movimiento reducido.
-- Compatibilidad resuelta: la edición aplicada `69b47331…` cumple el máximo seis y permanece
-  intacta. La semilla nueva reproduce el traslado de `atacama-array` desde `applications` a
-  `antennas` realizado en Spider; conserva offset, fuente, IDs y todas las conexiones.
-  Los documentos históricos mantienen sus posiciones y pueden repararse sin pérdida.
-- Fuera de alcance: nuevas herramientas o presentación de ORBIT Editor; solo su validación.
-  No añadir capacidades del lanzamiento 1.0.0 ni publicar antes de la revisión humana de 0.9.0.
-- Dependencias, invariantes o ADR: una única Red académica, estado derivado, IDs estables y
-  movimiento libre. Las fronteras visuales nuevas serán transitables: documentar por ADR
-  la adyacencia efectiva, apertura territorial, retorno al recentrar y coherencia entre modos.
-
-#### Preguntas bloqueantes
-
-- Ninguna. Las decisiones delegadas y la compatibilidad de la semilla quedaron concretadas
-  en [ADR 0012](docs/decisions/0012-direct-world-navigation.md).
-
-#### Implementación y revisión
-
-- Base revisada: `5735f17`, igual a origin/main; 0.8.1 publicada y archivada.
-- Resultado: implementado Global/Directa en Visual para los tres perfiles. La posición
-  persistida y apertura permanecen canónicas; Directa deriva siete hexágonos transitables,
-  recentra al cruzar y conserva el offset. El regreso tiene historial efímero para la
-  selección asimétrica. La preferencia opcional conserva progreso v4 y el filtro de Red.
-- Editor: máximo seis zonas relacionadas por zona, diagnóstico completo e importación de
-  borradores reparables. Una edición histórica firmada que exceda el límite carga en Global
-  con explicación; se verifica su digest y no puede republicarse hasta corregir el exceso.
-- Rutas propias: `src/core/direct-navigation.js`, progresión/edición, documento editorial,
-  GameApp/renderer/main, UI/HTML/CSS; pruebas correspondientes, ADR 0012 y documentación.
-  Sin cambios de versión, changelog, edición aplicada ni dependencias.
-- Autoría mediante UI real, 2026-09-19/20: copia temporal de 0.8.1, navegador interno de Codex
-  separado de Edge y adaptador compartido en memoria sin acceso al almacenamiento persistente.
-  Spider → Modificar: `atacama-array`, Zona Antenas, Aplicar posición; Editar contenido,
-  compilación válida y preview del ejercicio con respuesta de fase/retardo correcta. Resumen
-  mostró un nodo movido, cero cambios de contenido/conexiones y 19 zonas/29 lugares/20 conceptos
-  alcanzables. No se pulsó Aplicar edición al curso.
-- Export UI conservado para revisión:
-  `C:\Users\joaqu\AppData\Local\Temp\orbit-author026-f392501f6fad4267b6d664af80544c9a\UPD-026-semilla-Spider.json`.
-  SHA-256 `c959d30b58c130dcd0f8d8cc8e993a2d25c1240d606ba7d0fad31bef0f96af3d`.
-  Comparación con baseline: solo `areaId` de Atacama y `updatedAt`; comparación con fábrica
-  nueva: idéntica. El evento de descarga de la herramienta agotó su espera, pero la descarga
-  real se produjo y el archivo fue verificado. Su duplicado en Descargas fue retirado.
-- Pruebas automáticas: 2026-09-20, `npm run check` código cero; 627 pruebas, 625 pasan,
-  cero fallos y dos omisiones por permisos de symlink de Windows. Sintaxis de 146 archivos,
-  enlaces de 47 documentos y build aprobados. Cubre seis cruces, prioridades/deduplicación,
-  regreso, teclado/teletransporte, proyección, recarga, rollback, migración e integridad histórica.
-  Tres fixtures antiguos de reparación se ajustaron al nuevo límite conservando sus aserciones.
-- Revisión cruzada: corrigió el regreso bloqueado por su propio panel; prueba conjunta con
-  UIController y GameApp reales demuestra cierre, restauración de foco y retorno. Sin otros
-  hallazgos materiales en la revisión independiente de proyección y runtime.
-- Preflight del entorno: 2026-09-20, fuente y dist coinciden en 98 archivos y tres HTML;
-  build-info confirma `69b47331…`. Cuatro respuestas HTTP 200 con `Cache-Control: no-store`.
-  Puerto 4173 libre al cerrar; sin locks, journals ni tombstones. Servidor temporal PID 24208,
-  padre 24852 y sondeo PID 27112 terminados; pestaña propia cerrada. Copia de autoría retirada;
-  solo queda el export anterior. Backups preexistentes del desarrollador preservados. Audio:
-  seis recursos y sidecars coinciden con manifiesto, atribuciones y consumidores, sin cambios.
-- Revisión manual humana: aprobada por JoaquinDiazM el 2026-09-20, quien registró que
-  «la prueba manual paso de manera expedita» y pidió expresamente publicar 0.9.0 en el chat.
-  El [guion UPD-026](docs/reviews/UPD-026.md) queda como referencia de regresión.
-- Observaciones del usuario: Respuesta 1 -> Si, justo esa es la idea del modo de navegacion directa, la "cercania visual" entre nodos y zonas relacionadas". Respuesta 2: Lo dejo a tu criterio, lo mas logico que sea apropiado para una experiencia pedadogica de alguien que ya esta avanzado en el curso, este modo esta pensado para usuarios que ya tengan desbloqueados varias o todas las zonas. Pregunta 3: Precisamente, el que manda es el arbol de conocimientos, ya sabes que las zonas y como se abren son, de hecho, dependientes del arbol de conocimientos.
--  Observaciones del usuario (2): Excelente implementacion, la prueba manual paso de manera expedita:
 
 ### UPD-027 — Lanzamiento de ORBIT para usuarios reales
 
@@ -431,4 +334,4 @@ junto con cada ficha y sus intercambios, en
 [`docs/UPDATES_HISTORY.md`](docs/UPDATES_HISTORY.md). `CHANGELOG.md` mantiene solo el resumen
 orientado a quienes usan ORBIT; los descartes no reciben versión ni entrada de changelog.
 
-La cohorte ORBIT 0.8.1 está publicada y archivada bajo esta metodología.
+La cohorte ORBIT 0.9.0 está publicada y archivada bajo esta metodología.
