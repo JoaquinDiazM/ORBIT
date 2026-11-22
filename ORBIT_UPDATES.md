@@ -262,13 +262,13 @@ Sin propuestas pendientes de clasificar.
 - IDs: `UPD-031`, `UPD-032`
 - Cierre confirmado por JoaquinDiazM: 2026-11-22.
 
-JoaquinDiazM autorizó y cerró 1.0.2 con los puntos de versión visible y capturas.
+JoaquinDiazM autorizó, cerró y aprobó 1.0.2 con los puntos de versión visible y capturas.
 
 ## Actualizaciones activas
 
 ### UPD-031 — Sincronizar la versión visible de ORBIT
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `bug`
 - Versión objetivo: `1.0.2`
 
@@ -301,12 +301,11 @@ que coincida en futuras publicaciones.
 - Preflight del entorno: el origen canónico de la copia temporal devolvió HTTP 200 y
   `Cache-Control: no-store`. Fuente y `dist/src/config.js` compartían la misma huella. El
   servicio propio se cerró en la misma intervención y la copia temporal se retiró.
-- Revisión manual humana: pendiente. Comprobar la etiqueta junto a ORBIT con la versión del
-  paquete abierto. Desde su carpeta, `node scripts/verify-package.mjs` imprime esa versión.
+- Revisión manual humana: JoaquinDiazM aprobó el resultado en el chat el 2026-11-22.
 
 ### UPD-032 — Actualizar las capturas del README
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `documentación`
 - Versión objetivo: `1.0.2`
 
@@ -334,8 +333,7 @@ Actualizar el README con cinco capturas. Mostrar tres vistas de ORBIT y dos del 
 - Preflight del entorno: almacenamiento inicial vacío, sin service worker activo y servicio
   de capturas en el origen canónico. Se cerraron las pestañas y el PID 16016. La copia se retiró.
   Puerto 4173 libre, sin lock, journal ni tombstone de autoría.
-- Revisión manual humana: pendiente. Abrir **Capturas de referencia** en el README y verificar
-  las tres vistas de ORBIT y las dos del Editor.
+- Revisión manual humana: JoaquinDiazM aprobó las cinco capturas en el chat el 2026-11-22.
 
 ### UPD-033 — Cliente instalable para Windows con actualizaciones desde la aplicación
 
