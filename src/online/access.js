@@ -1,7 +1,7 @@
 import { OrbitApiClient, OrbitApiError, createOnlineScope } from "./api-client.js";
 import { forgetOfflineAccess } from "./offline-store.js";
 import { mountAdminPanel } from "./admin-panel.js";
-import { action, announce, field, node, setFormBusy, status } from "./ui.js";
+import { action, announce, createOnlineDialog, field, node, setFormBusy, status } from "./ui.js";
 
 export function readOnlineMarkers(documentRef) {
   const mode = documentRef?.querySelector('meta[name="orbit-mode"]')?.getAttribute("content");
@@ -87,12 +87,33 @@ export async function endOnlineSession(context, { windowRef = window, forget = f
   windowRef.location.reload();
 }
 
-export function mountOnlineSessionBar(context, { documentRef = document, windowRef = window } = {}) {
+export function mountOnlineSession(context, { documentRef = document, windowRef = window } = {}) {
   documentRef.querySelector("#orbit-online-session")?.remove();
-  const bar = node(documentRef, "section", { id: "orbit-online-session", className: "online-session", "aria-label": "Sesión y conexión" });
+  documentRef.querySelector("#orbit-session-controls")?.remove();
+  const controls = node(documentRef, "span", { id: "orbit-session-controls" });
+  documentRef.querySelector(".hud-brand").append(controls);
+  const view = createOnlineDialog({
+    documentRef, title: "Sesión", triggerText: "Online", parent: controls,
+    triggerAttributes: { className: "online-session-trigger", "aria-controls": "orbit-online-session" },
+  });
+  view.dialog.setAttribute("id", "orbit-online-session");
+  const live = node(documentRef, "span", { className: "online-session-announcement", role: "status", "aria-live": "polite" });
+  controls.append(live);
   const state = status(documentRef);
-  announce(state, context.offline ? "Sin conexión. El avance se sincronizará al reconectar." : "Conectado al servidor.");
-  bar.append(node(documentRef, "strong", { text: `${context.session.user.alias} · ${context.course.title}` }), state);
+  function showStatus(message, { error = false, pendingCount = 0 } = {}) {
+    const label = error ? "Revisar sesión" : context.offline ? "Sin conexión" : "Online";
+    const hasPending = Number.isInteger(pendingCount) && pendingCount > 0;
+    const pending = hasPending ? `${pendingCount} pendientes de sincronización.` : "";
+    const detail = [message, pending].filter(Boolean).join(" ");
+    view.trigger.textContent = hasPending ? `${label} · ${pendingCount}` : label;
+    view.trigger.setAttribute("aria-label", [label, "Sesión", pending].filter(Boolean).join(". "));
+    view.trigger.title = detail || "Sesión";
+    view.trigger.dataset.level = error ? "error" : "info";
+    announce(state, detail, error);
+    if (!view.dialog.open && live.textContent !== detail) announce(live, detail, error);
+  }
+  showStatus(context.offline ? "Sin conexión. El avance se sincronizará al reconectar." : "Online");
+  view.body.append(node(documentRef, "strong", { text: context.session.user.alias }), state);
   const actions = node(documentRef, "div", { className: "online-actions" });
   if (context.session.courses.length > 1 && !context.offline) {
     actions.append(action(documentRef, "Cambiar curso", () => {
@@ -107,7 +128,7 @@ export function mountOnlineSessionBar(context, { documentRef = document, windowR
     logout.disabled = true;
     try { await endOnlineSession(context, { windowRef }); }
     catch (error) {
-      announce(state, `${error.message} Recarga para continuar o vuelve a intentar cerrar la sesión.`, true);
+      showStatus(`${error.message} Recarga para continuar o vuelve a intentar cerrar la sesión.`, { error: true });
       logout.disabled = false;
     }
   });
@@ -120,29 +141,21 @@ export function mountOnlineSessionBar(context, { documentRef = document, windowR
   ]);
   const offlineNotice = node(documentRef, "small", { text: "Cerrar el acceso offline bloquea esta copia. La sesión del servidor solo puede revocarse con conexión." });
   offlineNotice.hidden = !context.offline;
-  bar.append(offlineNotice);
-  bar.append(actions, privacy);
-  bar.addEventListener("keydown", (event) => event.stopPropagation());
-  bar.addEventListener("keyup", (event) => event.stopPropagation());
-  privacy.addEventListener("toggle", () => {
-    if (windowRef.Event) windowRef.dispatchEvent(new windowRef.Event("resize"));
-  });
-  documentRef.body.classList.add("has-online-session");
-  documentRef.body.append(bar);
+  view.body.append(offlineNotice, actions, privacy);
+  view.trigger.addEventListener("keydown", (event) => event.stopPropagation());
+  view.trigger.addEventListener("keyup", (event) => event.stopPropagation());
   context.setSyncStatus = ({ state: syncState, message, pendingCount } = {}) => {
     logout.textContent = context.offline ? "Cerrar acceso offline" : "Cerrar sesión";
     offlineNotice.hidden = !context.offline;
-    bar.dataset.sync = syncState ?? "connected";
-    const pending = Number.isInteger(pendingCount) && pendingCount > 0 ? ` ${pendingCount} pendientes de sincronización.` : "";
-    announce(state, `${message ?? ""}${pending}`, ["error", "blocked"].includes(syncState));
+    showStatus(message, { error: ["error", "blocked"].includes(syncState), pendingCount });
   };
   context.requireOnlineAccess = (error) => {
-    announce(state, error?.message ?? "Vuelve a ingresar para continuar.", true);
+    showStatus(error?.message ?? "Vuelve a ingresar para continuar.", { error: true });
     if (!actions.querySelector('[data-reload-access="true"]')) {
       actions.append(action(documentRef, "Recargar / ingresar", () => windowRef.location.reload(), { "data-reload-access": "true" }));
     }
   };
-  return { destroy() { bar.remove(); documentRef.body.classList.remove("has-online-session"); } };
+  return { destroy() { view.destroy(); controls.remove(); } };
 }
 
 function loginForm({ api, shell, serverId, documentRef, initialError }) {
@@ -237,7 +250,7 @@ export async function resolveOnlineContext({
         if (useOffline) {
           const context = { ...cached, api, session: cachedSession, course, profile: "student", scope: createOnlineScope(markers.serverId, cachedSession.user.id, course.id), offline: true };
           releaseAccessShell(shell, documentRef);
-          mountOnlineSessionBar(context, { documentRef, windowRef });
+          mountOnlineSession(context, { documentRef, windowRef });
           return context;
         }
       }
@@ -263,6 +276,6 @@ export async function resolveOnlineContext({
   windowRef.history.replaceState(null, "", url.href);
   const context = { api, session, course, profile: session.user.role, scope: createOnlineScope(markers.serverId, session.user.id, course.id), offline: false };
   releaseAccessShell(shell, documentRef);
-  mountOnlineSessionBar(context, { documentRef, windowRef });
+  mountOnlineSession(context, { documentRef, windowRef });
   return context;
 }

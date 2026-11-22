@@ -131,7 +131,9 @@ export class OnlinePublicationController {
 
 export function mountOnlineCoursePanel({ context, model, draftStorage = null, documentRef = document, windowRef = window, parent }) {
   const controller = new OnlinePublicationController({ context, model, draftStorage });
-  const view = createOnlineDialog({ documentRef, title: `Publicación · ${context.course.title}`, triggerText: "Publicar online", parent });
+  const view = createOnlineDialog({ documentRef, title: `Publicación · ${context.course.title}`, triggerText: "Publicar online", parent,
+    triggerAttributes: { "data-editor-icon": "publish", title: "Publicar online" },
+  });
   const message = status(documentRef);
   const maintenanceStatus = node(documentRef, "p");
   const planView = node(documentRef, "section", { className: "online-publication-plan", "aria-label": "Plan de publicación" });

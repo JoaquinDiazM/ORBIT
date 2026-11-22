@@ -1,6 +1,5 @@
 .online-access,
 .online-dialog,
-.online-session,
 .orbit-install-controls {
   color: var(--text, #eef7ff);
   background: var(--panel-solid, #0c1929);
@@ -48,14 +47,25 @@
 .online-danger { border-color: #ff9aa7; color: #ffe0e5; }
 .online-draft-note { padding: 0.7rem; border-left: 3px solid var(--accent); font-size: 0.85rem; }
 
-body.has-online-session { display: flex; flex-direction: column; }
-body.has-online-session #app { flex: 1 1 auto; height: auto; min-height: 0; }
-.online-session { order: -1; flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 1rem; padding: 0.45rem 0.75rem; max-height: 30dvh; overflow: auto; font-size: 0.8rem; }
-.online-session > strong { max-width: 35rem; }
-.online-session .online-status { flex: 1 1 16rem; margin: 0; }
-.online-session button { min-height: 2rem; padding: 0.3rem 0.5rem; }
-.online-local-data { flex: 1 0 100%; }
-.online-local-data p { margin: 0.3rem 0; max-width: 100ch; }
+#orbit-session-controls { flex: none; }
+.online-session-trigger {
+  min-height: 2rem;
+  padding: 0.32rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.67rem;
+  font-weight: 760;
+  white-space: nowrap;
+}
+.online-session-trigger[data-level="error"] { color: #ffb8c0; border-color: var(--danger); }
+.online-session-announcement {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.online-local-data p { margin: 0.3rem 0; }
 .online-local-data summary { min-height: 1.5rem; }
 
 .orbit-install-controls { position: fixed; z-index: 42; bottom: 0.5rem; left: 0.5rem; max-width: min(24rem, calc(100vw - 1rem)); max-height: 50dvh; overflow: auto; border-radius: 0.65rem; padding: 0.35rem 0.65rem; font-size: 0.75rem; box-shadow: var(--shadow); }
@@ -63,12 +73,10 @@ body.has-online-session #app { flex: 1 1 auto; height: auto; min-height: 0; }
 .orbit-install-controls button { margin: 0.2rem; }
 .online-access :focus-visible,
 .online-dialog :focus-visible,
-.online-session :focus-visible,
+.online-session-trigger:focus-visible,
 .orbit-install-controls :focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
 
 @media (max-width: 760px) {
-  .online-session { gap: 0.25rem 0.5rem; font-size: 0.72rem; }
-  .online-session > strong { flex: 1 1 100%; }
   .online-dialog { width: calc(100vw - 1rem); max-height: calc(100dvh - 1rem); padding: 0.75rem; }
   .online-dialog-heading { flex-wrap: wrap; }
   .orbit-install-controls { bottom: 0.25rem; left: 0.25rem; }

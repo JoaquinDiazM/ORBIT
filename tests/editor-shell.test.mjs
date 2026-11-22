@@ -81,7 +81,7 @@ test("ORBIT enlaza una entrada editorial independiente", async () => {
   assert.doesNotMatch(orbit, /Ruta interactiva/);
   assert.doesNotMatch(orbit, /id="profile-badge"/);
   assert.match(orbit, /href=["']\.\/editor\.html\?profile=student["']/);
-  assert.match(orbit, />Abrir ORBIT Editor</);
+  assert.match(orbit, /id="open-orbit-editor"[^>]*>ORBIT Editor<\/a>/);
   assert.match(orbit, /id="profile-select"/);
   assert.deepEqual(
     [...orbit.matchAll(/<option value="(student|teacher|debug)"/g)].map((match) => match[1]),

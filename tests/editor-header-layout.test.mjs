@@ -53,7 +53,7 @@ test("la cabecera conserva sus cortes responsive alrededor del ancho reproducido
   );
 });
 
-test("el dock editorial contiene Bowerbird expandido y conserva BW al minimizar", async () => {
+test("el dock editorial mantiene iconos y nombres en sus dos tamaños", async () => {
   const [css, editor] = await Promise.all([
     readFile(EDITOR_CSS_PATH, "utf8"),
     readFile(EDITOR_HTML_PATH, "utf8"),
@@ -73,11 +73,15 @@ test("el dock editorial contiene Bowerbird expandido y conserva BW al minimizar"
     toolsWidth >= generalWidth,
     `El dock editorial (${toolsWidth}rem) no debe ser más estrecho que General (${generalWidth}rem).`,
   );
-  assert.match(
-    editor,
-    /id="editor-open-bowerbird"[\s\S]*?data-mark="BW"[\s\S]*?>Bowerbird<\/button>/,
-  );
+  assert.match(editor, /id="editor-open-bowerbird"[^>]*data-editor-icon="bowerbird"[^>]*>Bowerbird<\/button>/);
+  assert.match(editor, /id="editor-open-spider"[^>]*data-editor-icon="spider"[^>]*>Spider<\/button>/);
+  const iconNames = [...editor.matchAll(/data-editor-icon="([^"]+)"/g)].map(([, name]) => name);
+  assert.equal(new Set(iconNames).size, 10);
+  for (const name of [...iconNames, "owl", "publish"]) {
+    assert.match(declarationsFor(css, `[data-editor-icon="${name}"]`), /--editor-icon:\s*url\("data:image\/svg\+xml,/);
+  }
+  assert.doesNotMatch(editor, /data-mark=/);
   assert.match(collapsedButton, /\boverflow\s*:\s*hidden\s*;/);
   assert.match(collapsedButton, /\bfont-size\s*:\s*0\s*;/);
-  assert.match(css, /\.editor-dock\.is-collapsed \.dock-button::before\s*\{[\s\S]*?font-size:\s*0\.65rem\s*;/);
+  assert.match(css, /\.editor-dock \.dock-button::after\s*\{[^}]*mask:\s*var\(--editor-icon\)/);
 });

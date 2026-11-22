@@ -35,7 +35,9 @@ export function createOwlActions(context) {
 
 export function mountOwlPanel({ context, documentRef = document, parent }) {
   const operations = createOwlActions(context);
-  const view = createOnlineDialog({ documentRef, title: `Owl · ${context.course.title}`, triggerText: "Owl", parent });
+  const view = createOnlineDialog({ documentRef, title: `Owl · ${context.course.title}`, triggerText: "Owl", parent,
+    triggerAttributes: { "data-editor-icon": "owl", title: "Owl" },
+  });
   const message = status(documentRef);
   const rows = node(documentRef, "div", { className: "online-student-list" });
   const refreshButton = action(documentRef, "Actualizar avance", () => void refresh());

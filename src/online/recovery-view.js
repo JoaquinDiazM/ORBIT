@@ -30,5 +30,5 @@ export function showRetainedProgress(context, recoveries, { documentRef = docume
     });
     panel.append(button);
   }
-  (documentRef.querySelector("#orbit-online-session") ?? documentRef.body).append(panel);
+  (documentRef.querySelector("#orbit-online-session .online-panel-body") ?? documentRef.body).append(panel);
 }

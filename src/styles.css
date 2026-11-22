@@ -499,6 +499,11 @@ code {
   width: min(32rem, calc(100vw - 2rem));
 }
 
+#lesson-panel {
+  bottom: var(--chrome-gap);
+  height: auto;
+}
+
 .secondary-panel {
   right: auto;
   left: calc(var(--chrome-gap) + var(--dock-width) + 0.65rem);

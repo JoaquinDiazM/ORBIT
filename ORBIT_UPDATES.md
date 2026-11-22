@@ -115,9 +115,10 @@ por ID ascendente. El estado —incluido `pospuesto`— no crea grupos ni altera
 8. Informar preguntas pendientes. No tocar código por puntos `propuesto`, `en-revision` o
    `pospuesto`; un punto `descartado` únicamente se archiva como indica el paso 1.
 
-El límite es **una sola cohorte de versión en implementación, revisión o publicación por
-checkout**, no un solo ID. Todos los puntos activos deben pertenecer a esa versión inmediata;
-los futuros esperan. Nunca se usa `git add -A`: se preparan rutas explícitas y se inspecciona
+ORBIT trabaja **una sola cohorte de versión a la vez**. La siguiente comienza después de
+publicar, archivar y verificar la anterior, incluso si hay otros checkouts. Los puntos de una
+misma cohorte pueden avanzar en paralelo si son independientes. Nunca se usa `git add -A`:
+se preparan rutas explícitas y se inspecciona
 cada hunk, porque una ruta también podría contener cambios ajenos.
 
 ## Separación de entornos y pruebas manuales
@@ -261,7 +262,7 @@ Sin propuestas pendientes de clasificar.
 
 JoaquinDiazM fijó 1.0.1 como siguiente versión para corregir errores y detalles visuales.
 El alcance de la cohorte está limitado a los tres IDs indicados.
-Las versiones 1.1.0 y 1.2.0 quedan para después de esta cohorte.
+La siguiente cohorte prevista es 1.0.2. Las versiones 1.1.0 y 1.2.0 quedan para después.
 
 ## Actualizaciones activas
 
@@ -347,7 +348,7 @@ entender qué ocurrió.
 
 ### UPD-029 — Iconos para los menús de ORBIT Editor
 
-- Estado: `propuesto`
+- Estado: `en-revision`
 - Tipo: `feature`
 - Versión objetivo: `1.0.1`
 
@@ -358,19 +359,31 @@ Completar los iconos que falten en los menús generales y sustituir las marcas d
 
 #### Especificación elaborada por el agente
 
-- Criterios propuestos: revisar el dock de herramientas y los menús generales del Editor,
+- Decisión confirmada: JoaquinDiazM autorizó UPD-029 el 2026-11-22.
+- Criterios de aceptación: revisar el dock de herramientas y los menús generales del Editor,
   incluidos sus estados expandidos y compactos. Usar pictogramas reconocibles y coherentes con
   los iconos existentes. Spider debe reconocerse como una araña.
 - Preservar contraste, etiquetas accesibles, navegación por teclado y estado seleccionado.
   La futura revisión recorrerá dock expandido y compacto a distintas anchuras.
+- Fuera de alcance: diseño de contenido y cambios a los permisos o funciones de los menús.
 
 #### Implementación y revisión
 
-- Pendiente de autorización.
+- Base revisada: `1aa6332`, con UPD-028 aprobado y cohorte cerrada.
+- Rutas propias: `editor.html`, CSS del Editor y disparadores de Owl y Publicar online.
+- Resultado: doce pictogramas en los dos menús, con una araña para Spider. Los botones
+  muestran los mismos iconos y conservan sus rótulos accesibles al plegar los menús.
+- Pruebas automáticas: contratos de los iconos y del dock compacto, y `npm run check`.
+- Preflight del entorno: fuente y build `5397cd2f68b59bf210e7fc76ab59e6010e599e41fac08773e21fb02e91c55e49`
+  coinciden. El sondeo local de `/editor.html` y su CSS respondió 200 con `Cache-Control: no-store`.
+  Se cerró el PID 12820. Los puertos 4173 y 8080 están libres y no quedaron marcadores de autoría.
+- Revisión manual humana: pendiente. En Edge externo, abrir ORBIT Editor desde el servidor de
+  prueba local. Comprobar Spider, General, Owl y Publicar online. Plegar ambos menús y
+  recorrerlos con Tab, también con la ventana estrecha.
 
 ### UPD-030 — Integrar los controles de sesión y recuperar espacio para los nodos
 
-- Estado: `propuesto`
+- Estado: `en-revision`
 - Tipo: `bug`
 - Versión objetivo: `1.0.1`
 
@@ -382,17 +395,68 @@ Reubicar los datos del dispositivo y el cierre de sesión. Mostrar «Online» en
 
 #### Especificación elaborada por el agente
 
-- Criterios propuestos: integrar el estado y los controles de cuenta en la interfaz sin
+- Decisión confirmada: JoaquinDiazM autorizó UPD-030 el 2026-11-22.
+- Criterios de aceptación: integrar el estado y los controles de cuenta en la interfaz sin
   reservar una franja superior. Omitir el título duplicado del curso cuando ya está visible.
   Comprobar que los controles de salida de una ventana de nodo queden accesibles en pantallas
   de poca altura.
 - Mantener accesibles el cierre de sesión, el cierre de acceso offline, el cambio de curso
   cuando corresponda y la información del dispositivo. Conservar avisos de sincronización y
   errores. Revisar los puntos de entrada online que comparten la sesión.
+- Fuera de alcance: cambios a la autenticación, a la persistencia y al contenido de los nodos.
 
 #### Implementación y revisión
 
-- Pendiente de autorización.
+- Base revisada: `1aa6332`, con UPD-028 aprobado y cohorte cerrada.
+- Rutas propias: `index.html`, `src/styles.css`, `src/online/` y pruebas de acceso y shell.
+- Resultado: botón Online en la cabecera y diálogo de sesión con datos del dispositivo,
+  alias, cambio de curso cuando procede y cierre de sesión o de acceso offline. La cabecera
+  señala sincronización pendiente y errores. La ventana de lección usa el borde inferior
+  del mapa y permite desplazar el contenido.
+- Pruebas automáticas: acceso, diálogo, foco, avisos y `npm run check`. El ensayo online
+  aislado creó dos cursos y diez estudiantes, y verificó 22 actividades estudiadas offline.
+- Preflight del entorno: mismo build que UPD-029. Los sondeos de `/` y del módulo de
+  sesión respondieron 200 y `Cache-Control: no-store`. Se cerró el ensayo y se liberó el
+  lock. Se conservan datos sintéticos en `%TEMP%/ORBIT-1.0.1-revision-P6y1w1/datos`
+  para revisión humana. La instancia de Crab queda a cargo del mantenedor.
+- Revisión manual humana: pendiente. Desde una terminal local y visible de VS Code, iniciar
+  el servidor con los datos sintéticos. En Edge externo, entrar como docente, abrir una
+  lección, reducir la altura de la ventana y desplazarse hasta el final. Abrir Online,
+  comprobar la información del dispositivo, cerrar el diálogo con Escape y probar el cierre
+  de sesión al final del recorrido.
+
+### UPD-031 — Sincronizar la versión visible de ORBIT
+
+- Estado: `propuesto`
+- Tipo: `bug`
+- Versión objetivo: `1.0.2`
+
+#### Solicitud original
+
+La interfaz muestra 0.9.0. Corregir la versión visible y automatizar su actualización para
+que coincida en futuras publicaciones.
+
+#### Especificación elaborada por el agente
+
+- Revisar el origen de la etiqueta y la versión real del paquete desplegado. Comprobar que
+  cada build muestra su propia versión en los modos estático y online, incluido el arranque
+  con una copia PWA. Añadir una comprobación automática que detecte divergencias.
+
+### UPD-032 — Actualizar las capturas del README
+
+- Estado: `propuesto`
+- Tipo: `documentación`
+- Versión objetivo: `1.0.2`
+
+#### Solicitud original
+
+Actualizar el README con cinco capturas. Mostrar tres vistas de ORBIT y dos del Editor.
+
+#### Especificación elaborada por el agente
+
+- ORBIT: mapa sin panel, mapa con una ventana de nodo académico y gadget de campos vectoriales.
+- Editor: dos vistas representativas de las herramientas y su interfaz vigente.
+- Capturar el producto con datos de demostración y registrar el build utilizado.
 
 ## Historial
 

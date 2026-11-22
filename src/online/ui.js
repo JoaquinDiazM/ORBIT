@@ -38,7 +38,7 @@ export function setFormBusy(form, busy) {
   form.setAttribute("aria-busy", String(busy));
 }
 
-export function createOnlineDialog({ documentRef, title, triggerText, parent }) {
+export function createOnlineDialog({ documentRef, title, triggerText, parent, triggerAttributes = {} }) {
   const dialog = node(documentRef, "dialog", { className: "online-dialog", "aria-label": title });
   const close = action(documentRef, "Cerrar", () => dialog.close());
   dialog.append(node(documentRef, "div", { className: "online-dialog-heading" }, [
@@ -51,7 +51,7 @@ export function createOnlineDialog({ documentRef, title, triggerText, parent }) 
   dialog.addEventListener("keyup", (event) => event.stopPropagation());
   documentRef.body.append(dialog);
   const trigger = action(documentRef, triggerText, () => dialog.showModal(), {
-    className: "dock-button", "aria-haspopup": "dialog",
+    className: "dock-button", "aria-haspopup": "dialog", ...triggerAttributes,
   });
   parent.append(trigger);
   dialog.addEventListener("close", () => trigger.focus());

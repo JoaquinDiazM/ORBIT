@@ -128,8 +128,9 @@ siguen pendientes o la indicación de que no las hay.
    semántica ascendente, `auto` al final e ID como desempate, nunca por estado.
 3. Implementa solo IDs `autorizado` de la cohorte inmediata. Una decisión material pendiente
    exige `faltan-detalles`, preguntas concretas y ningún cambio de producto por ese punto.
-   Mantén una sola cohorte en implementación/revisión/publicación por checkout; sus IDs
-   independientes pueden avanzar en paralelo.
+   Mantén una sola cohorte en implementación, revisión o publicación en todo ORBIT. Inicia
+   la siguiente tras publicar, archivar y verificar la anterior. Los IDs independientes
+   de una misma cohorte pueden avanzar en paralelo.
 4. Audita los `.ogg`, sidecars y `audio-manifest.json` de `public/assets/audio/`, y busca cada
    ID en `src/`. Si un audio nuevo carece de punto de reproducción indicado, pregunta dónde
    debe escucharse. Todo audio versionado requiere atribución, manifiesto y acceso audible,

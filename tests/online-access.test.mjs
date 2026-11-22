@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { OrbitApiClient, OrbitApiError, createOnlineScope } from "../src/online/api-client.js";
-import { endOnlineSession, mountOnlineSessionBar, readOnlineMarkers, resolveOnlineContext, validateOnlineSession } from "../src/online/access.js";
+import { endOnlineSession, mountOnlineSession, readOnlineMarkers, resolveOnlineContext, validateOnlineSession } from "../src/online/access.js";
 import { mountAdminPanel } from "../src/online/admin-panel.js";
 import { installContentDOM } from "./helpers/content-dom.mjs";
 
@@ -15,6 +15,15 @@ function dom(t, { online = true, search = "" } = {}) {
   const env = installContentDOM();
   t.after(env.restore);
   const doc = env.document;
+  const create = doc.createElement;
+  doc.createElement = (tag) => {
+    const element = create(tag);
+    if (tag === "dialog") {
+      element.showModal = () => { element.open = true; };
+      element.close = () => { element.open = false; element.dispatch("close"); };
+    }
+    return element;
+  };
   doc.querySelector = (selector) => doc.body.querySelector(selector);
   doc.querySelectorAll = (selector) => doc.body.querySelectorAll(selector);
   const element = (tag, attrs = {}) => {
@@ -28,6 +37,9 @@ function dom(t, { online = true, search = "" } = {}) {
     element("meta", { name: "orbit-server-id", content: "server-a" });
   }
   const app = element("main", { id: "app" });
+  const brand = doc.createElement("div");
+  brand.className = "hud-brand";
+  app.append(brand);
   const loading = element("div", { id: "loading-screen" });
   const events = [];
   const win = doc.defaultView;
@@ -179,19 +191,35 @@ test("estudio offline exige consentimiento con identidad visible; Editor no abre
   assert.match(doc.querySelector("#orbit-online-access").textContent, /Ingresar a ORBIT/);
 });
 
-test("barra mantiene identidad, mensajes accesibles y cambia el cierre al reconectar", (t) => {
-  const { doc, win } = dom(t);
+test("la sesión usa la cabecera y conserva el cierre y los avisos al reconectar", (t) => {
+  const { doc, win, app } = dom(t);
   const context = { session: session(), course, profile: "student", scope: "scope", offline: true, api: fakeApi() };
-  const bar = mountOnlineSessionBar(context, { documentRef: doc, windowRef: win });
+  const controls = mountOnlineSession(context, { documentRef: doc, windowRef: win });
+  const trigger = app.querySelector(".online-session-trigger");
+  const dialog = doc.querySelector("#orbit-online-session");
+  assert.equal(trigger.textContent, "Sin conexión");
+  assert.match(dialog.textContent, /Cerrar acceso offline/);
+  assert.equal(trigger.getAttribute("aria-haspopup"), "dialog");
+  assert.equal(trigger.getAttribute("aria-controls"), dialog.id);
   context.offline = false;
   context.setSyncStatus({ state: "connected", message: "Sincronizado", pendingCount: 2 });
-  assert.match(doc.body.textContent, /Alicia · Curso A/);
-  assert.match(doc.querySelector('[role="status"]').textContent, /2 pendientes/);
-  assert.ok(doc.querySelectorAll("button").some((button) => button.textContent === "Cerrar sesión"));
+  assert.equal(trigger.textContent, "Online · 2");
+  assert.match(app.querySelector('[role="status"]').textContent, /2 pendientes/);
+  trigger.dispatch("click");
+  assert.equal(dialog.open, true);
+  assert.match(dialog.textContent, /Alicia/);
+  assert.match(dialog.textContent, /Datos de este dispositivo/);
+  assert.match(dialog.textContent, /Cerrar sesión/);
+  assert.doesNotMatch(dialog.textContent, /Curso A/);
   context.requireOnlineAccess(new Error("Mantenimiento"));
   context.requireOnlineAccess(new Error("Mantenimiento"));
   assert.equal(doc.querySelectorAll('[data-reload-access="true"]').length, 1);
-  bar.destroy();
+  assert.equal(trigger.textContent, "Revisar sesión");
+  dialog.close();
+  assert.equal(doc.activeElement, trigger);
+  controls.destroy();
+  assert.equal(app.querySelector(".online-session-trigger"), null);
+  assert.equal(doc.querySelector("#orbit-online-session"), null);
   assert.equal(doc.body.classList.contains("has-online-session"), false);
 });
 

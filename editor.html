@@ -82,19 +82,19 @@
             title="Minimizar menú general"
           >‹</button>
         </div>
-        <button id="editor-open-overview" class="dock-button" data-mark="OR" type="button" aria-controls="editor-inspector">Resumen</button>
-        <button id="editor-fit-world" class="dock-button" data-mark="⌖" type="button">Encuadrar</button>
-        <button id="editor-export" class="dock-button" data-mark="↓" type="button">Exportar</button>
-        <label id="editor-import-control" class="dock-button editor-file-button" data-mark="↑">
+        <button id="editor-open-overview" class="dock-button" data-editor-icon="overview" title="Resumen" type="button" aria-controls="editor-inspector">Resumen</button>
+        <button id="editor-fit-world" class="dock-button" data-editor-icon="fit" title="Encuadrar" type="button">Encuadrar</button>
+        <button id="editor-export" class="dock-button" data-editor-icon="export" title="Exportar" type="button">Exportar</button>
+        <label id="editor-import-control" class="dock-button editor-file-button" data-editor-icon="import" title="Importar">
           <span>Importar</span>
           <input id="editor-import" type="file" accept="application/json" />
         </label>
-        <button id="editor-reset" class="dock-button" data-mark="↺" type="button">Restaurar</button>
-        <button id="editor-open-help" class="dock-button" data-mark="?" type="button" aria-controls="editor-inspector">Ayuda</button>
+        <button id="editor-reset" class="dock-button" data-editor-icon="restore" title="Restaurar" type="button">Restaurar</button>
+        <button id="editor-open-help" class="dock-button" data-editor-icon="help" title="Ayuda" type="button" aria-controls="editor-inspector">Ayuda</button>
         <button
           id="editor-shutdown-local"
           class="dock-button editor-shutdown-button"
-          data-mark="⏻"
+          data-editor-icon="shutdown" title="Detener servidor"
           type="button"
           aria-pressed="false"
           hidden
@@ -121,7 +121,7 @@
         <button
           id="editor-open-spider"
           class="dock-button editor-tool-button"
-          data-mark="SP"
+          data-editor-icon="spider" title="Spider"
           type="button"
           aria-controls="editor-inspector"
           aria-pressed="true"
@@ -129,7 +129,7 @@
         <button
           id="editor-open-bee"
           class="dock-button editor-tool-button"
-          data-mark="BE"
+          data-editor-icon="bee" title="Bee"
           type="button"
           aria-controls="editor-inspector"
           aria-pressed="false"
@@ -137,7 +137,7 @@
         <button
           id="editor-open-bowerbird"
           class="dock-button editor-tool-button"
-          data-mark="BW"
+          data-editor-icon="bowerbird" title="Bowerbird"
           type="button"
           aria-controls="editor-inspector"
           aria-pressed="false"
