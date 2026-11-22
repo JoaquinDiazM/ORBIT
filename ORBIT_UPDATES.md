@@ -315,6 +315,12 @@ circuitos es «Análisis básico de circuitos RLC».
 - Dependencias: `ContentView` conserva el avance parcial en memoria. La persistencia debe
   pasar por `ProgressionModel` y `ProgressStorage`. Los cambios de permisos/editor online
   requieren complementar [ADR 0013](docs/decisions/0013-self-hosted-courses-and-offline-client.md).
+- Condición de JoaquinDiazM del 2026-11-22 sobre la aprobación funcional: completar las
+  frases de todos los nodos activos de Electromagnetismo antes del release y el changelog.
+  Se preparan desde Spider sobre las bases respectivas de la plantilla y del curso de
+  pruebas de Crab. Se preservan IDs, fuentes académicas, prerrequisitos, inventario,
+  cuentas y finalizaciones online. La incorporación editorial requiere la aplicación
+  humana prescrita por la política de autoría.
 
 #### Implementación y revisión
 
@@ -335,7 +341,7 @@ circuitos es «Análisis básico de circuitos RLC».
   desde Bash) ocupa el origen canónico. Nueve recursos coincidieron byte a byte con el
   checkout y devolvieron HTTP 200 y `Cache-Control: no-store`. Sin lock, journal, tombstone
   ni proceso de ORBIT iniciado por el agente.
-- Revisión manual humana: pendiente. En Edge InPrivate, abrir ORBIT como Estudiante desde
+- Revisión manual humana: instrucciones iniciales en Edge InPrivate. Abrir ORBIT como Estudiante desde
   el servidor visible de VS Code, recorrer los tres niveles de zoom, completar una etapa
   de Taller Vectorial y recargar para verificar el borde y la reanudación. En Editor,
   seleccionar un nodo en Spider → Modificar y guardar la frase. Verificar su aparición al
@@ -344,17 +350,54 @@ circuitos es «Análisis básico de circuitos RLC».
   revisión humana. El puerto canónico ocupado impidió una sesión de autoría aislada de agente.
 - Solicitud de revisión del 2026-11-22: JoaquinDiazM probará en Crab que un Docente pueda
   publicar la frase en mantenimiento y reabrir el curso en la misma sesión del servidor.
-  Revisará la frase como Estudiante tras recargar en línea. La aprobación sigue pendiente.
+  Revisará la frase como Estudiante tras recargar en línea.
 - Preparación del ensayo online: `~/.local/share/orbit-manual-1.1.1-revision-noM3G1` en Crab
   contiene el paquete verificado de la candidata y una copia restaurada del curso, con sus
   cuentas y cuatro registros de avance. El arranque humano se hace con `./prueba iniciar`.
   La prueba automática adicional de la cohorte ejercitó mantenimiento, publicación
   compatible por Docente, reapertura y descarga de la frase actualizada por Estudiante
-  en una misma instancia. La prueba humana del túnel y del navegador queda pendiente.
+  en una misma instancia.
+- Aprobación funcional comunicada por JoaquinDiazM el 2026-11-22 tras el ensayo online.
+  Confirmó el cierre limpio del servidor tras probar en Crab. La lista de la cohorte sigue
+  cerrada y la publicación espera la aplicación del contenido solicitado en este mismo ID.
+
+#### Frases de Electromagnetismo
+
+- Bases: plantilla `sha256:69b473310f63fb8bb81e41d26eea6955d9f9b16c7f4a2b0430c92b96d709eb0a`
+  y curso de Crab `sha256:877c6269880089f01965760d626aeb05a71c5f11309a735e5c9a67ab24be8cea`.
+- Autoría: guardadas en **Spider → Modificar → Frase del mapamundi**. Se revisaron los
+  30 nodos activos de cada base y se conservó la frase de Taller Vectorial de Crab.
+  Banco de circuitos invita a calcular corriente y potencia en circuitos resistivos
+  porque eso cubre su fuente actual. Fasores se presenta como taller en preparación.
+- IDs: `base-camp`, `vector-workshop`, `debug-terminal`, `field-lens-cache`,
+  `coulomb-observatory`, `gauss-guide-post`, `circuit-analysis-bench`,
+  `differential-equations-lab`, `ampere-foundry`, `electric-cart-depot`,
+  `faraday-station`, `maxwell-archive`, `hertz-beacon`, `radio-skiff-hangar`,
+  `sensor-calibration-lab`, `rotating-machine-lab`, `power-network-station`,
+  `field-solver-lab`, `spectrum-workshop`, `optics-bench`, `shielding-chamber`,
+  `superconductivity-transition-lab`, `waveguide-mode-gallery`, `transmission-line-bench`,
+  `smith-chart-station`, `antenna-range`, `wireless-link-station`, `atacama-array`,
+  `lunar-relay` y `new-node-0001`.
+- Validación y preview: **Resumen** validó ambos borradores (19 zonas, 30 lugares,
+  20 conceptos). **Editar contenido** mostró la previsualización de los 24 nodos que
+  ofrecen ese control, sin editar su fuente académica.
+- Comprobación aislada: las dos exportaciones llegan a la revisión
+  `sha256:664e52c757c4d469b92e8d950373749d55ec1b53182f4532967265ccbb3b3d7c` y solo
+  cambian frases y fecha editorial frente a sus bases. No se detectaron finalizaciones
+  incompatibles. `npm run check` pasó con 702 pruebas aprobadas, cero fallos, dos
+  omisiones y build. La prueba online usa una frase distinta de la que trae la plantilla.
+- Preflight: autoría en copia temporal desde el navegador de Codex, separado de Edge,
+  con PID 27156 y Editor en `http://127.0.0.1:4173` (HTTP 200, `no-store`). Se cerraron
+  la pestaña y el proceso propios. Origen libre, sin lock, journal ni tombstone.
+  El build canónico previo a la aplicación coincide con la fuente vigente.
+- Handoff: se conservaron las exportaciones temporales `ORBIT-1.1.1-frases-electromagnetismo-plantilla.json`
+  y `ORBIT-1.1.1-frases-electromagnetismo-Crab.json`. JoaquinDiazM aplica la plantilla
+  desde el Editor canónico y publica el otro borrador como Docente en mantenimiento
+  de Crab. En ORBIT online el cambio de frases debe preservar las finalizaciones.
 
 ### UPD-037 — Pulir los arcos y la superposición de etiquetas del mapamundi
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `feature`
 - Versión objetivo: `1.1.1`
 
@@ -392,9 +435,8 @@ para que se lean completas.
   `8a6e598eb670629e9f61260ab95a77c7deeff110226e98be893209b0a2dac286`. En Crab se
   verificaron los 505 archivos y cinco recursos HTTP en loopback con `no-store`.
   Se cerró ese servidor de prueba y se retiraron los temporales de transferencia.
-- Revisión manual humana: pendiente. En el ensayo online compartido con UPD-036,
-  comprobar que el borde punteado queda debajo del título «Superconductividad» y que
-  las conexiones tienen pulsos sin punta de flecha. Revisar el zoom en Global y Directa.
+- Revisión manual humana: aprobada por JoaquinDiazM el 2026-11-22 tras el ensayo
+  online compartido con UPD-036.
 - Observaciones del usuario: la captura mostró el título de zona parcialmente cubierto,
   aunque el rótulo «Carro eléctrico» ya aparecía encima.
 

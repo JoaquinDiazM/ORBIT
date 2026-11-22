@@ -317,8 +317,11 @@ test("la cuenta estudiante recibe la frase publicada por su docente al reabrir e
   assert.equal((await maintenance(false)).status, 200);
   const before = (await student.request(`${route}/edition`)).result.edition;
   const document = (await materializeCourseEdition(before)).editorDocument;
-  const phrase = "Explora cómo se representan los vectores";
-  document.locations.find(({ id }) => id === "vector-workshop").mapInvitation = phrase;
+  const workshop = document.locations.find(({ id }) => id === "vector-workshop");
+  const phrase = workshop.mapInvitation === "Representa un campo por sus componentes"
+    ? "Dibuja un campo a partir de sus componentes"
+    : "Representa un campo por sus componentes";
+  workshop.mapInvitation = phrase;
   const update = { baseRevision: before.revision, document };
 
   assert.equal((await maintenance(true)).status, 200);
