@@ -348,7 +348,7 @@ entender qué ocurrió.
 
 ### UPD-029 — Iconos para los menús de ORBIT Editor
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `feature`
 - Versión objetivo: `1.0.1`
 
@@ -377,13 +377,14 @@ Completar los iconos que falten en los menús generales y sustituir las marcas d
 - Preflight del entorno: fuente y build `5397cd2f68b59bf210e7fc76ab59e6010e599e41fac08773e21fb02e91c55e49`
   coinciden. El sondeo local de `/editor.html` y su CSS respondió 200 con `Cache-Control: no-store`.
   Se cerró el PID 12820. Los puertos 4173 y 8080 están libres y no quedaron marcadores de autoría.
-- Revisión manual humana: pendiente. En Edge externo, abrir ORBIT Editor desde el servidor de
+- Revisión manual humana: aprobada por JoaquinDiazM el 2026-11-22. El guion indicaba abrir
+  ORBIT Editor en Edge externo desde el servidor de
   prueba local. Comprobar Spider, General, Owl y Publicar online. Plegar ambos menús y
   recorrerlos con Tab, también con la ventana estrecha.
 
 ### UPD-030 — Integrar los controles de sesión y recuperar espacio para los nodos
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `bug`
 - Versión objetivo: `1.0.1`
 
@@ -419,7 +420,9 @@ Reubicar los datos del dispositivo y el cierre de sesión. Mostrar «Online» en
   sesión respondieron 200 y `Cache-Control: no-store`. Se cerró el ensayo y se liberó el
   lock. Se conservan datos sintéticos en `%TEMP%/ORBIT-1.0.1-revision-P6y1w1/datos`
   para revisión humana. La instancia de Crab queda a cargo del mantenedor.
-- Revisión manual humana: pendiente. Desde una terminal local y visible de VS Code, iniciar
+- Revisión manual humana: aprobada por JoaquinDiazM el 2026-11-22. Tras corregir el comando para
+  Bash UCRT64, el mantenedor aprobó ambos puntos. El guion indicaba iniciar desde una terminal
+  local y visible de VS Code
   el servidor con los datos sintéticos. En Edge externo, entrar como docente, abrir una
   lección, reducir la altura de la ventana y desplazarse hasta el final. Abrir Online,
   comprobar la información del dispositivo, cerrar el diálogo con Escape y probar el cierre
