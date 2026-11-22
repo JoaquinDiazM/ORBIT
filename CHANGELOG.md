@@ -2,6 +2,26 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [1.0.0] - 2026-11-21
+
+### Añadido
+
+- Servidor docente opcional para Windows y Linux, con administración separada, cuentas por
+  curso y permisos por rol. Owl muestra avance y finalización y permite gestionar estudiantes.
+- Estudio sin conexión y sincronización de finalizaciones. ORBIT se puede instalar como
+  aplicación desde Edge o Chrome.
+- Publicación de cursos en mantenimiento, con conservación del avance compatible y revisión
+  explícita de los cambios incompatibles. Paquete portable con verificación, copia y restauración.
+
+### Alcance de la alfa
+
+- Se mantienen el modo estático y la plantilla demostrativa de Electromagnetismo. La entrega
+  conserva los IDs y formatos locales de progreso y edición.
+- Cohorte cerrada `UPD-027`, aprobada por JoaquinDiazM después de su prueba manual. El piloto
+  ampliado queda pendiente. El [informe de revisión](docs/reviews/UPD-027.md) recoge los ensayos
+  y sus límites.
+- Las siguientes propuestas, decisiones y pruebas manuales se coordinan en el chat de Codex.
+
 ## [0.9.0] - 2026-09-20
 
 ### Añadido

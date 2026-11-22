@@ -1,7 +1,7 @@
 # Guía de ORBIT
 
 Esta guía describe **ORBIT** en `index.html`. Puede abrirse en modo estático con perfiles
-locales, o mediante el servidor docente de la candidata 1.0.0 con una cuenta real. La autoría
+locales, o mediante el servidor docente de la 1.0.0 alfa con una cuenta del curso. La autoría
 se realiza en `editor.html`; consulta la [guía del Editor](EDITOR_GUIDE.md) y, para cuentas,
 Owl y publicación online, la [guía del servidor](SERVER_GUIDE.md).
 
@@ -25,8 +25,7 @@ y sigue sus indicaciones de recuperación.
 Desde Edge/Chrome puedes instalar ORBIT en una ventana propia. **Cerrar sesión** o **Cerrar acceso
 offline** retira el acceso a la copia, conservando finalizaciones pendientes para la misma cuenta.
 Evita preparar acceso offline en navegadores compartidos. Instalación, mantenimiento y tratamiento
-de datos se explican en la [guía del servidor](SERVER_GUIDE.md). La revisión humana de la candidata
-sigue pendiente; su evidencia se registra en el [informe de UPD-027](reviews/UPD-027.md).
+de datos se explican en la [guía del servidor](SERVER_GUIDE.md).
 
 ## Abrir el modo estático
 

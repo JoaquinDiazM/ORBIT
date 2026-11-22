@@ -1,8 +1,7 @@
 # ORBIT: instalación y operación del servidor docente
 
-**Candidata de UPD-027; todavía no es una release 1.0.0 publicada.** Esta guía acompaña al
-paquete portable. La revisión humana sigue pendiente; las evidencias se mantienen en el
-repositorio, separadas de esta guía de operación. No uses datos reales para probar un candidato.
+**ORBIT 1.0.0 alfa.** Esta guía acompaña al paquete portable. Para los ensayos de la alfa,
+usa cuentas y datos de prueba. La evidencia se mantiene en el repositorio.
 
 ## Qué necesita cada persona
 
@@ -20,9 +19,9 @@ ella antes de abrir el enlace. La VPN no sustituye HTTPS. No expongas los helper
 
 ## Obtener y comprobar un paquete
 
-Mientras no exista la release, el desarrollador prepara el paquete con `npm ci` y
-`npm run package`. La carpeta `artifacts` contiene el directorio portable, su `.tar.gz` y
-el SHA-256 del archivo. El sufijo `preview` identifica que aún requiere aprobación humana.
+Desde el repositorio, el desarrollador prepara el paquete con `npm ci` y `npm run package`.
+La carpeta `artifacts` contiene el directorio portable, su `.tar.gz` y el SHA-256 del archivo.
+El sufijo `preview` identifica un paquete generado directamente desde el checkout.
 El paquete incluye KaTeX y sus licencias; no contiene cuentas, datos del servidor ni contraseñas.
 
 Tras la publicación de una release aprobada, su workflow comprueba que la etiqueta `vX.Y.Z`

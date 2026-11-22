@@ -6,7 +6,7 @@ ORBIT es un recurso educativo abierto para construir intuición y teoría median
 universitarias y exploración libre en un mundo 2D. Una **Red de aprendizaje** conecta lecciones
 y misiones; su progreso abre regiones del mapa sin restringir el movimiento a nodos o caminos.
 
-**Versión publicada: 0.9.0.** La ruta demostrativa es **Electromagnetismo**, dirigida a quienes
+**Versión 1.0.0 alfa.** La ruta demostrativa es **Electromagnetismo**, dirigida a quienes
 ya conocen cálculo, álgebra lineal y física clásica. Su contenido es provisional y no equivale
 a un curso completo revisado.
 
@@ -15,7 +15,7 @@ de la Universidad de Chile. ORBIT es independiente: no redistribuye evaluaciones
 ni material docente restringido. La historia de la ciencia sirve para explicar la necesidad
 de nuevas ideas, subordinada a los prerrequisitos y al aprendizaje.
 
-## Base publicada 0.9.0
+## Modo estático
 
 - **ORBIT:** movimiento con teclado, navegación Global/Directa, ejercicios con retroalimentación,
   referencias y Gadgets. Estudiante, Docente y Debug conservan avances locales separados.
@@ -26,15 +26,10 @@ de nuevas ideas, subordinada a los prerrequisitos y al aprendizaje.
 - **Distribución estática:** el build funciona sin backend ni cuentas; el repositorio incluye
   un workflow opcional de GitHub Pages.
 
-Los perfiles seleccionables son modos locales, no autenticación. La **candidata 1.0.0** añade
-servidor docente, cuentas por curso, sincronización y aplicación instalable desde el navegador.
-Estas capacidades están en el árbol de trabajo y todavía no forman parte de una release
-aprobada. El estado y la autorización viven en la [cola operativa](ORBIT_UPDATES.md); las
-pruebas y los pasos de revisión humana, en el [informe de UPD-027](docs/reviews/UPD-027.md).
+Los perfiles seleccionables pertenecen al modo local. El servidor docente aplica los permisos
+de las cuentas online por curso.
 
-## Flujo previsto para 1.0.0
-
-**Candidata pendiente de revisión humana y publicación.** Para probarla:
+## Probar el servidor docente
 
 1. El responsable del servidor obtiene el paquete portable e instala Node.js 24 en su máquina
    Windows o Linux siguiendo la [guía del servidor](docs/SERVER_GUIDE.md).
@@ -55,13 +50,14 @@ Si la red universitaria exige VPN, los participantes se conectan a ella antes de
 HTTPS. El estudiante puede preparar este dispositivo para estudiar sin conexión y sincronizar
 después. Es una función distinta del Editor offline usado para preparar contenido.
 
-La revisión humana comienza con un docente y un estudiante en dos máquinas; después se mantiene
-el piloto de 10 estudiantes, 2 docentes y 2 cursos plantilla. La [hoja de ruta](docs/ROADMAP.md)
-conserva el alcance del lanzamiento. Los ensayos automáticos no sustituyen estos recorridos.
+La alfa está aprobada tras la prueba manual del mantenedor. El piloto ampliado de 10 estudiantes,
+2 docentes y 2 cursos plantilla queda pendiente. Consulta el [informe de UPD-027](docs/reviews/UPD-027.md)
+y la [hoja de ruta](docs/ROADMAP.md).
 
-Cuando se publique la release aprobada, el equipo docente podrá descargar **orbit-servidor.tar.gz**
-desde [Descargas de ORBIT](https://github.com/JoaquinDiazM/ORBIT/releases). Los estudiantes
-solo necesitan el enlace de su docente. Para probar el candidato actual, sigue la guía del servidor.
+La [guía del servidor](docs/SERVER_GUIDE.md) explica cómo preparar el paquete portable. Cuando
+esté adjunto a una release de GitHub, también se podrá obtener desde
+[Descargas de ORBIT](https://github.com/JoaquinDiazM/ORBIT/releases). Los estudiantes solo
+necesitan el enlace de su docente y la cuenta que reciban.
 
 ## Ejecutar el repositorio en modo estático
 
@@ -94,12 +90,12 @@ Los comandos y el despliegue estático se explican en [Desarrollo](docs/DEVELOPM
 | Comprender la implementación | [Arquitectura](docs/ARCHITECTURE.md), [mundo y Red](docs/WORLD_AND_KNOWLEDGE_DESIGN.md), [ADR](docs/decisions/README.md) |
 | Preparar y comprobar cambios | [Desarrollo](docs/DEVELOPMENT.md), [QA](docs/QA_CHECKLIST.md), [Debugger](docs/DEBUGGING.md) |
 | Entender el criterio académico | [Principios pedagógicos](docs/PEDAGOGICAL_PRINCIPLES.md), [esqueleto curricular](docs/CURRICULUM_SKELETON.md), [fuentes](docs/RESEARCH_REFERENCES.md) |
-| Planificar 1.0.0 | [Hoja de ruta](docs/ROADMAP.md); decisiones y autorizaciones en [ORBIT_UPDATES.md](ORBIT_UPDATES.md) |
+| Planificar próximas versiones | [Hoja de ruta](docs/ROADMAP.md) y [cola de actualizaciones](ORBIT_UPDATES.md) |
 | Consultar lo publicado | [Changelog](CHANGELOG.md), [fichas y evidencia histórica](docs/UPDATES_HISTORY.md) |
 
-Cada guía mantiene su tema; el historial de versiones no se repite en las instrucciones de uso.
-Las propuestas y su aprobación se gestionan en `ORBIT_UPDATES.md`. Las contribuciones externas
-pueden usar issues y pull requests. Antes de entregar un cambio, ejecuta `npm run check`.
+El mantenedor coordina propuestas, pruebas y aprobaciones en el chat de Codex. El agente
+registra las decisiones en `ORBIT_UPDATES.md`. Las contribuciones externas pueden usar issues
+y pull requests. Ejecuta `npm run check` antes de entregar un cambio.
 
 ## Capturas de referencia
 

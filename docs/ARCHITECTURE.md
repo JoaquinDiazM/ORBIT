@@ -1,7 +1,7 @@
 # Arquitectura vigente
 
-**0.9.0 es la versión publicada.** La candidata de [UPD-027](../ORBIT_UPDATES.md) conserva su
-modo estático y añade el servidor docente opcional de [ADR 0013](decisions/0013-self-hosted-courses-and-offline-client.md).
+**ORBIT 1.0.0 alfa** conserva el modo estático y añade el servidor docente opcional de
+[ADR 0013](decisions/0013-self-hosted-courses-and-offline-client.md).
 Ambos modos comparten las entradas `index.html` para aprender y `editor.html` para autoría,
 los módulos ES, Canvas 2D, DOM/SVG y KaTeX local. La plantilla demostrativa es Electromagnetismo.
 
@@ -121,7 +121,7 @@ Spider/Bee y modifica únicamente su Bowerbird; Debug queda bloqueado. Editor no
 sesión de aprendizaje. Solo su aplicación explícita inspecciona y reinicia el progreso tras
 mostrar el impacto. Estos perfiles son modos locales elegibles, no cuentas ni autorización real.
 
-## Cursos online de la candidata 1.0.0
+## Cursos online
 
 El servidor marca sus páginas con el modo online y su identidad. ORBIT y Editor resuelven la
 sesión antes de crear modelos; `?profile` y `?debug` no confieren permisos. El administrador
@@ -201,7 +201,7 @@ dos entradas, módulos, recursos y KaTeX, autentica la edición y emite `build-i
 revisión/digest. El workflow `.github/workflows/pages.yml` valida cada push a `main` y despliega
 GitHub Pages solo si `ENABLE_PAGES` está habilitado.
 
-La candidata añade manifiesto de recursos con hashes, service worker y paquete portable para
+La alfa añade manifiesto de recursos con hashes, service worker y paquete portable para
 Windows/Linux. Pages sigue siendo distribución estática, sin cuentas ni servidor docente.
 La evidencia del ensayo entre máquinas, el preflight y la revisión humana se registran por
-separado en [UPD-027](../ORBIT_UPDATES.md); generar el build no publica 1.0.0.
+separado en el [informe de UPD-027](reviews/UPD-027.md).

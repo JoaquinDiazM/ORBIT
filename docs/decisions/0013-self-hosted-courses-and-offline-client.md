@@ -1,6 +1,6 @@
 # ADR 0013: servidor docente y cliente instalable con estudio sin conexión
 
-- Estado: aceptado para implementación de UPD-027; revisión humana pendiente.
+- Estado: aceptado e implementado en 1.0.0 alfa (UPD-027).
 - Fecha: 2026-10-31
 - Enmienda: ADR 0001, 0003, 0007 y 0008 para el modo online de 1.0.0.
 

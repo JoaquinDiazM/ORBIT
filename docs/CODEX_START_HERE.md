@@ -22,18 +22,13 @@ los chats antiguos y los informes de releases como contexto.
 | Contratos curriculares en `src/data/` | [src/data/AGENTS.md](../src/data/AGENTS.md) |
 | Estados, recuperación y publicación | [ORBIT_UPDATES.md](../ORBIT_UPDATES.md) |
 
-## Base publicada y candidata 1.0.0
+## Base 1.0.0 alfa
 
-La versión publicada es **0.9.0**: ORBIT y ORBIT Editor estáticos, con perfiles locales y
-una ruta demostrativa de Electromagnetismo. La candidata conserva ese modo y añade el servidor
-docente opcional, cuentas por curso, Owl, sincronización y PWA. Verifica los contratos en el
-código actual; el estado de entrega pertenece a la cola.
-
-[UPD-027](../ORBIT_UPDATES.md#upd-027--lanzamiento-de-orbit-para-usuarios-reales) es el único
-ID de la cohorte 1.0.0. [ADR 0013](decisions/0013-self-hosted-courses-and-offline-client.md)
-define los dos modos y la [hoja de ruta](ROADMAP.md) distingue el ensayo de dos máquinas y el
-piloto. El contexto temporal de `tmp/UPD-027/` sirve para reanudar el trabajo; no sustituye el
-árbol actual ni acredita aprobación humana, publicación o dependencias adicionales.
+ORBIT y ORBIT Editor conservan el modo estático, los perfiles locales y la ruta demostrativa
+de Electromagnetismo. La alfa añade servidor docente, cuentas por curso, Owl, sincronización
+y PWA. [ADR 0013](decisions/0013-self-hosted-courses-and-offline-client.md) define ambos modos.
+El [informe de UPD-027](reviews/UPD-027.md) conserva la evidencia y la [hoja de ruta](ROADMAP.md)
+distingue el ensayo de dos máquinas y el piloto. Consulta la cola para el trabajo activo.
 
 ## Lectura según la tarea
 

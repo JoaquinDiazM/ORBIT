@@ -1,7 +1,7 @@
 # Contribuir a ORBIT
 
-ORBIT es un recurso educativo abierto. La ruta demostrativa actual es Electromagnetismo;
-el [lanzamiento 1.0.0](docs/ROADMAP.md) tiene su propio alcance pendiente de diseño.
+ORBIT es un recurso educativo abierto. La ruta demostrativa es Electromagnetismo. La
+[hoja de ruta](docs/ROADMAP.md) recoge el alcance de la 1.0.0 alfa y las etapas siguientes.
 
 ## Preparar una contribución
 

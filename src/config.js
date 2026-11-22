@@ -3,7 +3,7 @@ export const APP_CONFIG = Object.freeze({
   appExpansion: "Open Roadmap for Building Intuition and Theory",
   activeRoute: "Electromagnetismo",
   activeCourseId: "electromagnetism-applied",
-  version: "0.9.0",
+  version: "1.0.0",
   locale: "es-CL",
   storagePrefix: "orbit-progress",
   legacyStoragePrefixes: Object.freeze(["aea-progress"]),

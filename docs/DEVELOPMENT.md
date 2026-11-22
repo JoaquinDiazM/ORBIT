@@ -1,9 +1,9 @@
 # Desarrollo y operación local
 
-Esta guía describe el entorno de desarrollo y el modo estático publicado en 0.9.0. Las autorizaciones, cohortes y
-publicaciones se controlan exclusivamente en [ORBIT_UPDATES.md](../ORBIT_UPDATES.md); las
-reglas para agentes y el aislamiento de pruebas están en [AGENTS.md](../AGENTS.md).
-La candidata 1.0.0 añade un servidor docente independiente. Su instalación y operación están
+Esta guía describe el entorno de desarrollo y el modo estático. El agente registra las decisiones
+de versión y publicación del chat de Codex en [ORBIT_UPDATES.md](../ORBIT_UPDATES.md). Las reglas
+para agentes y el aislamiento de pruebas están en [AGENTS.md](../AGENTS.md).
+La 1.0.0 alfa incluye un servidor docente independiente. Su instalación y operación están
 en [SERVER_GUIDE.md](SERVER_GUIDE.md); el contrato está en
 [ADR 0013](decisions/0013-self-hosted-courses-and-offline-client.md).
 

@@ -256,19 +256,19 @@ Sin propuestas pendientes de clasificar. Navegación y lanzamiento se registraro
 - IDs: `UPD-027`
 - Cierre confirmado por JoaquinDiazM: 2026-11-21.
 
-La cohorte inmediata **1.0.0 alfa** está cerrada y contiene únicamente **UPD-027**.
-JoaquinDiazM aprobó la candidata en el chat tras su prueba manual y pidió hacer el push
-final a GitHub. La base publicada continúa siendo 0.9.0 hasta verificar el push del release.
+La cohorte **1.0.0 alfa** está cerrada y contiene únicamente **UPD-027**. JoaquinDiazM aprobó
+la candidata en el chat tras su prueba manual y pidió hacer el push final a GitHub. La versión
+1.0.0 está preparada para publicar y archivar tras verificar el commit de release en `origin/main`.
 
 ## Actualizaciones activas
 
 ### UPD-027 — Lanzamiento de ORBIT para usuarios reales
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `épica`
 - Versión objetivo: `1.0.0`
 - Impacto sugerido: `X`; distribución pública, cuentas y cursos compartidos.
-- Próximo responsable: el agente, para revalidación y publicación de la cohorte cerrada.
+- Próximo responsable: el agente, para verificar el push y archivar la ficha.
 
 #### Solicitud original
 

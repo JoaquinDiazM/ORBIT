@@ -1,16 +1,15 @@
-# Preparación de ORBIT 1.0.0
+# Hoja de ruta de ORBIT
 
-La base publicada es **0.9.0**. El lanzamiento para usuarios reales corresponde a
-[UPD-027](../ORBIT_UPDATES.md#upd-027--lanzamiento-de-orbit-para-usuarios-reales), único ID de la
-cohorte 1.0.0. Su estado se mantiene en esa ficha. El trabajo autorizado llega hasta revisión,
-sin versionar ni publicar. [ADR 0013](decisions/0013-self-hosted-courses-and-offline-client.md)
-define el servidor opcional; [CHANGELOG.md](../CHANGELOG.md) conserva lo publicado.
+**ORBIT 1.0.0 alfa** corresponde a UPD-027. [ADR 0013](decisions/0013-self-hosted-courses-and-offline-client.md)
+define el servidor opcional y el [changelog](../CHANGELOG.md) recoge lo incluido. Las siguientes
+versiones previstas son 1.1.0 y 1.2.0. Sus actualizaciones y criterios se decidirán en el chat y
+se registrarán en la [cola de actualizaciones](../ORBIT_UPDATES.md).
 
 ## Qué existe y qué debe conseguir el lanzamiento
 
-La versión publicada ofrece ORBIT y ORBIT Editor estáticos para una ruta demostrativa de
-Electromagnetismo, con progreso local y autoría mediante Spider. La candidata conserva ese
-modo y añade servidor docente, cuentas por curso, Owl, sincronización y PWA. El helper local
+La alfa ofrece ORBIT y ORBIT Editor estáticos para una ruta demostrativa de Electromagnetismo,
+con progreso local y autoría mediante Spider. Incluye servidor docente, cuentas por curso, Owl,
+sincronización y PWA. El helper local
 sigue separado del servidor de cursos. Véase [Arquitectura](ARCHITECTURE.md).
 
 Las decisiones confirmadas de UPD-027 fijan este destino:
@@ -35,10 +34,7 @@ Las decisiones confirmadas de UPD-027 fijan este destino:
 - Lanzamiento con una plantilla básica. El curso completo de Electromagnetismo se desarrollará
   después y no se presentará como terminado.
 
-Son requisitos del lanzamiento, todavía no capacidades del producto publicado. La ficha conserva
-las respuestas originales y es la autoridad para cualquier cambio de alcance.
-
-El [recorrido previsto del README](../README.md#flujo-previsto-para-100) comienza con el docente
+El [recorrido del README](../README.md#probar-el-servidor-docente) comienza con el docente
 creando o importando un curso en Editor **offline**, continúa con el arranque del servidor propio
 desde terminal y entrega un enlace para ORBIT y Editor **online**, con ingreso mediante las
 cuentas provistas por el docente. El modo offline también se utilizará para cambios que
@@ -46,7 +42,7 @@ requieran mantenimiento. Se contempla el acceso a servidores universitarios medi
 institucional previa al enlace. Autoría offline y aprendizaje del estudiante sin conexión son
 requisitos distintos, con los contratos de transición definidos en ADR 0013.
 
-## Implementación de la candidata
+## Implementación de la alfa
 
 ADR 0013 define servidor Node nativo, almacenamiento privado de un solo escritor, copias
 verificadas y restauración con servicio detenido. Los borradores permanecen en cada dispositivo;
@@ -55,13 +51,13 @@ revisiones con decisiones explícitas para cambios incompatibles. HTTPS protege 
 
 La [guía del servidor](SERVER_GUIDE.md) describe instalación, distribución, actualización y
 recuperación. El [informe de UPD-027](reviews/UPD-027.md) concentra resultados y limitaciones
-de la automatización, preflight y guion humano; no constituye aprobación ni publicación.
+de la automatización, preflight y revisión humana de la alfa.
 
 ## Contratos que debe cubrir la revisión
 
 La revisión compara las capacidades implementadas con el alcance acordado:
 
-| Frente | Contrato de la candidata |
+| Frente | Contrato de la alfa |
 |---|---|
 | Identidad y permisos | Sesiones reales, permisos por curso, administrador separado y recuperación sin revelar contraseñas. Los perfiles locales no conceden autoridad remota. |
 | Cursos | Instancias independientes aunque compartan plantilla, matrícula por cuenta y selección de cursos autorizados. |
@@ -70,9 +66,8 @@ La revisión compara las capacidades implementadas con el alcance acordado:
 | Operación | Paquete Windows/Linux, acceso HTTPS también con VPN, copia y restauración con el servicio detenido. |
 | Distribución | Modo estático conservado, paquete servidor y PWA instalable; actualización de recursos sin reiniciar avances. |
 
-Los módulos y esquemas se localizan en [Arquitectura](ARCHITECTURE.md). Tras completar pruebas
-y preflight, el punto pasa a revisión humana. El ensayo de dos máquinas precede al piloto;
-solo la aprobación del usuario y el cierre de cohorte permiten preparar la publicación.
+Los módulos y esquemas se localizan en [Arquitectura](ARCHITECTURE.md). El ensayo de dos máquinas
+precede al piloto ampliado, que sigue pendiente tras la aprobación de la alfa.
 
 ## Evidencia necesaria para aceptar el lanzamiento
 
