@@ -6,7 +6,7 @@ ORBIT es un recurso educativo abierto para construir intuición y teoría median
 universitarias y exploración libre en un mundo 2D. Una **Red de aprendizaje** conecta lecciones
 y misiones; su progreso abre regiones del mapa sin restringir el movimiento a nodos o caminos.
 
-**Versión 1.0.0 alfa.** La ruta demostrativa es **Electromagnetismo**, dirigida a quienes
+**Versión 1.0.1 alfa.** La ruta demostrativa es **Electromagnetismo**, dirigida a quienes
 ya conocen cálculo, álgebra lineal y física clásica. Su contenido es provisional y no equivale
 a un curso completo revisado.
 

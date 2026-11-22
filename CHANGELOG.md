@@ -2,6 +2,21 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [1.0.1] - 2026-11-22
+
+### Cambiado
+
+- ORBIT Editor muestra pictogramas en los menús General y Editor, incluida la araña de
+  Spider. Los iconos y rótulos accesibles se conservan al plegar los menús.
+- ORBIT y ORBIT Editor integran los controles de sesión en la cabecera. La ventana de
+  lección recupera el espacio inferior y permite desplazarse hasta el final.
+- El lanzador de ensayo en Crab conserva los datos al relanzar y muestra el enlace vigente.
+  Registra el último timeout de arranque y reintenta una vez.
+
+### Verificación
+
+- Cohorte cerrada `UPD-028`, `UPD-029` y `UPD-030`, aprobada por JoaquinDiazM.
+
 ## [1.0.0] - 2026-11-21
 
 ### Añadido

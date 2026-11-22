@@ -262,13 +262,14 @@ Sin propuestas pendientes de clasificar.
 
 JoaquinDiazM fijó 1.0.1 como siguiente versión para corregir errores y detalles visuales.
 El alcance de la cohorte está limitado a los tres IDs indicados.
+La cohorte completa quedó aprobada. La publicación de 1.0.1 está en curso.
 La siguiente cohorte prevista es 1.0.2. Las versiones 1.1.0 y 1.2.0 quedan para después.
 
 ## Actualizaciones activas
 
 ### UPD-028 — Recuperar el acceso y relanzar el servidor de prueba
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `bug`
 - Versión objetivo: `1.0.1`
 
@@ -348,7 +349,7 @@ entender qué ocurrió.
 
 ### UPD-029 — Iconos para los menús de ORBIT Editor
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `1.0.1`
 
@@ -384,7 +385,7 @@ Completar los iconos que falten en los menús generales y sustituir las marcas d
 
 ### UPD-030 — Integrar los controles de sesión y recuperar espacio para los nodos
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `bug`
 - Versión objetivo: `1.0.1`
 
