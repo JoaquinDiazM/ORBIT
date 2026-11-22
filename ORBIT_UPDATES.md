@@ -260,101 +260,9 @@ Sin propuestas pendientes de clasificar.
 
 ## Cohorte inmediata
 
-- Versión: `1.1.0`
-- Estado de la cohorte: `cerrada`
-- IDs: `UPD-034`, `UPD-035`
-- Cierre confirmado por JoaquinDiazM: 2026-11-22.
-
-JoaquinDiazM autorizó los dos cambios visuales y cerró la cohorte el 2026-11-22.
-JoaquinDiazM aprobó ambos resultados en el chat el 2026-11-22.
-La publicación de la cohorte está en curso.
+Sin cohorte inmediata.
 
 ## Actualizaciones activas
-
-### UPD-034 — Animar los transportes y renombrar el Auto
-
-- Estado: `publicando`
-- Tipo: `feature`
-- Versión objetivo: `1.1.0`
-
-#### Solicitud original
-
-Cada transporte debe tener una estela y movimientos sencillos al avanzar o estar quieto.
-El vehículo llamado Carro eléctrico pasa a llamarse Auto. JoaquinDiazM delega el diseño
-de los efectos y sugiere una estela tipo humo y ruedas que giran.
-
-#### Especificación elaborada por el agente
-
-- A pie: animación corta de pasos, polvo tenue al andar y un movimiento leve de reposo.
-- Auto: ruedas que giran con el desplazamiento y una estela corta tipo polvo. Al detenerse,
-  las ruedas dejan de girar y la estela se disipa.
-- Deslizador de radio: estela luminosa al desplazarse y oscilación suave de reposo.
-- Mantener legibilidad con movimiento reducido. Acotar los efectos y comprobar que se
-  disipan al detenerse o cambiar de transporte.
-- Preservar IDs, velocidad, colisiones, desbloqueo y compatibilidad del progreso. Los
-  efectos usan el desplazamiento efectivo y son efímeros. «Auto» es el rótulo del
-  transporte seleccionable. Spider protege el título y el contenido del nodo del depósito.
-
-#### Implementación y revisión
-
-- Base revisada: `fbbc9d8151a17a30568fa30d73d2f76948d15384`, cierre publicado de 1.0.2.
-- Rutas propias: `src/data/knowledge.js`, `src/game/game-app.js`, `src/game/renderer.js`,
-  `src/game/transport-visuals.js` y pruebas de runtime y navegación.
-- Resultado: pasos y polvo a pie, ruedas y polvo del Auto, y estela luminosa del Deslizador
-  de radio. Cada transporte tiene movimiento de reposo. Las estelas se disipan al detenerse
-  y se retiran durante un salto o cambio de transporte. El HUD y el aviso de selección
-  usan «Auto» para el ID estable `electric-cart`.
-- Pruebas automáticas: `npm run check` con 695 pruebas aprobadas, cero fallos y dos omitidas.
-  Se cubrieron el cruce en Directa, la frontera cerrada, la disipación, el cambio de vehículo
-  y el movimiento reducido.
-- Preflight del entorno: build aislado `77173de36c102268fd8b75e006d5d8874269da41d1cdb85747e5420c82261401` con versión de revisión 1.0.2.
-  Fuente y módulos de `dist` idénticos. Siete respuestas HTTP 200 con `Cache-Control: no-store`
-  en el origen canónico. PID 30268 terminado, 4173 libre, sin copia temporal, lock,
-  journal ni tombstone del agente.
-- Revisión manual humana: aprobada por JoaquinDiazM en el chat el 2026-11-22. Guion entregado:
-  ejecutar `npm run dev` en Bash UCRT64 de la laptop y
-  abrir `http://127.0.0.1:4173/?profile=debug` en Edge InPrivate. Tras revisar la Red, ejecutar
-  `OrbitDebug.completeAll()` en la consola de ese perfil. Volver al mapa, alternar con T y
-  comprobar el rótulo «Auto», movimiento, reposo y disipación de los tres transportes.
-
-### UPD-035 — Curvar y animar las conexiones de la Red de aprendizaje
-
-- Estado: `publicando`
-- Tipo: `feature`
-- Versión objetivo: `1.1.0`
-
-#### Solicitud original
-
-Dibujar las conexiones del árbol de conocimiento como parábolas suaves y mostrar pulsos
-sucesivos que viajen en un sentido por cada trayectoria.
-
-#### Especificación elaborada por el agente
-
-- Dibujar arcos cuadráticos leves en el mapa de ORBIT y animar pulsos desde el
-  prerrequisito hacia el nodo que depende de él.
-- Conservar extremos, filtros, estados continuo y discontinuo, marca de desbloqueo y
-  legibilidad en Global y Directa. Con movimiento reducido, conservar el arco estático.
-- El cambio es visual. Conservar el grafo académico, su apertura territorial y los
-  movimientos permitidos. Limitar la animación a las conexiones visibles.
-
-#### Implementación y revisión
-
-- Base revisada: `fbbc9d8151a17a30568fa30d73d2f76948d15384`, cierre publicado de 1.0.2.
-- Rutas propias: `src/game/renderer.js`, `src/game/learning-edge-visuals.js` y pruebas
-  de runtime y navegación.
-- Resultado: arcos cuadráticos con flecha tangente y pulsos hacia el destino. Se conservan
-  el trazo continuo o discontinuo, los filtros y «NUEVO». La geometría se reutiliza hasta un
-  cambio de proyección y se omiten los trazos fuera de la vista.
-- Pruebas automáticas: `npm run check` aprobado. Se comprobó que los pulsos recorren el arco
-  hacia el nodo dependiente, que el trazo estático respeta el estado y que las 31 conexiones de
-  la edición publicada tienen geometría finita.
-- Preflight del entorno: mismo build y sondeo del origen canónico que UPD-034.
-- Revisión manual humana: aprobada por JoaquinDiazM en el chat el 2026-11-22. Guion entregado:
-  en el perfil Debug aislado, elegir Visual → Red de
-  aprendizaje → Total. Ejecutar `OrbitDebug.completeLocation("vector-workshop")` y comprobar
-  la dirección, las conexiones continuas y discontinuas y «NUEVO». Cambiar entre Global y
-  Directa. Con movimiento reducido, comprobar que los arcos permanecen y los pulsos, las
-  estelas y el balanceo se desactivan.
 
 ### UPD-033 — Cliente instalable para Windows con actualizaciones desde la aplicación
 
@@ -447,4 +355,4 @@ junto con cada ficha y sus intercambios, en
 [`docs/UPDATES_HISTORY.md`](docs/UPDATES_HISTORY.md). `CHANGELOG.md` mantiene solo el resumen
 orientado a quienes usan ORBIT; los descartes no reciben versión ni entrada de changelog.
 
-La cohorte ORBIT 1.0.2 está publicada y archivada.
+La cohorte ORBIT 1.1.0 está publicada y archivada.
