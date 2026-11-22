@@ -28,8 +28,9 @@ Indica qué debe decidir JoaquinDiazM en el paso actual, con opciones concretas 
 y señala si en ese momento no hay decisiones pendientes. Incluye versión, asignación de punto,
 detalles de alcance, autorización, aprobación o cierre solo cuando corresponda. Se puede
 seguir el ciclo completo desde el chat sin tener que abrir ni editar esta cola.
-Incluye siempre el punto **Nuevos updates**. Si JoaquinDiazM indica que no hay ideas nuevas
-para ese ciclo, márcalo como resuelto.
+Incluye siempre la casilla **Nuevos updates** y déjala abierta para recibir ideas. Si una
+propuesta llega sin versión, regístrala con `auto` y pregunta en la checklist del siguiente
+ciclo a qué cohorte debe pertenecer.
 
 ## Estados permitidos
 
@@ -254,17 +255,19 @@ Sin propuestas pendientes de clasificar.
 ## Cohorte inmediata
 
 - Versión: `1.0.1`
-- Estado de la cohorte: `abierta`
-- IDs: `UPD-028`
+- Estado de la cohorte: `cerrada`
+- IDs: `UPD-028`, `UPD-029`, `UPD-030`
+- Cierre confirmado por JoaquinDiazM: 2026-11-22.
 
 JoaquinDiazM fijó 1.0.1 como siguiente versión para corregir errores y detalles visuales.
+El alcance de la cohorte está limitado a los tres IDs indicados.
 Las versiones 1.1.0 y 1.2.0 quedan para después de esta cohorte.
 
 ## Actualizaciones activas
 
 ### UPD-028 — Recuperar el acceso y relanzar el servidor de prueba
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `bug`
 - Versión objetivo: `1.0.1`
 
@@ -326,10 +329,70 @@ entender qué ocurrió.
   y sus procesos. Los hashes de `datos/state.json` y `datos/previous.json` se conservaron.
   En la laptop, 4173 estaba libre y no se detectaron lock, journal ni tombstone de autoría.
   La revisión de UPD-028 usa el paquete existente en Crab.
-- Revisión manual humana: pendiente. Desde la terminal de VS Code conectada a Crab, abrir el
-  directorio del lanzador y ejecutar `./prueba iniciar`. Abrir el enlace que imprima en
-  Edge e ingresar con una cuenta existente. Tras comprobar curso y progreso, detener con
-  `Ctrl+C`, relanzar por la misma ruta y repetir la comprobación con el enlace nuevo.
+- Revisión manual humana: aprobada por JoaquinDiazM el 2026-11-22. El recorrido funcionó.
+  Un intento de inicio agotó la espera con «The operation was aborted» y el siguiente arrancó
+  sin cambios de configuración. El mantenedor pidió corregir este detalle dentro de UPD-028
+  sin repetir el recorrido manual.
+- Corrección del 2026-11-22: el lanzador reconoce el timeout aunque la espera produzca
+  un error de aborto. Indica la etapa, libera los recursos y hace un único reintento.
+  Conserva el último timeout en `ultimo-timeout.json` en el directorio del lanzador, con fecha,
+  etapa e intento. Los diagnósticos anteriores se mostraban en terminal y no se conservó
+  un log del incidente original.
+- Revalidación aislada: se reprodujo el mensaje original al interrumpir la espera de
+  la respuesta por HTTPS. El candidato se recuperó en el segundo intento con el puente
+  y TLS reales. Dos timeouts consecutivos terminaron con diagnóstico persistente. Ambos
+  escenarios conservaron los datos sintéticos y liberaron los locks. Se actualizó solo el
+  lanzador para arranques futuros y se comprobó que la instancia de `code002` seguía con
+  el mismo PID. Sus páginas públicas devolvieron HTTP 200 en la comprobación de solo lectura.
+
+### UPD-029 — Iconos para los menús de ORBIT Editor
+
+- Estado: `propuesto`
+- Tipo: `feature`
+- Versión objetivo: `1.0.1`
+
+#### Solicitud original
+
+Añadir iconos a los menús de ORBIT Editor. Spider debe usar una araña que encaje con la interfaz.
+Completar los iconos que falten en los menús generales y sustituir las marcas de letras.
+
+#### Especificación elaborada por el agente
+
+- Criterios propuestos: revisar el dock de herramientas y los menús generales del Editor,
+  incluidos sus estados expandidos y compactos. Usar pictogramas reconocibles y coherentes con
+  los iconos existentes. Spider debe reconocerse como una araña.
+- Preservar contraste, etiquetas accesibles, navegación por teclado y estado seleccionado.
+  La futura revisión recorrerá dock expandido y compacto a distintas anchuras.
+
+#### Implementación y revisión
+
+- Pendiente de autorización.
+
+### UPD-030 — Integrar los controles de sesión y recuperar espacio para los nodos
+
+- Estado: `propuesto`
+- Tipo: `bug`
+- Versión objetivo: `1.0.1`
+
+#### Solicitud original
+
+Quitar el recuadro superior de sesión que reduce el área útil y corta ventanas de nodos.
+Reubicar los datos del dispositivo y el cierre de sesión. Mostrar «Online» en lugar de
+«Conectado al servidor» y usar «ORBIT Editor» como etiqueta del enlace al Editor.
+
+#### Especificación elaborada por el agente
+
+- Criterios propuestos: integrar el estado y los controles de cuenta en la interfaz sin
+  reservar una franja superior. Omitir el título duplicado del curso cuando ya está visible.
+  Comprobar que los controles de salida de una ventana de nodo queden accesibles en pantallas
+  de poca altura.
+- Mantener accesibles el cierre de sesión, el cierre de acceso offline, el cambio de curso
+  cuando corresponda y la información del dispositivo. Conservar avisos de sincronización y
+  errores. Revisar los puntos de entrada online que comparten la sesión.
+
+#### Implementación y revisión
+
+- Pendiente de autorización.
 
 ## Historial
 
