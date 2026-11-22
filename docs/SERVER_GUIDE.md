@@ -36,8 +36,9 @@ node --version
 node scripts/verify-package.mjs
 ```
 
-La comprobación detecta archivos cambiados o incompletos. No sustituye verificar la procedencia
-del archivo y su checksum publicado por quien lo distribuye.
+La comprobación detecta archivos cambiados o incompletos e imprime la versión del paquete
+instalado. La etiqueta de ORBIT muestra la versión del build que sirve ese paquete. Comprueba
+la procedencia y la huella que publicó quien distribuye el archivo.
 
 ## Preparar un borrador offline
 

@@ -13,16 +13,24 @@ const MANIFEST_PATH = new URL("../public/manifest.webmanifest", import.meta.url)
 const README_PATH = new URL("../README.md", import.meta.url);
 const README_SCREENSHOTS = [
   {
-    alt: "ORBIT 0.7.0 en perfil Estudiante, con Campamento Base y el menú principal",
-    href: "docs/screenshots/orbit-0.7.0.png",
+    alt: "Mapa de ORBIT 1.0.1 desde Campamento Base, sin paneles abiertos",
+    href: "docs/screenshots/orbit-mapa-1.0.1.png",
   },
   {
-    alt: "ORBIT Editor 0.7.0 con Spider abierto para organizar nodos y conexiones",
-    href: "docs/screenshots/editor-spider-0.7.0.png",
+    alt: "Lección Taller Vectorial abierta sobre el mapa de ORBIT 1.0.1",
+    href: "docs/screenshots/orbit-nodo-1.0.1.png",
   },
   {
-    alt: "ORBIT Editor 0.7.0 con Bee abierto para organizar zonas y rótulos",
-    href: "docs/screenshots/editor-bee-0.7.0.png",
+    alt: "Gadget Explorador de campos 2D con un campo vectorial circular en ORBIT 1.0.1",
+    href: "docs/screenshots/orbit-campos-1.0.1.png",
+  },
+  {
+    alt: "ORBIT Editor 1.0.1 con Spider abierto en Mover y los iconos del menú editorial",
+    href: "docs/screenshots/editor-spider-1.0.1.png",
+  },
+  {
+    alt: "ORBIT Editor 1.0.1 con Bee abierto y Electrostática seleccionada",
+    href: "docs/screenshots/editor-bee-1.0.1.png",
   },
 ].map((screenshot) => ({
   ...screenshot,
@@ -105,7 +113,7 @@ test("la marca queda visible con tamaño contenido en README y ambos shells", as
   }
 });
 
-test("README muestra capturas legibles de ORBIT 0.7.0 y sus herramientas editoriales", async () => {
+test("README muestra las cinco capturas legibles de ORBIT 1.0.1 y del Editor", async () => {
   const readme = await readFile(README_PATH, "utf8");
 
   for (const { alt, href, path } of README_SCREENSHOTS) {

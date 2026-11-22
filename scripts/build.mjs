@@ -2,6 +2,7 @@ import { access, cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import { materializeCourseEdition } from "../src/core/course-edition.js";
+import { APP_CONFIG } from "../src/config.js";
 import { buildOfflineResources } from "./build-offline.mjs";
 
 const root = resolve(process.cwd());
@@ -11,6 +12,10 @@ const katexDist = resolve(katexRoot, "dist");
 const katexVendor = resolve(dist, "vendor", "katex");
 const developmentKatexBase = "./node_modules/katex/dist/";
 const productionKatexBase = "./vendor/katex/";
+const { version } = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
+if (APP_CONFIG.version !== version) {
+  throw new Error("APP_CONFIG no coincide con package.json. Sincroniza la versión antes de construir.");
+}
 const courseEditionSource = resolve(
   root,
   "public",
@@ -97,6 +102,7 @@ await writeFile(
   `${JSON.stringify(
     {
       project: "orbit-open-roadmap",
+      version,
       generatedAt: new Date().toISOString(),
       buildType: "static-no-bundle",
       ...offlineBuild,

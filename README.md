@@ -99,17 +99,21 @@ y pull requests. Ejecuta `npm run check` antes de entregar un cambio.
 
 ## Capturas de referencia
 
-Estas capturas corresponden a **0.7.0**, no a una validación visual de 0.9.0 ni de 1.0.0.
-Su [procedencia y protocolo](docs/screenshots/README.md) se conservan con los archivos.
+Las cinco capturas muestran la versión publicada **1.0.1**. Consulta su
+[procedencia y protocolo](docs/screenshots/README.md).
 
 <details>
-<summary>Ver ORBIT, Spider y Bee en 0.7.0</summary>
+<summary>Ver el mapa, la lección, el gadget y el Editor en 1.0.1</summary>
 
-![ORBIT 0.7.0 en perfil Estudiante, con Campamento Base y el menú principal](docs/screenshots/orbit-0.7.0.png)
+![Mapa de ORBIT 1.0.1 desde Campamento Base, sin paneles abiertos](docs/screenshots/orbit-mapa-1.0.1.png)
 
-![ORBIT Editor 0.7.0 con Spider abierto para organizar nodos y conexiones](docs/screenshots/editor-spider-0.7.0.png)
+![Lección Taller Vectorial abierta sobre el mapa de ORBIT 1.0.1](docs/screenshots/orbit-nodo-1.0.1.png)
 
-![ORBIT Editor 0.7.0 con Bee abierto para organizar zonas y rótulos](docs/screenshots/editor-bee-0.7.0.png)
+![Gadget Explorador de campos 2D con un campo vectorial circular en ORBIT 1.0.1](docs/screenshots/orbit-campos-1.0.1.png)
+
+![ORBIT Editor 1.0.1 con Spider abierto en Mover y los iconos del menú editorial](docs/screenshots/editor-spider-1.0.1.png)
+
+![ORBIT Editor 1.0.1 con Bee abierto y Electrostática seleccionada](docs/screenshots/editor-bee-1.0.1.png)
 
 </details>
 

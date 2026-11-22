@@ -31,6 +31,7 @@ seguir el ciclo completo desde el chat sin tener que abrir ni editar esta cola.
 Incluye siempre la casilla **Nuevos updates** y déjala abierta para recibir ideas. Si una
 propuesta llega sin versión, regístrala con `auto` y pregunta en la checklist del siguiente
 ciclo a qué cohorte debe pertenecer.
+Mientras haya una cohorte abierta, incluye en la checklist la decisión de cerrarla.
 
 ## Estados permitidos
 
@@ -193,7 +194,8 @@ cohorte futura no se implementa mientras la inmediata siga abierta, en revisión
 publicación. El usuario puede añadir IDs mientras la cohorte esté `abierta`; solo él puede
 declararla `cerrada`, y ese cierre congela la lista hasta una reapertura explícita.
 
-Al publicar, el agente sincroniza `package.json`, `package-lock.json` y `src/config.js`, añade
+Al publicar, el agente ejecuta `node scripts/set-release-version.mjs X.Y.Z` para sincronizar
+`package.json`, `package-lock.json` y `src/config.js`. Luego añade
 una sola sección de cohorte a `CHANGELOG.md`, ejecuta `npm run check`, crea el commit de release,
 hace el push del release y comprueba que `origin/main` apunte al mismo commit. El release deja
 todos los IDs de la cohorte `publicando`; así, una interrupción se recupera de forma idempotente.
@@ -256,16 +258,17 @@ Sin propuestas pendientes de clasificar.
 ## Cohorte inmediata
 
 - Versión: `1.0.2`
-- Estado de la cohorte: `abierta`
+- Estado de la cohorte: `cerrada`
 - IDs: `UPD-031`, `UPD-032`
+- Cierre confirmado por JoaquinDiazM: 2026-11-22.
 
-El alcance de 1.0.2 comprende los puntos propuestos para la versión visible y las capturas.
+JoaquinDiazM autorizó y cerró 1.0.2 con los puntos de versión visible y capturas.
 
 ## Actualizaciones activas
 
 ### UPD-031 — Sincronizar la versión visible de ORBIT
 
-- Estado: `propuesto`
+- Estado: `en-revision`
 - Tipo: `bug`
 - Versión objetivo: `1.0.2`
 
@@ -279,10 +282,31 @@ que coincida en futuras publicaciones.
 - Revisar el origen de la etiqueta y la versión real del paquete desplegado. Comprobar que
   cada build muestra su propia versión en los modos estático y online, incluido el arranque
   con una copia PWA. Añadir una comprobación automática que detecte divergencias.
+- Preservar las revisiones e IDs del curso. El número de la próxima versión se cambia al
+  preparar la publicación de la cohorte.
+
+#### Implementación y revisión
+
+- Base revisada: `f9c3e755caabd12a4115d5327ffcf1a616aa7258`, publicación 1.0.1. La
+  etiqueta del mapa de esa copia se veía como `v1.0.1`. No se inspeccionó la instalación de Crab.
+- Rutas propias: `scripts/set-release-version.mjs`, `scripts/build.mjs`,
+  `scripts/package-server.mjs`, `tests/release-version.test.mjs` y `docs/SERVER_GUIDE.md`.
+- Resultado: el comando de release sincroniza el paquete, el lockfile y `APP_CONFIG`. El
+  build declara su versión y el empaquetador rechaza un build desfasado. En una copia temporal
+  1.0.2, la configuración servida, `build-info.json`, la huella y el paquete verificado de 499
+  archivos coincidieron. El cambio de configuración también generó otro identificador de build
+  para la caché offline. La publicación vigente es 1.0.1.
+- Pruebas automáticas: `npm run check` pasó con 692 pruebas aprobadas y 2 omitidas. El
+  empaquetado temporal usó build `8feddcddfa499e5b940007c8b471b0a4acb42292909c2a29bd0d669b2a664fab`.
+- Preflight del entorno: el origen canónico de la copia temporal devolvió HTTP 200 y
+  `Cache-Control: no-store`. Fuente y `dist/src/config.js` compartían la misma huella. El
+  servicio propio se cerró en la misma intervención y la copia temporal se retiró.
+- Revisión manual humana: pendiente. Comprobar la etiqueta junto a ORBIT con la versión del
+  paquete abierto. Desde su carpeta, `node scripts/verify-package.mjs` imprime esa versión.
 
 ### UPD-032 — Actualizar las capturas del README
 
-- Estado: `propuesto`
+- Estado: `en-revision`
 - Tipo: `documentación`
 - Versión objetivo: `1.0.2`
 
@@ -294,7 +318,82 @@ Actualizar el README con cinco capturas. Mostrar tres vistas de ORBIT y dos del 
 
 - ORBIT: mapa sin panel, mapa con una ventana de nodo académico y gadget de campos vectoriales.
 - Editor: dos vistas representativas de las herramientas y su interfaz vigente.
-- Capturar el producto con datos de demostración y registrar el build utilizado.
+- Capturar 1.0.1, la última versión publicada, con datos de demostración y registrar el commit.
+
+#### Implementación y revisión
+
+- Base revisada: `f9c3e755caabd12a4115d5327ffcf1a616aa7258`, publicación 1.0.1.
+- Rutas propias: `README.md`, `docs/screenshots/` y `tests/brand-assets.test.mjs`.
+- Resultado: cinco imágenes de la interfaz real en 1280 × 720. Se recorrió el mapa como
+  Estudiante para abrir Taller Vectorial y adquirir el Explorador de campos 2D. Como Docente,
+  se abrieron Spider en Mover y Bee en Electrostática. Durante el arranque local del mapa se
+  observó `TypeError: Illegal invocation` en el monitor de mantenimiento de la base publicada.
+  La interfaz permitió completar el recorrido y ese monitor no forma parte de las rutas editadas.
+- Pruebas automáticas: comprobación de dimensiones, formato, peso y texto alternativo en
+  `tests/brand-assets.test.mjs`, incluida en `npm run check`.
+- Preflight del entorno: almacenamiento inicial vacío, sin service worker activo y servicio
+  de capturas en el origen canónico. Se cerraron las pestañas y el PID 16016. La copia se retiró.
+  Puerto 4173 libre, sin lock, journal ni tombstone de autoría.
+- Revisión manual humana: pendiente. Abrir **Capturas de referencia** en el README y verificar
+  las tres vistas de ORBIT y las dos del Editor.
+
+### UPD-033 — Cliente instalable para Windows con actualizaciones desde la aplicación
+
+- Estado: `propuesto`
+- Tipo: `feature`
+- Versión objetivo: `1.2.0`
+
+#### Solicitud original
+
+Ofrecer una aplicación de escritorio para estudiantes y docentes de Windows. El usuario
+descarga un solo instalador desde GitHub Releases, abre ORBIT desde Windows y aplica las
+nuevas versiones desde la aplicación. El acceso al servidor podrá requerir credenciales
+adicionales. El administrador puede inicializar su servidor con el procedimiento actual.
+
+#### Especificación elaborada por el agente
+
+- El instalador y la app no requieren abrir Edge para instalar ORBIT o iniciar el curso.
+  El cliente presenta la dirección HTTPS del servidor y las credenciales de ORBIT.
+- Decisión confirmada el 2026-11-22: el primer cliente funciona sin VPN para docentes
+  y estudiantes. En los ajustes de conexión se propone dejar la fila informativa
+  **VPN institucional · Próximamente**, sin solicitar credenciales.
+- Arquitectura propuesta: interfaz local de Tauri para elegir servidor y actualizar el
+  cliente. Abrir ORBIT en una vista separada del mismo origen HTTPS que usa hoy y limitar
+  los permisos nativos a la interfaz local. Para Crab, publicar solo el servicio de ORBIT
+  mediante un túnel saliente con nombre estable. Escuchar en loopback y ejecutar el servicio
+  con una cuenta propia sin privilegios administrativos. Reservar SSH para operadores.
+  Verificar el rol y el curso en cada operación autorizada, limitar intentos de inicio de
+  sesión y comprobar las copias de seguridad. Esta propuesta no cambia el despliegue.
+- La aplicación comprueba las versiones publicadas, descarga una actualización firmada,
+  verifica su autenticidad e instala al reiniciar. El avance, los borradores y la configuración
+  se conservan entre versiones compatibles. El usuario solo descarga manualmente el instalador
+  inicial. La administración e inicialización del servidor conservan su flujo propio.
+- Un equipo Windows limpio debe poder instalar, abrir un curso como estudiante o docente,
+  y actualizar desde una versión anterior. Probar también que una actualización rechazada
+  deja funcional la aplicación instalada.
+- La incorporación de un motor de escritorio y un actualizador exige un ADR que amplíe
+  [ADR 0013](docs/decisions/0013-self-hosted-courses-and-offline-client.md).
+
+#### Referencias
+
+- [Jan Releases](https://github.com/janhq/jan/releases/tag/v0.8.8): instaladores Windows y
+  manifiesto `latest.json`. [Tauri](https://v2.tauri.app/plugin/updater/) documenta la
+  verificación de firmas. Su instalador para Windows utiliza WebView2.
+  [Instalador de Tauri](https://v2.tauri.app/distribute/windows-installer/).
+- [Joplin Releases](https://github.com/laurent22/joplin/releases/tag/v3.7.24): instalador de
+  Windows y manifiesto `latest.yml`. Su código usa `electron-updater`.
+  [Dependencias del cliente](https://github.com/laurent22/joplin/blob/dev/packages/app-desktop/package.json).
+- [Nextcloud Desktop Releases](https://github.com/nextcloud-releases/desktop/releases/tag/v35.0.3):
+  cliente de Windows con instalador MSI y [actualización en la aplicación](https://docs.nextcloud.com/server/latest/user_manual/en/desktop/autoupdate.html).
+  El asistente separa la dirección del servidor de la instalación del cliente.
+  [Configuración inicial](https://docs.nextcloud.com/server/latest/user_manual/en/desktop/installation.html#initial-setup).
+
+#### Preguntas bloqueantes
+
+- Si se necesita otra capa de acceso durante el piloto, confirmar qué identidad institucional
+  se usará. La primera propuesta usa el enlace HTTPS y las credenciales por curso de ORBIT.
+- ¿Una aplicación que se abre desde Windows puede utilizar WebView2 internamente? La respuesta
+  permite comparar Tauri con un cliente que incluya su propio motor.
 
 ## Historial
 

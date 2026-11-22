@@ -16,6 +16,15 @@ export async function packageServer({ root = process.cwd(), output = resolve(roo
   if (releaseTag !== null && releaseTag !== `v${pkg.version}`) throw new Error("La etiqueta de release no coincide con la versión del paquete.");
   const buildInfo = JSON.parse(await readFile(resolve(root, "dist/build-info.json"), "utf8"));
   if (!/^[a-f0-9]{64}$/.test(buildInfo.buildId ?? "")) throw new Error("Construye ORBIT antes de empaquetar.");
+  if (buildInfo.version !== pkg.version) {
+    throw new Error("El build no corresponde a la versión del paquete. Vuelve a construir ORBIT.");
+  }
+  const [sourceConfig, builtConfig] = await Promise.all([
+    readFile(resolve(root, "src/config.js")), readFile(resolve(root, "dist/src/config.js")),
+  ]);
+  if (!sourceConfig.equals(builtConfig)) {
+    throw new Error("La configuración del build difiere de la fuente. Vuelve a construir ORBIT.");
+  }
   await mkdir(output, { recursive: true });
   const staging = await mkdtemp(join(output, ".orbit-package-"));
   let moved = false;

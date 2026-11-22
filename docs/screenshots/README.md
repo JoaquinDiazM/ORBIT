@@ -1,15 +1,17 @@
 # Capturas documentales de ORBIT
 
-Las capturas de referencia del README representan el estado publicado de ORBIT 0.7.0. Se
-generaron desde el commit `22bede41cbb842658196575a3c30ff16d12b054d`, en un contexto de
-navegador aislado, sin datos previos, herramientas de depuración ni extensiones del perfil del
-usuario. Todas usan un viewport de 1280 × 720 y se guardan localmente como PNG.
+Las capturas del README muestran ORBIT 1.0.1 desde el commit publicado
+`f9c3e755caabd12a4115d5327ffcf1a616aa7258`. Se usó una copia temporal en loopback y un contexto
+de navegador aislado. Antes de abrir ORBIT, `localStorage` y `sessionStorage` estaban vacíos y
+la página no tenía un service worker activo. Las imágenes son PNG de 1280 × 720.
 
 | Archivo | Entrada y estado visible |
 | --- | --- |
-| `orbit-0.7.0.png` | `/`, perfil Estudiante recién iniciado en Campamento Base. |
-| `editor-spider-0.7.0.png` | `/editor.html`, perfil Docente, Spider abierto en **Mover**. |
-| `editor-bee-0.7.0.png` | `/editor.html`, perfil Docente, Bee abierto y Electrostática seleccionada. |
+| `orbit-mapa-1.0.1.png` | `/`, perfil Estudiante en Campamento Base, con el mapa despejado. |
+| `orbit-nodo-1.0.1.png` | `/`, lección **Taller Vectorial** abierta sobre el mapa. |
+| `orbit-campos-1.0.1.png` | `/`, **Explorador de campos 2D** adquirido en el recorrido, con un campo circular. |
+| `editor-spider-1.0.1.png` | `/editor.html`, perfil Docente, Spider en **Mover** con Vectores seleccionado. |
+| `editor-bee-1.0.1.png` | `/editor.html`, perfil Docente, Bee abierto y Electrostática seleccionada. |
 
 ## Protocolo de actualización
 
@@ -19,15 +21,15 @@ usuario. Todas usan un viewport de 1280 × 720 y se guardan localmente como PNG.
    desechable y confirma que no contiene `localStorage` previo.
 3. Fija el viewport en 1280 × 720. No cambies CSS, datos ni estado del producto para componer la
    imagen.
-4. Captura ORBIT en Estudiante recién iniciado. Para el Editor usa Docente: conserva Spider en
-   **Mover** para su captura y abre Bee antes de la segunda.
+4. Captura el mapa de ORBIT en una sesión de Estudiante recién iniciada. Abre la lección y
+   adquiere el gadget mediante el recorrido habitual. Para el Editor usa Docente, con Spider
+   en **Mover** en la primera imagen y Bee en la segunda.
 5. Comprueba visualmente que no aparezcan el panel Debug, rutas locales, datos personales,
    errores, pantallas de carga ni contenido de una versión posterior.
 6. Ejecuta `node --test tests/brand-assets.test.mjs` y `npm run repo-check`. La prueba exige PNG
    válido, 1280 × 720, texto alternativo y un máximo de 800 kB por archivo.
-7. Identifica siempre la versión capturada. Para el lanzamiento 1.0.0, renueva las imágenes
-   después de la revisión de su interfaz; mientras tanto, conserva la etiqueta histórica y no
-   las presentes como evidencia visual del producto actual.
+7. Identifica siempre la versión capturada y conserva los archivos anteriores cuando estén
+   referenciados desde entregas históricas.
 
 Las capturas históricas `prototype.png` y `editor.png` se conservan porque informes de versiones
 anteriores las citan por nombre; el README vigente siempre debe enlazar los archivos versionados.
