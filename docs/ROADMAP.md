@@ -1,9 +1,10 @@
 # Hoja de ruta de ORBIT
 
 **ORBIT 1.0.0 alfa** corresponde a UPD-027. [ADR 0013](decisions/0013-self-hosted-courses-and-offline-client.md)
-define el servidor opcional y el [changelog](../CHANGELOG.md) recoge lo incluido. Las siguientes
-versiones previstas son 1.1.0 y 1.2.0. Sus actualizaciones y criterios se decidirán en el chat y
-se registrarán en la [cola de actualizaciones](../ORBIT_UPDATES.md).
+define el servidor opcional y el [changelog](../CHANGELOG.md) recoge lo incluido. El siguiente
+objetivo es 1.0.1, centrado en errores y detalles visuales. Las versiones 1.1.0 y 1.2.0 se
+definirán después. Las decisiones del chat se registran en la
+[cola de actualizaciones](../ORBIT_UPDATES.md).
 
 ## Qué existe y qué debe conseguir el lanzamiento
 

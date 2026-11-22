@@ -93,9 +93,15 @@ para los navegadores participantes. El acceso al puerto debe estar permitido por
 ORBIT no abre el firewall ni configura VPN/DNS. No envíes contraseñas por HTTP en una red.
 Si usas un túnel SSH para un ensayo, HTTP puede permanecer limitado al loopback del túnel.
 
-Para detener, usa `Ctrl+C` en esta terminal. No arranques dos procesos con la misma carpeta
-de datos. Si una interrupción deja un lock, identifica su proceso antes de recuperarlo;
-no elimines locks ni estados para forzar el arranque.
+### Relanzar con los datos existentes
+
+Detén el servidor con `Ctrl+C` y vuelve a ejecutar `serve` con el mismo `--data`. El curso,
+las cuentas y los avances se conservan en ese directorio. Usa `init` al crear otra instancia
+en un directorio nuevo. Después del relanzamiento vuelve a iniciar sesión. Si el ensayo usa
+un túnel temporal, abre el enlace que indique el arranque actual.
+
+Inicia una sola instancia por directorio de datos. Si una interrupción deja un lock,
+identifica su proceso antes de recuperarlo. Conserva los archivos de estado.
 
 `node scripts/orbit-server.mjs diagnose-lock --data RUTA_PRIVADA` informa el propietario del
 lock. Solo si el proceso de esta misma máquina ya no existe, y sin otro arranque concurrente,

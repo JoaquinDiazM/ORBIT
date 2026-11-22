@@ -28,6 +28,8 @@ Indica qué debe decidir JoaquinDiazM en el paso actual, con opciones concretas 
 y señala si en ese momento no hay decisiones pendientes. Incluye versión, asignación de punto,
 detalles de alcance, autorización, aprobación o cierre solo cuando corresponda. Se puede
 seguir el ciclo completo desde el chat sin tener que abrir ni editar esta cola.
+Incluye siempre el punto **Nuevos updates**. Si JoaquinDiazM indica que no hay ideas nuevas
+para ese ciclo, márcalo como resuelto.
 
 ## Estados permitidos
 
@@ -251,11 +253,83 @@ Sin propuestas pendientes de clasificar.
 
 ## Cohorte inmediata
 
-Sin cohorte inmediata en preparación.
+- Versión: `1.0.1`
+- Estado de la cohorte: `abierta`
+- IDs: `UPD-028`
+
+JoaquinDiazM fijó 1.0.1 como siguiente versión para corregir errores y detalles visuales.
+Las versiones 1.1.0 y 1.2.0 quedan para después de esta cohorte.
 
 ## Actualizaciones activas
 
-Sin actualizaciones activas.
+### UPD-028 — Recuperar el acceso y relanzar el servidor de prueba
+
+- Estado: `en-revision`
+- Tipo: `bug`
+- Versión objetivo: `1.0.1`
+
+#### Solicitud original
+
+El mantenedor ejecutó el servidor en Crab durante más de dos días. Después perdió el acceso y
+tuvo dificultades para volver a iniciarlo o crear otra instancia. Quiere corregir ese flujo y
+entender qué ocurrió.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: recuperar el acceso y volver a servir la instancia de ensayo con su
+  curso, cuentas y avances.
+- Decisión confirmada: JoaquinDiazM autorizó UPD-028 en el chat el 2026-11-21.
+- Criterios de aceptación: distinguir en terminal la inicialización del relanzamiento con datos
+  existentes. Mostrar el enlace vigente y explicar cuándo cambia. Evitar que la vigencia del
+  certificado interno de dos días interrumpa el acceso al ensayo y facilitar el diagnóstico
+  de futuros fallos del puente, del túnel o del servidor.
+- Invariantes: preservar el directorio de datos y los permisos. Mantener la verificación TLS
+  y un único escritor por directorio. Crab es el entorno de prueba del servidor.
+- Fuera de alcance: cambiar el despliegue, la persistencia del producto o asignar una URL pública fija.
+
+#### Preguntas bloqueantes
+
+- Ninguna.
+
+#### Implementación y revisión
+
+- Diagnóstico del 2026-11-21: el historial muestra dos arranques satisfactorios con
+  `./prueba iniciar`, cada uno con un enlace temporal distinto y seguido de un cierre con
+  `Ctrl+C`. El siguiente intento fue `./prueba init`, que rechazó un directorio ya
+  inicializado e indicó `./prueba iniciar`. El archivo de estado seguía presente en Crab.
+- El lanzador anterior de Crab creaba un certificado TLS interno con dos días de vigencia y el
+  puente exigía validarlo. Con el mismo puente y certificados de prueba, un certificado vigente produjo
+  HTTP 200 y uno vencido produjo HTTP 502 mientras el servidor TLS seguía activo. Este mecanismo
+  encaja con el plazo observado. El registro disponible de la caída no permite confirmar si
+  ocurrió exactamente así en la sesión original.
+- Base revisada: `4c30f388a250053ab4831c58d481214991c6a2cd`, igual a `origin/main`.
+- Rutas propias: `launch.mjs` y `gateway.mjs` en `~/.local/share/orbit-manual-1.0.0/` de Crab,
+  más `ORBIT_UPDATES.md`, `docs/SERVER_GUIDE.md` y `docs/ROADMAP.md` en el checkout.
+- Resultado: el lanzador de Crab genera una clave nueva por arranque, usa un certificado interno de 3650
+  días y retira ambos archivos tras leerlos. El puente valida el certificado de esa sesión.
+  El arranque informa que el enlace es temporal, `init` orienta al curso existente y el
+  terminal distingue las señales de cierre y los errores del puente y del túnel.
+  La [guía del servidor](docs/SERVER_GUIDE.md#relanzar-con-los-datos-existentes) explica el flujo.
+- Pruebas automáticas: en Crab, la simulación a siete días aceptó el certificado corregido.
+  El puente devolvió HTTP 200 con el certificado propio y HTTP 502 con uno ajeno, dejando
+  el código TLS en el terminal. Dos ejecuciones de `./prueba iniciar` en una raíz temporal
+  generaron enlaces HTTPS distintos. Tras iniciar sesión con la misma cuenta sintética se
+  recuperaron el mismo curso y sus 22 finalizaciones. Los procesos 39310 y 39342 cerraron con
+  `SIGINT` y liberaron sus locks. `init` rechazó el directorio existente con una instrucción
+  de relanzamiento y los bytes del estado se conservaron.
+  En el repositorio, `npm run check` en copia aislada, 689 aprobadas,
+  cero fallos y dos omisiones por permisos de symlinks en Windows. La configuración de fuente
+  y build coincidió, con build `9a972e22028f605f6c41bd4211ef72a135a4f469fe18ced226acfe67ed4c7713`.
+- Preflight del entorno: el lanzador instalado verificó los 499 archivos del paquete de ensayo en Crab,
+  con build `e6259a594166191eb2ee5e1f0ff06d7d6a70c79bc9ede8bfd093670624b043d5`. Las peticiones
+  de prueba comprobaron `Cache-Control: no-store`. Se retiró la raíz temporal, los dos túneles
+  y sus procesos. Los hashes de `datos/state.json` y `datos/previous.json` se conservaron.
+  En la laptop, 4173 estaba libre y no se detectaron lock, journal ni tombstone de autoría.
+  La revisión de UPD-028 usa el paquete existente en Crab.
+- Revisión manual humana: pendiente. Desde la terminal de VS Code conectada a Crab, abrir el
+  directorio del lanzador y ejecutar `./prueba iniciar`. Abrir el enlace que imprima en
+  Edge e ingresar con una cuenta existente. Tras comprobar curso y progreso, detener con
+  `Ctrl+C`, relanzar por la misma ruta y repetir la comprobación con el enlace nuevo.
 
 ## Historial
 
