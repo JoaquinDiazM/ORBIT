@@ -1,384 +1,81 @@
-# Inicio para Codex y otros agentes
+# Inicio para agentes
 
-Este archivo es la entrada obligatoria para una sesión nueva de trabajo asistido por agentes.
+Las reglas viven en `AGENTS.md` y los contratos actuales en el código y sus pruebas. JoaquinDiazM
+decide en el chat de Codex. El agente mantiene `ORBIT_UPDATES.md` con esas decisiones y usa
+los chats antiguos y los informes de releases como contexto.
 
-El producto se llama **ORBIT — Open Roadmap for Building Intuition and Theory**. La ruta
-implementada actualmente es Electromagnetismo; la conexión futura con otros cursos
-todavía no está implementada.
+## Antes de trabajar
 
-## 1. Lee antes de modificar
+1. Lee completa [ORBIT_UPDATES.md](../ORBIT_UPDATES.md). Respeta el alcance de la petición actual;
+   una revisión documental no activa por sí sola la implementación o publicación de la cola.
+2. Relee [README](../README.md), [AGENTS.md](../AGENTS.md) y los `AGENTS.md` anidados aplicables.
+   Ejecuta `git fetch origin` y compara estado, commits y diff con `origin/main`, según la cola.
+3. Identifica la versión/cohorte, las rutas propias, el invariante afectado y el criterio de
+   aceptación antes de editar. No sobrescribas trabajo ajeno ni adelantes versiones.
+4. Lee explícitamente las guías y los [ADR](decisions/README.md) relacionados con la tarea.
+   Un enlace no significa que su contenido ya se haya leído.
 
-En este orden:
-
-1. `ORBIT_UPDATES.md`: recupera primero cualquier publicación interrumpida, procesa después los
-   puntos `aprobado` y no implementes una descripción cuyo estado no sea `autorizado`;
-2. `README.md`;
-3. `AGENTS.md`;
-4. el `AGENTS.md` anidado más cercano al archivo objetivo;
-5. `docs/PROJECT_BRIEF.md`;
-6. `docs/ARCHITECTURE.md`;
-7. `docs/WORLD_AND_KNOWLEDGE_DESIGN.md`;
-8. las decisiones de `docs/decisions/` relacionadas con la tarea.
-
-### Dónde viven las instrucciones de agentes
-
-| Archivo | Política que debe leerse |
+| Alcance | Instrucciones adicionales |
 |---|---|
-| [`AGENTS.md`](../AGENTS.md#autoría-de-contenido-por-agentes) | Alcance global; **Autoría de contenido por agentes**, **Flujo obligatorio para agentes** y **Entorno prístino para revisión humana**. |
-| [`src/AGENTS.md`](../src/AGENTS.md) | Reglas adicionales de implementación en `src/`. |
-| [`src/data/AGENTS.md`](../src/data/AGENTS.md#antes-de-editar) | Reglas adicionales curriculares; exige la ruta editorial de la política raíz. |
-| [`ORBIT_UPDATES.md`](../ORBIT_UPDATES.md) | Autorizaciones, cohorte y separación de entornos vigentes. |
-| Esta guía y [`CONTENT_SOURCE_GUIDE.md`](CONTENT_SOURCE_GUIDE.md), [`CONTENT_AUTHORING.md`](CONTENT_AUTHORING.md), [`EDITOR_GUIDE.md`](EDITOR_GUIDE.md) | Lectura explícita del procedimiento y de los contratos aplicables; enlazarlas no las carga automáticamente. |
+| Cualquier cambio | [AGENTS.md](../AGENTS.md): invariantes, autoría, flujo y entorno humano |
+| Implementación en `src/` | [src/AGENTS.md](../src/AGENTS.md) |
+| Contratos curriculares en `src/data/` | [src/data/AGENTS.md](../src/data/AGENTS.md) |
+| Estados, recuperación y publicación | [ORBIT_UPDATES.md](../ORBIT_UPDATES.md) |
 
-Codex descubre instrucciones al iniciar una sesión: combina archivos globales y los del camino
-desde la raíz del repositorio al directorio de trabajo; `AGENTS.override.md` tiene prioridad en
-su directorio. El límite predeterminado combinado es 32 KiB. Una sesión nueva vuelve a descubrir
-los archivos; no requiere limpiar cachés. Véase la [documentación oficial de
-AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md).
+## Base publicada y candidata 1.0.0
 
-Por eso, además de esa carga inicial, este repositorio exige releer las instrucciones en cada
-activación y antes de editar una subcarpeta. Para verificar el contexto, pide al agente que
-identifique los archivos y cite la política concreta que acaba de leer. La ubicación por sí
-sola no garantiza la carga en cualquier herramienta o configuración; comprueba overrides y
-límite si faltan reglas. No hace falta abrir sesiones auxiliares de Codex para esta comprobación.
+La versión publicada es **0.9.0**: ORBIT y ORBIT Editor estáticos, con perfiles locales y
+una ruta demostrativa de Electromagnetismo. La candidata conserva ese modo y añade el servidor
+docente opcional, cuentas por curso, Owl, sincronización y PWA. Verifica los contratos en el
+código actual; el estado de entrega pertenece a la cola.
 
-## 2. Estado actual
+[UPD-027](../ORBIT_UPDATES.md#upd-027--lanzamiento-de-orbit-para-usuarios-reales) es el único
+ID de la cohorte 1.0.0. [ADR 0013](decisions/0013-self-hosted-courses-and-offline-client.md)
+define los dos modos y la [hoja de ruta](ROADMAP.md) distingue el ensayo de dos máquinas y el
+piloto. El contexto temporal de `tmp/UPD-027/` sirve para reanudar el trabajo; no sustituye el
+árbol actual ni acredita aprobación humana, publicación o dependencias adicionales.
 
-La base publicada es `0.9.0` y la siguiente cohorte operativa se controla en
-`ORBIT_UPDATES.md`. El prototipo sigue siendo estático, conserva una dependencia local
-respaldada por ADR, dos entradas
-deliberadamente separadas y un flujo por cohortes con autorización y revisión humana:
+## Lectura según la tarea
 
-- **ORBIT** en `index.html`, con perfiles locales Estudiante, Docente y Debug;
-- **ORBIT Editor** en `editor.html`, con acceso Docente completo por defecto, Spider/Bee de solo
-  lectura y Bowerbird personal para Estudiante, y bloqueo Debug.
-
-ORBIT 0.8.0 incorpora UPD-021 y UPD-024: documento editorial v6, autoría académica,
-paneles redimensionables y comprobación previa del borrador. El artefacto académico publicado
-sigue conservando su firma histórica v5 y se migra en memoria.
-
-El producto del checkout incluye:
-
-- movimiento continuo en Canvas 2D;
-- navegación Global/Directa independiente del filtro de Red, con siete zonas proyectadas,
-  regreso y posición canónica; máximo seis zonas relacionadas al publicar desde Editor;
-- 19 hexágonos en tres niveles: base, seis fundamentos y doce aplicaciones;
-- fronteras físicas derivadas de la apertura de zonas por adyacencia y elegibilidad académica;
-- 30 lugares activos: 22 lecciones/misiones en una Red de aprendizaje aplicada de 31 parejas
-  explícitas y ocho lugares Base/laterales/Debug fuera de ella; el artefacto académico histórico v5 conserva además
-  un nodo creado en Inventario. Un panel **Visual** separado de **Zonas · Red**,
-  accesible desde **Ajustes**, con modos **Oculta**, **Directo** y **Total**;
-- ejercicios de alternativa, número, expresión segura, secuencia y confirmación;
-- guardado separado para los perfiles canónicos `student`, `teacher` y `debug` en
-  `localStorage`, con migración del antiguo `normal` a `student`;
-- progreso `v4` ligado a `courseId + courseRevision`, con migraciones controladas y lectura del
-  prefijo histórico `aea-progress` solo cuando la edición activa lo declara compatible;
-- audio local con seis recursos verificables —incluido el cue exclusivo de teletransporte— y
-  volúmenes independientes `ambience`/`effects`;
-- ventana principal compatible con un panel secundario de Zonas · Red, Gadgets, Símbolos, Constantes,
-  Formulario o Glosario, más **Ajustes** como acceso agrupado a Visual, Sonido y Ayuda;
-- HUD con barra nativa de **Progreso**, porcentaje conceptual entero y equivalente accesible
-  «X de Y», todo derivado del snapshot del perfil sin persistencia adicional;
-- biblioteca derivada y validada de símbolos, constantes, fórmulas y glosario con paneles de consulta y atribución única al desbloquear, sin cuadros bibliográficos repetidos;
-- Taller Vectorial de seis etapas: elementos diferenciales, comparación SVG de campos, reconstrucción cartesiana guiada y evaluación cilíndrica independiente;
-- Observatorio de Coulomb de cinco etapas y `PointChargeField2D` para tres cargas normalizadas operables con puntero y teclado;
-- Estación de Superconductividad con el NPC no evaluativo Onnes —ID heredado `shielding-chamber` y fórmulas desbloqueables— y el punto de aprendizaje independiente `superconductivity-transition-lab`, que concede el concepto heredado `electromagnetic-compatibility`;
-- visor `VectorField2D` en SVG nativo con escala fija, muestreo determinista, controles accesibles y ausencia de animación automática;
-- panel **Gadgets** con calculadora científica siempre disponible, Explorador cartesiano de
-  campos 2D desbloqueable y esqueleto opcional de Carta de Smith;
-- `MathExpressionPolicy v1`, parser restringido y comparación por valor, función o gradiente sin `eval`, `Function` ni ejecución dinámica;
-- ecuaciones TeX renderizadas con KaTeX y MathML;
-- selector local de perfil, autocompletado docente de lecciones/misiones evaluables y
-  aislamiento de avances;
-- debugger visual, Terminal de Cartografía, `F2` y `window.OrbitDebug` solo en Debug;
-- validador que simula la progresión completa;
-- pruebas unitarias;
-- build y workflow para GitHub Pages.
-- Editor con docks **General** y **Editor** retractables: Docente usa Spider, Bee y Bowerbird;
-  Estudiante consulta con Spider/Bee sin mutaciones y usa Bowerbird personal; Debug no inicia el
-  modelo;
-- documento `orbit-editor-project` `v6`, con migración exacta `v3 → v4 → v5 → v6`, catálogo visual,
-  metadatos de niveles, entidades editoriales e inventario; preferencias Estudiante aisladas;
-- `orbit-course-edition` con revisión/digest y aplicación local recuperable mediante
-  `npm run editor:author`, sin backend público ni dependencia nueva;
-- modos locales explícitos: `dev` sirve ORBIT y Editor pero no aplica; `editor:author` bloquea
-  Estudiante/Docente/Debug y conserva solo Editor y su API de mantenimiento.
-
-El contenido científico es demostrativo. No lo trates como una guía terminada.
-
-Los pasos internos de una secuencia, la opción elegida dentro de una actividad, los parámetros de
-figuras/Gadgets, las posiciones de cargas y el contexto
-`newlyAccessibleLocationIds`/`unlockSourceLocationId` son efímeros. La preferencia
-`treeTwoVisualizationMode` sí pasa por `ProgressionModel`. El esquema vigente es `v4`:
-`src/main.js` carga primero la edición, resuelve exactamente `student`, `teacher` o `debug` y
-liga cada clave de progreso al curso/revisión. Una edición distinta reinicia en vez de reactivar
-avance; la compatibilidad histórica es una decisión explícita del artefacto.
-
-El documento Docente usa `orbit-editor:v6:electromagnetism-applied`; Estudiante guarda solo sus
-overrides Bowerbird en `orbit-bowerbird:v1:electromagnetism-applied:student`. Importar o exportar
-JSON nunca mezcla ambos. **Resumen** valida, muestra diff/impacto y puede aplicar mediante el
-helper loopback: este escribe el artefacto canónico, ejecuta check/build y coordina un reset
-recuperable, pero no muta Git ni publica. Estas capacidades elegibles por URL no son
-autenticación.
-
-Toda ejecución local usa únicamente `http://127.0.0.1:4173`: `npm run dev` y la autoría rechazan
-overrides y fallback. `dev` es el modo normal: ORBIT y Editor están disponibles, pero aplicar
-permanece bloqueado aun si la validación local es correcta. `editor:author` es mantenimiento:
-niega siempre las entradas ORBIT de los tres perfiles, deja Editor accesible y solo habilita
-aplicar tras verificar la sesión de autoría. Una pestaña ORBIT previa sondea la transición,
-detiene su runtime, libera el Web Lock compartido y recarga hacia el `503`. El helper toma un
-lock de proceso por checkout; nunca abras otro puerto para eludir la barrera, porque separaría
-Web Locks y `localStorage`.
-Editor Docente puede detener cooperativamente cualquiera de esos dos servicios desde General,
-pero solo después de validar una sesión local independiente y una doble confirmación. El control
-no mata procesos ajenos y autoría lo rechaza durante operaciones o journals pendientes.
-
-Las fuentes se añaden de forma selectiva cuando una afirmación específica las necesita. La biblioteca permanece en los datos, el validador y sus paneles de **Símbolos**, **Constantes**, **Formulario** y **Glosario**. Esos paneles muestran el contenido desbloqueado, pero no repiten cuadros bibliográficos: la UI comunica cada fuente pertinente una vez, en la transición que desbloquea su entrada. No cites operaciones elementales ni repitas dentro de un nodo la procedencia docente ya reconocida globalmente en el README.
-
-El manifiesto versiona ambiente global, transición de hexágono, confirmación de interacción, clic de interfaz, desbloqueo de zona y teletransporte. Tres recursos de Freesound son CC0 1.0; el cue de teletransporte es `weapAppear.wav` de RunnerPack bajo CC BY 4.0 y conserva la cadena a `Energy Whip 2.wav` de ejfortin bajo Sampling+ 1.0. `ui-select-default.ogg` y `zone-unlocked-airlock.ogg` son contribuciones de ORBIT aportadas por JoaquinDiazM mediante la conversación de ChatGPT registrada en sus sidecars y publicadas bajo MIT. Conserva esas distinciones y no atribuyas las contribuciones directas a un catálogo externo.
-
-## 3. Invariantes que debes declarar
-
-Antes de implementar una tarea, identifica cuáles puede afectar:
-
-- movimiento libre;
-- geometría hexagonal;
-- regla de fronteras;
-- Red de aprendizaje académica única y apertura territorial derivada;
-- alcanzabilidad de la progresión;
-- IDs persistentes;
-- esquema de guardado;
-- separación entre progreso `v4`, documento Docente `v6`, preferencias Bowerbird `v1` y edición
-  de curso `v1`;
-- IDs persistentes, secuencia monotónica y tombstones que impiden reutilizar un nodo eliminado;
-- raíz única y alcanzabilidad de todos los nodos académicos activos —la edición 0.7.0 publica
-  22 nodos y 31 conexiones— frente a lugares laterales o inventariados fuera de red;
-- revisión de curso, reset específico y bloqueo compartido/exclusivo;
-- permanencia de cada zona en su `tier`; los nombres visibles de ambos niveles son editables y no
-  cambian esa pertenencia;
-- funcionamiento sin backend;
-- funcionamiento sin nuevas dependencias;
-- accesibilidad y teclado;
-- rigor científico y licencias.
-
-Incluye esa evaluación en tu resumen de cambios o en el mensaje de commit.
-
-## 4. Mapa rápido del código
-
-| Necesidad | Archivo o módulo principal |
+| Necesidad | Documento y punto de entrada |
 |---|---|
-| Agregar o cambiar zonas | `src/data/world.js` |
-| Agregar conceptos o recompensas | `src/data/knowledge.js` |
-| Agregar lugares o ejercicios | `src/data/locations.js` |
-| Agregar referencias académicas | `src/data/reference/`, `docs/references/references.bib` |
-| Reglas de requisitos | `src/core/requirements.js` |
-| Red de aprendizaje y sus modos visuales | `src/core/knowledge-graph.js`, `src/ui/ui-controller.js` |
-| Evaluar expresiones matemáticas | `src/core/math-expression.js`, `src/core/exercises.js` |
-| Calculadora y expresiones científicas de Gadgets | `src/core/scientific-expression.js`, `src/ui/gadget-hub.js` |
-| Avance dentro de una secuencia | `src/core/exercise-sequence.js` |
-| Derivación de zonas/fronteras | `src/core/world-graph.js` |
-| Navegación Global/Directa y límite de relaciones por zona | `src/core/direct-navigation.js`, `docs/decisions/0012-direct-world-navigation.md` |
-| Estado, progreso y guardado | `src/core/progression.js`, `src/core/storage.js` |
-| Migraciones de progreso | `src/core/progress-migrations.js` |
-| Apariencia y preferencias Bowerbird | `src/core/area-appearance.js`, `src/core/bowerbird-preferences.js` |
-| Edición publicada y aplicación | `src/core/course-edition.js`, `src/core/course-application.js`, `src/core/course-lock.js` |
-| Perfiles locales y matriz de capacidades | `src/core/profile-policy.js` |
-| Geometría hexagonal | `src/core/hex.js` |
-| Entrada y movimiento | `src/game/input-controller.js`, `src/game/game-app.js` |
-| Dibujo del mundo | `src/game/renderer.js` |
-| Audio | `src/audio/audio-manager.js`, `public/assets/audio/` |
-| Paneles y ejercicios | `src/ui/ui-controller.js` |
-| Figuras de campos vectoriales 2D | `src/ui/vector-field-2d.js` |
-| Figura de tres cargas | `src/ui/point-charge-field-2d.js` |
-| Entrada y shell de Editor | `editor.html`, `src/editor/` |
-| Documento, saneamiento y estado editorial | `src/editor/`, `docs/decisions/0007-static-local-editor.md`, `docs/decisions/0008-scoped-appearance-and-local-course-application.md` |
-| Uso de Spider, Bee, Bowerbird y aplicación local | `docs/EDITOR_GUIDE.md` |
-| Helper de autoría loopback | `scripts/editor-author.mjs` |
-| Cola operativa, autorización, revisión y publicación | `ORBIT_UPDATES.md` |
-| Validación estática | `src/core/validator.js`, `scripts/validate-content.mjs` |
-| Pruebas | `tests/` |
+| Entorno, comandos, build y despliegue | [DEVELOPMENT.md](DEVELOPMENT.md); `package.json`, `scripts/` |
+| Servidor docente, cuentas, Owl, copias y PWA | [SERVER_GUIDE.md](SERVER_GUIDE.md), [ADR 0013](decisions/0013-self-hosted-courses-and-offline-client.md); `scripts/online/`, `src/online/` |
+| Módulos, persistencia y migraciones | [ARCHITECTURE.md](ARCHITECTURE.md); `src/core/`, `src/editor/` |
+| Movimiento, geometría, apertura y Red | [WORLD_AND_KNOWLEDGE_DESIGN.md](WORLD_AND_KNOWLEDGE_DESIGN.md); `hex.js`, `world-graph.js`, `knowledge-graph.js`, `direct-navigation.js` en `src/core/` |
+| Autoría académica | [CONTENT_AUTHORING.md](CONTENT_AUTHORING.md), [CONTENT_SOURCE_GUIDE.md](CONTENT_SOURCE_GUIDE.md), [EDITOR_GUIDE.md](EDITOR_GUIDE.md) |
+| Criterio científico y curricular | [PEDAGOGICAL_PRINCIPLES.md](PEDAGOGICAL_PRINCIPLES.md), [CURRICULUM_SKELETON.md](CURRICULUM_SKELETON.md), [RESEARCH_REFERENCES.md](RESEARCH_REFERENCES.md) |
+| Nombres e IDs | [CONTENT_NAMING.md](CONTENT_NAMING.md) |
+| Controles y diagnóstico | [USER_GUIDE.md](USER_GUIDE.md), [DEBUGGING.md](DEBUGGING.md) |
+| Validación y recorrido humano | [QA_CHECKLIST.md](QA_CHECKLIST.md) y preflight de [ORBIT_UPDATES.md](../ORBIT_UPDATES.md) |
+| Audio | `public/assets/audio/audio-manifest.json`, sidecars y [ATTRIBUTION.md](../public/assets/audio/ATTRIBUTION.md); consumidores en `src/` |
 
-Este mapa localiza la implementación, no autoriza a editar contenido académico directamente
-en sus archivos. La autoría usa Spider según la sección 7; los contratos de datos se consultan
-para comprender o mejorar el motor dentro del alcance autorizado.
+Los contratos distinguen progreso `v4`, documento editorial `v6`, preferencias Bowerbird `v1`
+y edición publicada `v1`. El artefacto histórico firmado puede contener un documento `v5`
+que se migra en memoria: no lo reescribas para igualar un número de versión.
 
-## 5. Flujo mínimo de trabajo
+## Límites de la intervención
 
-```bash
-npm install
-npm run dev # modo normal: ORBIT + Editor; aplicar bloqueado
-# usa el selector para Estudiante/Docente; para Debug abre ?debug=1&profile=debug
-# abre editor.html sin query para autoría docente o con ?profile=student para Bowerbird personal
-# detén dev y usa editor:author para aplicar en mantenimiento con respaldo automático de fuente
+La autoría académica se realiza por **Spider → Modificar → Editar contenido**, con Crear antes
+si el nodo es nuevo. La [política de autoría](../AGENTS.md#autoría-de-contenido-por-agentes)
+exige UI real, compilación, preview y aislamiento comprobado. Los datos y APIs no sustituyen
+ese recorrido. Una limitación se registra antes de ampliar el motor dentro del alcance autorizado.
 
-npm run check
-```
+La revisión canónica corresponde al desarrollador en Edge externo y con terminal visible de
+VS Code. El agente usa automatización aislada, preserva perfiles y procesos ajenos y congela
+el checkout entre la validación humana y el resultado de Aplicar. El origen de los helpers
+de desarrollo y autoría es siempre `http://127.0.0.1:4173`; no se cambia para evitar bloqueos.
+El servidor docente declara su propio origen y nunca reutiliza los permisos de esos helpers.
 
-Los recorridos manuales siguientes pertenecen a JoaquinDiazM u otro desarrollador: se ejecutan
-en Microsoft Edge externo con el servicio canónico iniciado desde un terminal visible de Visual
-Studio Code. El agente prepara el guion, ejecuta automatización aislada y registra la evidencia
-recibida; no usa el perfil persistente real, no deja un servicio oculto y congela el checkout
-entre validar y aplicar una edición.
+Al entregar, registra cambios, `npm run check`, limitaciones y evidencia por separado: pruebas
+automáticas, preflight y revisión humana. Guía la prueba manual por chat, registra el resultado
+y termina cada entrega o seguimiento con la lista de decisiones pendientes. La implementación
+pasa a `en-revision`; la aprobación y el cierre de cohorte corresponden a JoaquinDiazM.
 
-Para probar cambios de progresión:
+## Qué es histórico
 
-1. inicia Estudiante y confirma la migración de cualquier clave `normal` compatible;
-2. completa el camino del estudiante sin noclip;
-3. confirma que Docente conserva otro avance y autocompleta solo lecciones/misiones evaluables;
-4. confirma que el nodo, los atajos y la API de depuración no existen en esos dos perfiles;
-5. usa el perfil Debug para casos extremos y comprueba su avance independiente;
-6. exporta e importa el estado Debug;
-7. confirma que cada nueva zona abre todas las fronteras compartidas pertinentes;
-8. prueba que los lugares laterales se habiliten con su zona, exijan interacción y revisa la consola.
-
-Para probar cambios editoriales:
-
-1. abre `editor.html` sin query y confirma el acceso Docente completo;
-2. confirma que ORBIT y ORBIT Editor conservan claves de almacenamiento separadas;
-3. mueve un nodo con puntero y teclado;
-4. retira y reincorpora una lección/misión a la red; crea y elimina una conexión con Spider;
-5. intercambia zonas del mismo anillo con Bee y fuerza un rechazo entre anillos;
-6. prueba deshacer, rehacer, recarga, exportación e importación inválida;
-7. abre `editor.html?profile=student`, verifica navegación y consulta por Spider/Bee, confirma
-   que sus mutaciones están bloqueadas y usa Bowerbird personal sin mutar el documento Docente;
-8. abre `editor.html?profile=debug` y confirma que no se crea el modelo editorial;
-9. valida en Resumen y revisa diff, impacto de los tres perfiles y plan invalidado tras editar;
-10. en `dev`, confirma que Resumen permite editar/validar, identifica **Modo normal** y mantiene
-    confirmación/**Aplicar** deshabilitados con una explicación visible;
-11. sin exigir un checkout limpio ni crear commits, detén `npm run dev`, cierra las demás
-    pestañas e inicia `npm run editor:author` en el origen fijo `127.0.0.1:4173`,
-    comprueba que todas las entradas ORBIT responden en mantenimiento, pulsa **Volver a comprobar
-    servicio** y espera el check del borrador en copia; revisa el impacto, aplica y verifica reset,
-    conservación de documento/preferencias y concordancia fuente/build;
-12. detén autoría, inicia nuevamente `npm run dev` y vuelve a ORBIT en los tres perfiles para
-    comprobar la revisión instalada.
-
-## 6. Prohibiciones frecuentes
-
-No:
-
-- conviertas cada hexágono en una “pantalla” separada;
-- teletransportes al jugador automáticamente al completar un nodo;
-- uses nodos del grafo como puntos obligatorios de movimiento;
-- guardes `unlockedAreas` o `visibleLocations` como verdad persistente;
-- guardes cartografía editorial dentro de `orbit-progress` o progreso dentro de `orbit-editor`;
-- mezcles preferencias Bowerbird Estudiante en el documento Docente o reveles una apariencia
-  preparada mientras la zona siga bloqueada;
-- presentes el selector local o los bloqueos del Editor como cuentas, autenticación o seguridad;
-- inventes nombres de perfil: los únicos canónicos son `student`, `teacher` y `debug`;
-- derives aristas desde conceptos o recompensas, o mantengas una lista paralela: Spider edita la
-  única Red de aprendizaje explícita y solo admite `lesson`/`mission`;
-- permitas que Bee mezcle `tier 1` y `tier 2` o mueva `origin`;
-- afirmes que exportar un borrador actualiza ORBIT, escribe Git o publica automáticamente;
-- presentes el helper loopback como backend, dejes que acepte rutas del navegador o permitas que
-  aplique sin revisión coincidente, respaldo de la fuente previa, confirmación o bloqueo exclusivo;
-- sirvas ORBIT durante `editor:author` o habilites **Aplicar** durante `dev`;
-- hagas que una zona dependa de un nodo cuya elegibilidad requiera primero esa misma zona;
-- renombres IDs publicados sin migración;
-- agregues React, Phaser, Vite, un CDN o cualquier paquete “por comodidad” sin ADR;
-- conviertas el visor SVG 2D en un motor 3D o un lenguaje general de gráficos sin una necesidad pedagógica y una decisión de arquitectura explícitas;
-- evalúes respuestas con `eval`, `Function` o comparación literal cuando la actividad exige equivalencia matemática;
-- ignores un audio nuevo, inventes su ubicación o lo integres sin procedencia y licencia: audita el manifiesto y detente hasta contar con metadatos verificables;
-- copies problemas de pruebas universitarias internas;
-- inventes datos históricos o fuentes;
-- declares terminada una tarea sin `npm run check`.
-
-## 7. Qué hacer al ampliar el contenido
-
-Usa la interfaz real de **ORBIT Editor → Spider → Modificar → Editar contenido**; para un nodo
-nuevo, usa **Crear** antes de modificar su fuente. Compila y recorre el preview compartido con
-la copia temporal, navegador y almacenamiento aislados exigidos por
-[`AGENTS.md`](../AGENTS.md#autoría-de-contenido-por-agentes). Si no puedes demostrar aislamiento
-o acceder a la UI, deja la autoría/preview pendientes: escribir JSON, datos o llamadas a modelos
-y APIs no reemplaza ese recorrido. Exporta el borrador temporal para revisión y aplicación
-canónica humanas. Nunca alteres el perfil persistente del desarrollador.
-
-Si el Editor no expresa lo necesario, reproduce la limitación, registra la evidencia y mejora
-el motor dentro del alcance autorizado; después comprueba el resultado otra vez en Spider.
-Evita introducir lógica específica para una lección dentro del loop del juego.
-
-Un nuevo lugar debe:
-
-- tener ID estable en kebab-case;
-- ubicarse dentro de una zona existente;
-- declarar objetivo;
-- declarar requisitos y concesiones explícitas;
-- contener al menos una actividad de salida si concede progreso;
-- incluir fuentes solo cuando haga afirmaciones científicas o históricas específicas que necesiten trazabilidad;
-- evitar referencias locales redundantes a operaciones elementales o al material docente reconocido globalmente;
-- superar el validador de alcanzabilidad.
-
-Consulta `docs/CONTENT_AUTHORING.md`.
-
-Para proponer un alta, actualización o baja sin conocer el backend, basta escribir un título y
-un párrafo libre en la **Bandeja de entrada** de `ORBIT_UPDATES.md`. El agente completa los
-detalles técnicos y, si corresponde, puede usar
-`docs/content-changes/CONTENT_CHANGE_TEMPLATE.md` como anexo interno opcional. El usuario no
-necesita rellenar esa plantilla y ninguno de esos Markdown se importa en el sitio.
-
-## 8. Qué hacer al ampliar el motor
-
-Prefiere funciones puras y pruebas unitarias. Si una nueva mecánica requiere estado persistente:
-
-1. define el dato mínimo que realmente debe guardarse;
-2. deriva todo lo demás;
-3. incrementa `progressSchemaVersion` si cambia el formato;
-4. añade migración o documenta la incompatibilidad;
-5. agrega pruebas de importación y saneamiento.
-
-Las figuras SVG y las políticas de expresión introducidas en `0.3.1` no autorizan por sí solas un sistema de gráficos 3D, álgebra simbólica general, backend o dependencia nueva. La visión transversal de ORBIT tampoco autoriza a declarar soporte multicurso sin un contrato curricular verificable. Amplía primero los contratos nativos existentes y conserva límites explícitos de entrada y costo.
-
-La base actual de ORBIT Editor autoriza crear `lesson`, `mission` y `npc` con contenido genérico y
-editar sus nombres, ciclo de vida, posición y conexiones. UPD-021 incorpora la fuente académica
-restringida de párrafos, ejercicios, fuentes y concesiones conocidas, con preview compartido,
-según ADR 0011. No añade multimedia arbitraria, autenticación, colaboración ni despliegue automático. La vista Estudiante puede consultar Spider y Bee y modificar únicamente su
-Bowerbird personal; no puede mutar el documento compartido. Versiona por separado
-documento editorial, catálogo/preferencias, edición publicada y progreso. No incrementes
-`progressSchemaVersion` por un cambio que solo pertenezca a otra rama; sí debes cambiar la
-revisión del curso y aplicar la política de reset cuando una edición incompatible se instala.
-
-## 9. Protocolo de actualizaciones
-
-`ORBIT_UPDATES.md` reemplaza la antigua plantilla larga. El usuario aporta intención, controla
-autorización/aprobación y confirma cuándo una cohorte de versión ya no recibirá más IDs; el
-agente completa alcance, preguntas, criterios, pruebas y versión.
-
-Orden obligatorio al comenzar:
-
-1. ejecutar `git fetch origin`, auditar commits y diff locales frente a `origin/main`, reconciliar
-   un cierre pendiente y recuperar cualquier preparación `publicando` sin duplicar versión o
-   changelog; después, normalizar las fichas activas por versión semántica ascendente, con
-   `auto` al final e ID como desempate, sin agruparlas por estado;
-2. publicar una cohorte solo si está cerrada y todos sus IDs están `aprobado`;
-3. recuperar los `en-implementacion` de la versión inmediata;
-4. revisar únicamente los `autorizado` de esa cohorte y devolver a `faltan-detalles` lo ambiguo;
-5. implementar y validar automáticamente solo el alcance acordado, sin adelantar una versión
-   futura;
-6. registrar el preflight prístino y entregar la revisión manual a JoaquinDiazM u otro
-   desarrollador; dejar cada resultado en `en-revision`, opcionalmente en un commit local, pero
-   sin changelog, versión ni push;
-7. al aprobarse el conjunto completo, confirmar primero el árbol exacto aprobado, crear el
-   release y hacer su push; después de verificarlo, archivar las fichas con un manifiesto de IDs
-   en `docs/UPDATES_HISTORY.md` y subir el commit documental de cierre.
-
-Los estados exactos, responsables, transición de correcciones, criterio X/Y/Z y formato mínimo
-viven en la propia cola. Nunca infieras `autorizado`, `aprobado` ni el cierre de una cohorte de
-una descripción ambigua, elogio o silencio.
-
-## 10. Definición de terminado
-
-La entrega de un agente debe indicar:
-
-- qué cambió;
-- por qué respeta los invariantes;
-- qué pruebas ejecutó y su resultado;
-- qué limitaciones quedan;
-- si cambió contenido visible, la nota que deberá incorporarse a `CHANGELOG.md` después de la
-  aprobación; no edites todavía el changelog durante `en-revision`.
-
-Si la tarea afecta Editor, añade además el recorrido Docente, Spider/Bee consultables pero sin
-mutaciones y Bowerbird personal en Estudiante, bloqueo Debug, separación de almacenamiento, round-trip JSON y no
-regresión de los tres perfiles. Si afecta aplicación, incluye diff/impacto, invalidación del
-plan, bloqueo exclusivo, reset/conservación, recuperación y concordancia entre fuente,
-`dist` y `build-info.json`. Registra esa evidencia dentro del punto antes de pasarlo a
-`en-revision`.
+[CHANGELOG.md](../CHANGELOG.md) resume releases y [UPDATES_HISTORY.md](UPDATES_HISTORY.md)
+preserva sus fichas. Los [ADR](decisions/README.md) explican decisiones y reemplazos; no se
+eliminan por antigüedad. Los informes de [0.4.0](reviews/0.4.0-validation.md) y
+[UPD-026](reviews/UPD-026.md), y las [capturas](screenshots/README.md), describen sus cortes,
+no acreditan una validación nueva. No es necesario releer todo el historial para cada tarea.

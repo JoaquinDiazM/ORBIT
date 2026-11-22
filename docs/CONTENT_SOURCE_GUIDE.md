@@ -1,9 +1,9 @@
 # Fuente académica en Spider
 
-Esta guía describe la autoría académica publicada en ORBIT 0.8.0 y el procedimiento de agentes
-de UPD-025. Las autorizaciones vigentes están en [`ORBIT_UPDATES.md`](../ORBIT_UPDATES.md) y las
-entregas publicadas en el [historial](UPDATES_HISTORY.md). La primera ruta sigue siendo
-Electromagnetismo y el contenido de muestra continúa siendo provisional.
+Esta guía describe la fuente académica vigente de Spider. Los criterios de rigor, progresión y
+fuentes están en [Autoría de contenido](CONTENT_AUTHORING.md); los controles y la aplicación,
+en la [guía del Editor](EDITOR_GUIDE.md). La primera ruta sigue siendo Electromagnetismo y el
+contenido de muestra continúa siendo provisional.
 
 ## Editar un nodo
 
@@ -29,11 +29,9 @@ revisión del impacto, confirmación y la sesión canónica de autoría.
 
 ## Procedimiento obligatorio para agentes
 
-Todo cambio autorizado al cuerpo académico de una lección, misión o NPC se realiza mediante la
-UI real de **ORBIT Editor → Spider → Modificar → Editar contenido**. Esto incluye objetivos,
-texto, TeX, etapas, ejercicios, explicaciones, fuentes y concesiones admitidas. La regla de
-[AGENTS.md](../AGENTS.md) se aplica junto con la autorización de la cohorte inmediata; UPD-025
-documenta el procedimiento y no autoriza por sí sola contenido nuevo ni mejoras del motor.
+La [política de autoría de agentes](../AGENTS.md#autoría-de-contenido-por-agentes) exige la UI
+real de Spider y una autorización vigente en [`ORBIT_UPDATES.md`](../ORBIT_UPDATES.md). Para
+cada cambio académico:
 
 1. Identifica la UPD y los nodos afectados. Prepara una copia temporal del proyecto y un navegador
    con perfil y almacenamiento propios, cuyo aislamiento del entorno del desarrollador compruebes.
@@ -52,25 +50,16 @@ documenta el procedimiento y no autoriza por sí sola contenido nuevo ni mejoras
    procesos propios, retira la copia y sus cachés y declara cualquier exportación conservada
    para la entrega. No uses ni limpies perfiles, cachés o progreso reales del desarrollador.
 
-Editar directamente `src/data/`, construir un JSON editorial fuera del Editor, llamar al modelo
-o a una API no sustituye este recorrido. Tampoco lo hacen un DOM simulado ni una prueba
-headless: registra esas ejecuciones como automatización, nunca como autoría o preview en la UI
-real. Los fixtures, compiladores, API y pruebas aisladas siguen permitidos para validar el motor.
+Si falla el Editor, conserva pasos, nodo, fuente mínima, diagnóstico y resultado esperado.
+Corrige el motor solo dentro del alcance autorizado y vuelve a Spider; una ampliación requiere
+su propio punto en la cola. Sin UI o aislamiento comprobado, declara autoría y preview
+**pendientes**. Editar datos/JSON, llamar al modelo/API o usar DOM simulado/headless no sustituye
+el recorrido; los fixtures y pruebas aisladas comprueban el motor.
 
-Si aparece una dificultad, reproduce el fallo y conserva la fuente mínima y el diagnóstico.
-Corrige el compilador, renderer o controlador solo dentro del alcance autorizado de la cohorte;
-una ampliación requiere registrarse y autorizarse en la cola. Tras la corrección, repite desde
-Spider el cambio y su preview. Si la UI no está disponible o no puedes demostrar el aislamiento,
-declara la autoría y el preview
-**pendientes**: puedes avanzar la automatización autorizada del motor, pero no editar el JSON o
-los datos directamente como atajo ni dar el recorrido por superado.
-
-Esta autoría aislada no es la revisión manual canónica. JoaquinDiazM u otro desarrollador
-realiza la importación, revisión y **Aplicar** en Edge externo, con el servicio canónico iniciado
-desde un terminal visible de VS Code. El agente no pulsa **Aplicar** sobre el curso o los
-perfiles reales y congela las escrituras al checkout desde la validación humana hasta recibir
-el resultado. Pruebas automáticas, autoría/preview aislados y revisión humana se registran por
-separado.
+Entrega la exportación al desarrollador para importación, revisión y **Aplicar** en Edge externo
+con servicio iniciado desde un terminal visible de VS Code. El agente no aplica al curso ni a
+los perfiles reales y congela el checkout entre validación humana y resultado de aplicación.
+Registra automatización, autoría/preview aislados y revisión humana por separado.
 
 ## Sintaxis
 
@@ -121,6 +110,56 @@ su cierre no evaluativo.
 No se admite HTML, código ejecutable, figuras desconocidas ni enlaces con esquemas ejecutables.
 El compilador localiza errores de estructura, tipos y límites. La fuente de un nodo tiene un
 límite de 180 000 bytes; el documento completo conserva el máximo de 900 000 bytes.
+
+## Etapas y ejercicios
+
+Usa las plantillas de la ventana de fuente para insertar estructuras admitidas. Los contratos
+completos están en las [plantillas editoriales](../src/editor/content-source-templates.js), el
+[compilador](../src/core/content-source.js) y el [validador](../src/core/validator.js); no es
+necesario escribir objetos runtime del catálogo.
+
+| Tipo | Datos y criterio de uso |
+|---|---|
+| `choice` | Consigna, alternativas, `answerIndex` y explicación. |
+| `numeric` | `expected`, unidad, tolerancia absoluta o relativa y explicación; acepta coma o punto decimal. Usa tolerancia absoluta cerca de cero y relativa cuando varíe la escala. |
+| `expression` | Política matemática restringida y explicación; evalúa equivalencia numérica, funcional o por gradiente, sin ejecutar código del autor. |
+| `sequence` | Intervenciones guiadas o binarias; el andamiaje y la retroalimentación dependen de la política elegida. |
+| `none` | Etapa de lectura; **Continuar** abre la siguiente. |
+| `acknowledge` | Orientación, encuentro no evaluativo o cierre narrativo; no concede un concepto central. |
+
+Cada etapa tiene ID estable y único dentro del nodo. Una etapa evaluada abre la siguiente solo
+después de una respuesta correcta; un nodo académico que concede progreso termina con un
+ejercicio evaluable. Los lugares heredados con secciones y ejercicio siguen funcionando como
+una sola etapa. El avance interno y las respuestas parciales pertenecen a la sesión: el hecho
+durable es completar el lugar.
+
+Un NPC puede registrar un encuentro con `acknowledge`, sin alternativas ni respuesta esperada;
+una biblioteca puede desbloquearse por ese encuentro. La evaluación y concesión de un concepto
+central corresponden a una lección o misión separada. El tipo interno `action` pertenece a
+herramientas del sistema y no se usa como ejercicio académico.
+
+El evaluador de expresiones usa gramática restringida, límites de complejidad, puntos fijos y
+derivación automática. La comparación determinista no demuestra equivalencia simbólica global:
+una expresión construida para coincidir solo en los puntos de prueba puede dar un falso positivo.
+
+## Figuras y matemática accesibles
+
+Toda ecuación incluye una descripción visible. KaTeX genera salida visual y MathML con
+`trust: false`; no se admiten HTML ni comandos que requieran confianza. Las expresiones se
+compilan con la configuración de producción durante las pruebas.
+
+Las figuras de campos 2D deben usar dominio, escala y muestreo comparables cuando se pide
+comparar campos. La presentación `point-charge-field` usa una alternativa y un descriptor con:
+
+- dominio cuadrado y punto de observación dentro de él;
+- exactamente tres cargas de IDs únicos, posición válida y valor normalizado en `[-1,1]`;
+- rango de carga que incluya cero, paso de teclado positivo y radio de singularidad explícito;
+- título, descripción y caption que expliquen el modelo normalizado.
+
+La figura de tres cargas admite puntero y teclado, muestra contribuciones y suma, y declara la
+singularidad si una carga coincide con el punto de observación. Posiciones, valores y foco son
+efímeros: no se incorporan al progreso ni se suaviza la singularidad para ocultarla. Estas figuras
+registradas apoyan actividades concretas; la fuente no incorpora un motor gráfico general.
 
 ## Ancho y teclado
 

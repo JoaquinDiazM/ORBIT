@@ -1,0 +1,33 @@
+name: Attach the teaching server to a published release
+
+# Creating a local candidate never publishes a release. A maintainer publishes the tag first.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: npm run check
+      - name: Package the exact release version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: node scripts/package-server.mjs --release-tag "$RELEASE_TAG"
+      - name: Attach the server and its checksum
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$RELEASE_TAG" artifacts/orbit-servidor.tar.gz artifacts/orbit-servidor.tar.gz.sha256 --repo "$GITHUB_REPOSITORY"

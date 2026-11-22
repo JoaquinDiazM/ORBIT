@@ -462,6 +462,7 @@ export class EditorUIController {
     localServiceClient = null,
     courseEdition = null,
     courseWarnings = [],
+    contentSourceSession = undefined,
   }) {
     this.model = model;
     this.app = app;
@@ -649,6 +650,7 @@ export class EditorUIController {
 
     this.contentEditor = new ContentSourceEditor({
       model,
+      session: contentSourceSession,
       root: query("#editor-content-source"),
       button: query("#editor-edit-location-content"),
       toast: (...args) => this.toast(...args),

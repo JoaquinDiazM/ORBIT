@@ -1,350 +1,127 @@
 # Autoría de contenido
 
-## Estado actual
+Esta guía reúne los criterios académicos y de revisión. La [guía de fuente](CONTENT_SOURCE_GUIDE.md)
+describe la sintaxis que se escribe en Spider; la [guía del Editor](EDITOR_GUIDE.md) explica sus
+controles, exportación y aplicación. El contenido de Electromagnetismo continúa siendo
+demostrativo: preparar el lanzamiento 1.0.0 no equivale a completar ni validar ese curso.
 
-El catálogo base se define en objetos JavaScript dentro de `src/data/`. La cohorte 0.8.0 añade
-fuente académica editable para lecciones, misiones y NPC en Spider, bajo el
-[ADR 0011](decisions/0011-academic-source-and-content-authoring.md). La gramática restringida
-usa módulos nativos y conserva KaTeX como única dependencia. La
-[guía de fuente](CONTENT_SOURCE_GUIDE.md) describe sintaxis, preview y recuperación.
+## Flujo vigente
 
-La fuente declarativa actual corresponde a la ruta de Electromagnetismo de **ORBIT —
-Open Roadmap for Building Intuition and Theory**. Una ruta futura de otro curso deberá declarar
-su alcance, perfil de entrada e IDs sin asumir que ya existe un cargador o esquema multicurso.
+1. Registra la intención y el alcance en [`ORBIT_UPDATES.md`](../ORBIT_UPDATES.md). La ficha
+   autorizada identifica nodos, resultados esperados, preservaciones y comprobaciones; no hay
+   una plantilla curricular adicional que deba rellenar el usuario.
+2. Abre **ORBIT Editor → Spider → Modificar → Editar contenido**. Para un nodo nuevo, usa
+   primero **Crear**. Edita objetivo, texto, TeX, etapas, ejercicios, explicaciones, fuentes y
+   concesiones admitidas en la fuente editorial.
+3. Comprueba diagnósticos, compilación y preview compartido; recorre las etapas y las respuestas
+   relevantes y valida el documento desde Resumen.
+4. Exporta el borrador y registra nodo/IDs, revisión base, fuente cambiada, resultados y
+   limitaciones. La revisión y aplicación canónicas corresponden al desarrollador mediante el
+   flujo de la [guía del Editor](EDITOR_GUIDE.md#validar-revisar-impacto-y-aplicar-localmente).
 
-Las propuestas internas nacen en [`ORBIT_UPDATES.md`](../ORBIT_UPDATES.md): el usuario solo
-necesita escribir intención y estado. La [plantilla de cambios](content-changes/CONTENT_CHANGE_TEMPLATE.md)
-se conserva como anexo técnico opcional que puede completar el agente, no como formulario
-obligatorio para el usuario ni como fuente runtime. El
-[ejemplo del Taller Vectorial](content-changes/examples/update-vector-workshop.example.md) tiene
-`apply: false` y no se importa durante el build.
+Los agentes cumplen la [política de autoría aislada](../AGENTS.md#autoría-de-contenido-por-agentes):
+copia temporal, navegador y almacenamiento con aislamiento comprobado, origen fijo, servicios
+propios identificados y acotados, y conservación del perfil real del desarrollador. El
+[procedimiento de fuente](CONTENT_SOURCE_GUIDE.md#procedimiento-obligatorio-para-agentes)
+concreta la evidencia y el handoff. Autoría/preview, automatización y revisión humana se
+registran por separado; el checkout se congela entre validación humana y resultado de Aplicar.
 
-## Ruta de autoría para agentes
+Escribir `src/data/`, JSON editorial o el artefacto publicado, llamar al modelo/API o ejecutar
+pruebas headless no sustituye la autoría y el preview en Spider. Si falta la UI o no puede
+demostrarse aislamiento, deja ambos pendientes. Una limitación se reproduce y documenta con
+fuente mínima, pasos, diagnóstico y resultado esperado. Solo se corrige el motor dentro del
+alcance autorizado, y después se vuelve a comprobar desde Spider; una capacidad nueva necesita
+su propio alcance en la cola.
 
-Los cambios académicos autorizados se incorporan mediante la UI real de **ORBIT Editor →
-Spider → Modificar → Editar contenido**: objetivos, texto, TeX, etapas, ejercicios,
-explicaciones, fuentes y concesiones admitidas se editan y comprueban en el mismo flujo que usa
-Docente. Sigue el [procedimiento de autoría aislada](CONTENT_SOURCE_GUIDE.md#procedimiento-obligatorio-para-agentes)
-y las reglas de [AGENTS.md](../AGENTS.md) y [src/data/AGENTS.md](../src/data/AGENTS.md).
+## Diseñar un nodo
 
-El agente usa una copia temporal y un perfil de navegador con almacenamiento propio y aislamiento
-comprobado; identifica y cierra sus sesiones, servicios y cachés propios. Conserva las exportaciones temporales
-declaradas para el handoff. No usa ni limpia el perfil real del desarrollador ni ejecuta la
-aplicación canónica. Registra nodo/ID, fuente resultante, validación y recorrido del preview, y
-entrega la exportación del Editor para importación y aplicación humanas.
+Todo nodo académico declara un objetivo medible, prerrequisitos, modelo, aplicación y ejercicio
+de salida. La experiencia narrativa apoya esa secuencia. Usa los
+[principios pedagógicos](PEDAGOGICAL_PRINCIPLES.md) y, para la ruta futura de Electromagnetismo,
+el [esqueleto curricular preliminar](CURRICULUM_SKELETON.md).
 
-Los ejemplos JavaScript siguientes describen contratos internos del catálogo y sirven para
-comprender el motor y construir pruebas; no indican una vía alternativa para editar contenido.
-No sustituyas Spider escribiendo `src/data/`, el JSON editorial o el artefacto publicado, ni
-mediante llamadas directas al modelo/API. Fixtures y pruebas API, DOM simulado o headless siguen
-permitidos como automatización del motor, pero no acreditan autoría o preview en la UI real.
+Un nodo maduro incorpora evidencia o contexto histórico trazable, derivación adecuada al nivel,
+ejemplo resuelto, práctica con andamiaje decreciente, evaluación, transferencia, errores
+frecuentes y solución revisada por otra persona. Identifica expresamente lo provisional,
+incompleto o simplificado; no conviertas este estándar futuro en una afirmación sobre los nodos
+actuales.
 
-Si una capacidad falta o falla, reproduce el caso y su diagnóstico, realiza solo la corrección
-de motor comprendida en el alcance autorizado y vuelve a comprobar el contenido desde Spider.
-Los cambios de componentes, esquemas y pruebas se implementan en código; el contenido académico
-resultante conserva la ruta editorial obligatoria. Una capacidad nueva, como crear zonas o
-conceptos que el Editor todavía no admite, requiere alcance explícito en la cola. Si la UI no
-está disponible o no puedes demostrar aislamiento, deja la autoría y el preview pendientes;
-no eludas esa limitación con un JSON.
+Una solución explica ley y aplicabilidad, geometría, signos, desarrollo, unidades, orden de
+magnitud, casos límite e interpretación física. Un resultado numérico requiere unidad y
+tolerancia. Las formas algebraicas equivalentes no se comparan como texto literal; consulta los
+tipos de ejercicio y los límites del evaluador en la [guía de fuente](CONTENT_SOURCE_GUIDE.md).
 
-La revisión canónica y **Aplicar** corresponden a JoaquinDiazM u otro desarrollador en Edge
-externo y con el servicio iniciado desde un terminal visible de VS Code. La autoría aislada y
-las pruebas no sustituyen esa evidencia; el checkout se congela entre la validación humana y
-su resultado de aplicación. UPD-025 establece esta política, sin autorizar cambios de motor o
-contenido por sí sola.
+## Progresión e identidad
 
-## Contrato de un concepto
+- Conserva los [IDs estables y convenciones científicas](CONTENT_NAMING.md). Renombrar un
+  título visible no cambia el ID; un cambio incompatible exige migración o una decisión
+  documentada de reinicio.
+- Solo `lesson` y `mission` pertenecen a la Red de aprendizaje. Spider edita sus conexiones;
+  `A → B` se materializa como `A` en `B.requirements.completedLocations`. La única raíz actual
+  es `vector-workshop`; los demás nodos académicos activos necesitan predecesores y deben ser
+  alcanzables.
+- Conceptos y recompensas son resultados o inventario. No son otra vía académica o territorial;
+  no agregues requisitos `concepts`, `rewards` o `areas` a los nodos académicos.
+- Base, Debug, NPC, gadgets y transportes permanecen fuera de la red con `requirements: {}`.
+  Los tres tipos laterales se habilitan con su zona y conservan una interacción propia. Un NPC
+  no evalúa ni concede conceptos centrales: coloca esa evaluación en una lección o misión.
+- Ubica cada nodo dentro del margen seguro de su zona. Una zona no inicial necesita adyacencia
+  y un nodo académico cuya elegibilidad no dependa de abrir primero esa misma zona. No guardes
+  disponibilidad duplicada.
+- Un nodo académico que concede progreso termina con un ejercicio evaluable; un opcional se identifica
+  como tal en su objetivo o texto. Si cambian conexiones, comprueba raíz única, DAG, apertura
+  por adyacencia y alcanzabilidad integral, sin confundir la edición aplicada con la semilla
+  histórica de migración.
 
-Estructura del catálogo `src/data/knowledge.js`:
+Spider puede crear lecciones, misiones y NPC; todavía no crea zonas, conceptos, recompensas o
+entradas de biblioteca. Esa limitación no autoriza introducir contenido por fuera del Editor.
 
-```js
-{
-  id: "electric-flux",
-  title: "Flujo eléctrico",
-  shortTitle: "Flujo",
-  summary: "Relacionar orientación, superficie y campo mediante una integral de flujo.",
-  order: 3,
-}
-```
+## Fuentes y derechos
 
-El ID es parte del formato de progreso. No lo renombres después de publicar una versión sin migración.
+Prioriza fuentes primarias, libros universitarios abiertos, documentación institucional y
+artículos revisados. Las afirmaciones históricas, datos numéricos, adaptaciones y teoremas
+específicos necesitan trazabilidad; una fuente popular secundaria no basta para una atribución
+histórica discutida. No cites operaciones elementales ni notación común solo para llenar un
+campo.
 
-Un cambio de título visible no autoriza a cambiar el ID. En 0.3.2, por ejemplo, la Estación de Superconductividad conserva `electromagnetic-compatibility` para zona y concepto, y el NPC Onnes conserva `shielding-chamber`, porque esos valores ya formaban parte de perfiles publicados. El punto de aprendizaje separado usa el ID nuevo `superconductivity-transition-lab`.
+Cuando una entrada necesite fuente, registra autor, título, institución/editorial, año, enlace
+estable, clave canónica en [`references.bib`](references/references.bib) y localizador exacto.
+Declara si el uso es consulta, adaptación o cita y comprueba licencia o permiso. Los problemas y
+soluciones serán originales o de licencia compatible y atribución clara. Poder consultar una
+imagen, un adjunto o un texto no autoriza redistribuirlo; no copies evaluaciones internas,
+tablas ni soluciones protegidas.
 
-## Contrato de una zona
-
-Estructura del catálogo `src/data/world.js`:
-
-```js
-{
-  id: "electromagnetic-energy",
-  q: 2,
-  r: -1,
-  title: "Cuenca de la Energía Electromagnética",
-  shortTitle: "Energía",
-  subtitle: "Densidad, flujo y conservación",
-  description: "...",
-  color: "#334455",
-  accent: "#ccddee",
-  order: 7,
-  unlockHint: "Se abre cuando un nodo académico interior queda elegible desde una zona vecina.",
-}
-```
-
-Criterios:
-
-- `(q, r)` enteros y no duplicados;
-- al menos un vecino existente;
-- al menos una lección o misión interior conectada desde la Red de aprendizaje;
-- color y texto no usados como único indicador de estado.
-
-## Contrato de un lugar
-
-Esqueleto del contenido runtime compilado; para autoría usa la fuente de Spider:
-
-```js
-{
-  id: "gauss-flux-lab",
-  areaId: "electrostatics",
-  kind: "lesson",
-  title: "Laboratorio de Flujo",
-  shortTitle: "Flujo",
-  marker: "Φ",
-  offset: { x: 20, y: -55 },
-  interactionRadius: 76,
-  visibility: "visibleWhenAreaUnlocked",
-  requirements: {},
-  grants: {
-    concepts: ["electric-flux"],
-  },
-  objective: "Calcular e interpretar el flujo de un campo a través de una superficie.",
-  sections: [
-    {
-      title: "El problema",
-      paragraphs: ["..."],
-    },
-    {
-      title: "Modelo",
-      equation: {
-        tex: String.raw`\Phi_E=\iint_S\mathbf{E}\cdot\mathrm{d}\mathbf{A}`,
-        caption: "Flujo eléctrico a través de la superficie S.",
-      },
-    },
-  ],
-  exercise: {
-    type: "numeric",
-    prompt: "...",
-    expected: 12.0,
-    absoluteTolerance: 0.1,
-    unit: "N·m²/C",
-    placeholder: "Ej.: 12.0",
-    explanation: "...",
-  },
-  sources: [
-    { label: "Fuente primaria o texto", url: "https://..." },
-  ],
-}
-```
-
-Las ecuaciones usan TeX compatible con KaTeX y siempre incluyen una descripción visible. La UI
-genera DOM y MathML mediante `katex.render`; el campo `equation.tex` contiene TeX sin
-delimitadores. En prosa y consignas usa `$...$` o `\(...\)` para matemática inline, y `$$...$$`
-para matemática de bloque. No introduzcas HTML ni comandos que requieran `trust: true`.
-`npm test` compila las expresiones con la configuración de producción.
-
-Crear una entidad `lesson` o `mission` con Spider la incorpora activa a la Red de aprendizaje,
-pero sin conexiones. Declara al menos una conexión entrante antes de aplicar; solo
-`vector-workshop` puede ser raíz.
-
-## Requisitos
-
-Los requisitos declarativos completos siguen disponibles para colecciones de referencia y otros
-contratos no territoriales:
-
-```js
-requirements: {
-  concepts: ["concept-id"],
-  completedLocations: ["location-id"],
-  rewards: ["type:reward-id"],
-  areas: ["area-id"],
-}
-```
-
-Todos los elementos de una categoría y todas las categorías declaradas son obligatorios en el
-contrato que los consume.
-
-La progresión académica usa una única Red de aprendizaje explícita del documento Editor `v6`.
-Solo `lesson` y `mission` pueden pertenecer a ella; al materializarse, una conexión `A → B`
-produce `A` en `B.requirements.completedLocations`. En los lugares académicos no declares
-`concepts`, `rewards` ni `areas` como requisitos: no son otra vía de acceso. Los lugares
-`base`, `debug`, `npc`, `gadget` y `transport` permanecen fuera de la red y deben usar
-`requirements: {}`; su disponibilidad procede de la política de Base/Debug o de la apertura de
-su zona. Si un cambio altera las conexiones aplicadas —29 en la edición vigente—, actualiza las
-pruebas de red, raíz única, DAG, apertura por adyacencia y alcanzabilidad integral. La base
-canónica de migración conserva por separado sus 30 parejas.
-
-## Concesiones
-
-```js
-grants: {
-  concepts: ["concept-id"],
-  rewards: ["gadgets:field-lens"],
-}
-```
-
-Las concesiones son resultados o inventario y nunca crean un prerrequisito implícito en la Red de
-aprendizaje.
-
-## Ejercicios admitidos
-
-### Alternativa
-
-```js
-{
-  type: "choice",
-  prompt: "...",
-  choices: ["...", "...", "..."],
-  answerIndex: 1,
-  explanation: "...",
-}
-```
-
-### Numérico
-
-```js
-{
-  type: "numeric",
-  prompt: "...",
-  expected: 8.99e-7,
-  absoluteTolerance: 1e-8,
-  relativeTolerance: 0.02,
-  unit: "N",
-  placeholder: "Ej.: 8.99e-7",
-  explanation: "...",
-}
-```
-
-La comprobación acepta punto o coma decimal. Usa tolerancia absoluta para valores próximos a cero y relativa cuando la escala pueda variar.
-
-### Confirmación
-
-```js
-{
-  type: "acknowledge",
-  prompt: "...",
-  buttonLabel: "Registrar",
-  explanation: "...",
-}
-```
-
-Debe reservarse para orientación, recompensas narrativas o acciones sin una respuesta académica razonable. No la uses para conceder un concepto central.
-
-Un personaje secundario puede usar esta confirmación como cierre no evaluativo: el botón registra el encuentro, pero no formula una pregunta ni contiene alternativas, respuesta esperada o política de corrección. Si ese contexto desbloquea fórmulas, vincula sus requisitos a la finalización del NPC; sitúa la evaluación y la concesión del concepto en un lugar académico independiente. Onnes y el Laboratorio de Transición Superconductora son el ejemplo vigente.
-
-### Acción del sistema
-
-Existe un tipo interno `action` para abrir herramientas como el debugger. No lo uses como ejercicio académico.
-
-### Figura de tres cargas
-
-La presentación `point-charge-field` está especializada en una actividad de alternativa y usa `PointChargeField2D`. Su descriptor debe incluir:
-
-- un dominio cuadrado y un punto de observación dentro de él;
-- exactamente tres cargas con IDs únicos, posición inicial válida y valor normalizado en `[-1,1]`;
-- rango de carga que incluya cero, paso de teclado positivo y radio de singularidad explícito;
-- título, descripción y caption que aclaren que el modelo es normalizado.
-
-La figura admite puntero y teclado, muestra las contribuciones y la suma, y declara la singularidad si una carga coincide con el punto de observación. Posiciones, valores y carga enfocada son estado de sesión: no los añadas al perfil ni suavices la singularidad para ocultarla.
-
-## Dividir un lugar en etapas
-
-Usa `steps` cuando una misión o lección no deba ocupar un único espacio de desplazamiento. Los lugares antiguos con `sections` y `exercise` siguen funcionando como una sola etapa.
-
-```js
-steps: [
-  {
-    id: "model",
-    title: "Modelo",
-    sections: [{ title: "Lectura", paragraphs: ["..."] }],
-    exercise: { type: "none" },
-  },
-  {
-    id: "exit-check",
-    title: "Comprobación",
-    sections: [{ title: "Aplicación", paragraphs: ["..."] }],
-    exercise: {
-      type: "choice",
-      prompt: "...",
-      choices: ["...", "..."],
-      answerIndex: 0,
-      explanation: "...",
-    },
-  },
-]
-```
-
-- El ID de etapa es estable y único dentro del lugar.
-- Una etapa de lectura abre la siguiente con **Continuar**.
-- Una etapa evaluada abre la siguiente solo después de una respuesta correcta.
-- Si el lugar concede progreso, la última etapa debe terminar con un ejercicio evaluable.
-- El avance entre etapas se conserva durante la sesión; el hecho durable sigue siendo el lugar completado. No se añadió estado persistente ni migración.
+La procedencia docente global se reconoce en el README, sin repetirla dentro de cada nodo.
+La [guía de investigación](RESEARCH_REFERENCES.md) reúne fuentes de consulta y sus límites.
 
 ## Biblioteca de referencia
 
-La simbología, las constantes, las fórmulas y el glosario viven en `src/data/reference/`. Cada entrada declara un ID y requisitos. `source` es opcional: se reserva para datos numéricos, adaptaciones, afirmaciones históricas y teoremas específicos que realmente necesitan trazabilidad.
+Símbolos, constantes, fórmulas y glosario tienen IDs y requisitos propios en
+`src/data/reference/`. Su disponibilidad se deriva del progreso; no guardes listas de entradas
+desbloqueadas. `source` es opcional y sigue el criterio de trazabilidad anterior.
 
-Su disponibilidad se deriva mediante requisitos declarativos sobre el snapshot. No guardes
-listas de fórmulas o definiciones desbloqueadas. Las colecciones se consultan en los paneles
-permanentes **Símbolos**, **Constantes**, **Formulario** y **Glosario**; esos paneles muestran
-solo las entradas habilitadas o su condición de desbloqueo. Consulta [Nomenclatura e
-IDs](CONTENT_NAMING.md).
+Los paneles **Símbolos**, **Constantes**, **Formulario** y **Glosario** mantienen la consulta de
+entradas habilitadas o sus condiciones de desbloqueo. Cuando una fórmula, propiedad o colección
+con fuente se desbloquea, la interfaz comunica su procedencia una vez y de forma agrupada; no
+repite un cuadro bibliográfico por tarjeta. Estos contratos no territoriales pueden combinar
+requisitos de conceptos, lugares completados, recompensas y zonas: todos los elementos de cada
+categoría y todas las categorías declaradas son obligatorios.
 
-No añadas una cita repetida a definiciones, operaciones algebraicas o identidades rutinarias. Cuando una fórmula, propiedad o colección con fuente se desbloquee, la interfaz debe comunicar esa referencia una sola vez y de forma agrupada. La consulta posterior permanece disponible en su menú, pero no debe crear un cuadro bibliográfico repetido por tarjeta o entrada. La procedencia del material docente que inspira globalmente el proyecto permanece centralizada en el `README` y no se repite en los datos runtime.
+## Comprobaciones y entrega
 
-## Estándar pedagógico futuro
+Ejecuta `npm run check` con fixtures y almacenamiento inyectado para la automatización y
+registra ese resultado por separado del recorrido real de Spider. Entrega al desarrollador el
+borrador exportado y los pasos de revisión canónica en Edge externo, con servicio iniciado
+desde un terminal visible de VS Code:
 
-Un nodo listo para publicación debería incorporar:
+- visibilidad antes y después del requisito y acceso físico al lugar;
+- respuestas correctas, incorrectas y vacías; unidad y tolerancia;
+- navegación por etapas, teclado y descripciones de figuras;
+- concesión única de progreso y persistencia tras recargar;
+- revisión de fuente, edición y build tras la aplicación.
 
-- resultado de aprendizaje medible;
-- prerrequisitos;
-- contexto histórico con fuentes;
-- evidencia o experimento;
-- modelo moderno;
-- derivación apropiada al nivel;
-- aplicación ingenieril;
-- ejemplo resuelto;
-- práctica guiada;
-- problema de evaluación;
-- misión de transferencia;
-- errores frecuentes;
-- solución revisada por otra persona.
-
-## Fuentes
-
-- Prioriza fuentes primarias, libros universitarios abiertos, documentación institucional y artículos revisados.
-- No uses una fuente secundaria popular como único respaldo de una afirmación histórica discutida.
-- No incorpores imágenes o textos ajenos solo porque son accesibles en internet.
-- Registra autor, título, institución/editorial, año y enlace estable cuando el formato final lo permita.
-- Cuando una entrada necesite fuente, registra su clave canónica en `docs/references/references.bib` y un localizador exacto dentro de `source`.
-- El conocimiento matemático común puede declararse sin `source`; no cites una fuente para suma, derivación elemental o notación estándar solo para completar un campo.
-- Una fuente mostrada al desbloquear contenido se cita una vez y de manera agrupada; el panel de consulta puede seguir visible, pero no repite la bibliografía por entrada.
-- Un adjunto con licencia no indicada puede orientar una reformulación independiente, pero no autoriza copiar prosa, tablas, ejercicios ni soluciones.
-
-## Control de calidad
-
-Además de la validación y el preview en Spider, ejecuta las comprobaciones automáticas:
-
-```bash
-npm run check
-```
-
-Usa fixtures y almacenamiento inyectado para las pruebas reproducibles y registra su resultado
-por separado del recorrido de autoría. Después entrega al desarrollador la revisión canónica
-en Edge externo, preservando su perfil y el checkout congelado durante validar/aplicar:
-
-- visibilidad antes y después del requisito;
-- lugar alcanzable físicamente;
-- ejercicio correcto, incorrecto y vacío;
-- unidad y tolerancia;
-- concesión única de progreso;
-- persistencia tras recargar.
+Para trabajo autorizado del motor, las definiciones exactas viven en
+[`content-source.js`](../src/core/content-source.js), las
+[plantillas editoriales](../src/editor/content-source-templates.js),
+[`validator.js`](../src/core/validator.js) y sus pruebas. Los catálogos JavaScript describen la
+base y los contratos internos; no son un segundo flujo de autoría curricular.

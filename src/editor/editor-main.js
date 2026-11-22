@@ -26,6 +26,11 @@ import { EditorBowerbirdSession } from "./bowerbird-session.js";
 import { EditorModel } from "./editor-model.js";
 import { EditorRenderer } from "./editor-renderer.js";
 import { EditorUIController } from "./editor-ui-controller.js";
+import { resolveOnlineContext } from "../online/access.js";
+import { ContentSourceSession } from "./content-source-session.js";
+import { createOnlineEditorDraftStorage, editorOnlineStorageKeys, loadOnlineEditorCourse } from "./editor-online-session.js";
+import { mountOwlPanel } from "./owl-panel.js";
+import { mountOnlineCoursePanel } from "./online-course-panel.js";
 
 function finishStartup() {
   requestAnimationFrame(() => {
@@ -77,10 +82,20 @@ function configureProfileShell(profile, editorAccess) {
 }
 
 const url = new URL(window.location.href);
-const profile = resolveEditorProfile({ requestedProfile: url.searchParams.get("profile") });
+const onlineContext = await resolveOnlineContext({ target: "editor" });
+const profile = onlineContext?.profile ?? resolveEditorProfile({ requestedProfile: url.searchParams.get("profile") });
 const profileCapabilities = getProfileCapabilities(profile);
 const editorAccess = profileCapabilities.editorAccess;
 configureProfileShell(profile, editorAccess);
+if (onlineContext) {
+  const returnLink = document.querySelector("#editor-return-link");
+  const orbitUrl = new URL("./index.html", window.location.href);
+  orbitUrl.search = "";
+  orbitUrl.searchParams.set("course", onlineContext.course.id);
+  if (returnLink) returnLink.href = orbitUrl.href;
+  document.title = `ORBIT Editor · ${onlineContext.course.title}`;
+  document.querySelector(".orbit-route").textContent = ` · ${onlineContext.course.title}`;
+}
 
 if (editorAccess === "blocked") {
   window.OrbitEditor = Object.freeze({
@@ -98,7 +113,7 @@ if (editorAccess === "blocked") {
     "color:#a9bfd0",
   );
 } else {
-  const startupTransaction = inspectCourseApplicationTransaction({
+  const startupTransaction = onlineContext ? { pending: false } : inspectCourseApplicationTransaction({
     courseId: APP_CONFIG.activeCourseId,
   });
   const browserRecovery = startupTransaction.pending
@@ -110,7 +125,7 @@ if (editorAccess === "blocked") {
   if (browserRecovery.recovered) {
     console.info(`Se recuperó el journal local del curso: ${browserRecovery.action}.`);
   }
-  const course = await loadCourseEdition();
+  const course = onlineContext ? await loadOnlineEditorCourse(onlineContext) : await loadCourseEdition();
   const validation = validateProjectData({
     areas: course.areas,
     locations: course.locations,
@@ -130,11 +145,12 @@ if (editorAccess === "blocked") {
     throw new Error("No se encontró el canvas principal de ORBIT Editor.");
   }
 
-  const storageKey = `orbit-editor:v${EDITOR_DOCUMENT_SCHEMA_VERSION}:${course.courseId}`;
-  const editorStorage = new ProgressStorage(
+  const onlineKeys = onlineContext ? editorOnlineStorageKeys(onlineContext) : null;
+  const storageKey = onlineKeys?.document ?? `orbit-editor:v${EDITOR_DOCUMENT_SCHEMA_VERSION}:${course.courseId}`;
+  const rawEditorStorage = new ProgressStorage(
     storageKey,
-    undefined,
-    [
+    onlineContext && editorAccess === "read-only" ? null : undefined,
+    onlineContext ? [] : [
       `orbit-editor:v5:${course.courseId}`,
       `orbit-editor:v4:${course.courseId}`,
       `orbit-editor:v3:${course.courseId}`,
@@ -142,6 +158,9 @@ if (editorAccess === "blocked") {
       `orbit-editor:v1:${course.courseId}`,
     ],
   );
+  const editorStorage = onlineContext ? createOnlineEditorDraftStorage({
+    storage: rawEditorStorage, revision: course.courseRevision, document: course.editorDocument,
+  }) : rawEditorStorage;
   const documentOptions = {
     courseId: course.courseId,
     baseDataVersion: course.editorDocument.baseDataVersion,
@@ -162,19 +181,19 @@ if (editorAccess === "blocked") {
 
   const personalPreferences = editorAccess === "read-only"
     ? new BowerbirdPreferencesModel({
-        storageKey: createBowerbirdStorageKey({ courseId: course.courseId, profile }),
+        storageKey: onlineKeys?.appearance ?? createBowerbirdStorageKey({ courseId: course.courseId, profile }),
         baseAreas: course.areas,
         courseId: course.courseId,
       })
     : null;
-  const applicationCoordinator = editorAccess === "full"
+  const applicationCoordinator = editorAccess === "full" && !onlineContext
     ? new CourseApplicationCoordinator({
         currentEdition: course.edition,
         authorClient: new EditorAuthorClient(),
         documentOptions,
       })
     : null;
-  const localServiceClient = editorAccess === "full"
+  const localServiceClient = editorAccess === "full" && !onlineContext
     ? new EditorLocalServiceClient()
     : null;
   const bowerbird = new EditorBowerbirdSession({
@@ -192,7 +211,23 @@ if (editorAccess === "blocked") {
     localServiceClient,
     courseEdition: course,
     courseWarnings,
+    contentSourceSession: onlineKeys ? new ContentSourceSession({
+      model,
+      storage: new ProgressStorage(onlineKeys.scratch),
+    }) : undefined,
   });
+  const onlinePanels = onlineContext && editorAccess === "full" ? [
+    mountOwlPanel({ context: onlineContext, parent: document.querySelector("#editor-tools-dock") }),
+    mountOnlineCoursePanel({ context: onlineContext, model, draftStorage: editorStorage, parent: document.querySelector("#editor-general-dock") }),
+  ] : [];
+  if (onlineContext) {
+    const status = document.createElement("p");
+    status.className = "online-draft-note";
+    status.textContent = editorAccess === "full"
+      ? "Borrador guardado en este dispositivo, separado del curso publicado. Usa Publicar online para revisar e instalar una edición."
+      : "Consulta del curso publicado. Bowerbird conserva únicamente tu apariencia personal.";
+    document.querySelector("#editor-overview-panel")?.prepend(status);
+  }
   const panelResizers = setupPanelResizers({ product: "editor" });
   app.start();
   finishStartup();
@@ -304,13 +339,24 @@ if (editorAccess === "blocked") {
   );
 
   let editorDestroyed = false;
-  window.addEventListener("pagehide", (event) => {
-    if (event.persisted || editorDestroyed) return;
+  const destroyEditor = () => {
+    if (editorDestroyed) return;
     editorDestroyed = true;
+    for (const panel of onlinePanels) panel.destroy();
     panelResizers.destroy();
     ui.destroy();
     app.destroy();
     bowerbird.destroy();
     model.destroy();
+  };
+  window.addEventListener("pagehide", (event) => {
+    if (event.persisted || editorDestroyed) return;
+    destroyEditor();
+  });
+  if (onlineContext) window.addEventListener("orbit-online-session-ended", (event) => {
+    if (event.detail?.scope && event.detail.scope !== onlineContext.scope) return;
+    document.querySelector("#app").inert = true;
+    destroyEditor();
+    delete window.OrbitEditor;
   });
 }

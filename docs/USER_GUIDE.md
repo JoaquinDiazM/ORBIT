@@ -1,23 +1,38 @@
 # Guía de ORBIT
 
-ORBIT ofrece dos entradas. Esta guía describe **ORBIT** en `index.html`, con los perfiles
-locales Estudiante, Docente y Debug. La autoría cartográfica se realiza por separado en
-`editor.html` y se documenta en la [Guía de ORBIT Editor](EDITOR_GUIDE.md).
+Esta guía describe **ORBIT** en `index.html`. Puede abrirse en modo estático con perfiles
+locales, o mediante el servidor docente de la candidata 1.0.0 con una cuenta real. La autoría
+se realiza en `editor.html`; consulta la [guía del Editor](EDITOR_GUIDE.md) y, para cuentas,
+Owl y publicación online, la [guía del servidor](SERVER_GUIDE.md).
 
-## Abrir el prototipo
+## Entrar al curso online
 
-Con Node.js 24 LTS o posterior instalado:
+Abre el enlace de tu docente e ingresa con el alias y contraseña que te entregó. No hay registro
+abierto. Tu cuenta estudiantil pertenece a un curso; para otro curso necesitas otra cuenta.
+El rol lo determina el servidor y no se cambia mediante el selector de perfiles o la URL.
 
-```bash
-npm install
-npm run dev
-```
+La barra de sesión identifica cuenta y curso y muestra si el avance está sincronizado o quedan
+finalizaciones pendientes. El docente ve avance y finalización en Owl, sin tus respuestas ni
+intentos. Si caduca la sesión, vuelve a ingresar con la misma cuenta; un fallo de conexión no
+borra el avance del dispositivo.
 
-Abre `http://127.0.0.1:4173/`. `npm run dev` usa exclusivamente ese origen y no busca otro
-puerto: si está ocupado, detén el proceso anterior y vuelve a iniciar el comando. No añadas
-`editor.html` si deseas recorrer el curso.
+Para estudiar sin conexión, entra primero al curso con red y comprueba la preparación de recursos
+en **Aplicación** y la copia del curso. Después puedes elegir el acceso offline de ese dispositivo.
+El acceso offline no valida una contraseña contra el servidor. Al volver la conexión, ORBIT comprueba
+la cuenta y la edición antes de sincronizar; si informa una incompatibilidad, conserva la copia
+y sigue sus indicaciones de recuperación.
 
-`npm install` se ejecuta una vez para disponer del render matemático local.
+Desde Edge/Chrome puedes instalar ORBIT en una ventana propia. **Cerrar sesión** o **Cerrar acceso
+offline** retira el acceso a la copia, conservando finalizaciones pendientes para la misma cuenta.
+Evita preparar acceso offline en navegadores compartidos. Instalación, mantenimiento y tratamiento
+de datos se explican en la [guía del servidor](SERVER_GUIDE.md). La revisión humana de la candidata
+sigue pendiente; su evidencia se registra en el [informe de UPD-027](reviews/UPD-027.md).
+
+## Abrir el modo estático
+
+Para ejecutar el clon local, sigue la [preparación del entorno](DEVELOPMENT.md#preparar-el-entorno)
+y abre `http://127.0.0.1:4173/`. El origen es fijo; no añadas `editor.html` si deseas recorrer
+el curso. La guía de desarrollo explica los modos de servicio y qué hacer si el puerto está ocupado.
 
 El selector de la cabecera ofrece exactamente tres perfiles. **Estudiante** es el modo por
 defecto. **Docente** conserva las mismas reglas curriculares, pero autocompleta al interactuar
@@ -62,6 +77,23 @@ ajusta al espacio disponible; en móvil se conserva la ventana compacta.
 - `Esc`: cerrar la ventana superior de la pila.
 
 Las líneas luminosas indican fronteras transitables. Las barreras marcadas con candados separan una zona abierta de una zona todavía bloqueada.
+
+## Navegación Global y Directa
+
+En **Ajustes → Visual → Navegación** puedes elegir:
+
+- **Global:** conserva el mapa completo y sus posiciones habituales; es el modo inicial.
+- **Directa:** sitúa la zona actual en el centro y la rodea de hasta seis zonas. Prioriza las
+  relacionadas por la Red, después Base si cabe y finalmente otras zonas con una selección
+  estable. Puedes caminar hacia las vecinas abiertas; al entrar, el mapa se reorganiza.
+
+Cambiar de modo conserva tu zona, posición y progreso; no abre ni cierra regiones. En Directa,
+**Volver a la zona anterior** permite regresar durante la sesión aunque esa zona no aparezca
+entre las nuevas vecinas. La elección del modo se guarda; el historial de regreso no.
+
+Esta opción es independiente del filtro **Oculta / Directo / Total**, que solo cambia las
+flechas de la Red. Si una edición histórica no admite Directa por tener demasiadas relaciones
+entre zonas, el panel explica el motivo y Global sigue disponible.
 
 ## Progresión normal sugerida
 
@@ -135,17 +167,19 @@ El ambiente comienza solo después de tu primer clic o tecla. **Ajustes → Soni
 
 Las interacciones ordinarias solicitan el cue de confirmación predeterminado. Si una acción tiene un cue específico —por ejemplo, una finalización que abre una zona—, ese cue sustituye al predeterminado: nunca deben superponerse los dos. Las mismas acciones conservan siempre una indicación visual aunque el volumen esté en cero o el recurso no esté disponible.
 
-El inventario contiene seis recursos verificables y seis botones de prueba en el debugger —ambiente global, cambio de hexágono, confirmación de interacción, clic de interfaz, zona desbloqueada y teletransporte—. Tres sonidos procedentes de Freesound son CC0 1.0; el teletransporte usa `weapAppear.wav` de RunnerPack bajo CC BY 4.0 y conserva la atribución Sampling+ 1.0 de su obra antecedente. Los otros dos efectos son contribuciones de ORBIT aportadas por JoaquinDiazM mediante ChatGPT y publicadas bajo MIT.
+El debugger permite probar los seis recursos: ambiente, cambio de hexágono, interacción, clic
+de interfaz, zona desbloqueada y teletransporte. Sus procedencias y licencias se conservan en
+[la atribución de audio](../public/assets/audio/ATTRIBUTION.md).
 
 Las ecuaciones se escriben en TeX, se muestran con tipografía matemática y exponen MathML para tecnologías de asistencia.
 
-## Contenido destacado de 0.3.2
+## Contenido destacado
 
 El **Observatorio de Coulomb** se recorre en cinco etapas. Su laboratorio permite mover exactamente tres cargas mediante puntero o teclado; la cuarta etapa desarrolla la relación conservativa mediante siete intervenciones guiadas.
 
 La **Estación de Superconductividad** contiene dos lugares complementarios. Heike Kamerlingh Onnes aporta contexto histórico y un botón para registrar el encuentro, sin preguntas ni calificación; al completarlo aparecen fórmulas introductorias en el **Formulario**. El **Laboratorio de Transición Superconductora** es el punto de aprendizaje separado: allí se realiza la actividad evaluable y se adquiere el concepto de la zona. Los IDs internos heredados de zona, concepto y Onnes se conservan para no invalidar perfiles anteriores.
 
-## Guardado
+## Guardado del modo estático
 
 El progreso se guarda automáticamente y por separado para cada perfil.
 
@@ -169,7 +203,7 @@ y las claves `aea-progress`, pero solo conserva esos logros cuando la edición a
 son compatibles. Una edición aplicada con reinicio total crea avances nuevos para Estudiante,
 Docente y Debug; un progreso de otra revisión no se reactiva de forma silenciosa.
 
-## Exportar e importar progreso
+## Exportar e importar progreso estático
 
 Cambia a Debug, abre el debugger con `F2` y usa:
 
@@ -179,11 +213,11 @@ Cambia a Debug, abre el debugger con `F2` y usa:
 Conserva copias antes de probar cambios incompatibles en el contenido.
 
 Este JSON pertenece al progreso `v4` de ORBIT. No es compatible ni intercambiable con un
-documento `orbit-editor-project` `v5`: el primero contiene logros y preferencias del perfil; el
-segundo contiene cartografía, entidades e inventario, la Red de aprendizaje y apariencias
-publicables.
+documento `orbit-editor-project` `v6`: el primero contiene logros y preferencias del perfil; el
+segundo contiene fuente académica, cartografía, entidades e inventario, la Red de aprendizaje y
+apariencias publicables.
 
-## Relación con ORBIT Editor
+## Relación con ORBIT Editor local
 
 ORBIT Editor se abre en:
 
@@ -191,38 +225,19 @@ ORBIT Editor se abre en:
 http://127.0.0.1:4173/editor.html
 ```
 
-Sin query, Docente prepara posiciones de nodos, pertenencia y conexiones de la Red de aprendizaje, ordenamiento de zonas y
-apariencias con **Spider**, **Bee** y **Bowerbird**. Con `?profile=student` permite consultar,
-recorrer, encuadrar y guardar preferencias Bowerbird personales, pero mantiene Spider, Bee,
-historial, exportación, importación, restauración y el documento Docente en solo lectura. Cada
-intento restringido muestra un aviso temporal conciso; no ocupa el mapa con un banner permanente.
-Con `?profile=debug` bloquea la entrada antes de crear el modelo editorial.
+Sin query, Docente edita nodos, contenido y conexiones con **Spider**, organiza zonas con
+**Bee** y prepara apariencias con **Bowerbird**. Con `?profile=student`, puedes recorrer y
+consultar Spider/Bee y guardar tu apariencia Bowerbird personal, pero no modificar el curso.
+Con `?profile=debug`, Editor permanece bloqueado. Son capacidades locales, no autenticación.
 
-El documento Docente se autoguarda bajo `orbit-editor:v5:electromagnetism-applied`; las
-preferencias Bowerbird Estudiante usan
-`orbit-bowerbird:v1:electromagnetism-applied:student`. Ninguna rama se mezcla con los tres
-avances. En ORBIT, una preferencia personal tiene prioridad sobre la apariencia publicada, pero
-una zona bloqueada continúa neutral hasta que se abre y los motivos animados respetan la
-reducción de movimiento del sistema.
+El documento Docente `v6` se guarda separado de los avances. Las preferencias Bowerbird de
+Estudiante también permanecen separadas: en ORBIT tienen prioridad sobre la apariencia publicada,
+pero una zona bloqueada sigue neutral y los motivos respetan la reducción de movimiento.
 
-Exportar no cambia el curso. El perfil Docente puede iniciar el helper local con
-`npm run editor:author` y usar **Resumen** para validar, revisar el diff y el avance que se
-reiniciará, confirmar y aplicar. El reinicio elimina progreso, posición y ajustes de los tres
-perfiles, pero conserva tanto el documento Docente como las preferencias Bowerbird Estudiante.
-Antes de iniciar el helper, detén el servidor de desarrollo: el mantenimiento usa siempre
-`http://127.0.0.1:4173` para compartir el mismo almacenamiento y los mismos bloqueos. Si una
-interrupción deja una aplicación pendiente, ORBIT se bloquea hasta resolverla desde Editor.
-Durante toda la ejecución de `editor:author`, la raíz y los tres perfiles responden en modo
-mantenimiento; una pestaña ORBIT que seguía abierta se vuelve inerte, libera su bloqueo y recarga.
-Editor muestra junto a **Aplicar** si está en modo normal o mantenimiento y por qué la acción está
-bloqueada. Después de aplicar, detén autoría e inicia otra vez `npm run dev` para revisar el curso.
-Aplicar localmente construye `dist/`; no crea commits, no hace push y no despliega el sitio. Como
-la query se puede editar, `editor.html` no ofrece autenticación ni control de acceso real.
-
-En una sesión local compatible, Docente dispone de **Detener servidor** al final del menú General.
-Pulsa una vez para armar la confirmación y otra para apagar `npm run dev` o
-`npm run editor:author`. El botón no aparece en Estudiante/Debug, no interrumpe una aplicación
-pendiente y nunca intenta cerrar otro programa que simplemente ocupe el puerto.
+Exportar un borrador no cambia el curso. La [guía de Editor](EDITOR_GUIDE.md) explica cómo
+crear y editar contenido, importar/exportar y preparar la revisión y aplicación de una edición.
+Durante el mantenimiento, ORBIT queda temporalmente bloqueado; la aplicación informa qué
+progresos reiniciará y conserva el documento Docente y las preferencias personales.
 
 ## Accesibilidad básica
 

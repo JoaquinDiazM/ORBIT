@@ -1,5 +1,10 @@
 # Principios pedagógicos
 
+ORBIT prioriza rigor, progresión, ejercicios y utilidad para estudiantes por encima de la
+producción audiovisual. Esta guía conserva la dirección pedagógica; no es una lista de
+capacidades ya publicadas ni una autorización de implementación. El alcance de lanzamiento se
+decide en [`ORBIT_UPDATES.md`](../ORBIT_UPDATES.md).
+
 ## Público
 
 En la ruta actual de Electromagnetismo, estudiantes con una base mínima de cálculo, álgebra lineal y física clásica, especialmente quienes exploran Ingeniería Eléctrica o comienzan la especialidad. Cada ruta futura de ORBIT deberá declarar su propio perfil de entrada en vez de heredar automáticamente estos prerrequisitos.
@@ -17,6 +22,12 @@ Cada episodio debe distinguir:
 5. aplicación posterior.
 
 Las simplificaciones narrativas deben declararse. Las atribuciones históricas deben ser trazables y reconocer procesos colectivos cuando corresponda.
+
+En Electromagnetismo, la narración responde qué problema no podía resolverse, qué herramienta
+conceptual se volvió necesaria y qué tecnología permitió después. El estudiante es el
+protagonista. El mundo es abstracto y puede inspirarse en lugares históricos de diversas
+regiones sin reproducir la geografía ni una única cronología europea. Otras disciplinas podrán
+necesitar estructuras causales distintas.
 
 ## Orden pedagógico sobre orden cronológico
 
@@ -102,9 +113,27 @@ La ruta actual debe permitir:
 
 Un estudiante que repasa para una evaluación no debe quedar atrapado en la narrativa.
 
+Expedición es la experiencia implementada; el acceso directo por consulta temática sigue siendo
+una dirección futura. Los paneles de referencia existentes no equivalen a ese segundo modo.
+
 La visión futura de **ORBIT — Open Roadmap for Building Intuition and Theory** contempla rutas
 de cursos diferentes y conexiones explícitas entre ellas. Esas conexiones deberán representar
 competencias verificables, no similitudes nominales, y todavía no forman parte del prototipo.
+
+## Desarrollo posterior del curso
+
+La plantilla del lanzamiento no pretende ser el curso completo. Un nodo maduro combina
+evidencia, modelo, formalización, aplicación, ejemplo resuelto, práctica guiada, evaluación y
+transferencia, con fuentes y soluciones revisadas. El
+[esqueleto curricular](CURRICULUM_SKELETON.md) conserva los resultados candidatos y las
+decisiones disciplinares pendientes; la [guía de autoría](CONTENT_AUTHORING.md) reúne los
+criterios de entrega.
+
+La instrumentación astronómica e interferometría inspiradas en Atacama son una posible conexión
+entre ondas, fase, antenas y adquisición distribuida. Una misión de enlace Tierra–Luna puede
+integrar propagación, potencia, retardo, ruido, polarización y presupuesto de enlace. Son
+direcciones pedagógicas para desarrollar y validar, no compromisos adicionales de 1.0.0. Las
+recompensas narrativas y los transportes deben seguir siendo breves y coherentes con lo aprendido.
 
 ## Evaluación del proyecto
 

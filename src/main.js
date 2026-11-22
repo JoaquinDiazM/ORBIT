@@ -24,39 +24,66 @@ import { validateProjectData } from "./core/validator.js";
 import { GameApp } from "./game/game-app.js";
 import { UIController } from "./ui/ui-controller.js";
 import { setupPanelResizers } from "./ui/panel-resizer.js";
+import { resolveOnlineContext } from "./online/access.js";
+import { loadOfflineContext } from "./online/offline-store.js";
+import { prepareOnlineRuntime } from "./online/runtime-course.js";
+import { acquireOnlineRuntimeLock } from "./online/runtime-lock.js";
+import { OnlineProgressSync } from "./online/progress-sync.js";
+import { showRetainedProgress } from "./online/recovery-view.js";
 
 async function startOrbitRuntime() {
   let runtimeLock = null;
   let maintenanceMonitor = null;
+  let onlineSync = null;
+  let sessionEnded = null;
+  let disposeRuntime = null;
+  let startupCancelled = false;
   let startupReady = false;
   try {
-    const courseSession = await prepareCourseRuntimeLock({
-      courseId: APP_CONFIG.activeCourseId,
-      inspectTransaction: () => inspectCourseApplicationTransaction({
+    const onlineContext = await resolveOnlineContext({ offlineProvider: loadOfflineContext });
+    if (onlineContext) {
+      sessionEnded = (event) => {
+        if (event.detail?.scope && event.detail.scope !== onlineContext.scope) return;
+        startupCancelled = true;
+        const shell = document.querySelector("#app");
+        if (shell) shell.inert = true;
+        disposeRuntime?.();
+      };
+      window.addEventListener("orbit-online-session-ended", sessionEnded);
+      runtimeLock = await acquireOnlineRuntimeLock(onlineContext.scope);
+      if (startupCancelled) {
+        window.removeEventListener("orbit-online-session-ended", sessionEnded);
+        return;
+      }
+    } else {
+      const courseSession = await prepareCourseRuntimeLock({
         courseId: APP_CONFIG.activeCourseId,
-      }),
-      recoverTransaction: () => recoverCourseApplication({
-        courseId: APP_CONFIG.activeCourseId,
-      }),
-    });
-    runtimeLock = courseSession.runtimeLock;
+        inspectTransaction: () => inspectCourseApplicationTransaction({
+          courseId: APP_CONFIG.activeCourseId,
+        }),
+        recoverTransaction: () => recoverCourseApplication({
+          courseId: APP_CONFIG.activeCourseId,
+        }),
+      });
+      runtimeLock = courseSession.runtimeLock;
+      if (courseSession.reloadRequired) {
+        window.location.reload();
+        return;
+      }
+      await assertCourseRuntimeEntryAvailable();
+    }
     if (runtimeLock) {
       void runtimeLock.finished.catch((error) => {
-        console.error("El bloqueo compartido del curso terminó de forma inesperada.", error);
+        console.error("El bloqueo del curso terminó de forma inesperada.", error);
       });
     }
-    if (courseSession.reloadRequired) {
-      window.location.reload();
-      return;
-    }
-    await assertCourseRuntimeEntryAvailable();
 
     const url = new URL(window.location.href);
     const debugRequested = ["1", "true", "yes"].includes(
       (url.searchParams.get("debug") ?? "").toLowerCase(),
     );
     const requestedProfile = url.searchParams.get("profile");
-    const profile = resolveOrbitProfile({ requestedProfile, debugRequested });
+    const profile = onlineContext?.profile ?? resolveOrbitProfile({ requestedProfile, debugRequested });
     const profileCapabilities = getProfileCapabilities(profile);
     const debugInitiallyEnabled = profileCapabilities.canUseDebugger && debugRequested;
     const storageKey = `${APP_CONFIG.storagePrefix}:v${APP_CONFIG.progressSchemaVersion}:${profile}`;
@@ -67,7 +94,11 @@ async function startOrbitRuntime() {
       profileAliases: profile === APP_CONFIG.defaultProfile ? ["normal"] : [],
     });
 
-    const course = await loadCourseEdition({ courseId: APP_CONFIG.activeCourseId });
+    const onlineRuntime = onlineContext
+      ? await prepareOnlineRuntime(onlineContext, { isActive: () => !startupCancelled })
+      : null;
+    const course = onlineRuntime?.course
+      ?? await loadCourseEdition({ courseId: APP_CONFIG.activeCourseId });
     const validation = validateProjectData({
       areas: course.areas,
       locations: course.locations,
@@ -89,7 +120,7 @@ async function startOrbitRuntime() {
       throw new Error("No se encontró el canvas principal.");
     }
 
-    const progression = ProgressionModel.create({
+    const progression = onlineRuntime?.progression ?? ProgressionModel.create({
       profile,
       storageKey,
       legacyStorageKeys,
@@ -101,12 +132,12 @@ async function startOrbitRuntime() {
     });
     const bowerbirdPreferences = profile === APP_CONFIG.defaultProfile
       ? new BowerbirdPreferencesModel({
-          storageKey: createBowerbirdStorageKey({
+          storageKey: onlineContext ? `orbit-bowerbird:online:v1:${onlineContext.scope}` : createBowerbirdStorageKey({
             courseId: course.courseId,
             profile,
           }),
           baseAreas: course.areas,
-          courseId: course.courseId,
+          courseId: onlineContext ? course.edition.courseId : course.courseId,
         })
       : null;
     if (bowerbirdPreferences?.getSnapshot().warnings.length > 0) {
@@ -125,6 +156,7 @@ async function startOrbitRuntime() {
       audio,
       areas: course.areas,
       locations: course.locations,
+      onlineContext,
     });
     const panelResizers = setupPanelResizers({ product: "orbit" });
     const game = new GameApp({
@@ -220,9 +252,11 @@ async function startOrbitRuntime() {
     const dispose = () => {
       if (disposed) return;
       disposed = true;
+      if (sessionEnded) window.removeEventListener("orbit-online-session-ended", sessionEnded);
       try {
         for (const [label, release] of [
           ["monitor de mantenimiento", () => maintenanceMonitor?.stop()],
+          ["sincronización de cuenta", () => onlineSync?.stop()],
           ["juego", () => game.destroy()],
           ["ancho de paneles", () => panelResizers.destroy()],
           ["contenido de la interfaz", () => ui.destroy()],
@@ -240,31 +274,53 @@ async function startOrbitRuntime() {
         runtimeLock?.release();
       }
     };
+    disposeRuntime = dispose;
     window.addEventListener("pagehide", dispose, { once: true });
     window.addEventListener("pageshow", (event) => {
       if (event.persisted) window.location.reload();
     });
 
     console.info(
-      `%c${APP_CONFIG.appName} ${APP_CONFIG.version}%c\nPerfil local: ${profile}. Edición ${course.courseRevision} (${course.source}). ${profileCapabilities.canUseDebugger ? "Debugger disponible en window.OrbitDebug." : "Las herramientas de depuración no están disponibles en este perfil."}`,
+      `%c${APP_CONFIG.appName} ${APP_CONFIG.version}%c\n${onlineContext ? "Rol autenticado" : "Perfil local"}: ${profile}. Edición ${course.courseRevision} (${course.source}). ${profileCapabilities.canUseDebugger ? "Debugger disponible en window.OrbitDebug." : "Las herramientas de depuración no están disponibles en este perfil."}`,
       "color:#78e3ff;font-weight:700;font-size:14px",
       "color:#a9bfd0",
     );
     startupReady = true;
-    maintenanceMonitor = new OrbitMaintenanceMonitor({
-      onMaintenance: () => {
-        const shell = document.querySelector("#app");
-        if (shell) {
-          shell.inert = true;
-          shell.dataset.maintenance = "true";
-        }
-        dispose();
-        window.location.reload();
-      },
-    });
-    void maintenanceMonitor.start().catch((error) => {
-      console.error("No fue posible activar la transición local de mantenimiento.", error);
-    });
+    if (onlineContext) {
+      showRetainedProgress(onlineContext, onlineRuntime.recoveries);
+      if (profile === "student") {
+        onlineSync = new OnlineProgressSync({
+          context: onlineContext,
+          progression,
+          cache: onlineRuntime.cache,
+          storageFactory: onlineRuntime.storageFactory,
+          onAccessRequired: () => {
+            const shell = document.querySelector("#app");
+            if (shell) shell.inert = true;
+            dispose();
+          },
+        });
+        onlineSync.start();
+      }
+    } else {
+      maintenanceMonitor = new OrbitMaintenanceMonitor({
+        onMaintenance: () => {
+          const shell = document.querySelector("#app");
+          if (shell) {
+            shell.inert = true;
+            shell.dataset.maintenance = "true";
+          }
+          dispose();
+          window.location.reload();
+        },
+      });
+      void maintenanceMonitor.start().catch((error) => {
+        console.error("No fue posible activar la transición local de mantenimiento.", error);
+      });
+    }
+  } catch (error) {
+    if (sessionEnded) window.removeEventListener("orbit-online-session-ended", sessionEnded);
+    throw error;
   } finally {
     if (!startupReady) runtimeLock?.release();
   }

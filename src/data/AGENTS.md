@@ -7,7 +7,7 @@ Estas reglas se suman a los `AGENTS.md` superiores para `src/data/`.
 Lee:
 
 - la sección [Autoría de contenido por agentes](../../AGENTS.md#autoría-de-contenido-por-agentes);
-- `docs/PROJECT_BRIEF.md`;
+- `README.md` para el propósito y `docs/ROADMAP.md` para el alcance futuro;
 - `docs/WORLD_AND_KNOWLEDGE_DESIGN.md`;
 - `docs/CONTENT_AUTHORING.md`;
 - `docs/PEDAGOGICAL_PRINCIPLES.md`.

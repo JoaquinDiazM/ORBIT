@@ -1,16 +1,19 @@
 # Nomenclatura e IDs de contenido
 
-Esta convención ofrece trazabilidad sin cambiar los IDs publicados. Los IDs forman parte del guardado o de las referencias editoriales y se escriben en inglés, `kebab-case`.
+Esta convención ofrece trazabilidad sin cambiar los IDs publicados. Los IDs forman parte del
+guardado o de las referencias editoriales y se escriben en inglés, `kebab-case`. Spider asigna
+a sus nodos nuevos un ID monotónico `new-node-NNNN`, independiente del título; no se sustituye
+por un nombre descriptivo después de crearlos.
 
 ## Espacios de nombres
 
-| Objeto | Forma | Fuente de verdad | Ejemplo |
+| Objeto | Forma | Autoridad y ubicación | Ejemplo |
 |---|---|---|---|
-| Zona | ID simple | `src/data/world.js` | `electrostatics` |
+| Zona | ID simple | Catálogo `src/data/world.js`; nombres y posición de la edición proceden del documento editorial | `electrostatics` |
 | Concepto | ID simple; se muestra como `concept:<id>` al citarlo | `src/data/knowledge.js` | `concept:vectors-and-fields` |
-| Lugar | ID simple | `src/data/locations.js` | `vector-workshop` |
+| Lugar | ID simple | Catálogo base `src/data/locations.js` y entidades de la edición; Spider conserva identidad, ciclo de vida y fuente del nodo | `vector-workshop` |
 | Recompensa | `<tipo>:<id>` | `src/data/knowledge.js` | `gadgets:field-lens` |
-| Etapa de lugar | ID local, único dentro del lugar | `steps[]` del lugar | `vector-workshop#vector-operators` |
+| Etapa de lugar | ID local, único dentro del lugar | Fuente de Spider, compilada a `steps[]` | `vector-workshop#vector-operators` |
 | Símbolo | `symbol:<id>` | `src/data/reference/symbols.js` | `symbol:electric-field` |
 | Constante | `constant:<id>` | `src/data/reference/constants.js` | `constant:vacuum-permittivity` |
 | Fórmula | `formula:<id>` | `src/data/reference/formulas.js` | `formula:curl-of-gradient` |
@@ -18,6 +21,10 @@ Esta convención ofrece trazabilidad sin cambiar los IDs publicados. Los IDs for
 | Fuente | clave BibTeX | `docs/references/references.bib` | `ellingson-electromagnetics-i-2018` |
 
 El prefijo documental no se agrega al valor guardado de zonas, conceptos o lugares. Solo desambigua referencias en documentación y solicitudes de cambio.
+
+El documento editorial vigente es `v6`: persiste `contentSource`, y el cuerpo runtime se
+compila. Los catálogos ayudan a comprender la base; las rutas de esta tabla no autorizan editar
+contenido directamente. Sigue el [flujo de autoría](CONTENT_AUTHORING.md).
 
 ## Símbolos científicos
 
@@ -38,3 +45,10 @@ La tabla visible es un núcleo curado basado en la bibliografía, no una copia d
 3. Para eliminar un objeto persistido, declara reemplazo o migración.
 4. Para renombrar un ID publicado, incrementa el esquema y añade migración explícita.
 5. Nunca guardes listas `unlockedFormulaIds` o equivalentes: la disponibilidad de referencias se deriva del progreso existente.
+
+Inventariar y reinsertar un nodo conserva su ID; borrarlo definitivamente reserva ese ID mediante
+un tombstone y no permite reutilizarlo. La Estación de Superconductividad y su concepto
+conservan `electromagnetic-compatibility`, y el NPC Onnes conserva `shielding-chamber`, por
+compatibilidad con avances publicados; su evaluación separada usa
+`superconductivity-transition-lab`. El nombre visible no obliga a renombrar un identificador
+histórico.

@@ -2,507 +2,130 @@
 
 **Open Roadmap for Building Intuition and Theory**
 
-**ORBIT 0.7.0 · experiencia de aprendizaje**
+ORBIT es un recurso educativo abierto para construir intuición y teoría mediante actividades
+universitarias y exploración libre en un mundo 2D. Una **Red de aprendizaje** conecta lecciones
+y misiones; su progreso abre regiones del mapa sin restringir el movimiento a nodos o caminos.
 
-![ORBIT 0.7.0 en perfil Estudiante, con Campamento Base y el menú principal](docs/screenshots/orbit-0.7.0.png)
+**Versión publicada: 0.9.0.** La ruta demostrativa es **Electromagnetismo**, dirigida a quienes
+ya conocen cálculo, álgebra lineal y física clásica. Su contenido es provisional y no equivale
+a un curso completo revisado.
 
-**ORBIT Editor 0.7.0 · Spider**
+La primera ruta nace de la experiencia docente del autor en EL3103 Electromagnetismo Aplicado
+de la Universidad de Chile. ORBIT es independiente: no redistribuye evaluaciones, soluciones
+ni material docente restringido. La historia de la ciencia sirve para explicar la necesidad
+de nuevas ideas, subordinada a los prerrequisitos y al aprendizaje.
 
-![ORBIT Editor 0.7.0 con Spider abierto para organizar nodos y conexiones](docs/screenshots/editor-spider-0.7.0.png)
+## Base publicada 0.9.0
 
-**ORBIT Editor 0.7.0 · Bee**
+- **ORBIT:** movimiento con teclado, navegación Global/Directa, ejercicios con retroalimentación,
+  referencias y Gadgets. Estudiante, Docente y Debug conservan avances locales separados.
+- **ORBIT Editor:** Spider organiza la Red y edita la fuente académica; Bee organiza las zonas;
+  Bowerbird configura su apariencia. Incluye preview, historial e importación/exportación.
+- **Aplicación local de una edición:** el desarrollador valida y aplica el borrador durante
+  mantenimiento, con respaldo y recuperación. Exportar un JSON no publica el curso.
+- **Distribución estática:** el build funciona sin backend ni cuentas; el repositorio incluye
+  un workflow opcional de GitHub Pages.
 
-![ORBIT Editor 0.7.0 con Bee abierto para organizar zonas y rótulos](docs/screenshots/editor-bee-0.7.0.png)
+Los perfiles seleccionables son modos locales, no autenticación. La **candidata 1.0.0** añade
+servidor docente, cuentas por curso, sincronización y aplicación instalable desde el navegador.
+Estas capacidades están en el árbol de trabajo y todavía no forman parte de una release
+aprobada. El estado y la autorización viven en la [cola operativa](ORBIT_UPDATES.md); las
+pruebas y los pasos de revisión humana, en el [informe de UPD-027](docs/reviews/UPD-027.md).
 
-_Capturas reproducidas desde la versión publicada 0.7.0, en un perfil de navegador aislado y a 1280 × 720._
+## Flujo previsto para 1.0.0
 
-ORBIT es un proyecto educativo abierto y transversal para construir intuición, teoría y conexiones entre rutas de aprendizaje mediante una interfaz narrativa en dos dimensiones. La ruta implementada actualmente es **Electromagnetismo**: el estudiante explora libremente un mundo abstracto dividido en hexágonos, resuelve actividades universitarias y abre nuevas regiones mediante conocimiento adquirido.
+**Candidata pendiente de revisión humana y publicación.** Para probarla:
 
-El autor sitúa el origen pedagógico de esta primera ruta en su experiencia docente del curso EL3103 Electromagnetismo Aplicado de la Universidad de Chile, pero ORBIT es un recurso abierto e independiente. La arquitectura multicurso y las conexiones entre disciplinas son una dirección futura; la versión actual no afirma haberlas implementado.
+1. El responsable del servidor obtiene el paquete portable e instala Node.js 24 en su máquina
+   Windows o Linux siguiendo la [guía del servidor](docs/SERVER_GUIDE.md).
+2. El docente prepara su curso en **ORBIT Editor offline**, creando contenido o importando una
+   plantilla para adaptarla. La plantilla incluida es demostrativa; no es Electromagnetismo completo.
+3. El administrador inicia el servidor desde una terminal, crea el docente y le asigna un curso.
+   El enlace sirve para ORBIT y ORBIT Editor **online**; el docente importa allí su borrador.
+4. El docente crea las cuentas y entrega a cada estudiante el enlace, alias y contraseña. El estudiante
+   ingresa con esos datos; no hay registro abierto. Cada docente administra sus cursos y
+   estudiantes, con una cuenta administradora separada para el servidor.
+5. El estudiante aprende en ORBIT y el docente consulta un monitor básico de avance y
+   finalización de actividades, sin recopilar respuestas ni intentos para seguimiento.
+   **Owl** administra estudiantes del curso. Cada cuenta estudiantil pertenece a un solo curso.
+6. El docente prepara borradores en su dispositivo y publica únicamente en mantenimiento.
+   El avance se conserva; las incompatibilidades requieren una decisión explícita.
 
-La ruta actual está dirigida a estudiantes que ya manejan cálculo, álgebra lineal y física clásica, especialmente quienes consideran estudiar Ingeniería Eléctrica o comienzan los primeros semestres de la especialidad.
+Si la red universitaria exige VPN, los participantes se conectan a ella antes de abrir el enlace
+HTTPS. El estudiante puede preparar este dispositivo para estudiar sin conexión y sincronizar
+después. Es una función distinta del Editor offline usado para preparar contenido.
 
-> **Estado:** base publicada `0.9.0`; la siguiente cohorte operativa se controla en `ORBIT_UPDATES.md`. El contenido científico sigue siendo provisional y no sustituye un curso formal ni una guía de ejercicios revisada.
+La revisión humana comienza con un docente y un estudiante en dos máquinas; después se mantiene
+el piloto de 10 estudiantes, 2 docentes y 2 cursos plantilla. La [hoja de ruta](docs/ROADMAP.md)
+conserva el alcance del lanzamiento. Los ensayos automáticos no sustituyen estos recorridos.
 
-Desde **0.9.0**, **Ajustes → Visual →
-Navegación** permite alternar Global y Directa. Directa reúne la zona actual y seis
-vecinas por sus conexiones académicas, con Base y otras zonas cuando queda espacio. Conserva
-las zonas abiertas y la posición al alternar; **Volver a la zona anterior** permite regresar
-durante la sesión. Consulta el [guion de regresión](docs/reviews/UPD-026.md).
+Cuando se publique la release aprobada, el equipo docente podrá descargar **orbit-servidor.tar.gz**
+desde [Descargas de ORBIT](https://github.com/JoaquinDiazM/ORBIT/releases). Los estudiantes
+solo necesitan el enlace de su docente. Para probar el candidato actual, sigue la guía del servidor.
 
-ORBIT **0.8.0** incorpora autoría académica en **Spider → Modificar → Editar
-contenido**, con fuente restringida, preview compartido con ORBIT y documento editorial `v6`.
-Incluye ancho ajustable de paneles derechos; consulta la
-[guía de fuente académica](docs/CONTENT_SOURCE_GUIDE.md) para utilizarlo.
-En mantenimiento, **Volver a comprobar servicio** prueba el borrador en una copia temporal y
-explica los fallos antes de habilitar su aplicación.
+## Ejecutar el repositorio en modo estático
 
-## Qué demuestra esta versión
-
-- Movimiento continuo en 2D con teclado; el personaje no está restringido a nodos ni caminos.
-- Mundo de 19 hexágonos: Campamento Base, seis fundamentos y doce áreas de aplicación.
-- **Red de aprendizaje única:** conecta 22 lecciones y misiones mediante 31 relaciones
-  académicas explícitas, con Taller Vectorial como raíz.
-- **Apertura territorial derivada:** una zona vecina se abre cuando contiene al menos un nodo
-  académico elegible; personajes, gadgets y transportes quedan disponibles para interactuar al
-  abrir su zona, fuera de la red.
-- Regla de fronteras: cuando se abre un hexágono, quedan transitables todas sus aristas compartidas con hexágonos previamente abiertos.
-- Veinte conceptos y 30 lugares activos alcanzables, incluida una misión integradora Tierra–Luna y una estación opcional para la Carta de Smith; otro nodo creado permanece guardado en Inventario.
-- Ejercicios de alternativa, respuesta numérica con tolerancia, expresiones equivalentes, secuencias guiadas y actividades de confirmación.
-- Lugares extensos divididos en etapas desbloqueables dentro de la ventana principal; el Taller Vectorial desarrolla ahora seis etapas con andamiaje decreciente.
-- Menú **Gadgets** disponible desde cualquier zona: la calculadora científica segura está siempre activa; el Explorador de campos 2D y la Carta de Smith aparecen al obtener sus recompensas.
-- Explorador cartesiano de campos 2D en SVG nativo, con parámetros efímeros, descripción accesible y evaluación restringida sin ejecutar JavaScript ingresado por el usuario.
-- Esqueleto estático de Carta de Smith, obtenido al interactuar con una estación opcional
-  disponible desde que se abre la zona de Líneas de Transmisión; todavía no calcula adaptaciones
-  ni sustituye una herramienta RF completa.
-- Política matemática segura para equivalencia numérica, funcional y por gradiente, con parser restringido y evaluación determinista sin ejecutar JavaScript ingresado por el usuario.
-- Menú secundario con accesos primarios a **Zonas · Red**, **Gadgets**, **Símbolos**, **Constantes**, **Formulario**, **Glosario** y **Ajustes**; este último reúne **Visual**, **Sonido** y **Ayuda** sin quitar ninguna capacidad.
-- HUD con una barra nativa de **Progreso** conceptual: muestra un porcentaje entero derivado del
-  perfil activo y conserva «X de Y conceptos adquiridos» como equivalente accesible.
-- Las colecciones de referencia conservan sus paneles de consulta; lo que se omite son los cuadros bibliográficos repetidos. Cada procedencia pertinente se anuncia una sola vez al producirse su desbloqueo.
-- Selector local con exactamente tres perfiles —**Estudiante**, **Docente** y **Debug**— y
-  progreso separado para cada uno. El avance usa esquema `v4` y queda ligado al ID y a la
-  revisión de la edición activa del curso; los guardados compatibles anteriores migran de forma
-  explícita y una revisión aplicada comienza sin progreso heredado.
-- El perfil Docente autocompleta al interactuar las lecciones y misiones que exigen respuesta;
-  las lecturas, NPC y demás encuentros no evaluativos conservan su interacción ordinaria.
-- Debugger visual, nodo de depuración, atajos `F2`/`` ` `` y API de consola disponibles solo
-  en el perfil Debug.
-- Mezclador con volúmenes independientes para **Ambiente** e **Interfaz y efectos**; cero silencia solo la categoría correspondiente.
-- Seis audios versionados y verificables: ambiente global, transición de hexágono, confirmación
-  de interacción, clic de interfaz, desbloqueo de zona y teletransporte.
-- Ecuaciones TeX renderizadas localmente con KaTeX y salida visual + MathML.
-- Progreso `v4`, con `courseId` y `courseRevision`, migraciones controladas desde esquemas anteriores y rechazo seguro de un avance perteneciente a otra revisión.
-- Observatorio de Coulomb en cinco etapas, incluida una figura reutilizable `PointChargeField2D` con tres cargas operable mediante puntero y teclado.
-- Estación de Superconductividad con el encuentro histórico no evaluativo de Heike Kamerlingh Onnes y un Laboratorio de Transición Superconductora independiente.
-- Validación automática contra bloqueos lógicos de progresión.
-- Build estático y despliegue preparado para GitHub Pages.
-- Dos entradas estáticas: **ORBIT** en `index.html`, con perfiles Estudiante, Docente y Debug,
-  y **ORBIT Editor** en `editor.html`.
-- Editor local con dos docks retractables: Docente usa **Spider** para mover, conectar,
-  renombrar, crear, inventariar y eliminar los tipos de nodo admitidos; **Bee** organiza y
-  renombra zonas y configura los rótulos de nivel; **Bowerbird** prepara la apariencia publicada.
-  Estudiante mantiene Spider y Bee en solo lectura, pero dispone de su propio Bowerbird personal;
-  Debug queda bloqueado antes de crear el modelo editorial.
-- Documento Docente `v6` con autoguardado, historial, importación y exportación JSON. Incluye
-  fuente académica, cartografía, metadatos de nivel, ciclo de vida de nodos, conexiones académicas
-  explícitas y apariencias, pero nunca incorpora progreso ni preferencias Bowerbird privadas
-  de Estudiante.
-- Catálogo visual versionado de paletas, motivos y contornos. Las zonas bloqueadas conservan una
-  apariencia neutral y los motivos animados respetan `prefers-reduced-motion`.
-- Edición publicada validable bajo `public/data/courses/`, con revisión y digest SHA-256. El
-  flujo local **Validar → Volver a comprobar servicio → revisar impacto → confirmar → aplicar** usa respaldo y recuperación,
-  exige cerrar otras pestañas de ORBIT y reinicia únicamente los progresos Estudiante, Docente y
-  Debug; conserva el documento Docente y las preferencias Bowerbird Estudiante.
-- `npm run dev` es el modo normal: sirve ORBIT y Editor, permite editar y validar, pero bloquea
-  **Aplicar** con una explicación visible. `npm run editor:author` es el modo mantenimiento:
-  conserva Editor y su API, bloquea todas las entradas de ORBIT y habilita la aplicación solo
-  después de verificar la sesión local y el bloqueo exclusivo.
-- Los perfiles y bloqueos son modos locales elegibles, no cuentas, autenticación ni control de
-  acceso real.
-- Una dependencia npm fijada y documentada: KaTeX 0.18.1; la versión `0.8.0` no añade paquetes,
-  backend público, autenticación, render 3D ni CDN.
-
-### Cambios centrales de 0.7.0
-
-Bee conserva los dos `tier` estructurales y la prohibición de mezclarlos, pero permite cambiar
-el nombre completo y breve de cada zona, así como el texto y posición de los dos rótulos de
-nivel. Los términos teoría y aplicaciones pasan a ser valores iniciales editables, no una
-semántica codificada en la interfaz.
-
-Spider se organiza en **Mover**, **Conectar**, **Modificar**, **Crear** e **Inventario**. Puede
-crear `lesson`, `mission` y `npc` provisionales con ID monotónico, renombrarlos, retirarlos del
-mapa activo, reinsertarlos y borrarlos desde Inventario. Inventariar enumera y elimina sus
-conexiones incidentes; reinsertar no las restaura. `vector-workshop` y
-`coulomb-observatory` nunca pueden borrarse definitivamente.
-
-El documento Docente migra `v3 → v4 → v5`; las ediciones históricas se autentican antes de
-migrarse en memoria. La edición aplicada `69b47331…` ya publica un documento `v5` con 30 lugares
-activos, uno inventariado, 22 nodos académicos y 31 conexiones. Incluye el Taller de fasores
-creado durante la revisión y conserva Malla V-D fuera del runtime en Inventario. Consulta el
-[ADR 0010](docs/decisions/0010-editorial-entities-and-map-metadata.md).
-
-### Cambios centrales de 0.6.0
-
-ORBIT reemplaza los antiguos Árboles I y II por una sola **Red de aprendizaje** de lecciones y
-misiones. La elegibilidad de esa red y la adyacencia abren zonas; personajes, gadgets y
-transportes quedan disponibles con su zona, pero conservan una interacción propia.
-
-Spider controla la pertenencia y todas las conexiones de la Red. Puede conservar un borrador
-incompleto para repararlo, pero **Validar** y **Aplicar** exigen raíz única, DAG y alcanzabilidad
-integral. El documento Docente avanza a `v3` y migra los esquemas anteriores sin perder mapa ni
-apariencias.
-
-La edición aplicada y aprobada por el autor usa 29 conexiones explícitas, mueve 7 zonas y 22
-lugares y conserva 19 zonas, 20 conceptos y 29 lugares alcanzables. La migración canónica desde
-v2 sigue protegida con una semilla exacta de 30 conexiones antes de cualquier edición posterior.
-
-### Cambios centrales de 0.5.1
-
-ORBIT normaliza los conectores persistentes en dos estados amarillos accesibles: brillante,
-continuo y con resplandor para relaciones completadas o que conducen a un nodo completable;
-tenue y discontinuo para orientar desde un nodo completable hacia otro bloqueado. ORBIT Editor
-usa la flecha brillante para toda conexión confirmada y mantiene la distinción directa/derivada
-en sus controles y textos, sin cambiar la topología.
-
-El dock editorial adopta el ancho común de `8.75rem`, por lo que **Bowerbird** cabe completo sin
-alterar la abreviatura `BW`, el foco ni el comportamiento responsive.
-
-El helper de autoría ya no exige un checkout limpio para **Aplicar**: no consulta ni muta Git,
-deja intactas las demás rutas locales y preserva la fuente canónica reemplazada en
-`.orbit-editor-backups/` con fecha, revisión y SHA-256. El control de revisión coincidente,
-el bloqueo exclusivo, el journal, el rollback y el reinicio de los tres perfiles permanecen.
-
-### Cambios centrales de 0.5.0
-
-**Gadgets** deja de ser un estado superpuesto al mapa y pasa a un panel explícito. La
-calculadora científica está siempre disponible y usa una gramática de lista blanca; el
-Explorador de campos 2D conserva la recompensa estable `gadgets:field-lens`, y la nueva Carta de
-Smith se obtiene mediante el lugar opcional `smith-chart-station` después del Banco de Líneas de
-Transmisión. Ninguna de estas herramientas concede progreso por sí sola.
-
-ORBIT Editor incorpora **Bowerbird**. Docente guarda la apariencia que formará parte del
-documento editorial `v2`; Estudiante guarda únicamente overrides personales en
-`orbit-bowerbird:v1:electromagnetism-applied:student`. La resolución visual respeta la
-precedencia personal → publicada → canónica, pero una zona bloqueada siempre permanece neutral.
-
-El curso desplegable se materializa desde un artefacto `orbit-course-edition` con revisión y
-digest. Con el helper exclusivo de loopback `npm run editor:author`, fijado al origen de
-mantenimiento `http://127.0.0.1:4173`, Resumen puede validar el
-documento, mostrar el diff y cuantificar el avance local de los tres perfiles antes de solicitar
-una confirmación en línea. Aplicar escribe solo la ruta canónica, ejecuta las comprobaciones y el
-build, instala la edición en el navegador y realiza un reinicio total y específico del progreso;
-un journal y un respaldo permiten recuperar o revertir una interrupción. Mientras esa
-sesión de mantenimiento esté activa, todas las entradas de ORBIT —Estudiante, Docente y Debug—
-responden `503`; Editor y sus recursos siguen disponibles para aplicar, finalizar o revertir.
-Una pestaña de ORBIT que permanecía abierta desde `dev` detecta el cambio, detiene su runtime,
-libera el bloqueo compartido y recarga hacia esa barrera. Al terminar hay que detener autoría e
-iniciar otra vez `npm run dev`. El helper reserva un único proceso por checkout, no consulta ni
-muta Git y respalda la fuente reemplazada sin alterar las demás rutas locales.
-
-### Cambios centrales de 0.4.3
-
-El dock de ORBIT conserva Árboles, Símbolos, Constantes, Formulario y Glosario como accesos
-primarios, y reúne Visual, Sonido y Ayuda bajo el disclosure nativo **Ajustes**. El cierre con
-`Esc` actúa por niveles y restaura el foco a un control visible; las letras `H` y `M` quedan
-libres para usos futuros.
-
-El HUD sustituye el contador **Conceptos** por una barra nativa **Progreso**. Su porcentaje
-entero se deriva del número de conceptos adquiridos y conserva «X de Y conceptos adquiridos»
-como equivalente accesible, sin persistencia nueva ni cálculo adicional por frame.
-
-### Cambios centrales de 0.4.2
-
-La primera ruta se presenta como **Electromagnetismo** en la interfaz y la documentación
-vigente. El título oficial del curso fuente, el anillo de aplicaciones y los IDs y claves
-persistentes publicados permanecen intactos.
-
-ORBIT ofrece los perfiles locales **Estudiante**, **Docente** y **Debug** con avances separados.
-Docente autocompleta únicamente actividades evaluables; las herramientas de depuración quedan
-reservadas para Debug. ORBIT Editor ofrece autoría completa a Docente, consulta sin mutaciones a
-Estudiante y bloquea Debug antes de construir el modelo editorial. Estos modos no constituyen
-cuentas, autenticación ni autorización real.
-
-ORBIT y ORBIT Editor permiten alejar hasta `0.28` y recorrer un margen exterior de 460 unidades.
-El Editor conserva además el mundo alcanzable cuando paneles laterales ocupan el lienzo. El HUD
-usa el selector como única indicación del perfil y muestra la versión activa desde la
-configuración.
-
-### Cambios centrales de 0.4.1
-
-La experiencia principal se llama **ORBIT** y la herramienta de autoría se llama **ORBIT Editor** en la interfaz y la documentación vigente. Las denominaciones anteriores se conservan únicamente donde forman parte del historial de una versión publicada.
-
-La marca aprobada de ORBIT cuenta con una fuente canónica, derivados web reproducibles y comprobación automática. El logotipo encabeza este README en un tamaño contenido, y el favicon y el manifiesto apuntan a los recursos versionados en `public/` sin depender de `dist/`.
-
-La cabecera de ORBIT Editor distribuye marca, estadísticas y herramientas sin solaparse en el ancho reproducido de 1280 px. En anchos menores conserva un enlace compacto, accesible y enfocable de regreso a ORBIT.
-
-El desarrollo usa ahora `ORBIT_UPDATES.md` como cola operativa: varias UPD pueden compartir una cohorte y la versión, el changelog y el push avanzan solo cuando la cohorte completa está cerrada y aprobada. Las fichas publicadas se trasladan a `docs/UPDATES_HISTORY.md`; el changelog continúa siendo el resumen del producto.
-
-### Cambios centrales de 0.4.0
-
-La aplicación de aprendizaje pasa a denominarse explícitamente **ORBIT Estudiante**. Su entrada continúa siendo `index.html`; un perfil normal y uno iniciado con `?debug=1` usan el mismo modelo de progreso `v3`, sus migraciones y las mecánicas publicadas en 0.3.2.
-
-La entrada separada `editor.html` inaugura **ORBIT Editor**, una herramienta local para docentes. Su menú **General** ofrece resumen, encuadre, importación, exportación, restauración y ayuda; el menú **Editor** contiene **Spider** y **Bee**. Ambos docks pueden minimizarse de manera independiente sin perder el control que los vuelve a expandir.
-
-Spider permite arrastrar nodos, cambiar su `areaId + offset` y añadir o retirar únicamente requisitos directos `completedLocations`. Las relaciones que proceden de conceptos o recompensas permanecen visibles y de solo lectura; se impiden relaciones propias, duplicadas o cíclicas. Bee intercambia coordenadas axiales entre dos zonas del mismo `tier`: Campamento Base queda fijo, las seis zonas teóricas permanecen en el anillo 1 y las doce aplicaciones en el anillo 2.
-
-El borrador inaugurado en 0.4.0 usaba `orbit-editor:v1:electromagnetism-applied`; el contrato vigente se autoguarda bajo `orbit-editor:v6:electromagnetism-applied` y migra las claves `v1`–`v5`. Este esquema editorial es independiente del progreso estudiantil. En el flujo vigente, un JSON exportado se importa en ORBIT Editor y el desarrollador valida, revisa y aplica el documento mediante el flujo de Resumen en mantenimiento. Abrir el Editor no cambia lo que ve Estudiante y la entrada separada no constituye autenticación.
-
-Consulta la [Guía de ORBIT Editor](docs/EDITOR_GUIDE.md) y el [ADR 0007](docs/decisions/0007-static-local-editor.md).
-
-### Cambios centrales de 0.3.2
-
-Las aristas visibles del Árbol II se derivan de `completedLocations`, `concepts` y `rewards`, siempre en dirección **prerrequisito → destino**. El panel **Árboles** queda dedicado a listar zonas, lugares y recompensas; el panel independiente **Visual** configura la red superpuesta en el mapa. **Oculta** conserva solo la conexión causal del último desbloqueo de la sesión, **Directo** muestra las conexiones elegibles dentro de un mismo hexágono o entre hexágonos que comparten frontera y **Total** muestra todas las conexiones elegibles entre lugares visibles.
-
-Una flecha amarilla brillante representa una relación desde un nodo completado hacia otro completado o completable. Una flecha amarilla tenue y discontinua representa un nodo completable que conduce a uno visible pero todavía bloqueado. La etiqueta **NUEVO** identifica la conexión causal del último desbloqueo; ese evento permanece efímero, mientras la elección del modo visual se guarda como preferencia y nunca altera la progresión. Los requisitos repetidos que resuelven la misma pareja se agrupan, y los requisitos de área no generan estas guías.
-
-La zona visible **Estación de Superconductividad** y el personaje **Heike Kamerlingh Onnes** conservan por compatibilidad los IDs internos `electromagnetic-compatibility` y `shielding-chamber`. Onnes ofrece contexto histórico, no formula preguntas y, al registrar el encuentro, desbloquea fórmulas introductorias en el **Formulario**. El lugar independiente `superconductivity-transition-lab` contiene la actividad evaluable y concede el concepto heredado `electromagnetic-compatibility`. Esto evita invalidar perfiles publicados y no implica que el contenido visible siga tratando compatibilidad electromagnética.
-
-El Observatorio de Coulomb conserva su ID y ahora recorre cinco etapas: relación fuerza–campo–potencial, laboratorio interactivo de tres cargas, escala de Coulomb, demostración conservativa guiada de siete intervenciones y transferencia con un dipolo. `PointChargeField2D` trabaja en un dominio normalizado, conserva exactamente tres cargas y anuncia la singularidad en vez de suavizarla.
-
-La publicación 0.3.2 incorporó cinco recursos con manifiesto, metadatos, atribución y prueba directa. Los tres sonidos procedentes de Freesound mantienen su licencia CC0 1.0. `ui-select-default.ogg` y `zone-unlocked-airlock.ogg` fueron aportados expresamente por JoaquinDiazM mediante una conversación de ChatGPT y se versionan como contribuciones de ORBIT bajo MIT; no se atribuyen a un catálogo externo. El inventario actual añade el cue de teletransporte con su licencia y cadena de atribución independientes.
-
-### Taller Vectorial, incorporado en 0.3.1
-
-Las tres primeras etapas conservan la introducción a campos, operadores e identidades y añaden los elementos diferenciales de línea, superficie y volumen en coordenadas cartesianas, cilíndricas y esféricas. Las etapas evaluadas son:
-
-1. `exit-check`: comparación visual entre dos campos 2D bajo el mismo dominio, muestreo y escala; las fórmulas y los controles `a` y `b` se revelan solo después de acertar.
-2. `guided-cartesian-potential`: reconstrucción cartesiana de una función escalar mediante exactamente cinco intervenciones guiadas.
-3. `independent-cylindrical-potential`: evaluación cilíndrica de dos intervenciones, con retroalimentación binaria mientras se resuelve.
-
-Las respuestas algebraicas se comparan por su significado matemático. El evaluador usa una gramática de lista blanca, límites de complejidad, puntos de prueba fijos y derivación automática; no usa `eval`, `Function` ni ejecución dinámica. Esta comparación determinista no es una demostración simbólica global y una expresión construida específicamente para coincidir solo en los puntos publicados podría producir un falso positivo. El avance interno, la selección visual y los parámetros de las figuras son estado de sesión: el perfil solo registra la finalización del lugar. El paso global a `v3` responde al nuevo mezclador de audio, no a estas actividades efímeras.
-
-Las fuentes se reservan para afirmaciones que realmente necesitan trazabilidad. No se atribuyen operaciones elementales, y el material docente que motivó el proyecto mantiene únicamente su reconocimiento global en este README, sin citas repetidas dentro del nodo.
-
-## Inicio rápido
-
-Requisito: [Node.js](https://nodejs.org/) 24 LTS o posterior.
+Requisito del repositorio: Node.js 24 o posterior.
 
 ```bash
 git clone https://github.com/JoaquinDiazM/ORBIT.git
 cd ORBIT
-npm install
+npm ci
 npm run dev
 ```
 
-Abre la URL exacta que imprime la terminal. ORBIT usa la raíz y ORBIT Editor su entrada propia; normalmente serán:
+Abre **[ORBIT](http://127.0.0.1:4173/)** o
+**[ORBIT Editor](http://127.0.0.1:4173/editor.html)**. En PowerShell puedes usar `npm.cmd` si
+el wrapper `npm.ps1` está bloqueado, sin cambiar la política del sistema.
 
-```text
-http://127.0.0.1:4173/                         # ORBIT · Estudiante por defecto
-http://127.0.0.1:4173/?profile=teacher         # ORBIT · Docente
-http://127.0.0.1:4173/?debug=1&profile=debug   # ORBIT · Debug, panel abierto al iniciar
-http://127.0.0.1:4173/editor.html              # Editor · Docente completo por defecto
-http://127.0.0.1:4173/editor.html?profile=student # Editor · Spider/Bee lectura, Bowerbird personal
-```
+El origen local es fijo: `http://127.0.0.1:4173`. Si está ocupado, identifica el servicio;
+no uses otro puerto ni detengas procesos ajenos. `dev` permite editar y validar, pero bloquea
+**Aplicar**. Para aplicar una edición, sigue la [guía del Editor](docs/EDITOR_GUIDE.md).
+Los comandos y el despliegue estático se explican en [Desarrollo](docs/DEVELOPMENT.md).
 
-`npm install` prepara el render matemático local. Los estudiantes que reciben el contenido ya construido no necesitan instalar nada.
+## Documentación
 
-### PowerShell y Visual Studio Code
-
-El proyecto funciona de forma nativa en la terminal PowerShell de VSC. Si PowerShell bloquea `npm.ps1`, habilita scripts locales firmados para tu usuario y abre una terminal nueva:
-
-```powershell
-Get-ExecutionPolicy -List
-Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-```
-
-Como alternativa puntual, `npm.cmd` evita el wrapper de PowerShell. `npm run dev` usa únicamente
-`http://127.0.0.1:4173`: no acepta `PORT`, argumentos de puerto ni busca un fallback. Si el
-origen está ocupado, detén con `Ctrl+C` el servidor o helper anterior y vuelve a iniciar el
-comando. Mantener un solo origen es necesario para compartir Web Locks y almacenamiento local.
-En este modo normal, ORBIT y Editor están disponibles; Resumen puede validar un borrador, pero
-**Aplicar** permanece deshabilitado y explica cómo entrar en mantenimiento. Para aplicar, detén
-`dev`, cierra las demás pestañas de ORBIT e inicia `npm run editor:author`. Ese comando bloquea
-ORBIT mientras esté activo. La pestaña de Editor vuelve a negociar la sesión automáticamente y
-conserva el plan validado mientras el borrador no cambie; **Volver a comprobar servicio** permite
-forzar la detección. Cuando finalices, detén autoría y reinicia `npm run dev` para revisar la
-edición en los tres perfiles.
-En ORBIT Editor Docente, un servidor compatible revela **Detener servidor** al final de General:
-la primera pulsación arma una confirmación y la segunda cierra de forma cooperativa únicamente el
-proceso ORBIT que sirve esa página. El control funciona con `dev` y `editor:author`, pero se niega
-durante una aplicación o recuperación y no termina procesos ajenos que ocupen 4173.
-
-Después de actualizar el repositorio, detén cualquier servidor anterior con `Ctrl+C` y vuelve a
-iniciarlo. Para una sesión de depuración separada de los avances Estudiante y Docente, usa:
-
-```text
-http://127.0.0.1:4173/?debug=1&profile=debug
-```
-
-ORBIT acepta únicamente `student`, `teacher` y `debug`; `normal` es un alias de migración hacia
-Estudiante. El parámetro `debug=1` mantiene compatibilidad y abre inicialmente el panel cuando
-el perfil resuelto es Debug. ORBIT Editor interpreta el perfil solo para decidir su capacidad
-local, pero conserva el borrador en una clave editorial separada y no carga progreso.
-
-## Controles
-
-| Control | Acción |
+| Necesidad | Referencia |
 |---|---|
-| `WASD` o flechas | Movimiento libre |
-| `Ctrl` + clic primario | Saltar al centro de una zona abierta; un arrastre no activa el salto |
-| `Ctrl` + flecha | Saltar con teclado a la zona abierta más cercana en esa dirección |
-| `E` o espacio | Interactuar con el lugar cercano |
-| Rueda del ratón | Zoom |
-| `T` | Alternar transportes adquiridos |
-| `K` | Ver Zonas y Red de aprendizaje |
-| Botón **Gadgets** | Abrir la calculadora y las herramientas adquiridas |
-| Botón **Ajustes** | Mostrar los accesos a Visual, Sonido y Ayuda |
-| `F2` o `` ` `` | Abrir/cerrar el debugger, solo en el perfil Debug |
-| `Esc` | Cerrar el último panel abierto |
-| `Shift` + clic | Teletransportarse con el debugger activo |
+| Aprender a usar ORBIT y sus controles | [Guía de uso](docs/USER_GUIDE.md) |
+| Instalar y operar el servidor docente | [Guía del servidor](docs/SERVER_GUIDE.md) |
+| Crear o modificar contenido académico | [Editor](docs/EDITOR_GUIDE.md), [autoría](docs/CONTENT_AUTHORING.md) y [sintaxis de fuente](docs/CONTENT_SOURCE_GUIDE.md) |
+| Contribuir o iniciar una sesión de agente | [Contribuir](CONTRIBUTING.md), [reglas](AGENTS.md) e [inicio para agentes](docs/CODEX_START_HERE.md) |
+| Comprender la implementación | [Arquitectura](docs/ARCHITECTURE.md), [mundo y Red](docs/WORLD_AND_KNOWLEDGE_DESIGN.md), [ADR](docs/decisions/README.md) |
+| Preparar y comprobar cambios | [Desarrollo](docs/DEVELOPMENT.md), [QA](docs/QA_CHECKLIST.md), [Debugger](docs/DEBUGGING.md) |
+| Entender el criterio académico | [Principios pedagógicos](docs/PEDAGOGICAL_PRINCIPLES.md), [esqueleto curricular](docs/CURRICULUM_SKELETON.md), [fuentes](docs/RESEARCH_REFERENCES.md) |
+| Planificar 1.0.0 | [Hoja de ruta](docs/ROADMAP.md); decisiones y autorizaciones en [ORBIT_UPDATES.md](ORBIT_UPDATES.md) |
+| Consultar lo publicado | [Changelog](CHANGELOG.md), [fichas y evidencia histórica](docs/UPDATES_HISTORY.md) |
 
-Los controles de arrastre, teclado, conexión, intercambio de zonas y deshacer/rehacer de ORBIT Editor se documentan en la [guía específica](docs/EDITOR_GUIDE.md).
+Cada guía mantiene su tema; el historial de versiones no se repite en las instrucciones de uso.
+Las propuestas y su aprobación se gestionan en `ORBIT_UPDATES.md`. Las contribuciones externas
+pueden usar issues y pull requests. Antes de entregar un cambio, ejecuta `npm run check`.
 
-## Comandos del repositorio
+## Capturas de referencia
 
-```bash
-npm run dev       # modo normal: ORBIT + Editor; aplicar bloqueado
-npm run editor:author # mantenimiento: ORBIT bloqueado; aplicación local habilitable
-npm run validate  # referencias, coordenadas y alcanzabilidad del contenido
-npm test          # pruebas con node:test
-npm run build     # crea dist/
-npm run repo-check # sintaxis, enlaces y dependencias respaldadas por ADR
-npm run check     # validate + test + repo-check + build
-```
+Estas capturas corresponden a **0.7.0**, no a una validación visual de 0.9.0 ni de 1.0.0.
+Su [procedencia y protocolo](docs/screenshots/README.md) se conservan con los archivos.
 
-Antes de hacer un commit, ejecuta:
+<details>
+<summary>Ver ORBIT, Spider y Bee en 0.7.0</summary>
 
-```bash
-npm run check
-```
+![ORBIT 0.7.0 en perfil Estudiante, con Campamento Base y el menú principal](docs/screenshots/orbit-0.7.0.png)
 
-## Arquitectura conceptual
+![ORBIT Editor 0.7.0 con Spider abierto para organizar nodos y conexiones](docs/screenshots/editor-spider-0.7.0.png)
 
-El mundo físico y el currículo son capas relacionadas, pero no equivalentes:
+![ORBIT Editor 0.7.0 con Bee abierto para organizar zonas y rótulos](docs/screenshots/editor-bee-0.7.0.png)
 
-```text
-movimiento continuo del personaje
-             │
-             ▼
-Red de aprendizaje ── elegibilidad académica ── zonas vecinas abiertas
-             │                                      │
-             ▼                                      ▼
-lecciones y misiones completadas         exploración lateral disponible
-```
-
-El estado persistido contiene logros y preferencias. Las zonas y lugares disponibles se **derivan** desde ese estado; no se guardan como una segunda verdad que pueda quedar inconsistente.
-
-Cada perfil de ORBIT opera sobre un progreso `v4` independiente y ligado a la revisión de curso
-activa. Estudiante recupera claves históricas solo cuando la edición declara esa compatibilidad;
-Docente y Debug continúan en sus propias claves. Cambiar el selector recarga el modo elegido, no
-copia logros entre perfiles.
-
-ORBIT Editor opera sobre ramas de estado separadas: un documento Docente `v6`, las preferencias
-visuales personales de Estudiante y la edición publicada `v1`. El documento Docente conserva
-fuente académica, zonas, rótulos, definiciones y ciclo de vida de lugares, la Red de aprendizaje
-explícita y apariencias, pero no respuestas ni logros. El
-flujo de aplicación local consume ese documento completo, muestra el impacto y reinicia el
-progreso de los tres perfiles; no mezcla ni elimina el borrador o las preferencias personales.
-
-Más detalles:
-
-- [Arquitectura](docs/ARCHITECTURE.md)
-- [Diseño del mundo y la Red de aprendizaje](docs/WORLD_AND_KNOWLEDGE_DESIGN.md)
-- [Principios pedagógicos](docs/PEDAGOGICAL_PRINCIPLES.md)
-- [Esqueleto curricular preliminar](docs/CURRICULUM_SKELETON.md)
-- [Autoría de contenido](docs/CONTENT_AUTHORING.md)
-- [Nomenclatura e IDs](docs/CONTENT_NAMING.md)
-- [Registro vivo de actualizaciones](ORBIT_UPDATES.md)
-- [Historial técnico de actualizaciones](docs/UPDATES_HISTORY.md)
-- [Anexo técnico opcional para cambios de contenido](docs/content-changes/CONTENT_CHANGE_TEMPLATE.md)
-- [Ejemplo no aplicable](docs/content-changes/examples/update-vector-workshop.example.md)
-- [Bibliografía BibTeX](docs/references/references.bib)
-- [Debugger](docs/DEBUGGING.md)
-- [Guía de ORBIT Editor](docs/EDITOR_GUIDE.md)
-- [ADR 0009: Red única de aprendizaje](docs/decisions/0009-single-learning-network.md)
-- [Informe de validación](docs/VALIDATION_REPORT.md)
-
-## Estructura del repositorio
-
-```text
-.
-├── AGENTS.md                 # reglas globales para agentes y colaboradores
-├── index.html                # entrada de ORBIT
-├── editor.html               # entrada de ORBIT Editor
-├── src/
-│   ├── core/                 # geometría, progreso, secuencias, expresiones y validación
-│   ├── data/                 # definición declarativa de mundo y contenido
-│   ├── editor/               # documento, modelo, controles y renderer editoriales
-│   ├── game/                 # loop, cámara, entrada y renderer Canvas
-│   ├── audio/                # carga local y volúmenes por categoría
-│   └── ui/                   # paneles, SVG 2D, ejercicios, HUD y debugger
-├── tests/                    # pruebas unitarias y de progresión
-├── scripts/                  # servidor, build y validador
-├── docs/                     # diseño, decisiones y guías
-├── public/                   # favicon y manifiesto
-└── .github/workflows/        # validación remota y publicación opcional en Pages
-```
-
-## Debugger de ORBIT
-
-La interfaz de depuración solo existe en el perfil Debug. En Estudiante y Docente no aparecen
-el nodo **Terminal de Cartografía**, el control `F2`, los overlays ni `window.OrbitDebug`. En
-Debug, la interfaz permite:
-
-- ignorar fronteras bloqueadas;
-- mostrar IDs, coordenadas y la Red de aprendizaje completa;
-- teletransportar al personaje;
-- completar el lugar cercano;
-- conceder el siguiente concepto;
-- abrir todas las zonas;
-- completar todo el prototipo;
-- probar directamente los seis recursos de audio versionados;
-- reiniciar, exportar e importar un perfil.
-
-También existe una API en consola:
-
-```js
-OrbitDebug.help();
-OrbitDebug.snapshot();
-OrbitDebug.grantNextConcept();
-OrbitDebug.teleportArea("waves");
-OrbitDebug.setNoclip(true);
-```
-
-Consulta [docs/DEBUGGING.md](docs/DEBUGGING.md) para la referencia completa.
-
-El debugger no es el Editor y no comparte su estado. El acceso directo a `editor.html` abre el
-modo Docente completo; `?profile=student` deja Spider/Bee en consulta y habilita Bowerbird
-personal, mientras `?profile=debug` muestra el bloqueo sin iniciar el modelo. Estas restricciones locales no
-reemplazan autenticación. Consulta la [guía editorial](docs/EDITOR_GUIDE.md).
-
-## Publicación en GitHub Pages
-
-Cada push a `main` ejecuta instalación reproducible, validación, pruebas y build sin publicar el repositorio privado. Para activar Pages explícitamente:
-
-1. En GitHub, abre **Settings → Pages**.
-2. En **Build and deployment**, selecciona **GitHub Actions**.
-3. En **Settings → Secrets and variables → Actions → Variables**, crea `ENABLE_PAGES` con valor `true`.
-4. Vuelve a ejecutar el workflow o realiza un nuevo push; entonces publicará `dist/`.
-
-No definas esa variable mientras quieras conservar el proyecto únicamente como repositorio privado sin sitio público.
-
-Todas las rutas del prototipo son relativas, por lo que funciona tanto en `usuario.github.io` como en `usuario.github.io/nombre-del-repositorio/`.
-
-El build incluye ORBIT, ORBIT Editor y la edición canónica del curso, pero no aplica por sí solo
-un JSON exportado ni protege `editor.html`. El helper `npm run editor:author` permite aplicar
-localmente un documento validado y reconstruir `dist/`; no se incluye en el sitio, no muta Git y
-no despliega. El selector y los bloqueos por perfil son conveniencias de interfaz que cualquiera
-puede cambiar en la URL; la revisión, publicación y el control de acceso real durante
-mantenimiento siguen siendo responsabilidades operativas externas.
-
-## Contribuciones y uso de agentes
-
-Lee primero:
-
-- [AGENTS.md](AGENTS.md)
-- [CONTRIBUTING.md](CONTRIBUTING.md)
-- [ORBIT_UPDATES.md](ORBIT_UPDATES.md)
-- [docs/CODEX_START_HERE.md](docs/CODEX_START_HERE.md)
-
-Para el flujo interno basta registrar una idea en `ORBIT_UPDATES.md`; el agente completa los
-detalles técnicos. Solo un estado `autorizado` permite implementar, `en-revision` espera la
-comprobación del usuario y una cohorte cerrada se publica una sola vez cuando todos sus IDs
-están `aprobado`. Puede haber commits locales de revisión, pero no pushes parciales de una
-versión. Las fichas publicadas se conservan en `docs/UPDATES_HISTORY.md`. Las modificaciones
-grandes deben preservar los invariantes de progresión y acompañarse de pruebas. No se deben
-copiar evaluaciones, pautas o material docente protegido sin autorización explícita.
-
-La [política de autoría de contenido por agentes](AGENTS.md#autoría-de-contenido-por-agentes)
-exige usar **ORBIT Editor → Spider → Modificar → Editar contenido** para los cambios
-académicos. Las limitaciones se reproducen en esa interfaz; cualquier corrección del motor
-respeta el alcance autorizado y vuelve a comprobarse desde Spider. La revisión y aplicación
-canónicas permanecen a cargo del desarrollador, con su perfil y entorno preservados.
+</details>
 
 ## Licencias
 
-- Código fuente: [MIT](LICENSE).
-- Contenido pedagógico original y documentación: [CC BY-SA 4.0](LICENSE-CONTENT.md), salvo indicación distinta.
-- KaTeX: MIT, copiado al build desde la dependencia fijada.
-- Audio incluido: tres recursos de Freesound bajo CC0 1.0, `weapAppear.wav` de RunnerPack bajo
-  CC BY 4.0 con su atribución antecedente Sampling+ 1.0, y dos contribuciones de ORBIT bajo MIT;
-  consulta la procedencia individual en
-  [public/assets/audio/ATTRIBUTION.md](public/assets/audio/ATTRIBUTION.md).
-- Texto abierto adaptado cuando se indica: CC BY-SA 4.0; referencias completas en [docs/references/references.bib](docs/references/references.bib).
-- Material docente EL3103 reconocido globalmente como contexto del proyecto: licencia no indicada; no se redistribuyen los PDF, sus tablas, ejercicios ni soluciones ni se repiten citas locales dentro de los nodos.
-- Los enlaces externos conservan sus propias condiciones de uso; no se redistribuyen sus recursos dentro del repositorio.
+- Código: [MIT](LICENSE).
+- Contenido pedagógico original y documentación: [CC BY-SA 4.0](LICENSE-CONTENT.md), salvo
+  indicación distinta. Las referencias y adaptaciones declaradas conservan su procedencia en
+  la [bibliografía](docs/references/references.bib).
+- KaTeX: MIT, distribuido localmente desde la dependencia fijada.
+- Audio: tres recursos de Freesound CC0 1.0, un recurso de RunnerPack CC BY 4.0 con antecedente
+  Sampling+ 1.0 y dos contribuciones de ORBIT bajo MIT. Consulta la
+  [atribución individual](public/assets/audio/ATTRIBUTION.md).
+- El material docente EL3103 se reconoce como contexto, sin permiso de redistribución de sus
+  PDF, tablas, ejercicios o soluciones. Los recursos externos conservan sus propias condiciones.

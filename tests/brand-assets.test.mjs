@@ -61,13 +61,16 @@ test("el SVG conserva geometría, paleta y nombre accesible del logotipo aprobad
   }
 });
 
-test("el manifiesto web anuncia la marca vectorial sin depender de recursos generados en dist", async () => {
+test("el manifiesto anuncia marca vectorial e iconos instalables disponibles en la fuente", async () => {
   const manifest = JSON.parse(await readFile(MANIFEST_PATH, "utf8"));
 
-  assert.equal(manifest.name, "ORBIT — Electromagnetismo");
+  assert.equal(manifest.name, "ORBIT — Open Roadmap for Building Intuition and Theory");
+  assert.equal(manifest.id, "../");
   assert.equal(manifest.start_url, "../");
   assert.equal(manifest.scope, "../");
   assert.deepEqual(manifest.icons, [
+    { src: "./assets/brand/orbit-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+    { src: "./assets/brand/orbit-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
     {
       src: "./assets/brand/orbit-mark.svg",
       sizes: "any",
@@ -75,6 +78,13 @@ test("el manifiesto web anuncia la marca vectorial sin depender de recursos gene
       purpose: "any",
     },
   ]);
+  for (const size of [192, 512]) {
+    const png = await readFile(new URL(`../public/assets/brand/orbit-${size}.png`, import.meta.url));
+    assert.deepEqual([...png.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+    assert.equal(png.readUInt32BE(16), size);
+    assert.equal(png.readUInt32BE(20), size);
+    assert.ok(png.length < 100_000);
+  }
 });
 
 test("la marca queda visible con tamaño contenido en README y ambos shells", async () => {

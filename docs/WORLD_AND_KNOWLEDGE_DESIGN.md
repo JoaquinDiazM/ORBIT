@@ -1,241 +1,109 @@
-# Diseño del mundo de Electromagnetismo y su Red de aprendizaje
+# Mundo y Red de aprendizaje
 
-## Principio central
+Estas reglas describen la ruta de Electromagnetismo publicada en ORBIT 0.9.0. El espacio físico
+y el grafo académico están relacionados, pero conservan responsabilidades distintas. Una futura
+ruta no hereda automáticamente esta cartografía ni demuestra una red transversal entre cursos.
 
-El espacio físico y la Red de aprendizaje se relacionan, pero no son la misma estructura.
+## Cartografía y movimiento
 
-Este documento describe la ruta actualmente implementada en ORBIT. La visión futura de conectar
-cursos diferentes no implica que todos deban reutilizar esta cartografía ni que exista ya un
-grafo transversal entre rutas.
+El mundo Global utiliza hexágonos con punta arriba y coordenadas axiales enteras `(q,r)`, en un
+disco de radio dos: Base, seis zonas de nivel 1 y doce de nivel 2. `origin` permanece en `(0,0)`.
+Bee intercambia posiciones entre zonas del mismo `tier`; no mezcla niveles. Los nombres y los
+rótulos visibles son editables y no cambian esa pertenencia estructural.
 
-- El personaje se mueve continuamente en el plano.
-- Los hexágonos definen regiones físicas y conceptuales.
-- La Red de aprendizaje conecta únicamente lecciones y misiones.
-- La elegibilidad de esa red y la adyacencia determinan qué regiones están abiertas.
-- Los personajes, gadgets y transportes quedan disponibles al abrir su zona, fuera de la red.
+Cada lugar ocupa `areaId + offset` respecto del centro de su zona. El personaje se mueve
+continuamente por cualquier punto válido de una zona abierta: no sigue una cuadrícula, los
+nodos de la red ni caminos obligatorios. Los índices y conversiones pertenecen a `hex.js` y
+`world-graph.js`; las colisiones y el movimiento, a `game-app.js`.
 
-## Mundo hexagonal
+## Red académica y apertura territorial
 
-Se utilizan hexágonos pointy-top con coordenadas axiales `(q, r)`. El prototipo forma un disco de radio dos con 19 regiones:
+Solo `lesson` y `mission` pertenecen a la Red de aprendizaje, un DAG explícito cuya raíz única
+en esta ruta es `vector-workshop`. Cada conexión `A → B` significa que A debe completarse antes
+de que B resulte elegible. Todos los predecesores deben estar completados; esa comprobación
+no exige que la propia zona de B ya esté abierta.
 
-- radio 0: Campamento Base;
-- radio 1: Electroestática, Magnetismo, Maxwell —que incorpora Inducción—, Ondas, Circuitos y Ecuaciones Diferenciales;
-- radio 2: Sensores e Instrumentación, Máquinas Eléctricas, Sistemas de Potencia, Electromagnetismo Computacional, Fourier, Óptica y Fotónica, Superconductividad, Guías de Onda, Radioastronomía, Antenas, Comunicaciones Inalámbricas y Líneas de Transmisión.
+Base se abre por su política inicial. Una zona cerrada se abre cuando contiene un nodo académico
+elegible y comparte frontera canónica con una zona abierta. La derivación se repite hasta un
+punto fijo; no se guardan listas paralelas de disponibilidad. Los overrides de Debug son una
+excepción de diagnóstico, no otra vía académica.
 
-El ID publicado `applications` se conserva para la zona especializada de Radioastronomía. Esta continuidad evita invalidar perfiles antiguos aunque cambie su posición y alcance pedagógico.
-
-La zona visible **Estación de Superconductividad** conserva por la misma razón el ID interno `electromagnetic-compatibility`; el concepto introductorio mantiene ese ID y el NPC Heike Kamerlingh Onnes conserva `shielding-chamber`. La zona contiene además el punto de aprendizaje `superconductivity-transition-lab`. Onnes desbloquea fórmulas mediante un encuentro no evaluativo; el laboratorio separado concede el concepto. Los nombres heredados son identificadores de compatibilidad del guardado, no títulos visibles ni una afirmación de que la zona siga enseñando compatibilidad electromagnética.
-
-Una zona puede contener cualquier número razonable de lugares. Los lugares se ubican con un `offset` local respecto del centro del hexágono, no mediante coordenadas geográficas reales.
-
-## Movimiento libre
-
-El movimiento no sigue caminos ni aristas del grafo. Dentro del espacio abierto, el jugador puede:
-
-- caminar en cualquier dirección;
-- acercarse a un lugar desde cualquier ángulo;
-- recorrer áreas sin visitar todos sus nodos;
-- explorar visualmente elementos todavía no interactivos cuando su visibilidad lo permita.
-
-Las fronteras solo intervienen al intentar pasar entre dos hexágonos.
-
-### Navegación Global y Directa
-
-**Ajustes → Visual** selecciona Global (cartografía editorial completa) o Directa (zona
-actual y seis vecinas reorganizadas). Directa prioriza zonas relacionadas académicamente
-en cualquier dirección, después Base y luego un relleno pseudoaleatorio estable. Todos los
-nodos de una misma zona conservan su posición local. Al cruzar, la llegada pasa al centro.
-
-Ambos modos comparten la apertura derivada de la cartografía canónica y la Red. La proyección
-no concede acceso a zonas cerradas; entre dos vecinas proyectadas abiertas se puede caminar
-aunque estén separadas en Global. La posición guardada sigue siendo canónica. **Volver a la
-zona anterior** usa un historial de sesión cuando las prioridades no muestran la procedencia.
-La vista del mapa es independiente del filtro Oculta/Directo/Total de sus conexiones.
-
-El Editor admite como máximo seis zonas académicamente relacionadas por zona al validar una
-nueva publicación. Conserva los borradores que excedan el límite para repararlos. Una edición
-histórica válida que lo exceda funciona en Global y explica la indisponibilidad de Directa.
-Véase [ADR 0012](decisions/0012-direct-world-navigation.md).
-
-## Red de aprendizaje y apertura territorial
-
-La Red de aprendizaje es un DAG explícito cuyos extremos solo pueden ser lugares `lesson` o
-`mission`. `vector-workshop` es la única raíz de la ruta actual; los otros veinte nodos
-académicos tienen al menos un predecesor y los veintiún nodos forman un solo componente
-alcanzable. Una conexión conserva la dirección:
-
-```text
-prerrequisito ─────────▶ destino
-```
-
-Un nodo académico es elegible cuando pertenece a la red y todos sus predecesores están
-completados. Esta comprobación no exige que la zona del propio nodo ya esté abierta; así se
-evita una dependencia circular entre nodo y territorio.
-
-Campamento Base se abre por su política inicial. Cualquier otra zona se abre cuando comparte
-frontera con una zona abierta y contiene al menos un nodo académico elegible. La derivación se
-itera hasta alcanzar un punto fijo, por lo que puede abrir varias regiones en cascada sin
-guardar estados duplicados.
-
-### Regla de aristas
-
-Para dos zonas adyacentes `A` y `B`:
+Para cualquier frontera compartida en la cartografía de navegación activa:
 
 ```text
 frontera(A, B) abierta ⇔ A abierta ∧ B abierta
 ```
 
-Consecuencias:
+Abrir B habilita todas sus fronteras con zonas ya abiertas. Ninguna frontera tiene una misión
+independiente y ninguna zona puede depender únicamente de contenido detrás de sí misma. La
+validación simula el recorrido completo para detectar bloqueos o lugares inalcanzables.
 
-- desbloquear `B` abre simultáneamente todas sus fronteras compartidas con zonas ya abiertas;
-- una frontera no tiene una misión independiente;
-- no se puede abrir “solo el lado norte” de una zona por accidente;
-- la conectividad visual coincide con el estado curricular general.
+Los conceptos y recompensas son resultados o inventario; no crean aristas ni abren territorio
+por otra vía. `npc`, `gadget` y `transport` quedan disponibles al abrir su zona, fuera de la red,
+y exigen interacción propia. Base y Debug también están fuera del grafo. Si una actividad debe
+ser prerrequisito académico, se modela como lección o misión.
 
-### Contenido académico y lateral
+La edición publicada `69b47331…` contiene 19 zonas, 20 conceptos, 30 lugares activos, 22 nodos
+académicos y 31 conexiones; otro lugar permanece en Inventario. Son cifras de esa edición,
+no restricciones de cardinalidad del grafo. Debug no aparece como lugar visible o accesible
+para Estudiante/Docente. Las diferencias entre perfiles no cambian la red ni sus fronteras.
 
-Conceptos y recompensas son resultados o inventario; no crean aristas ni forman una segunda vía
-territorial. Los lugares `npc`, `gadget` y `transport` quedan fuera de la red. Al abrirse su zona
-se habilitan para interactuar, pero no se autocompletan ni conceden automáticamente su resultado.
+## Navegación Global y Directa
 
-La propiedad `visibility` define cómo se representa antes de cumplir los requisitos:
+Global usa la cartografía editorial. Directa proyecta la zona actual en el centro y hasta seis
+vecinas: primero las relacionadas por conexiones académicas entrantes o salientes, después
+Base si cabe y finalmente otras con orden pseudoaleatorio estable por revisión y zona central.
+Las relaciones dentro de una zona y los lugares laterales no aumentan ese grado.
 
-- `visibleWhenAreaUnlocked`: se ve al abrir la zona, aunque todavía no sea interactivo;
-- `hiddenUntilUnlocked`: no se revela hasta cumplir sus requisitos.
+La apertura se calcula siempre con la adyacencia canónica y la misma red. Directa cambia la
+adyacencia para caminar, de modo que dos vecinas proyectadas abiertas pueden comunicarse aunque
+estén separadas en Global. No concede progreso ni abre zonas cerradas.
 
-La política de perfil aplica un filtro adicional solo al lugar de tipo `debug`: Estudiante y
-Docente no lo incluyen entre lugares visibles o accesibles, mientras Debug sí. La cartografía y
-los requisitos académicos restantes son comunes. Docente acelera la revisión al completar por
-la vía ordinaria de `ProgressionModel` una lección o misión evaluable cuando interactúa; no
-altera la definición de la Red de aprendizaje o la apertura territorial.
+Zona, jugador y lugares se trasladan juntos entre coordenadas canónicas y proyectadas. La
+posición guardada sigue siendo canónica. Cruzar recentra la proyección sobre la nueva zona
+conservando el desplazamiento local; cambiar de modo tampoco teletransporta al estudiante.
+Si la procedencia está seleccionada, se coloca al lado opuesto del cruce. Como la selección
+puede ser asimétrica, **Volver a la zona anterior** permite regresar mediante un historial
+efímero cuando ambas zonas siguen abiertas.
 
-### Guías direccionales
+Una nueva publicación admite como máximo seis zonas relacionadas académicamente por zona;
+Editor conserva un borrador que exceda el límite para repararlo. Una edición histórica firmada
+que lo exceda mantiene Global y explica por qué Directa está deshabilitada. No se recortan
+conexiones. Véase [ADR 0012](decisions/0012-direct-world-navigation.md).
 
-`src/core/knowledge-graph.js` consume las parejas académicas explícitas de la edición activa —29
-en la revisión aplicada vigente; 30 en la base canónica— y nunca resuelve conceptos, recompensas
-o lugares laterales como conexiones adicionales.
+## Guías visuales de la Red
 
-Las aristas elegibles se clasifican por el estado de sus extremos visibles:
+El filtro de conexiones es independiente del modo de navegación y no modifica elegibilidad:
 
-- `completed → completed/completable`: flecha amarilla brillante y sólida;
-- `completable → blocked`: flecha amarilla tenue y discontinua;
-- cualquier otra combinación o un extremo oculto: no se dibuja.
+- **Oculta:** conserva la conexión causal del último desbloqueo de la sesión.
+- **Directo:** muestra las conexiones elegibles dentro de una zona o entre vecinas de la vista.
+- **Total:** muestra las conexiones elegibles entre lugares visibles.
 
-El panel **Visual**, separado del listado de **Zonas · Red**, aplica uno de tres filtros:
+Una relación de completado hacia completado/completable se dibuja brillante y continua; de
+completable hacia bloqueado, tenue y discontinua. No depende solo del color. La etiqueta
+**NUEVO** identifica la relación causal del último desbloqueo; ese contexto es efímero, mientras
+la preferencia del filtro se persiste mediante `ProgressionModel`.
 
-- **Oculta** (`hidden`): conserva solo la arista causal del último desbloqueo de la sesión;
-- **Directo** (`direct`): muestra las aristas elegibles dentro del mismo hexágono o entre hexágonos con frontera compartida;
-- **Total** (`total`): muestra todas las aristas elegibles entre lugares visibles.
+## IDs y límites editoriales
 
-Si un destino acaba de volverse accesible, únicamente la arista desde el lugar cuya finalización produjo la transición lleva la etiqueta textual **NUEVO**. Esa fuente y la lista de destinos recién accesibles son efímeras; la preferencia del filtro sí se guarda, pero no altera requisitos, accesibilidad ni movimiento libre.
+Los IDs publicados pertenecen al contrato de guardado y no siguen los cambios de nombre visible:
 
-## Autoría cartográfica en ORBIT Editor
-
-ORBIT Editor abre en `editor.html` y trabaja sobre una copia editorial del curso publicado. No
-sustituye los perfiles Estudiante, Docente o Debug de ORBIT en `index.html` ni comparte su
-progreso. Sin query concede capacidad Docente completa; `?profile=student` conserva el mapa en
-consulta: Spider y Bee permiten seleccionar e inspeccionar, sus mutaciones quedan bloqueadas y
-Bowerbird personal permanece habilitado; `?profile=debug` se detiene antes de crear el modelo.
-El documento Docente usa esquema `v5` y la clave
-`orbit-editor:v5:electromagnetism-applied`; las preferencias Estudiante usan un documento
-`orbit-bowerbird` `v1`, ambos separados de los tres avances `v4` ligados a revisión.
-
-Con capacidad Docente, la herramienta **Spider** opera sobre los lugares y la Red de aprendizaje:
-
-- mueve un lugar cambiando su `areaId` y su `offset` local;
-- añade o retira `lesson` y `mission` de la red sin borrar su entidad o posición;
-- crea o elimina conexiones explícitas entre nodos que pertenecen a la red;
-- renombra, crea e inventaría `lesson`, `mission` y `npc` con IDs estables; reinsertar no
-  reconstruye conexiones y borrar desde Inventario reserva el ID;
-- rechaza extremos laterales, autorrelaciones, duplicados, ciclos y redes estructuralmente
-  inalcanzables antes de permitir su aplicación.
-
-También con capacidad Docente, **Bee** reorganiza las zonas del disco axial. Como las 19 celdas
-ya están ocupadas, la operación disponible es un intercambio: solo admite dos zonas con el
-mismo `tier` o nivel, mantiene fijo el origen y desplaza cada zona junto con los lugares que
-contiene. También cambia `title`/`shortTitle` y el texto/offset de cada rótulo. Los niveles 1 y 2
-nunca se mezclan aunque sus nombres visibles sean configurables.
-
-**Bowerbird** configura una paleta, un motivo y un contorno por zona sin cambiar el mundo o la
-red. En Docente forma parte del documento publicable; en Estudiante es una preferencia privada
-que nunca entra a ese JSON. ORBIT aplica la precedencia personal → publicada → canónica solo a
-zonas abiertas. Una zona bloqueada conserva apariencia neutral y todo motivo animado respeta
-`prefers-reduced-motion`.
-
-Los docks **General** y **Editor** son retractables. El mapa admite selección y manipulación con
-ratón, alternativas de teclado, cancelación y un historial local de deshacer/rehacer. Estas
-operaciones actualizan únicamente el documento del alcance correspondiente y su autoguardado.
-
-Importar sanea la estructura, referencias y compatibilidad del documento antes de reemplazar el
-borrador. Una red estructuralmente válida puede quedar académicamente incompleta para que Spider
-la repare; la validación publicable de raíz única y alcanzabilidad integral pertenece a
-**Validar** y **Aplicar**. Exportar produce JSON Docente para revisión y nunca incluye
-preferencias Estudiante. **Resumen** puede validar, mostrar el diff y cuantificar los tres avances
-antes de aplicar mediante el helper local `npm run editor:author`.
-La operación exige confirmación ligada al digest, un bloqueo exclusivo y un reinicio total de
-los progresos, pero conserva documento y preferencias. El helper escribe solo el artefacto de
-edición, ejecuta comprobaciones/build y ofrece rollback; no muta Git ni despliega. Las
-capacidades locales se eligen por URL y no son autenticación; ORBIT Editor sigue sin backend
-público, cuentas, colaboración multiusuario ni dependencias nuevas de ejecución.
-
-## Clases de lugar actuales
-
-| `kind` | Uso |
+| ID conservado | Significado visible actual |
 |---|---|
-| `base` | orientación y contexto |
-| `lesson` | nodo académico de la Red de aprendizaje |
-| `mission` | nodo académico de integración o transferencia |
-| `gadget` | herramienta visual lateral disponible con su zona |
-| `transport` | mejora de desplazamiento lateral disponible con su zona |
-| `npc` | personaje lateral disponible con su zona |
-| `debug` | acceso explícito a herramientas de desarrollo, derivado solo en el perfil Debug |
+| `applications` | Zona de Radioastronomía |
+| `electromagnetic-compatibility` | Zona de Superconductividad y su concepto introductorio |
+| `shielding-chamber` | Encuentro histórico no evaluativo con Heike Kamerlingh Onnes |
+| `superconductivity-transition-lab` | Laboratorio evaluable que concede el concepto de Superconductividad |
 
-La clase determina la pertenencia posible: solo `lesson` y `mission` entran a la Red de
-aprendizaje. Sus conexiones explícitas son la autoridad académica; `grants` conserva resultados
-e inventario.
+Inventariar un lugar lo retira del runtime y elimina sus conexiones incidentes; reinsertarlo no
+las reconstruye. Borrar reserva el ID. Solo los tipos admitidos `lesson`, `mission` y `npc`
+pueden crearse en Spider; la UI actual no crea zonas, conceptos, referencias, gadgets o
+transportes. La estación `smith-chart-station` ilustra un lugar lateral: concede su herramienta
+al interactuar y nunca bloquea el tronco académico.
 
-## Ejemplo de progresión
-
-```text
-Taller Vectorial
-  └──▶ Observatorio de Coulomb elegible
-          │
-          ├── abre Altiplano Electrostático por adyacencia
-          └── al completar, habilita sus sucesores académicos
-
-Guía de Gauss
-  └── lugar lateral disponible al abrir Altiplano Electrostático
-      y completado únicamente al interactuar
-```
-
-## Contenido principal y lateral
-
-Un elemento lateral debe enriquecer y nunca bloquear una ruta académica. Si una actividad debe
-ser prerrequisito de una ruta principal o especializada, se modela como `lesson` o `mission`
-dentro de la Red de aprendizaje, no como personaje, gadget o transporte.
-
-La **Estación de la Carta de Smith** aplica esta regla: queda disponible al abrir la zona de
-Líneas de Transmisión, concede `gadgets:smith-chart` solo al interactuar y permanece opcional.
-Su incorporación eleva el dataset a 29 lugares sin añadir una condición al recorrido principal.
-
-## Expansión del mapa
-
-ORBIT Editor puede crear, inventariar y eliminar `lesson`, `mission` y `npc`, pero todavía no
-crea ni elimina zonas, conceptos, referencias, gadgets o transportes. Para ampliar el dataset
-fuente fuera de esa autoridad editorial:
-
-Al agregar zonas:
-
-1. elige coordenadas axiales vecinas a la cartografía existente;
-2. evita islas sin aristas compartidas;
-3. define el resultado de aprendizaje de la región antes de su estética;
-4. sitúa al menos un nodo académico cuya elegibilidad provenga de la Red de aprendizaje;
-5. conecta ese nodo sin crear otra raíz y, opcionalmente, agrega lugares laterales;
-6. ejecuta el validador;
-7. prueba todos los cruces compartidos con zonas antiguas.
-
-## No confundir con una cronología
-
-El orden histórico real puede bifurcarse, superponerse o entrar en tensión con el orden
-pedagógico. El mapa puede representar encuentros históricos, pero la Red de aprendizaje debe
-priorizar prerrequisitos conceptuales claros.
+Una ampliación autorizada debe conservar IDs, conectividad territorial, raíz única,
+alcanzabilidad y límites geométricos. La autoría usa el procedimiento de
+[CONTENT_AUTHORING.md](CONTENT_AUTHORING.md); los contratos de documento y persistencia están
+en [ARCHITECTURE.md](ARCHITECTURE.md). Las reglas causales fueron adoptadas en
+[ADR 0009](decisions/0009-single-learning-network.md). El orden de prerrequisitos tiene prioridad
+sobre una cronología narrativa estricta.

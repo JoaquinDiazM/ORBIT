@@ -1,154 +1,102 @@
-# Hoja de ruta
+# Preparación de ORBIT 1.0.0
 
-Esta hoja de ruta prioriza valor pedagógico y control de alcance. No representa fechas comprometidas.
+La base publicada es **0.9.0**. El lanzamiento para usuarios reales corresponde a
+[UPD-027](../ORBIT_UPDATES.md#upd-027--lanzamiento-de-orbit-para-usuarios-reales), único ID de la
+cohorte 1.0.0. Su estado se mantiene en esa ficha. El trabajo autorizado llega hasta revisión,
+sin versionar ni publicar. [ADR 0013](decisions/0013-self-hosted-courses-and-offline-client.md)
+define el servidor opcional; [CHANGELOG.md](../CHANGELOG.md) conserva lo publicado.
 
-La hoja de ruta expresa dirección estratégica, no autorización de implementación. La cola
-operativa, sus preguntas, revisión humana y estado de publicación viven en
-[`ORBIT_UPDATES.md`](../ORBIT_UPDATES.md). Un hito mencionado aquí solo se trabaja cuando su
-punto correspondiente está `autorizado`.
+## Qué existe y qué debe conseguir el lanzamiento
 
-ORBIT significa **Open Roadmap for Building Intuition and Theory**. Los hitos hasta `1.0`
-describen la ruta actual de Electromagnetismo. Migrar y conectar cursos diferentes es
-una dirección posterior: el prototipo todavía no ofrece una arquitectura multicurso.
+La versión publicada ofrece ORBIT y ORBIT Editor estáticos para una ruta demostrativa de
+Electromagnetismo, con progreso local y autoría mediante Spider. La candidata conserva ese
+modo y añade servidor docente, cuentas por curso, Owl, sincronización y PWA. El helper local
+sigue separado del servidor de cursos. Véase [Arquitectura](ARCHITECTURE.md).
 
-## 0.1 — Base técnica y mecánica
+Las decisiones confirmadas de UPD-027 fijan este destino:
 
-Estado: completado en este prototipo.
+- Acceso desde navegador y aplicación Windows instalable desde Edge/Chrome (PWA).
+- Servidor proporcionado por cada equipo docente, compatible con Windows y Linux, con
+  instalación y mantenimiento accesibles; ORBIT no sostendrá un servidor global.
+- Cuentas con alias y contraseña, creadas y matriculadas por el docente, con recuperación a su
+  cargo; el piloto no requiere correo ni registro abierto.
+- Permisos por curso: cada docente administra sus cursos y estudiantes, y una cuenta
+  administradora separada gestiona el servidor.
+- Monitor básico de avance y finalización de actividades, sin recopilar respuestas ni intentos
+  para seguimiento, mediante **Owl** en el Editor.
+- Los cambios de curso conservan el avance; una incompatibilidad requiere una decisión
+  explícita antes de aplicarse.
+- Eliminar un estudiante borra su cuenta y su avance juntos. Restablecer su contraseña es una
+  operación independiente. Cada cuenta estudiantil pertenece a un único curso.
+- Preparar borradores y consultar Owl online; publicar siempre durante mantenimiento.
+- Estudio sin conexión y sincronización posterior.
+- Primero, un ensayo con un docente y un estudiante en dos máquinas; después se mantiene el
+  piloto por Internet con 10 estudiantes, 2 docentes y 2 cursos genéricos o plantilla.
+- Lanzamiento con una plantilla básica. El curso completo de Electromagnetismo se desarrollará
+  después y no se presentará como terminado.
 
-- Mundo abstracto de siete hexágonos.
-- Movimiento libre en Canvas 2D.
-- Árbol I y regla de fronteras.
-- Árbol II con lugares y recompensas.
-- Ejercicios mínimos.
-- Persistencia por perfiles.
-- Debugger.
-- Validación de progresión.
-- Build estático y GitHub Pages.
+Son requisitos del lanzamiento, todavía no capacidades del producto publicado. La ficha conserva
+las respuestas originales y es la autoridad para cualquier cambio de alcance.
 
-## 0.2 — Esqueleto académico
+El [recorrido previsto del README](../README.md#flujo-previsto-para-100) comienza con el docente
+creando o importando un curso en Editor **offline**, continúa con el arranque del servidor propio
+desde terminal y entrega un enlace para ORBIT y Editor **online**, con ingreso mediante las
+cuentas provistas por el docente. El modo offline también se utilizará para cambios que
+requieran mantenimiento. Se contempla el acceso a servidores universitarios mediante una VPN
+institucional previa al enlace. Autoría offline y aprendizaje del estudiante sin conexión son
+requisitos distintos, con los contratos de transición definidos en ADR 0013.
 
-Estado: cartografía y mecánicas de soporte implementadas; profundidad académica aún provisional.
+## Implementación de la candidata
 
-- Definir entre diez y doce resultados de aprendizaje principales.
-- Elaborar matriz resultado–prerrequisito–evidencia–ejercicio–aplicación.
-- Separar tronco común y rutas laterales.
-- Determinar alcance respecto de un curso universitario real.
-- Diseñar taxonomía de dificultad y tipos de solución.
-- Implementar consulta temática básica.
-- Poblar y revisar los 19 hexágonos actuales más allá de sus nodos demostrativos.
+ADR 0013 define servidor Node nativo, almacenamiento privado de un solo escritor, copias
+verificadas y restauración con servicio detenido. Los borradores permanecen en cada dispositivo;
+el servidor valida y publica durante mantenimiento. Sincroniza finalizaciones y reconcilia
+revisiones con decisiones explícitas para cambios incompatibles. HTTPS protege Internet/VPN.
 
-Criterio de salida: el mapa completo puede representarse como grafo curricular aunque la mayoría de los nodos todavía sean placeholders.
+La [guía del servidor](SERVER_GUIDE.md) describe instalación, distribución, actualización y
+recuperación. El [informe de UPD-027](reviews/UPD-027.md) concentra resultados y limitaciones
+de la automatización, preflight y guion humano; no constituye aprobación ni publicación.
 
-## 0.3 — Nodo vertical de referencia
+## Contratos que debe cubrir la revisión
 
-Candidato: inducción de Faraday.
+La revisión compara las capacidades implementadas con el alcance acordado:
 
-- Contexto histórico trazable.
-- Experimento y visualización.
-- Derivación matemática.
-- Aplicación a generador o transformador.
-- Ejemplo resuelto.
-- Dos problemas guiados.
-- Cuatro problemas de evaluación.
-- Una misión transversal.
-- Errores frecuentes.
-- Revisión por al menos otra persona con experiencia docente.
+| Frente | Contrato de la candidata |
+|---|---|
+| Identidad y permisos | Sesiones reales, permisos por curso, administrador separado y recuperación sin revelar contraseñas. Los perfiles locales no conceden autoridad remota. |
+| Cursos | Instancias independientes aunque compartan plantilla, matrícula por cuenta y selección de cursos autorizados. |
+| Progreso y monitor | Finalizaciones por estudiante/curso, Owl sin respuestas ni intentos; copias offline y reconciliación al reconectar. |
+| Ediciones | Borrador por dispositivo, publicación durante mantenimiento, compatibilidad de revisiones y decisión explícita sobre avances afectados. |
+| Operación | Paquete Windows/Linux, acceso HTTPS también con VPN, copia y restauración con el servicio detenido. |
+| Distribución | Modo estático conservado, paquete servidor y PWA instalable; actualización de recursos sin reiniciar avances. |
 
-Criterio de salida: sirve como plantilla de calidad para todos los nodos posteriores.
+Los módulos y esquemas se localizan en [Arquitectura](ARCHITECTURE.md). Tras completar pruebas
+y preflight, el punto pasa a revisión humana. El ensayo de dos máquinas precede al piloto;
+solo la aprobación del usuario y el cierre de cohorte permiten preparar la publicación.
 
-## 0.4 — Base de autoría visual
+## Evidencia necesaria para aceptar el lanzamiento
 
-Estado: base cartográfica implementada en `0.4.0`; no es todavía un editor completo de cursos.
+- Una persona ajena al desarrollo puede encontrar el acceso, instalar lo necesario y empezar
+  con la plantilla siguiendo instrucciones comprobadas.
+- Las cuentas y los permisos acordados aíslan cursos, avances y datos; recuperar credenciales
+  no revela contraseñas. Eliminar un estudiante borra cuenta y avance; restablecer su contraseña
+  conserva el avance.
+- El monitor informa avance y finalización de los estudiantes del curso sin recopilar sus
+  respuestas ni intentos para seguimiento.
+- Cliente web y Windows mantienen reglas de progreso coherentes, incluidos desconexión,
+  reconexión y cambio de edición según la política acordada.
+- Actualizar un curso conserva el avance y exige una decisión explícita ante incompatibilidades.
+- El servidor funciona en los dos sistemas previstos; copias, restauración, migraciones y
+  actualización del producto y contenido tienen resultados reproducibles.
+- El recorrido de dos máquinas verifica enlace, login, Editor offline/online y monitor antes
+  del piloto ampliado. La operación documenta el acceso cuando la red exige VPN institucional.
+- El piloto documenta sus recorridos reales, accesibilidad, errores y límites. Las comprobaciones
+  automáticas y la revisión humana se registran por separado según la cola.
 
-- Mantener **ORBIT** (`index.html`) con exactamente tres perfiles locales de avance separado:
-  Estudiante, Docente y Debug; migrar el antiguo `normal` a Estudiante.
-- Reservar las superficies de depuración para Debug y permitir que el perfil Docente
-  autocomplete las
-  lecciones y misiones evaluables al interactuar.
-- Mantener **ORBIT Editor** (`editor.html`) con Docente completo por defecto, Estudiante en
-  consulta con Spider/Bee sin mutaciones y Debug bloqueado antes de crear el modelo.
-- Incorporar docks General y Editor retractables y operables con puntero o teclado.
-- Implementar Spider para mover nodos y editar requisitos directos `completedLocations`, conservando conceptos/recompensas como relaciones derivadas de solo lectura.
-- Implementar Bee para intercambiar zonas dentro de `tier 1` o `tier 2`, con Base fija y rechazo entre anillos.
-- Versionar el borrador como esquema editorial `v1`, separado del progreso Estudiante `v3`.
-- Añadir autoguardado, importación/exportación JSON validada y deshacer/rehacer.
-- Conservar el dataset canónico de 19 zonas, 20 conceptos, 28 lugares, 13 parejas derivadas y cuatro requisitos directos `completedLocations`.
-- Mantener operación estática: los perfiles y bloqueos son conveniencias locales, sin backend,
-  cuentas, autenticación, dependencia nueva ni publicación automática.
+## Después del lanzamiento
 
-El sistema de contenido escalable que antes ocupaba este hito permanece pendiente como línea posterior:
-
-- evaluar Markdown/MDX mediante ADR;
-- separar enunciados y soluciones;
-- extender TeX/MathML a ejemplos, soluciones y vista imprimible;
-- incorporar ejercicios parametrizados con trazabilidad;
-- validar metadatos pedagógicos;
-- crear vista imprimible.
-
-## 0.5 — Herramientas y edición versionada
-
-Estado: `0.5.1` publicada; las herramientas y la edición versionada están operativas.
-
-- Incorporar **Gadgets** con calculadora siempre disponible, Explorador de campos 2D
-  desbloqueable y Carta de Smith opcional.
-- Ampliar ORBIT Editor con **Bowerbird**, separando apariencia Docente publicable y preferencias
-  Estudiante personales mediante un catálogo versionado.
-- Migrar el documento Docente a `v2` y el progreso a `v4` ligado a la revisión del curso.
-- Materializar una edición publicada con digest y ofrecer Validar → impacto → confirmar → aplicar
-  mediante un helper exclusivo de loopback, con bloqueo, respaldo, rollback y reset específico.
-- Conservar el sitio construido estático, sin backend público, cuentas, mutación de Git ni
-  despliegue automático.
-- Conservar 19 zonas y ampliar a 29 lugares, 14 parejas derivadas y cinco requisitos directos.
-
-## 0.6 — Curso mínimo utilizable
-
-- Reemplazar los dos árboles históricos por una Red de aprendizaje única de lecciones/misiones
-  y apertura territorial derivada por elegibilidad y adyacencia.
-- Migrar ORBIT Editor a documento `v3`: Spider administra pertenencia y conexiones académicas,
-  mientras NPC, gadgets y transportes permanecen laterales e interactivos.
-- Validar raíz única, DAG, 21 nodos académicos, 30 conexiones explícitas, 19 zonas alcanzables y
-  disponibilidad de todos los lugares laterales.
-- Cinco regiones principales completas.
-- Al menos treinta problemas originales revisados.
-- Consulta temática funcional.
-- Navegación por objetivos de aprendizaje.
-- Prueba piloto reducida con estudiantes.
-- Registro de errores y mejoras.
-
-## 0.7 — Instrumentación y aplicaciones
-
-- Migrar ORBIT Editor mediante `v3 → v4 → v5`: Bee configura nombres y rótulos de nivel, y
-  Spider incorpora Modificar, Crear e Inventario con IDs estables y ciclo de vida desplegable.
-- Conservar dos niveles estructurales sin mezclar sus zonas y una sola Red de aprendizaje activa.
-- Líneas de transmisión.
-- Ondas y energía electromagnética.
-- Antenas.
-- Interferometría e instrumentación astronómica.
-- Misión de enlace Tierra–Luna.
-- Transportes narrativos asociados a tecnologías estudiadas.
-
-## 1.0 — Recurso abierto estable
-
-- Diez a doce unidades principales.
-- Sesenta a ochenta problemas de alta calidad.
-- Soluciones completas y respuestas finales diferenciadas.
-- Revisión científica e histórica.
-- Documentación de contribución.
-- Accesibilidad auditada.
-- Resultados de una prueba piloto documentados.
-- Licencias y atribuciones completas.
-
-## Ideas posteriores, no comprometidas
-
-- Rutas de cursos adicionales con contratos explícitos de prerrequisitos, equivalencias y conexiones transversales.
-- Sincronización opcional entre dispositivos.
-- Paquetes de contenido de terceros.
-- Edición visual de contenido académico y creación de entidades sobre la base de Editor.
-- Publicación remota, cuentas autenticadas y asignación protegida de roles; la matriz local y el
-  helper loopback vigentes no adelantan esa seguridad.
-- Idioma inglés.
-- Integración con LMS mediante un estándar abierto.
-- Simulaciones interactivas propias.
-- Audio regional más allá del ambiente global provisional.
-
-Cada idea debe demostrar que mejora el aprendizaje o la mantenibilidad antes de aumentar la complejidad.
+La profundidad curricular completa, un banco amplio de problemas originales y su revisión
+científica continúan como trabajo posterior. También quedan fuera de lo confirmado las
+equivalencias entre cursos, consulta temática completa, integración con LMS, otros idiomas,
+paquetes de terceros y nuevas simulaciones. Cada ampliación necesitará alcance y validación
+propios; no se incorpora a 1.0.0 por aparecer en una visión anterior.

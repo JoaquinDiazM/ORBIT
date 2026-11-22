@@ -183,3 +183,18 @@ test("marcar el inicio como listo cancela el timeout y los listeners", async () 
   assert.equal(harness.listeners.size, 0);
   assert.equal(harness.elements.get("#loading-detail").hidden, true);
 });
+
+test("esperar el login cancela el timeout pero sigue mostrando errores de inicio online", async () => {
+  const source = await readFile(GUARD_PATH, "utf8");
+  const harness = createGuardHarness();
+  harness.elements.set('meta[name="orbit-mode"]', { content: "online" });
+  vm.runInNewContext(source, { URL, console, document: harness.document, Error, Object, String, window: harness.window });
+  harness.window.OrbitStartup.waitForInput();
+  assert.equal(harness.timers.size, 0);
+  assert.equal(harness.listeners.size, 2);
+  harness.elements.get("#loading-screen").hidden = true;
+  harness.window.OrbitStartup.fail("Fallo al cargar el curso.");
+  assert.equal(harness.elements.get("#loading-screen").hidden, false);
+  assert.match(harness.elements.get("#loading-detail").textContent, /conexión/);
+  assert.doesNotMatch(harness.elements.get("#loading-detail").textContent, /npm/);
+});

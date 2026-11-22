@@ -99,6 +99,8 @@ export class ProgressionModel {
     courseId = APP_CONFIG.activeCourseId,
     courseRevision = APP_CONFIG.legacyCourseRevision,
     acceptsUnversionedProgress = true,
+    initialState = undefined,
+    syncedCompletedLocations = undefined,
   }) {
     this.profile = profile;
     this.courseId = courseId;
@@ -114,11 +116,18 @@ export class ProgressionModel {
     );
     this.storage = storage;
     this.listeners = new Set();
-    const stored = this.storage.load();
+    // Online callers reconcile revisions before this constructor can sanitize or save anything.
+    const stored = initialState === undefined ? this.storage.load() : initialState;
     this.persistenceBlocker = hasUnsupportedProgressSchema(stored)
       ? new ProgressSchemaError(stored.schemaVersion)
       : null;
     this.state = this.#sanitizeState(stored);
+    if (syncedCompletedLocations !== undefined && !this.persistenceBlocker) {
+      this.state = this.#stateWithCompletions({
+        ...this.state,
+        activeTransport: stored?.activeTransport,
+      }, syncedCompletedLocations);
+    }
     if (this.persistenceBlocker) {
       console.warn(
         "El progreso persistido pertenece a una versión futura y se conservó sin sobrescribir.",
@@ -152,6 +161,37 @@ export class ProgressionModel {
   subscribe(listener) {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
+  }
+
+  #stateWithCompletions(state, completedLocations) {
+    const ids = new Set(Array.isArray(completedLocations) ? completedLocations : []);
+    const completed = this.locations.filter((location) =>
+      ids.has(location.id) && !["debug", "base"].includes(location.kind));
+    return this.#sanitizeState({
+      ...state,
+      completedLocations: completed.map((location) => location.id),
+      concepts: [...new Set(completed.flatMap((location) => location.grants?.concepts ?? []))],
+      rewards: [...new Set([
+        rewardKey("transports", "walk"),
+        ...completed.flatMap((location) => location.grants?.rewards ?? []),
+      ])],
+      debugUnlockedAreas: [],
+    });
+  }
+
+  mergeSynchronizedCompletions(completedLocations) {
+    const merged = this.#stateWithCompletions(this.state, [
+      ...this.state.completedLocations,
+      ...(Array.isArray(completedLocations) ? completedLocations : []),
+    ]);
+    if (JSON.stringify(merged.completedLocations) === JSON.stringify(this.state.completedLocations)) {
+      return this.getSnapshot();
+    }
+    const previousState = structuredClone(this.state);
+    this.state = merged;
+    this.#save(previousState);
+    this.#emit("progress-synchronized");
+    return this.getSnapshot();
   }
 
   #emit(type, detail = {}) {

@@ -73,7 +73,10 @@ La interfaz narrativa apoya el aprendizaje. No es el objetivo principal ni debe 
    disponibilidad duplicada como fuente de verdad.
 6. **IDs estables:** los IDs de zonas, conceptos, lugares y recompensas forman parte del formato de guardado. No los renombres después de una versión publicada sin una migración explícita.
 7. **Progreso versionado:** cualquier cambio incompatible en el estado persistido exige incrementar el esquema y añadir migración o una decisión documentada de reinicio.
-8. **Sitio estático:** el prototipo debe seguir funcionando sin backend, cuentas, base de datos ni instalación del usuario final.
+8. **Modo estático y servidor opcional:** conserva el prototipo utilizable sin backend ni
+   cuentas. UPD-027 autoriza además el modo online con servidor docente, cuentas por curso y
+   sincronización descrito en [ADR 0013](docs/decisions/0013-self-hosted-courses-and-offline-client.md).
+   Sus permisos se verifican en servidor; los perfiles locales nunca conceden autoridad remota.
 9. **Dependencias por excepción:** no añadas una dependencia npm, CDN o motor externo sin un ADR en `docs/decisions/` que explique beneficio, costo, licencia, tamaño, mantenimiento y alternativa sin dependencia.
 10. **Pruebas obligatorias:** `npm run check` debe pasar antes de considerar una tarea terminada.
 
@@ -109,58 +112,37 @@ una ruta futura deberá declarar con igual precisión su público, convenciones 
 
 ## Flujo obligatorio para agentes
 
-1. Lee completo `ORBIT_UPDATES.md`, ejecuta `git fetch origin` y compara HEAD con `origin/main`.
-   Audita tanto `git log origin/main..HEAD` como `git diff origin/main...HEAD`: no subas commits
-   locales ajenos a la cohorte. Si existe un cierre local ya verificado mientras el remoto
-   conserva sus IDs `publicando`, sube y verifica exactamente ese cierre antes de otra acción.
-   La cola es la fuente canónica: una descripción por sí sola no autoriza implementación. En
-   cada activación normaliza sus fichas activas por `Versión objetivo` semántica ascendente,
-   deja `auto` al final y desempata por ID; el estado nunca altera ese orden de presentación.
-2. Recupera cualquier preparación `publicando` —confirmada, staged o unstaged— antes de trabajo
-   nuevo. Si versión/changelog ya cambiaron con estados aún `aprobado`, trátalo también como una
-   preparación interrumpida. Completa o reintenta exactamente ese release solo cuando todo el
-   diff pertenezca a la cohorte; ante mezcla, marca `bloqueado`. Después completa
-   `docs/UPDATES_HISTORY.md` comparando su manifiesto y fichas con la cohorte leída directamente
-   del commit de release verificado, sin crear otra versión ni duplicar changelog.
-3. Publica una cohorte solo cuando esté cerrada y todos sus IDs estén `aprobado`. Revalida el
-   conjunto y confirma primero en un commit local el árbol exacto aprobado. Luego actualiza una
-   sola vez `CHANGELOG.md` y los archivos de versión, inspecciona cada hunk, cambia el lote a
-   `publicando`, confirma, haz el push del release y verifica. Solo entonces archiva las fichas
-   completas en un commit breve, sube ese cierre documental y vuelve a verificar el remoto.
-   Ninguno de esos pushes es una entrega parcial.
-4. En cada activación relee desde disco `README.md`, este archivo, los `AGENTS.md` anidados
-   aplicables, `docs/CODEX_START_HERE.md` y las decisiones relevantes. No supongas que una copia
-   de las instrucciones en el historial sigue vigente. Cuando el usuario pida verificar las
-   políticas, identifica los archivos y secciones leídos; las guías enlazadas requieren lectura
-   explícita, no se presume que el agente las cargue automáticamente.
-5. Solo los puntos `autorizado` de la cohorte inmediata pueden pasar a preflight e
-   implementación. Si alguno todavía requiere una decisión material, cámbialo a
-   `faltan-detalles`, escribe preguntas concretas y no modifiques el producto por ese punto.
-6. Mantén como máximo una cohorte de versión en implementación, revisión o publicación por
-   checkout. Varios IDs independientes de esa misma versión pueden avanzar y revisarse en
-   paralelo; nunca implementes una versión posterior antes de publicar la inmediata.
-7. Audita `public/assets/audio/`: compara archivos `.ogg` y metadatos `.json` con
-   `audio-manifest.json` y busca cada ID en `src/`.
-8. Si aparece audio nuevo sin un punto de reproducción verificable y la instrucción no indica
-   dónde usarlo, pregunta al usuario dónde debe escucharse antes de asignarle un destino. No
-   asumas que un recurso fue añadido por azar; puedes continuar otras partes independientes y
-   seguras de la tarea.
-9. Describe brevemente qué invariante puede afectar el cambio e implementa el alcance mínimo
-   autorizado y acordado.
-10. Añade o actualiza pruebas. Todo audio versionado debe tener atribución, entrada de manifiesto
-   y una forma accesible de ser escuchado; nunca debe ser la única señal de un estado.
-11. Ejecuta `npm run check` y las pruebas automáticas aisladas. No ejecutes ni atribuyas la
-    revisión manual canónica de navegador, perfiles o aplicación: entrégala a JoaquinDiazM u otro
-    desarrollador, que la realizará en Edge externo con el servicio iniciado desde un terminal
-    visible de Visual Studio Code.
-12. Antes de solicitar esa revisión, confirma el preflight prístino definido en
-    `ORBIT_UPDATES.md`. La aplicación canónica no exige un checkout limpio: registra sus cambios,
-    preserva automáticamente la fuente reemplazada y congela toda escritura del agente desde la
-    validación hasta recibir el resultado humano.
-13. Registra por separado pruebas automáticas, preflight y revisión manual humana; cambia el
-    punto a `en-revision` y crea de preferencia un commit local coherente. En este estado no
-    actualices versión o changelog ni hagas push: espera que el usuario lo marque `aprobado` y
-    que toda la cohorte quede lista.
+El procedimiento completo y canónico está en [ORBIT_UPDATES.md](ORBIT_UPDATES.md): léelo
+íntegro en cada activación. Sus secciones **Orden obligatorio**, **Separación de entornos** y
+**Versionado y publicación** son parte de estas instrucciones; este resumen no las sustituye.
+El agente mantiene la cola con las decisiones explícitas de JoaquinDiazM en el chat, guía allí
+las pruebas humanas y termina cada respuesta de entrega o seguimiento con las decisiones que
+siguen pendientes o la indicación de que no las hay.
+
+1. Relee `README.md`, este archivo, `docs/CODEX_START_HERE.md`, los `AGENTS.md` anidados y
+   los ADR aplicables. Las guías enlazadas requieren lectura explícita. Si se pide verificar
+   políticas, identifica archivos y secciones realmente leídos.
+2. Ejecuta `git fetch origin`; compara HEAD con `origin/main`, `git log origin/main..HEAD` y
+   `git diff origin/main...HEAD`. Recupera cierres y preparaciones `publicando` según la cola,
+   sin mezclar commits ajenos ni duplicar release/changelog. Normaliza fichas por versión
+   semántica ascendente, `auto` al final e ID como desempate, nunca por estado.
+3. Implementa solo IDs `autorizado` de la cohorte inmediata. Una decisión material pendiente
+   exige `faltan-detalles`, preguntas concretas y ningún cambio de producto por ese punto.
+   Mantén una sola cohorte en implementación/revisión/publicación por checkout; sus IDs
+   independientes pueden avanzar en paralelo.
+4. Audita los `.ogg`, sidecars y `audio-manifest.json` de `public/assets/audio/`, y busca cada
+   ID en `src/`. Si un audio nuevo carece de punto de reproducción indicado, pregunta dónde
+   debe escucharse. Todo audio versionado requiere atribución, manifiesto y acceso audible,
+   y nunca puede ser la única señal de estado.
+5. Declara el invariante afectado; implementa el alcance mínimo y actualiza las pruebas
+   pertinentes. Ejecuta `npm run check` y automatización aislada. Separa esa evidencia del
+   preflight y de la revisión manual humana.
+6. Antes del handoff, cumple el entorno prístino siguiente y el preflight completo de la cola.
+   Registra resultado y limitaciones, y deja el punto `en-revision`, preferentemente con un
+   commit local coherente. No cambies versión/changelog ni hagas push en ese estado.
+7. Solo una cohorte cerrada y completamente `aprobado` permite publicación: confirmar árbol
+   aprobado, preparar y verificar release, archivar fichas exactas y verificar cierre documental,
+   en ese orden y según el protocolo de la cola. La aprobación no se infiere del silencio.
 
 ### Entorno prístino para revisión humana
 
@@ -198,8 +180,7 @@ Una tarea no está completa hasta que:
 
 Cumplir estos criterios permite pasar a `en-revision`; no equivale a aprobación humana ni a
 publicación. Solo JoaquinDiazM puede establecer `autorizado`, `aprobado` y el cierre o reapertura
-de una cohorte, directamente en `ORBIT_UPDATES.md` o mediante una instrucción explícita que
-identifique el ID, estado o versión involucrada.
+de una cohorte. El agente registra sus decisiones explícitas del chat en `ORBIT_UPDATES.md`.
 
 ## Cambios que requieren ADR
 

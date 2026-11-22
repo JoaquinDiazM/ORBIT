@@ -1,0 +1,75 @@
+.online-access,
+.online-dialog,
+.online-session,
+.orbit-install-controls {
+  color: var(--text, #eef7ff);
+  background: var(--panel-solid, #0c1929);
+  border: 1px solid var(--panel-border, #52718b);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.online-access {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  overflow: auto;
+  padding: clamp(1rem, 5vw, 4rem) max(1rem, calc((100vw - 54rem) / 2));
+}
+
+.online-access h1 { margin-top: 0; }
+.online-access > p { max-width: 60ch; }
+.online-form { display: grid; gap: 0.8rem; margin-block: 1rem; }
+.online-access > .online-form { max-width: 28rem; }
+.online-field { display: grid; gap: 0.35rem; }
+.online-field:has(input[type="checkbox"]) { display: flex; flex-direction: row-reverse; justify-content: flex-end; align-items: start; }
+.online-field input:not([type="checkbox"]) { width: 100%; min-width: 0; min-height: 2.7rem; padding: 0.55rem; }
+.online-field input[type="checkbox"] { flex: none; width: 1.2rem; height: 1.2rem; margin: 0.18rem 0.5rem 0 0; }
+.online-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.online-status { margin-block: 0.5rem; }
+.online-status[data-level="error"] { color: #ffb8c0; font-weight: 650; }
+.online-course-list,
+.online-student-list,
+.online-admin-list { display: grid; gap: 1rem; margin-block: 1rem; }
+.online-course-card,
+.online-student-card,
+.online-admin-card,
+.online-publication-plan { padding: 0.85rem; border: 1px solid var(--panel-border); border-radius: 0.65rem; }
+.online-course-card { display: flex; gap: 1rem; align-items: center; justify-content: space-between; }
+.online-dialog { width: min(46rem, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); border-radius: 0.8rem; padding: 1rem; overflow: auto; }
+.online-dialog::backdrop { background: rgba(0, 6, 15, 0.78); }
+.online-dialog-heading { display: flex; gap: 1rem; align-items: start; justify-content: space-between; }
+.online-dialog-heading h2 { margin: 0; }
+.online-panel-body { display: grid; gap: 0.65rem; }
+.online-panel-body details { padding-block: 0.45rem; }
+.online-panel-body summary,
+.online-local-data summary,
+.orbit-install-controls summary { cursor: pointer; min-height: 2rem; }
+.online-danger { border-color: #ff9aa7; color: #ffe0e5; }
+.online-draft-note { padding: 0.7rem; border-left: 3px solid var(--accent); font-size: 0.85rem; }
+
+body.has-online-session { display: flex; flex-direction: column; }
+body.has-online-session #app { flex: 1 1 auto; height: auto; min-height: 0; }
+.online-session { order: -1; flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 1rem; padding: 0.45rem 0.75rem; max-height: 30dvh; overflow: auto; font-size: 0.8rem; }
+.online-session > strong { max-width: 35rem; }
+.online-session .online-status { flex: 1 1 16rem; margin: 0; }
+.online-session button { min-height: 2rem; padding: 0.3rem 0.5rem; }
+.online-local-data { flex: 1 0 100%; }
+.online-local-data p { margin: 0.3rem 0; max-width: 100ch; }
+.online-local-data summary { min-height: 1.5rem; }
+
+.orbit-install-controls { position: fixed; z-index: 42; bottom: 0.5rem; left: 0.5rem; max-width: min(24rem, calc(100vw - 1rem)); max-height: 50dvh; overflow: auto; border-radius: 0.65rem; padding: 0.35rem 0.65rem; font-size: 0.75rem; box-shadow: var(--shadow); }
+.orbit-install-controls p { margin-block: 0.5rem; }
+.orbit-install-controls button { margin: 0.2rem; }
+.online-access :focus-visible,
+.online-dialog :focus-visible,
+.online-session :focus-visible,
+.orbit-install-controls :focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
+
+@media (max-width: 760px) {
+  .online-session { gap: 0.25rem 0.5rem; font-size: 0.72rem; }
+  .online-session > strong { flex: 1 1 100%; }
+  .online-dialog { width: calc(100vw - 1rem); max-height: calc(100dvh - 1rem); padding: 0.75rem; }
+  .online-dialog-heading { flex-wrap: wrap; }
+  .orbit-install-controls { bottom: 0.25rem; left: 0.25rem; }
+}

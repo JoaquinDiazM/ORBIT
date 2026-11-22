@@ -5,7 +5,7 @@ import { spawnSync } from "node:child_process";
 import process from "node:process";
 
 const root = resolve(process.cwd());
-const ignoredDirectoryNames = new Set([".git", "dist", "node_modules"]);
+const ignoredDirectoryNames = new Set([".git", "dist", "artifacts", "node_modules"]);
 const approvedDependencies = new Map([
   [
     "katex",

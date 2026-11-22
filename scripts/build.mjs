@@ -2,6 +2,7 @@ import { access, cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import { materializeCourseEdition } from "../src/core/course-edition.js";
+import { buildOfflineResources } from "./build-offline.mjs";
 
 const root = resolve(process.cwd());
 const dist = resolve(root, "dist");
@@ -89,6 +90,8 @@ await Promise.all([
   ),
 ]);
 
+const offlineBuild = await buildOfflineResources(dist);
+
 await writeFile(
   resolve(dist, "build-info.json"),
   `${JSON.stringify(
@@ -96,6 +99,7 @@ await writeFile(
       project: "orbit-open-roadmap",
       generatedAt: new Date().toISOString(),
       buildType: "static-no-bundle",
+      ...offlineBuild,
       courseId: courseEdition.edition.courseId,
       courseRevision: courseEdition.edition.revision,
       courseDigest: courseEdition.edition.digest,

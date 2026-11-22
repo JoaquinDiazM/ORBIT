@@ -2,6 +2,17 @@
 
 Los ADR registran decisiones que afectan estructura, dependencias, persistencia o invariantes del mundo.
 
+Se conservan aunque una decisión posterior los amplíe o reemplace. Para el estado implementado
+consulta [Arquitectura](../ARCHITECTURE.md): las cifras y limitaciones de un ADR describen el
+momento en que se tomó, no necesariamente la versión actual.
+
+- ADR 0005 establece la excepción KaTeX a la base sin dependencias de ADR 0001.
+- ADR 0009 reemplaza los dos grafos de ADR 0002 por una Red de aprendizaje.
+- ADR 0008, 0010 y 0011 amplían la base editorial de ADR 0007 con aplicación local, entidades y
+  fuente académica. ADR 0012 añade navegación Directa y su límite de relaciones por zona.
+- ADR 0013 amplía el modo estático con servidor docente, cuentas por curso y cliente offline;
+  su implementación autorizada pertenece a [UPD-027](../../ORBIT_UPDATES.md).
+
 ## Índice
 
 - [0001 — Prototipo estático sin dependencias](0001-static-no-dependencies.md)
@@ -16,6 +27,7 @@ Los ADR registran decisiones que afectan estructura, dependencias, persistencia 
 - [0010 — Metadatos cartográficos y ciclo de vida de entidades editoriales](0010-editorial-entities-and-map-metadata.md)
 - [0011 — Fuente académica y autoría de contenido](0011-academic-source-and-content-authoring.md)
 - [0012 — Navegación Global y Directa](0012-direct-world-navigation.md)
+- [0013 — Servidor docente y cliente instalable con estudio sin conexión](0013-self-hosted-courses-and-offline-client.md)
 
 ## Crear un ADR
 

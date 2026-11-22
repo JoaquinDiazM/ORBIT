@@ -1,411 +1,228 @@
-# Checklist de control de calidad
+# Control de calidad
 
-## Antes de revisar
+Catálogo de comprobaciones del modo estático y del servidor docente. La ficha de [ORBIT_UPDATES.md](../ORBIT_UPDATES.md)
+registra cuáles corresponden al cambio, sus resultados y lo pendiente. Una casilla describe una
+comprobación; no acredita que se haya ejecutado. La evidencia de versiones publicadas queda en
+[UPDATES_HISTORY.md](UPDATES_HISTORY.md), no en esta lista.
 
-- [ ] Leer los `AGENTS.md` aplicables.
-- [ ] Probar por separado los perfiles canónicos Estudiante, Docente y Debug; no inventar
-      sufijos de perfil.
-- [ ] Ejecutar `npm run check`.
-- [ ] Confirmar que no hay errores ni advertencias inesperadas en consola.
-- [ ] Abrir la URL impresa por la ejecución actual, no una pestaña servida por un proceso anterior.
-- [ ] Probar por separado ORBIT en `index.html` y ORBIT Editor en `editor.html`.
-- [ ] Exportar una copia del borrador editorial antes de importaciones o restauraciones destructivas.
+La revisión manual canónica corresponde a JoaquinDiazM u otro desarrollador, en **Edge externo**
+y con el servicio iniciado desde un terminal **visible de VS Code**. Las pruebas de agentes usan
+entornos aislados según [AGENTS.md](../AGENTS.md). La autoría académica mediante UI aislada no
+sustituye esa revisión ni la aplicación humana.
 
-## Mundo y movimiento
+## Preparación y evidencia
 
-- [ ] El personaje se mueve con WASD y flechas.
-- [ ] El movimiento diagonal no es más rápido que el axial.
-- [ ] El personaje no está fijado a nodos ni caminos.
-- [ ] `Ctrl` + clic primario sin arrastre centra al personaje en la zona abierta seleccionada;
-      un clic ordinario, otro botón o modificadores combinados no lo hacen.
-- [ ] `Ctrl` + flecha, con foco en el mapa, centra una sola vez en la zona abierta más cercana de
-      esa dirección; campos y controles no interceptan el atajo.
-- [ ] El teletransporte se rechaza para zonas bloqueadas en Estudiante, Docente y Debug, persiste
-      la posición y no concede conceptos, lugares, recompensas ni zonas.
-- [ ] Las fronteras bloqueadas impiden el paso sin vibración severa.
-- [ ] Las fronteras abiertas permiten cruzar en ambos sentidos.
-- [ ] Cada zona nueva abre todas sus aristas compartidas con zonas ya abiertas.
-- [ ] No existe una zona aislada.
-- [ ] Cámara y zoom mantienen el personaje localizable.
-- [ ] A pie, en carro y en deslizador, la sombra queda abajo-derecha en los ocho rumbos y se recoge al avanzar abajo-derecha.
+- [ ] Leer los `AGENTS.md` aplicables y confirmar alcance, invariantes y criterios del cambio.
+- [ ] Ejecutar `npm run check` y registrar resultado, revisión y limitaciones de la automatización.
+- [ ] Entregar el preflight de [ORBIT_UPDATES.md](../ORBIT_UPDATES.md): cambios staged/unstaged,
+      puerto/PID 4173, identidad del lock, journals/tombstones, procesos propios, `no-store` y
+      concordancia fuente/build. No adoptar ni detener procesos ajenos.
+- [ ] Para los helpers de desarrollo/autoría, usar `http://127.0.0.1:4173`, sin puertos alternativos.
+      El servidor docente usa su origen declarado y datos privados separados. No inventar perfiles
+      ni limpiar el almacenamiento real por parte del agente.
+- [ ] Exportar el borrador antes de importaciones o restauraciones que puedan reemplazarlo.
+- [ ] Registrar aparte automatización, preflight y revisión humana. Congelar escrituras del agente
+      en fuente, build, cola y Git entre la validación humana y el resultado de **Aplicar**.
 
-## Zonas
+## Movimiento, mundo y Red de aprendizaje
 
-- [ ] Cada zona no inicial es adyacente a otra zona definida.
-- [ ] Cada zona no inicial contiene al menos un nodo académico elegible desde la red.
-- [ ] La elegibilidad académica se calcula sin exigir que la propia zona ya esté abierta.
-- [ ] La apertura territorial se deriva, no se guarda como segunda verdad.
-- [ ] El panel de conocimiento refleja el estado real.
+- [ ] WASD/flechas permiten movimiento continuo; la diagonal conserva velocidad y las fronteras
+      cerradas impiden cruzar sin vibración. Abrir una zona habilita todas sus aristas compartidas.
+- [ ] Cámara y zoom mantienen al personaje localizable. Las sombras de los transportes conservan
+      su orientación y comportamiento en los ocho rumbos.
+- [ ] `Ctrl` + clic primario sin arrastre centra en una zona abierta; clic ordinario, botones o
+      modificadores distintos no disparan el salto. `Ctrl` + flecha actúa una vez desde el mapa,
+      sin interceptar campos. El salto persiste posición, rechaza zonas cerradas y no concede progreso.
+- [ ] Cada lugar queda dentro del margen seguro. La Red contiene solo lecciones/misiones, tiene
+      raíz única `vector-workshop`, no presenta ciclos y alcanza todos sus nodos activos.
+- [ ] Una zona no inicial se abre por adyacencia y elegibilidad académica, sin exigir previamente
+      la apertura de esa misma zona. Zonas, fronteras y disponibilidad siguen siendo derivados.
+- [ ] NPC, gadgets y transportes quedan fuera de la Red, se habilitan con su zona y requieren una
+      interacción para completarse. Recompensas y conceptos no crean una segunda vía de apertura.
+- [ ] Las guías apuntan prerrequisito → destino: brillante/continua hacia completado o completable,
+      tenue/discontinua desde completable hacia bloqueado. No revelan extremos ocultos.
+- [ ] Oculta conserva solo la conexión causal **NUEVO**; Directo filtra por adyacencia efectiva;
+      Total muestra todas las relaciones elegibles. El filtro no cambia requisitos ni progreso.
+- [ ] **NUEVO**, su fuente causal y el historial de regreso son efímeros; la preferencia del filtro
+      sí sobrevive recarga. Zonas · Red refleja el estado sin duplicar controles de Visual.
+- [ ] Global/Directa conservan apertura y posición canónicas; Directa muestra hasta seis vecinas
+      más el centro, conserva cruces/bloqueos y permite regresar. Las ediciones históricas con exceso
+      de relaciones explican su restricción; una nueva publicación rechaza ese exceso.
 
-## Red de aprendizaje y exploración lateral
+Guion específico de navegación: [UPD-026](reviews/UPD-026.md). Las cantidades de zonas, nodos y
+conexiones se contrastan con la edición revisada y el validador, sin convertir un corte histórico
+en una cifra obligatoria para todas las ediciones.
 
-- [ ] Cada lugar se encuentra dentro del margen seguro de su hexágono.
-- [ ] Solo `lesson` y `mission` pertenecen a la Red de aprendizaje.
-- [ ] `vector-workshop` es la única raíz; los otros veinte nodos tienen predecesor y los 21 son alcanzables.
-- [ ] NPC, gadgets y transportes se habilitan con su zona, requieren interacción y no se autoconceden.
-- [ ] Cada guía visible apunta en dirección prerrequisito → destino; nunca invierte la flecha por contexto.
-- [ ] Una relación `completed → completed/completable` se dibuja amarilla brillante y sólida; una relación `completable → blocked` se dibuja tenue y discontinua.
-- [ ] La distinción entre conexiones brillantes y tenues sigue siendo legible sin color y con reducción de movimiento.
-- [ ] Los extremos ocultos y las combinaciones de estados no admitidas no producen guías ni revelan contenido invisible.
-- [ ] En **Oculta** solo permanece la arista causal del último desbloqueo de la sesión; sin un desbloqueo reciente no aparece ninguna.
-- [ ] En **Directo** aparecen todas las conexiones elegibles del mismo hexágono o entre hexágonos que comparten frontera, y ninguna conexión más lejana.
-- [ ] En **Total** aparecen todas las conexiones elegibles entre lugares visibles, incluidas las que atraviesan más de una frontera.
-- [ ] Cambiar entre **Oculta**, **Directo** y **Total** actualiza el mapa, no concede progreso y no cambia accesibilidad.
-- [ ] Si un destino acaba de habilitarse, solo la arista desde la última finalización causal lleva la etiqueta textual **NUEVO**.
-- [ ] La base canónica contiene 30 parejas académicas explícitas y la edición aplicada las que
-      declara —29 actualmente—; ninguna conexión usa un extremo lateral y conceptos, recompensas
-      o requisitos de área no crean guías.
-- [ ] El estado **NUEVO** es efímero y no aparece en el JSON exportado.
-- [ ] Las recompensas se conceden una sola vez.
-- [ ] Los transportes adquiridos se pueden alternar.
-- [ ] Los gadgets tienen control y explicación visibles.
+## Actividades, contenido y herramientas
 
-## Gadgets
+- [ ] Los enunciados son autosuficientes; se aceptan respuestas correctas y se rechazan incorrectas
+      o vacías. Números declaran unidad/tolerancia y admiten coma decimal y notación científica.
+- [ ] Las expresiones usan evaluación restringida; entradas desconocidas no ejecutan código.
+      Las secuencias no conceden progreso antes de la salida ni duplican recompensas.
+- [ ] Etapas activas, disponibles y bloqueadas se anuncian por texto. Las soluciones justifican
+      ley, geometría, signos, unidades y límites, además del cálculo.
+- [ ] Fuentes trazables, aproximaciones y licencias están presentes donde corresponde; se distinguen
+      observación, formulación y aplicación. No hay evaluaciones internas copiadas ni contenido
+      provisional presentado como un curso terminado.
+- [ ] Docente autocompleta solo lecciones/misiones evaluables; las lecturas, NPC, herramientas y
+      transportes conservan interacción. Estudiante no autocompleta.
+- [ ] Gadgets abre un panel desde cualquier zona. La calculadora funciona sin recompensa; el
+      Explorador de campos y la Carta de Smith respetan sus desbloqueos y parámetros efímeros.
+- [ ] `smith-chart-station` se habilita con su zona, requiere interacción y no bloquea la ruta.
+      La Carta de Smith se identifica como esqueleto estático, sin cálculo RF completo.
+- [ ] Figuras de campos/cargas funcionan con puntero y teclado, muestran singularidades y límites,
+      y no conceden progreso. Revisar el contrato específico del nodo modificado y sus pruebas.
+- [ ] Símbolos, constantes, fórmulas y glosario conservan consulta y condición de acceso; una fuente
+      se comunica una vez al desbloquearse, sin cuadros bibliográficos repetidos.
 
-- [ ] **Gadgets** abre un panel desde cualquier zona y sustituye al panel secundario anterior.
-- [ ] La calculadora está disponible en un perfil nuevo, acepta coma decimal, `π`, notación
-      científica y funciones permitidas, y rechaza entrada desconocida sin ejecutar código.
-- [ ] El Explorador de campos 2D permanece bloqueado hasta obtener `gadgets:field-lens`; al
-      desbloquearse evalúa componentes cartesianas seguras y conserva sus parámetros solo en la
-      sesión del panel.
-- [ ] El Explorador no usa un atajo global, un overlay persistente ni una API de activación en el
-      debugger; se abre únicamente desde el panel Gadgets.
-- [ ] `smith-chart-station` queda disponible al abrir su zona, concede `gadgets:smith-chart`
-      solo al interactuar y no bloquea la ruta principal.
-- [ ] La Carta de Smith se identifica como esqueleto estático y no simula cálculo RF completo.
+La autoría se realiza en Spider según [CONTENT_AUTHORING.md](CONTENT_AUTHORING.md) y
+[CONTENT_SOURCE_GUIDE.md](CONTENT_SOURCE_GUIDE.md). Los contratos del Taller Vectorial,
+Coulomb y Superconductividad conservan pruebas específicas en `tests/` y sus IDs publicados.
 
-## Ejercicios
+## Persistencia y perfiles del modo estático
 
-- [ ] El enunciado es autosuficiente.
-- [ ] La respuesta correcta se acepta.
-- [ ] Una respuesta incorrecta razonable se rechaza.
-- [ ] La entrada vacía no concede progreso.
-- [ ] La coma decimal se acepta en ejercicios numéricos.
-- [ ] La tolerancia está justificada.
-- [ ] La unidad aparece en enunciado o campo de respuesta.
-- [ ] La explicación incluye razonamiento físico, no solo número.
-- [ ] El lugar no concede un concepto que exige.
-- [ ] Docente autocompleta al interactuar una lección o misión que exige respuesta y abre el
-      contenido completado para revisión.
-- [ ] Docente no autocompleta NPC, gadgets, transportes, lugares base ni actividades de mera
-      confirmación; Estudiante nunca autocompleta.
+- [ ] Estudiante, Docente y Debug tienen avances independientes; cambiar selector o recargar no
+      copia logros entre perfiles. Son modos locales y no se anuncian como autenticación.
+- [ ] Progreso `v4` conserva `courseId` y `courseRevision`. Una revisión distinta no reactiva
+      logros incompatibles; `normal` y `aea-progress` migran solo bajo compatibilidad explícita.
+- [ ] Migraciones preservan ajustes compatibles, incluidos volúmenes por categoría, filtro de Red
+      y navegación. Exportar/importar/reset producen el estado esperado y sanean IDs desconocidos.
+- [ ] El documento Docente `v6`, las preferencias Bowerbird `v1`, la edición y el progreso no mezclan
+      campos ni claves. Solo la aplicación explícita inspecciona y reinicia los progresos.
+- [ ] Fallos de escritura revierten memoria y controles sin emitir éxito; guardar posición no
+      detiene el siguiente frame ni impide liberar el bloqueo al cerrar.
+- [ ] Esquemas futuros de progreso o preferencias no se degradan ni sobrescriben. Importaciones
+      inválidas conservan el último estado válido y muestran un diagnóstico accesible.
+- [ ] Todo cambio incompatible incluye migración o decisión de reinicio documentada.
 
-## Contenido científico e histórico
+## Servidor docente, cuentas y estudio sin conexión
 
-- [ ] Las afirmaciones específicas tienen fuentes.
-- [ ] Se distinguen observación, formulación y aplicación.
-- [ ] No se presenta una atribución discutida como certeza simple.
-- [ ] Se usan unidades y símbolos consistentes.
-- [ ] Las aproximaciones están declaradas.
-- [ ] El problema es original o tiene licencia compatible.
-- [ ] No contiene material interno de evaluaciones sin autorización.
+- [ ] Login, selección y cierre de sesión son operables con teclado. Un error de red o de sesión
+      no concede permisos ni abre automáticamente el modo estático; las queries no cambian el rol.
+- [ ] Administrador y docentes tienen funciones separadas. Las pruebas negativas rechazan leer
+      o modificar otro curso y mezclas de identidad entre peticiones, pestañas o dispositivos.
+- [ ] Owl muestra solo avance y finalización del curso. Restablecer contraseña conserva el avance;
+      eliminar estudiante retira cuenta y avance e impide que un cliente antiguo los recree.
+- [ ] Borradores e importaciones quedan por servidor/cuenta/curso. Publicar exige mantenimiento,
+      revisión base y plan vigente; una incompatibilidad requiere decisión explícita. Un borrador
+      antiguo puede exportarse antes de sustituirlo y nunca se atribuye a una revisión nueva.
+- [ ] Una copia offline exige elección explícita y anuncia qué datos quedan en el dispositivo.
+      Cerrar acceso retira esa entrada aunque la sesión remota haya caducado; conserva los avances
+      pendientes de la cuenta. Fallos de cierre local o remoto se informan por separado.
+- [ ] Desconectar, avanzar y reconectar une finalizaciones sin perder cambios tardíos. Revisión
+      desconocida, acuse incompleto o cambio de generación conservan la copia local sin reactivarla
+      silenciosamente. Dos ventanas no escriben simultáneamente el mismo avance local.
+- [ ] Recursos de la aplicación y copia del curso tienen estados diferenciados. La PWA se instala
+      desde Edge/Chrome, abre sin red y actualiza al cerrar sus ventanas; una descarga fallida conserva
+      la copia anterior. La caché no contiene respuestas de cuentas, sesiones ni API.
+- [ ] El paquete extraído verifica sus archivos y funciona en Windows/Linux. Copia y restauración
+      conservan cursos y avances, invalidan sesiones anteriores y permiten recuperar un estado dañado
+      sin destruirlo. Origen, HTTPS, rutas privadas y bloqueo de escritor fallan de forma cerrada.
+- [ ] Registrar por separado ensayos automáticos y revisión humana: primero docente/estudiante en
+      dos máquinas y luego piloto de 10 estudiantes, 2 docentes y 2 cursos. Comprobar instalación,
+      foco, errores de consola y reconexión reales antes de aprobar.
 
-## Persistencia
+Comandos y operación: [SERVER_GUIDE.md](SERVER_GUIDE.md). Evidencia y guion específico de la
+candidata: [informe de UPD-027](reviews/UPD-027.md).
 
-- [ ] El progreso sobrevive a recarga.
-- [ ] `student`, `teacher` y `debug` usan claves y avances separados; cambiar el selector no
-      copia logros ni preferencias.
-- [ ] Una clave histórica `normal` migra a `orbit-progress:v4:student`, conserva logros solo si
-      la edición activa acepta progreso no versionado y sanea `profile` como `student`.
-- [ ] Un perfil compatible se guarda con esquema `v4`, `courseId` y `courseRevision` bajo el
-      prefijo `orbit-progress`.
-- [ ] Un perfil antiguo bajo `aea-progress` migra únicamente para la revisión inicial declarada
-      compatible; otra revisión comienza limpia.
-- [ ] La migración convierte la preferencia y el volumen históricos en `ambienceVolume` y `effectsVolume`; un perfil antes silenciado migra ambos a cero.
-- [ ] La migración inicializa `treeTwoVisualizationMode` en `hidden`; una selección válida se persiste y un valor desconocido se sanea a **Oculta**.
-- [ ] Exportación produce JSON válido.
-- [ ] Importación rechaza o sanea IDs desconocidos.
-- [ ] Reset devuelve a un estado inicial utilizable.
-- [ ] Con `localStorage.setItem` rechazado, una mutación revierte memoria y control visual, no
-      emite éxito y presenta un solo aviso accesible; un fallo al guardar posición no detiene el
-      siguiente frame ni impide liberar el bloqueo del curso al cerrar la pestaña.
-- [ ] Un progreso de esquema futuro no se degrada ni sobrescribe al cargar; importarlo conserva
-      memoria, almacenamiento y eventos, y el aviso no detiene el siguiente frame.
-- [ ] Preferencias Bowerbird de esquema/catálogo futuro bloquean set, reset e importación sin
-      sobrescribir el raw ni emitir éxito. Un fallo de escritura compatible restaura los selects
-      al snapshot.
-- [ ] Los cambios de esquema incluyen migración o decisión documentada.
-- [ ] El documento Docente usa `orbit-editor:v5:electromagnetism-applied`; las preferencias
-      Estudiante usan `orbit-bowerbird:v1:electromagnetism-applied:student`; ninguno aparece bajo
-      `orbit-progress`.
-- [ ] Progreso, documento, preferencias y edición instalada sobreviven recarga según su alcance y
-      sus JSON no mezclan campos.
+## Interfaz, accesibilidad y Debug
 
-## Debugger de ORBIT
+- [ ] Ambas entradas cargan sin errores de consola; un fallo de arranque muestra diagnóstico y
+      recuperación en lugar de una espera infinita.
+- [ ] Acciones esenciales operables con teclado, foco visible y retorno al control de apertura.
+      En compacto, el foco permanece dentro del panel visible; Esc cierra por niveles.
+- [ ] La ventana principal convive con un panel secundario. Abrir otra herramienta sustituye ese
+      secundario; Ajustes agrupa Visual, Sonido y Ayuda sin controles ocultos enfocados.
+- [ ] Progreso muestra porcentaje conceptual derivado y equivalente accesible X de Y, actualizado
+      al reiniciar o cambiar perfil. La información no depende solo del color.
+- [ ] Texto, docks y controles son utilizables con zoom de 200 %, ventana estrecha y reducción
+      de movimiento. Controles nuevos aparecen en la ayuda; H/M no activan paneles ni audio.
+- [ ] KaTeX conserva caption, MathML, fallback legible y desplazamiento por teclado si desborda.
+- [ ] El separador de paneles admite puntero, foco/flechas y restauración; Escape cancela el gesto.
+      El ancho persiste por producto y no oculta controles en modo compacto.
+- [ ] Solo Debug expone Terminal de Cartografía, overlays, F2/tecla grave y `window.OrbitDebug`.
+      Estudiante/Docente no admiten esas acciones por render, foco, hit testing ni API.
+- [ ] Noclip, teletransporte, completar cercano, exportar/importar y reset funcionan; apagar noclip
+      fuera de una zona abierta retorna a spawn. `?debug=1` no concede capacidad editorial.
 
-- [ ] Solo Debug ve e interactúa con la Terminal de Cartografía; Estudiante y Docente no la
-      incluyen en render, foco, hit testing ni lugar cercano.
-- [ ] Solo Debug publica `window.OrbitDebug` y muestra las ayudas de depuración.
-- [ ] En Debug, F2 y tecla grave abren/cierran el panel; cerrarlo con × mantiene el siguiente atajo sincronizado.
-- [ ] En Estudiante y Docente, F2 y tecla grave no abren el panel y explican la restricción sin
-      habilitar capacidades.
-- [ ] Noclip funciona.
-- [ ] Al apagar noclip fuera de una zona abierta se retorna a spawn.
-- [ ] Teletransporte por selector funciona.
-- [ ] `Shift` + clic funciona dentro de la cartografía.
-- [ ] `OrbitDebug.help()` y `snapshot()` funcionan.
-- [ ] Completar cercano no selecciona contenido inaccesible sin forzar sus requisitos.
-- [ ] Abrir `?debug=1` sin perfil conserva la compatibilidad al resolver Debug, pero no activa
-      Editor ni carga su borrador.
-
-## Interfaz y accesibilidad
-
-- [ ] El selector ofrece exactamente **Estudiante**, **Docente** y **Debug**, refleja el perfil
-      activo y su cambio conserva una URL canónica.
-- [ ] La interfaz informa que los perfiles son locales y no autenticación.
-- [ ] El HUD presenta una barra nativa **Progreso**, con porcentaje entero visible y el conteo
-      equivalente «X de Y conceptos adquiridos» en `aria-valuetext`.
-- [ ] Con 0, 7 y 20 conceptos de los 20 actuales, el HUD muestra respectivamente `0 %`, `35 %`
-      y `100 %`; reiniciar o cambiar de perfil actualiza el indicador sin estado adicional.
-- [ ] Todas las acciones esenciales tienen teclado.
-- [ ] El foco es visible.
-- [ ] Abrir un panel mueve el foco a su cierre; `Esc` o el botón de cierre lo devuelve al control que lo abrió.
-- [ ] En la vista móvil, `Tab` y `Shift` + `Tab` permanecen dentro del panel visible hasta cerrarlo.
-- [ ] La lección principal puede permanecer abierta junto con un panel secundario.
-- [ ] El dock ofrece **Zonas · Red**, **Gadgets**, **Símbolos**, **Constantes**, **Formulario**,
-      **Glosario** y **Ajustes**; este último revela **Visual**, **Sonido** y **Ayuda** mediante
-      clic, `Enter` o espacio.
-- [ ] Cerrar una vista agrupada devuelve el foco a su acceso visible; un segundo `Esc` colapsa **Ajustes** y enfoca su botón, sin dejar foco en controles ocultos.
-- [ ] Abrir una herramienta sustituye cualquier otro panel secundario abierto.
-- [ ] Las teclas `H` y `M` no abren paneles, no disparan audio y no bloquean su futuro uso.
-- [ ] **Zonas · Red** separa Zonas, Red de aprendizaje y exploración lateral, pero no duplica los controles ni la leyenda del mapamundi.
-- [ ] **Visual** explica sus tres niveles y la semántica brillante/tenue sin depender exclusivamente del color.
-- [ ] Las etapas de una lección anuncian por texto cuál está activa, disponible o bloqueada.
-- [ ] Continuar una lectura y aprobar un ejercicio intermedio desbloquean solamente la etapa siguiente.
-- [ ] El ejercicio de salida concede el progreso del lugar una sola vez.
-- [ ] Símbolos, constantes, fórmulas y glosario conservan sus paneles y muestran el contenido desbloqueado o su condición de acceso.
-- [ ] Una entrada con fuente comunica su procedencia una sola vez al desbloquearse; consultar después el panel no repite cuadros bibliográficos.
-- [ ] El texto es legible a zoom del navegador de 200 %.
-- [ ] Los estados no dependen solo del color.
-- [ ] La reducción de movimiento del sistema se respeta.
-- [ ] La interfaz sigue siendo utilizable en una ventana estrecha razonable.
-- [ ] Los controles nuevos aparecen en ayuda.
-- [ ] Cada ecuación se renderiza, conserva caption y puede desplazarse con teclado si desborda.
-- [ ] La salida matemática expone representación MathML y el fallback TeX es legible.
-- [ ] Un fallo de recurso durante el arranque reemplaza la espera infinita por una alerta con pasos de recuperación.
+Referencia de herramientas: [DEBUGGING.md](DEBUGGING.md).
 
 ## ORBIT Editor
 
-- [ ] `editor.html` identifica inequívocamente **ORBIT Editor** y enlaza de vuelta a ORBIT.
-- [ ] `editor.html` sin query y `?profile=teacher` abren Docente con capacidad completa.
-- [ ] `?profile=student` muestra el alcance personal, permite pan/zoom/encuadre/consulta y
-      Bowerbird; abre Spider y Bee en consulta, pero bloquea sus mutaciones, además de
-      exportación, importación, restauración e historial del documento Docente.
-- [ ] Estudiante no ve un aviso de acceso permanente; pulsar cada control restringido por ratón
-      o teclado conserva el foco disponible y muestra un toast temporal, breve y específico.
-- [ ] En Estudiante, seleccionar con Spider/Bee funciona por DOM, Canvas y API segura; intentar
-      una mutación Docente por puntero, teclado o API conserva intacto el documento. Cambiar
-      Bowerbird solo actualiza su clave personal.
-- [ ] `?profile=debug` muestra un bloqueo enfocable, no crea `EditorModel` ni renderer y no
-      expone métodos mutadores en `window.OrbitEditor`.
-- [ ] Spider, Bee y Bowerbird nunca leen o escriben progreso: Docente usa
-      `orbit-editor:v5:electromagnetism-applied`; Estudiante lee ese documento pero guarda solo
-      `orbit-bowerbird:v1:electromagnetism-applied:student`. Solo la aplicación Docente explícita
-      inspecciona y reinicia las claves de progreso descritas en su impacto.
-- [ ] Cambiar la query demuestra que estas restricciones son locales y no se presenta como
-      autenticación o seguridad real.
-- [ ] La base canónica conserva 19 zonas, 20 conceptos y 29 lugares; la edición 0.7.0 publica 30
-      lugares activos y mantiene uno en Inventario. La Red de aprendizaje contiene únicamente sus
-      22 lecciones/misiones activas y 31 conexiones explícitas validadas.
-- [ ] Los docks **General** y **Editor** se minimizan y expanden por separado; el control de reapertura nunca desaparece.
-- [ ] `aria-expanded`, foco visible, `Tab`, `Enter` y `Espacio` reflejan el estado real de ambos docks.
-- [ ] Spider muestra todos los nodos sin depender del progreso de ORBIT.
-- [ ] Arrastrar un nodo actualiza `areaId + offset` respecto de la zona correcta aun con zoom o cámara desplazada.
-- [ ] Un nodo trasladado a otra zona queda dentro de su margen seguro y los campos del inspector coinciden con el Canvas.
-- [ ] Flechas y `Shift` + flechas ofrecen ajuste fino y mayor como alternativa al ratón.
-- [ ] Spider permite **Retirar de la red** y **Añadir a la red** solo para lecciones/misiones;
-      lecturas, personajes, herramientas, transporte y Base no ofrecen ese control.
-- [ ] Retirar un nodo de la Red conserva el lugar y su posición, y elimina atómicamente todas sus
-      conexiones incidentes; volver a añadirlo no inventa conexiones.
-- [ ] Spider crea y elimina una conexión explícita `fuente → destino` entre dos miembros de la Red.
-- [ ] Spider rechaza self-edge, duplicado, ID desconocido, nodo lateral y ciclo sin modificar el borrador.
-- [ ] Los cinco submenús Spider preservan selección; Modificar cambia `title`/`shortTitle` sin
-      cambiar ID y muestra el resto del contenido como **Próximamente**.
-- [ ] Crear asigna IDs `new-node-NNNN` monotónicos y no reutilizables; lesson/mission reciben una
-      actividad genérica válida y NPC un cierre `acknowledge` no evaluativo.
-- [ ] Inventariar enumera y elimina todas las aristas incidentes; reinsertar conserva identidad y
-      contenido, pero no restaura aristas. Borrar solo funciona desde Inventario, reserva el ID y
-      rechaza `vector-workshop` y `coulomb-observatory`.
-- [ ] Bee intercambia dos zonas de `tier 1` y, por separado, dos de `tier 2`.
-- [ ] Bee rechaza un intercambio `tier 1 ↔ tier 2`, comunica **ANILLO INCOMPATIBLE** por texto y no deja cambios parciales.
-- [ ] Campamento Base permanece fijo en `(0,0)`.
-- [ ] Tras cada intercambio se conservan coordenadas únicas, distancias axiales `0/1/2`, distribución `1 + 6 + 12`, IDs, `tier`, `order` y contenido.
-- [ ] Los lugares viajan con su zona y conservan offsets locales al intercambiar hexágonos.
-- [ ] Un clic Bee selecciona sin intercambio; renombrar una zona conserva ID/tier/contenido.
-- [ ] Cada rótulo de nivel admite texto, arrastre y alternativa DOM/teclado; recarga, undo/redo y
-      restauración conservan o recuperan el valor esperado sin codificar teoría/aplicaciones.
-- [ ] Bowerbird Docente permite paleta, motivo y contorno por zona, registra el cambio en
-      historial y no altera coordenadas, anillos, requisitos o progreso.
-- [ ] Bowerbird Estudiante no entra al historial/exportación Docente y sobrevive a una aplicación
-      del curso.
-- [ ] ORBIT resuelve apariencia personal → publicada → canónica únicamente en zonas abiertas;
-      las bloqueadas permanecen neutrales.
-- [ ] Catálogo desconocido o preset inválido se rechaza sin sobrescribir el último estado válido.
-- [ ] Un motivo animado se inmoviliza con `prefers-reduced-motion` sin perder contraste o texto.
-- [ ] Arrastrar el fondo desplaza la cámara, la rueda ajusta zoom y un gesto de edición no dispara acciones de ORBIT.
-- [ ] `Esc` o `pointercancel` cancela el gesto activo sin cambios parciales.
-- [ ] Deshacer y rehacer funcionan mediante botones, `Ctrl`/`Cmd` + `Z`, `Ctrl`/`Cmd` + `Shift` + `Z` y `Ctrl` + `Y`.
-- [ ] Importar o restaurar inicia un historial nuevo; undo/redo nunca cruza esa frontera.
-- [ ] Cada operación Docente válida se autoguarda en
-      `orbit-editor:v5:electromagnetism-applied` y una recarga la recupera.
-- [ ] Exportar produce `orbit-editor-project` esquema `v5` con catálogo, curso, versión base,
-      áreas/apariencias/rótulos, ciclo de vida de ubicaciones y `learningNetwork`, sin progreso
-      ni preferencias Estudiante.
-- [ ] Un documento `v1` o `v2` válido migra hasta `v5`, conserva mapa/apariencias y materializa
-      las 30 conexiones académicas efectivas; las cinco parejas laterales históricas no ingresan
-      a la Red.
-- [ ] La migración exacta `v3 → v4` añade nombres/rótulos actuales con offset cero y `v4 → v5`
-      añade ciclo de vida sin cambiar los 29 lugares ni las conexiones de entrada.
-- [ ] Un borrador `v3` o `v5` semánticamente inválido abre con diagnóstico para que Spider pueda repararlo;
-      una estructura ilegible o futura sigue la recuperación protegida.
-- [ ] Una importación válida reemplaza el borrador solo después de sanearlo; una inválida conserva intacto el estado anterior.
-- [ ] Un borrador persistido ilegible o futuro abre una copia de la edición base sin sobrescribir el raw y
-      bloquea mutaciones ordinarias; solo **Restaurar** o importar un documento válido lo reemplaza
-      y rehabilita el autoguardado.
-- [ ] Exportar no aplica. **Resumen** exige validar, revisar diff e impacto y confirmar en línea
-      antes de habilitar una aplicación.
-- [ ] Editor sigue siendo usable a 200 % de zoom, en ventana estrecha y con `prefers-reduced-motion`.
-- [ ] La consola queda limpia durante movimiento, conexión, intercambio, undo/redo, recarga e importación.
+- [ ] Docente dispone de Spider/Bee/Bowerbird, historial e importación/exportación. Estudiante
+      consulta Spider/Bee y cambia solo su Bowerbird; los intentos de mutación mantienen documento
+      y foco y explican la restricción. Debug queda bloqueado sin crear modelo ni renderer.
+- [ ] Los docks se contraen por separado sin perder el control para reabrirlos; `aria-expanded`,
+      teclado y foco reflejan su estado. Pan/zoom y gestos editoriales no disparan acciones de ORBIT.
+- [ ] Spider mueve nodos con puntero y teclado, incluida transferencia de zona, conservando margen
+      seguro y coincidencia del inspector con el Canvas. Esc/pointercancel cancela sin cambios parciales.
+- [ ] Conectar rechaza autorrelaciones, duplicados, ciclos y extremos laterales. Retirar de la Red
+      conserva el lugar y elimina aristas incidentes; reincorporar no inventa conexiones.
+- [ ] Crear/renombrar/inventariar/reinsertar/borrar preserva contenido e IDs monotónicos. Inventariar
+      enumera las conexiones eliminadas; borrar exige Inventario y respeta nodos protegidos/tombstones.
+- [ ] Bee conserva Base fija y niveles estructurales; permite intercambios dentro del mismo nivel,
+      nombres/rótulos configurables y rechaza cruces de nivel sin cambios parciales.
+- [ ] Bowerbird Docente participa de historial/exportación; las preferencias de Estudiante quedan
+      fuera del historial y la exportación Docente. La
+      precedencia personal → publicada → canónica solo se aplica a zonas abiertas; las bloqueadas
+      permanecen neutrales y los motivos respetan reducción de movimiento.
+- [ ] Deshacer/rehacer y autoguardado conservan los datos. Importar/restaurar inicia historial nuevo;
+      una importación inválida no reemplaza el borrador. Datos ilegibles o futuros se preservan
+      hasta una recuperación explícita, sin autoguardado destructivo.
+- [ ] Migraciones editoriales `v1`–`v5` llegan a `v6` preservando mapa, red, inventario y cuerpos.
+      Los artefactos históricos se autentican antes de migrarse y conservan su revisión original.
+- [ ] Spider → Modificar → Editar contenido permite escribir, compilar y recorrer el preview.
+      Renombrar conserva cuerpo; deshacer/rehacer, recarga y round-trip JSON conservan fuente válida.
+- [ ] Una fuente incompleta informa línea/columna, conserva el borrador y distingue la última
+      fuente válida. Exportar/importar recupera el texto; validar/aplicar no incorpora el inválido.
+- [ ] Plantillas, ejercicios, etapas y figuras registradas conservan paridad con ORBIT. NPC mantiene
+      cierres no evaluativos; figuras inéditas y contenido ejecutable se rechazan. El preview es efímero
+      y nunca modifica progreso ni concede recompensas.
 
-### Aplicación local de una edición
+## Aplicación y recuperación locales
 
-- [ ] En `npm run dev`, ORBIT y Editor están disponibles; Resumen permite editar/validar,
-      identifica **Modo normal**, mantiene confirmación/**Aplicar** deshabilitados y explica que
-      hace falta `npm run editor:author` sin fingir escribir fuentes.
-- [ ] En `npm run editor:author`, raíz, Estudiante, Docente, Debug, `bootstrap.js` y `main.js`
-      responden `503` con estado `maintenance`; Editor, sus assets permitidos y las API locales
-      siguen disponibles.
-- [ ] Una pestaña ORBIT abierta desde `dev` tolera el intervalo sin servidor, detecta autoría,
-      vuelve inerte la UI, detiene subsistemas, libera el Web Lock compartido y recarga una sola
-      vez hacia mantenimiento.
-- [ ] Un `index.html` reutilizado desde caché rechaza el `503 maintenance` en su preflight antes
-      de construir `ProgressionModel` o escribir progreso.
-- [ ] El helper escucha solo en `127.0.0.1`, exige same-origin y token de sesión, limita el cuerpo
-      y no acepta rutas proporcionadas por el cliente.
-- [ ] El helper acepta un checkout con cambios sin consultar ni mutar Git, deja intactas las rutas
-      ajenas, respalda la fuente reemplazada y rechaza una `expectedPreviousRevision` obsoleta.
-- [ ] Validar materializa 19 zonas y los lugares activos, calcula SHA-256 y muestra diff de
-      nombres/rótulos, nodos creados/renombrados/inventariados/restaurados/eliminados,
-      posiciones, conexiones y apariencias.
-- [ ] La tabla de impacto cubre Estudiante, Docente y Debug e informa guardado legible, lugares
-      completados y conceptos adquiridos; una edición posterior invalida el plan.
-- [ ] La confirmación explica que el reset elimina logros, posición, transporte, ajustes y
-      overrides Debug de las claves actuales/legadas, pero conserva documento Docente,
-      preferencias Bowerbird y datos ajenos.
-- [ ] Otra pestaña de ORBIT mantiene un bloqueo compartido y hace que la aplicación se rechace
-      antes del reset; la operación obtiene un bloqueo exclusivo al continuar.
-- [ ] Una aplicación correcta deja fuente, `dist` y `build-info.json` con revisión/digest
-      concordantes, instala la edición local y crea avances `v4` limpios para los tres perfiles;
-      la evidencia indica detener autoría y reiniciar `dev` antes de revisarlos.
-- [ ] Errores de sesión, checkout, revisión, red o bloqueo se muestran junto a **Aplicar** y como
-      toast; ninguna respuesta positiva o negativa deja el control con apariencia de no-op.
-- [ ] Un fallo de check/build restaura fuente y build; un fallo entre helper y navegador deja
-      journal/respaldo recuperable y bloquea otra aplicación hasta finalizar o revertir.
-- [ ] El helper real rechaza otro puerto que no sea `127.0.0.1:4173`, y una segunda instancia —aun
-      durante `check`— falla sin recuperar, borrar ni reescribir el journal de la primera.
-- [ ] `npm run dev` también rechaza `PORT`, argumentos y fallback; si 4173 está ocupado termina
-      sin abrir otro origen.
-- [ ] Dev y helper rechazan `Host`/absolute-form ajenos; solo sirven assets del producto y nunca
-      `ORBIT_UPDATES.md`, `package.json`, `docs/`, `scripts/`, `tests/` ni `.git/`; la whitelist se
-      revalida después de resolver enlaces simbólicos.
-- [ ] Dev y helper rechazan autoridades ambiguas con barras invertidas antes de exponer tokens.
-- [ ] Editor Docente revela **Detener servidor** solo tras una sesión local válida; la primera
-      activación confirma y la segunda responde antes de liberar 4173. Estudiante, Debug y un
-      hosting estático no muestran el control.
-- [ ] Origin/token/JSON inválidos no apagan el servicio; autoría ocupada o con journal pendiente
-      responde 409, mientras un apagado válido e inactivo libera el lock y permite reiniciar.
-- [ ] Dos apagados concurrentes producen un único 202; abortar un cuerpo POST parcial no apaga ni
-      derriba el servidor y este sigue aceptando una sesión de control posterior.
-- [ ] En autoría, y también en `dev` cuando hay un journal pendiente, `/`, `index.html`,
-      `bootstrap.js` y `main.js` responden en modo mantenimiento incluso con escapes o mayúsculas;
-      `editor.html` continúa accesible.
-- [ ] Un crash con journal local `prepared` o `committed` seguido de abrir Estudiante recupera o
-      bloquea antes de crear `ProgressionModel`; una segunda pestaña Editor no revierte la
-      transacción activa.
-- [ ] Un journal o respaldo local con ID, revisión, metadatos, duplicados o claves fuera del
-      conjunto exacto edición+progresos falla cerrado y conserva intactos los datos ajenos.
-- [ ] Un journal pendiente solo finaliza si la edición local coincide íntegramente con la fuente
-      objetivo y todas las claves de progreso actuales y legadas permanecen ausentes; cualquier
-      reaparición o envelope divergente conserva la evidencia para recuperación.
-- [ ] El helper no crea commits, no prepara el índice, no hace push y no se copia a `dist`.
+- [ ] En `dev`, ORBIT y Editor están disponibles; Resumen valida y muestra diff/impacto, pero explica
+      por qué confirmación y Aplicar están bloqueados. En autoría, todas las entradas ORBIT responden
+      `503 maintenance` y Editor permanece accesible para aplicar o recuperar.
+- [ ] Una pestaña ORBIT anterior detecta mantenimiento, detiene subsistemas, libera su bloqueo y
+      recarga; un shell cacheado comprueba el modo antes de crear progreso.
+- [ ] Volver a comprobar servicio prueba el candidato en una copia temporal y muestra diagnóstico.
+      Edición, desconexión o cambio de sesión invalidan evidencia; sondeos automáticos no lanzan suites.
+- [ ] Diff e impacto cubren contenido, nombres, ciclo de vida, mapa, red y apariencia, más los tres
+      perfiles. La confirmación queda ligada a revisión/digest y un cambio invalida el plan.
+- [ ] Otra pestaña con bloqueo compartido impide aplicar antes del reset. La exclusión por checkout
+      y el origen fijo rechazan una segunda instancia sin alterar fuente, journal o servicio ajeno.
+- [ ] Aplicar admite cambios locales sin consultar/mutar Git, conserva las otras rutas y respalda
+      la fuente. Reset elimina solo el progreso anunciado y conserva documento, preferencias y datos ajenos.
+- [ ] Fuente, `dist` y `build-info.json` coinciden tras aplicar; después de detener autoría y reiniciar
+      `dev`, los tres perfiles muestran la nueva revisión y el reset esperado.
+- [ ] Fallos de check/build restauran fuente/build; interrupciones dejan recuperación verificable y
+      bloquean otra aplicación. Journals inválidos o de otra transacción fallan cerrado sin borrar datos.
+- [ ] Finalizar exige edición íntegra y ausencia de los progresos que debían reiniciarse; divergencias
+      conservan evidencia. Arranque y segunda pestaña no revierten una transacción activa.
+- [ ] La automatización de servicios cubre origen/token/JSON, límites de cuerpo, rutas fijas, whitelist
+      de assets, symlinks, autoridades ambiguas, abortos de petición y rechazo de rutas privadas.
+- [ ] Detener servidor exige sesión válida y doble activación; no aparece en Estudiante/Debug/hosting
+      estático, no mata PIDs y se rechaza con operaciones/journals pendientes. El cierre libera sus recursos.
+- [ ] Registrar qué pestañas, servicios y recursos propios se cerraron y qué dejó activo el desarrollador.
 
-## Autoría académica y paneles — candidata 0.8.0
+Procedimiento operativo y recuperación: [EDITOR_GUIDE.md](EDITOR_GUIDE.md) y
+[DEVELOPMENT.md](DEVELOPMENT.md). Estas comprobaciones no autorizan a un agente a operar el perfil
+real, borrar un journal o sustituir una edición validada por el humano.
 
-Estas comprobaciones humanas siguen pendientes hasta registrar el resultado en UPD-021. El
-servicio lo inicia el desarrollador en el terminal visible de VS Code y la revisión usa Edge
-externo; el agente no modifica el checkout entre Validar y el resultado de Aplicar.
+## Audio y distribución
 
-- [ ] En Docente, Spider → Modificar → Editar contenido abre Taller Vectorial; su etapa 5
-      compila la notación de campo y gradiente y el preview conserva los ejercicios originales.
-- [ ] Editar un párrafo actualiza el preview y se autoguarda sin abandonar el campo; Deshacer y
-      Rehacer recuperan las fuentes, y renombrar el nodo conserva el cuerpo.
-- [ ] Una fuente incompleta señala línea/columna, conserva el texto tras recargar y mantiene la
-      última fuente válida fuera de ese borrador; exportar/importar recupera el texto.
-- [ ] Las plantillas cubren texto, ecuaciones, figuras, tipos de pregunta y etapas; los NPC
-      conservan cierres no evaluativos. Figuras inéditas y contenido ejecutable se rechazan.
-- [ ] La ventana multietapa de Coulomb funciona en preview, incluidas cargas y secuencia; resolver
-      actividades en esa vista no cambia progreso ni concede recompensas.
-- [ ] Fuente y JSON editorial exportados conservan contenido al reimportar. Resumen → Validar
-      identifica los nodos cuyo cuerpo cambió y ofrece la aplicación recuperable habitual.
-- [ ] **Volver a comprobar servicio** en mantenimiento comprueba el borrador en una copia,
-      muestra progreso y un diagnóstico de prueba si falla, antes de reemplazar fuente o resetear.
-      Si pasa, habilita la confirmación; editar, desconectar o reiniciar el helper invalida esa
-      evidencia. Los sondeos de foco no vuelven a ejecutar la suite.
-- [ ] Tras Aplicar y reiniciar dev según la guía, el contenido modificado coincide en ORBIT,
-      fuente, dist y build-info; se comprueban los tres perfiles y el reset humano previsto.
-- [ ] En ORBIT y Editor el borde izquierdo permite ampliar, reducir y restaurar ventanas; el
-      ancho persiste por producto y no tapa los docks ni los paneles vecinos.
-- [ ] Tab enfoca el borde, las flechas ajustan el ancho y Escape cancela un arrastre sin cerrar
-      la ventana. En compacto el foco permanece en controles visibles y no escapa del panel.
-- [ ] Al terminar se detiene el servicio desde el terminal visible o su control verificado y se
-      registra cualquier recurso que el desarrollador decida dejar activo.
-
-## Audio
-
-- [ ] No se reproduce nada antes del primer gesto del usuario.
-- [ ] **Ajustes → Sonido** abre o cierra el mezclador; navegar hasta él no altera el volumen por sí solo.
-- [ ] Los sliders **Ambiente** e **Interfaz y efectos** se ajustan y persisten de forma independiente.
-- [ ] Llevar un slider a `0 %` silencia solo su categoría; el otro canal continúa respetando su propio valor.
-- [ ] El ambiente se pausa al ocultar la pestaña y vuelve solo si su volumen sigue por encima de cero.
-- [ ] Cruzar un hexágono reproduce transición sin sustituir el cambio visual de zona.
-- [ ] Interactuar con una lección, misión u otro objeto reproduce el beep y conserva su señal visual.
-- [ ] Activar un botón ordinario de la interfaz reproduce `ui_select` una sola vez.
-- [ ] Completar un lugar que abre una o varias zonas reproduce `zone_unlocked` una sola vez; una finalización sin zona nueva no lo solicita.
-- [ ] Una interacción sin cue específico solicita solo la confirmación predeterminada.
-- [ ] Una acción con cue específico lo solicita en lugar del predeterminado; ambos nunca se superponen.
-- [ ] Teletransportarse por `Ctrl` + clic o `Ctrl` + flecha reproduce `teleport` una vez y no
-      superpone `hexagon_transition`; moverse con WASD conserva únicamente la transición ordinaria.
-- [ ] El autocompletado Docente reproduce una sola señal de finalización y no superpone
-      `mission_start`.
-- [ ] Los seis botones de prueba del debugger reproducen, respectivamente, ambiente, transición de hexágono, confirmación de interacción, clic de interfaz, zona desbloqueada y teletransporte.
-- [ ] El manifiesto contiene seis `.ogg` versionados, cada uno con sidecar, atribución y un uso verificable.
-- [ ] Tres recursos de Freesound conservan licencia CC0 1.0; `teleport` declara CC BY 4.0 y la
-      cadena Sampling+ 1.0 de la obra antecedente; `ui-select-default.ogg` y
-      `zone-unlocked-airlock.ogg` se identifican como contribuciones de ORBIT aportadas por
-      JoaquinDiazM mediante ChatGPT y publicadas bajo MIT.
-
-## Contenido 0.3.2
-
-- [ ] El Observatorio de Coulomb presenta exactamente cinco etapas.
-- [ ] Su segunda etapa muestra exactamente tres cargas y permite mover cada una con puntero y teclado.
-- [ ] La cuarta etapa exige completar siete intervenciones guiadas antes de continuar.
-- [ ] La Estación de Superconductividad muestra exactamente dos lugares: Heike Kamerlingh Onnes y el Laboratorio de Transición Superconductora.
-- [ ] Onnes conserva `shielding-chamber`, usa una confirmación no evaluativa sin alternativas ni respuesta esperada y desbloquea fórmulas en el **Formulario**.
-- [ ] El Laboratorio `superconductivity-transition-lab` contiene la misión evaluable y concede el concepto interno `electromagnetic-compatibility`.
-- [ ] La zona y el concepto conservan `electromagnetic-compatibility`; un perfil anterior con Onnes completado sigue desbloqueando sus fórmulas.
-
-## Publicación
-
-- [ ] `dist/` contiene `index.html`, `editor.html`, `404.html`, `src/`, `public/` y `vendor/katex/`.
-- [ ] `dist/index.html` y `dist/404.html` no contienen rutas a `node_modules/`.
-- [ ] `dist/editor.html` y sus módulos cargan bajo la misma subruta sin referencias a recursos ausentes.
-- [ ] `public/data/courses/electromagnetism-applied.edition.json`, su copia en `dist/` y
-      `dist/build-info.json` declaran la misma revisión y digest.
-- [ ] Todas las rutas son relativas.
-- [ ] El job de validación remota termina correctamente; el job de Pages se omite mientras `ENABLE_PAGES` no sea `true`.
-- [ ] La página funciona bajo una subruta de repositorio.
-- [ ] README, capturas versionadas enumeradas en `docs/screenshots/README.md` y versión
-      corresponden al comportamiento publicado.
-- [ ] `CHANGELOG.md` registra los cambios visibles.
-- [ ] El proceso distingue exportación, aplicación local y despliegue: ninguna autentica, crea
-      commits ni publica automáticamente.
+- [ ] No hay reproducción antes del primer gesto. Ambiente se pausa al ocultar la pestaña; los
+      volúmenes Ambiente/Efectos persisten y cero silencia solo su categoría.
+- [ ] Cada acción solicita un único cue pertinente: transición, interacción, clic, zona nueva o
+      teletransporte. Un cue específico sustituye al predeterminado y no duplica señales de finalización.
+- [ ] Los seis recursos se pueden escuchar desde Debug, tienen archivo, sidecar, manifiesto,
+      atribución y punto de uso verificable. El audio nunca es la única señal de estado.
+- [ ] Se conservan las licencias individuales y la cadena de atribución de
+      [ATTRIBUTION.md](../public/assets/audio/ATTRIBUTION.md).
+- [ ] `dist/` incluye ambas entradas, 404, módulos, recursos, edición y KaTeX local; no contiene
+      referencias a `node_modules` ni el helper. Rutas relativas funcionan bajo subruta.
+- [ ] El workflow supera check; Pages solo publica con `ENABLE_PAGES=true`. README y capturas
+      identifican correctamente la versión representada, sin presentar evidencia histórica como actual.
+- [ ] La cohorte sigue el protocolo de aprobación/publicación de [ORBIT_UPDATES.md](../ORBIT_UPDATES.md).
+      Exportar, aplicar localmente y desplegar conservan responsabilidades distintas.

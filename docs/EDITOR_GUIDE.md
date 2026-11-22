@@ -17,10 +17,9 @@ de mantenimiento pertenecen a la infraestructura que lo aloja.
 ## Abrir el Editor
 
 Las instrucciones de inicio y aplicación canónicos de esta guía están destinadas al
-desarrollador. Los agentes siguen el [procedimiento de autoría aislada](CONTENT_SOURCE_GUIDE.md#procedimiento-obligatorio-para-agentes):
-copia temporal del proyecto, navegador con perfil y almacenamiento propios de aislamiento
-comprobado y servicios identificados y acotados, que se cierran al terminar. No usan ni limpian perfiles, cachés o
-progreso reales, ni dejan procesos para una revisión posterior.
+desarrollador. Los agentes siguen el [procedimiento de autoría aislada](CONTENT_SOURCE_GUIDE.md#procedimiento-obligatorio-para-agentes)
+y preservan el perfil, almacenamiento y procesos reales conforme a
+[AGENTS.md](../AGENTS.md#autoría-de-contenido-por-agentes).
 
 Con Node.js 24 LTS o posterior y las dependencias instaladas, inicia el servicio canónico desde
 un terminal visible de VS Code y abre Editor en Edge externo:
@@ -183,21 +182,12 @@ de `lesson`, `mission` y `npc`. **Editar contenido** abre la fuente académica c
 plantillas y preview. La [guía de fuente](CONTENT_SOURCE_GUIDE.md) explica la sintaxis, el
 borrador recuperable y la matemática delimitada. Renombrar conserva el cuerpo.
 
-Para los agentes, este recorrido por la UI real es obligatorio para los cambios autorizados al
-cuerpo académico: editar fuente, comprobar diagnósticos y recorrer el preview desde Spider.
-Registra nodo/ID, fuente o exportación, validación y resultado observado. No equivale a escribir
-datos o JSON por fuera, llamar al modelo/API ni ejecutar pruebas con DOM simulado o headless.
-Estas pruebas y sus fixtures siguen siendo válidos para comprobar el motor, sin sustituir la
-autoría ni acreditarse como revisión manual canónica.
-
-Si el Editor falla, reproduce la dificultad, corrige el motor solo dentro del alcance autorizado
-y vuelve a verificarla desde Spider. Una ampliación necesita su autorización en la cola. Si no
-hay UI disponible o no puedes demostrar aislamiento, declara pendiente la autoría y el preview;
-la automatización independiente
-puede continuar, pero no permite introducir contenido por un atajo en JSON o `src/data/`.
-Exporta el resultado con los controles del Editor para la posterior importación y revisión
-humanas, sin sustituir directamente el artefacto publicado ni pulsar **Aplicar** sobre el
-entorno real. Esta política no autoriza cambios de código o contenido fuera de la cohorte.
+Los agentes realizan la autoría y el preview en esa UI real; datos/JSON externos, modelos/API
+y pruebas headless no sustituyen el recorrido. El
+[procedimiento obligatorio](CONTENT_SOURCE_GUIDE.md#procedimiento-obligatorio-para-agentes)
+define cómo aislarlo, registrar limitaciones, volver a comprobar una corrección autorizada y
+exportar para revisión humana. Sin UI o aislamiento comprobado, autoría y preview quedan
+pendientes.
 
 **Crear** admite los mismos tres tipos. ORBIT asigna un ID monotónico `new-node-NNNN` que no
 depende del título y nunca vuelve a utilizarse. Una lección o misión nueva contiene una etapa y
@@ -233,8 +223,7 @@ Con ratón o puntero:
 
 1. Activa **Bee**.
 2. Haz clic para seleccionarla o arrástrala sobre otra zona del mismo nivel.
-3. Superado el umbral de arrastre, suéltala para intercambiar sus coordenadas.
-4. Suelta para intercambiar sus coordenadas axiales `(q,r)`.
+3. Superado el umbral de arrastre, suéltala para intercambiar sus coordenadas axiales `(q,r)`.
 
 Con teclado, selecciona una zona en la lista del nivel y activa **Intercambiar anterior** o
 **Intercambiar siguiente** mediante `Enter` o `Espacio`. El inspector permite editar por separado
@@ -443,7 +432,7 @@ Aplicar localmente no despliega el sitio.
 
 ## Alcance y limitaciones actuales
 
-Esta versión amplía la base del editor cartográfico y visual. Todavía no permite:
+El Editor permite autoría académica, cartográfica y visual local. Todavía no permite:
 
 - crear nuevas figuras interactivas o medios remotos desde la fuente académica;
 - crear o eliminar zonas, conceptos o recompensas;
@@ -454,7 +443,7 @@ Esta versión amplía la base del editor cartográfico y visual. Todavía no per
 - crear commits, preparar el índice, hacer push o publicar automáticamente;
 - cargar imágenes o assets Bowerbird arbitrarios: las opciones pertenecen al catálogo versionado.
 
-La autoría académica restringida de la cohorte 0.8.0 se define en el
+La autoría académica restringida se define en el
 [ADR 0011](decisions/0011-academic-source-and-content-authoring.md). La publicación remota y la
 arquitectura multicurso requieren contratos y revisiones posteriores. Consulta también [Arquitectura](ARCHITECTURE.md), [Diseño del mundo y la
 Red de aprendizaje](WORLD_AND_KNOWLEDGE_DESIGN.md), [Checklist de QA](QA_CHECKLIST.md), [ADR

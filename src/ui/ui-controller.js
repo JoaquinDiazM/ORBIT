@@ -59,6 +59,7 @@ export class UIController {
     audio,
     areas = progression?.areas,
     locations = progression?.locations,
+    onlineContext = null,
   }) {
     if (!Array.isArray(areas) || !Array.isArray(locations)) {
       throw new TypeError("UIController requiere la cartografía materializada del curso.");
@@ -67,6 +68,7 @@ export class UIController {
     this.audio = audio;
     this.areas = areas;
     this.locations = locations;
+    this.onlineContext = onlineContext;
     this.profileCapabilities = getProfileCapabilities(progression.profile);
     this.gameApi = null;
     this.openPanels = [];
@@ -147,6 +149,12 @@ export class UIController {
     this.elements.versionBadge.setAttribute("aria-label", versionLabel);
     this.elements.versionBadge.title = versionLabel;
     this.elements.profileSelect.value = progression.profile;
+    this.elements.profileSelect.hidden = Boolean(onlineContext);
+    this.elements.profileSelect.disabled = Boolean(onlineContext);
+    if (onlineContext) {
+      const route = document.querySelector(".orbit-route");
+      if (route) route.textContent = ` · ${onlineContext.course.title}`;
+    }
     for (const element of document.querySelectorAll("[data-debug-only]")) {
       element.hidden = !this.profileCapabilities.canUseDebugger;
     }
@@ -155,7 +163,8 @@ export class UIController {
       document.baseURI ?? globalThis.location?.href ?? "http://localhost/",
     );
     editorUrl.search = "";
-    editorUrl.searchParams.set("profile", progression.profile);
+    if (onlineContext) editorUrl.searchParams.set("course", onlineContext.course.id);
+    else editorUrl.searchParams.set("profile", progression.profile);
     this.elements.editorLink.href = editorUrl.href;
     if (this.profileCapabilities.editorAccess === "blocked") {
       this.elements.editorLink.title = "El perfil debug no puede iniciar ORBIT Editor.";
@@ -199,6 +208,7 @@ export class UIController {
 
   #bindStaticControls() {
     this.elements.profileSelect.addEventListener("change", () => {
+      if (this.onlineContext) return;
       const destination = new URL(globalThis.location?.href ?? document.baseURI);
       const profile = this.elements.profileSelect.value;
       destination.searchParams.set("profile", profile);
@@ -276,6 +286,7 @@ export class UIController {
     ];
     for (const [selector, assetKey, durationMs] of audioPreviews) {
       document.querySelector(selector).addEventListener("click", () => {
+        if (this.onlineContext) return;
         void this.#previewAudio(assetKey, durationMs);
       });
     }
@@ -312,6 +323,7 @@ export class UIController {
     });
     document.addEventListener("keydown", (event) => this.#trapFocusInCompactPanel(event));
 
+    if (this.onlineContext) return;
     const debugOptionMap = [
       [this.elements.debugNoclip, "noclip"],
       [this.elements.debugShowIds, "showIds"],

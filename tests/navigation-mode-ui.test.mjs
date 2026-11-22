@@ -72,7 +72,7 @@ function withController(run, options = {}) {
     visualPanel.append(control);
   }
   const context = createModel(options.neighbors, options.profile);
-  const controller = new UIController({ progression: context.progression, audio: null });
+  const controller = new UIController({ progression: context.progression, audio: null, onlineContext: options.onlineContext });
   const query = (selector) => document.querySelector(selector);
   const radio = (mode) => query(`input[name="navigation-mode"][value="${mode}"]`);
   const choose = (mode) => {
@@ -86,6 +86,25 @@ function withController(run, options = {}) {
     dom.restore();
   }
 }
+
+test("el runtime online conserva curso y rol sin selector local ni mutaciones Debug", () => {
+  const onlineContext = { course: { id: "course-online", title: "Curso online" } };
+  withController(({ query, progression }) => {
+    const profile = query("#profile-select");
+    assert.equal(profile.hidden, true);
+    assert.equal(profile.disabled, true);
+    profile.value = "debug";
+    profile.dispatch("change");
+    assert.equal(progression.profile, "student");
+    const editor = new URL(query("#open-orbit-editor").href);
+    assert.equal(editor.searchParams.get("course"), "course-online");
+    assert.equal(editor.searchParams.has("profile"), false);
+    query("#debug-complete-all").dispatch("click");
+    query("#debug-unlock-areas").dispatch("click");
+    assert.deepEqual(progression.getSnapshot().state.completedLocations, []);
+    assert.deepEqual(progression.getSnapshot().state.debugUnlockedAreas, []);
+  }, { onlineContext });
+});
 
 test("Visual usa controles nativos separados para Navegación y Red en los tres perfiles", () => {
   assert.match(markup, /<legend>Navegación<\/legend>/);

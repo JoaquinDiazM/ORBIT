@@ -2,7 +2,10 @@
 
 Esta lista orienta la etapa de diseño. No sustituye una bibliografía académica completa ni autoriza la redistribución de material externo.
 
-La fuente canónica de metadatos es [`docs/references/references.bib`](references/references.bib). Cada entrada curricular debe citar una clave y un localizador concreto.
+La fuente canónica de metadatos es [`references.bib`](references/references.bib). Cuando una
+afirmación necesita trazabilidad, cita su clave y un localizador concreto. No añadas citas a
+operaciones elementales ni repitas el reconocimiento docente global; el criterio completo está
+en [Autoría de contenido](CONTENT_AUTHORING.md#fuentes-y-derechos).
 
 ## Cursos y textos abiertos
 

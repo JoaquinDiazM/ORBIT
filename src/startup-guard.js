@@ -14,8 +14,12 @@
     window.clearTimeout(timeoutId);
     eyebrow.textContent = "No se pudo iniciar ORBIT";
     title.textContent = "El mundo no terminó de cargar.";
-    detail.textContent = `${reason} Ejecuta npm install, reinicia npm run dev y abre la URL exacta indicada por la terminal.`;
+    const online = document.querySelector('meta[name="orbit-mode"]')?.content === "online";
+    detail.textContent = online
+      ? `${reason} Comprueba tu conexión y vuelve a abrir el enlace del curso. Si continúa, avisa a tu docente.`
+      : `${reason} Ejecuta npm install, reinicia npm run dev y abre la URL exacta indicada por la terminal.`;
     detail.hidden = false;
+    loadingScreen.hidden = false;
     loadingScreen.classList.add("has-error");
   }
 
@@ -42,6 +46,9 @@
   }, 8_000);
 
   window.OrbitStartup = Object.freeze({
+    waitForInput() {
+      if (!finished) window.clearTimeout(timeoutId);
+    },
     ready() {
       if (finished) return;
       finished = true;
