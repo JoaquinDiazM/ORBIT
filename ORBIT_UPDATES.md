@@ -266,12 +266,13 @@ Sin propuestas pendientes de clasificar.
 - Cierre confirmado por JoaquinDiazM: 2026-11-22.
 
 JoaquinDiazM autorizó los dos cambios visuales y cerró la cohorte el 2026-11-22.
+JoaquinDiazM aprobó ambos resultados en el chat el 2026-11-22.
 
 ## Actualizaciones activas
 
 ### UPD-034 — Animar los transportes y renombrar el Auto
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `feature`
 - Versión objetivo: `1.1.0`
 
@@ -309,14 +310,15 @@ de los efectos y sugiere una estela tipo humo y ruedas que giran.
   Fuente y módulos de `dist` idénticos. Siete respuestas HTTP 200 con `Cache-Control: no-store`
   en el origen canónico. PID 30268 terminado, 4173 libre, sin copia temporal, lock,
   journal ni tombstone del agente.
-- Revisión manual humana: pendiente. Ejecutar `npm run dev` en Bash UCRT64 de la laptop y
+- Revisión manual humana: aprobada por JoaquinDiazM en el chat el 2026-11-22. Guion entregado:
+  ejecutar `npm run dev` en Bash UCRT64 de la laptop y
   abrir `http://127.0.0.1:4173/?profile=debug` en Edge InPrivate. Tras revisar la Red, ejecutar
   `OrbitDebug.completeAll()` en la consola de ese perfil. Volver al mapa, alternar con T y
   comprobar el rótulo «Auto», movimiento, reposo y disipación de los tres transportes.
 
 ### UPD-035 — Curvar y animar las conexiones de la Red de aprendizaje
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `feature`
 - Versión objetivo: `1.1.0`
 
@@ -346,7 +348,8 @@ sucesivos que viajen en un sentido por cada trayectoria.
   hacia el nodo dependiente, que el trazo estático respeta el estado y que las 31 conexiones de
   la edición publicada tienen geometría finita.
 - Preflight del entorno: mismo build y sondeo del origen canónico que UPD-034.
-- Revisión manual humana: pendiente. En el perfil Debug aislado, elegir Visual → Red de
+- Revisión manual humana: aprobada por JoaquinDiazM en el chat el 2026-11-22. Guion entregado:
+  en el perfil Debug aislado, elegir Visual → Red de
   aprendizaje → Total. Ejecutar `OrbitDebug.completeLocation("vector-workshop")` y comprobar
   la dirección, las conexiones continuas y discontinuas y «NUEVO». Cambiar entre Global y
   Directa. Con movimiento reducido, comprobar que los arcos permanecen y los pulsos, las
