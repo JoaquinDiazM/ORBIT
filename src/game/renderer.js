@@ -85,6 +85,14 @@ function polygonPath(context, points) {
   context.closePath();
 }
 
+function drawMapLabel(context, text, x, y, lineScale) {
+  context.strokeStyle = "rgba(6, 15, 23, 0.93)";
+  context.lineWidth = 3 * lineScale;
+  context.lineJoin = "round";
+  context.strokeText(text, x, y);
+  context.fillText(text, x, y);
+}
+
 function drawRoundedRect(context, x, y, width, height, radius) {
   const safeRadius = Math.min(radius, width / 2, height / 2);
   context.beginPath();
@@ -278,7 +286,7 @@ export class CanvasRenderer {
     context.scale(camera.zoom, camera.zoom);
     context.translate(-camera.x, -camera.y);
 
-    this.#drawAreas(snapshot, camera.zoom, animationTime, debugState, reducedMotion, overview);
+    const areaLabels = this.#drawAreas(snapshot, camera.zoom, animationTime, reducedMotion);
     this.#drawTreeTwoGuides(
       snapshot,
       camera,
@@ -290,6 +298,7 @@ export class CanvasRenderer {
     );
     this.#drawAreaEdges(snapshot, camera.zoom, animationTime);
     const lineScale = 1 / camera.zoom;
+    this.#drawAreaLabels(areaLabels, lineScale, debugState, overview);
     this.#transportVisuals.update({
       player,
       transportId: snapshot.activeTransport.id,
@@ -354,9 +363,10 @@ export class CanvasRenderer {
     context.restore();
   }
 
-  #drawAreas(snapshot, zoom, timeSeconds, debugState, reducedMotion, overview) {
+  #drawAreas(snapshot, zoom, timeSeconds, reducedMotion) {
     const context = this.context;
     const lineScale = 1 / zoom;
+    const labels = [];
 
     for (const area of this.areas) {
       const center = axialToPixel(area.q, area.r, WORLD_CONFIG.hexSize);
@@ -405,24 +415,34 @@ export class CanvasRenderer {
         context.restore();
       }
 
+      labels.push({ area, center, unlocked, accent: appearance.accent });
+    }
+    return labels;
+  }
+
+  #drawAreaLabels(labels, lineScale, debugState, overview) {
+    const context = this.context;
+    for (const { area, center, unlocked, accent } of labels) {
       context.save();
       context.textAlign = "center";
       context.textBaseline = "middle";
       context.fillStyle = unlocked ? "rgba(238, 250, 255, 0.82)" : "rgba(167, 187, 201, 0.5)";
       context.font = `700 ${17 * lineScale}px system-ui, sans-serif`;
-      context.fillText(area.shortTitle, center.x, center.y - WORLD_CONFIG.hexSize * 0.71);
+      drawMapLabel(context, area.shortTitle, center.x, center.y - WORLD_CONFIG.hexSize * 0.71, lineScale);
       if (overview) {
         context.restore();
         continue;
       }
       context.font = `600 ${9.5 * lineScale}px system-ui, sans-serif`;
       context.fillStyle = unlocked
-        ? withAlpha(appearance.accent, 0.78)
+        ? withAlpha(accent, 0.78)
         : "rgba(150, 169, 184, 0.43)";
-      context.fillText(
+      drawMapLabel(
+        context,
         unlocked ? "ZONA ABIERTA" : "ARISTAS BLOQUEADAS",
         center.x,
         center.y - WORLD_CONFIG.hexSize * 0.61,
+        lineScale,
       );
 
       if (debugState.showCoords) {
@@ -618,7 +638,7 @@ export class CanvasRenderer {
       context.fillStyle = accessible
         ? "rgba(244, 251, 255, 0.9)"
         : "rgba(159, 177, 190, 0.56)";
-      context.fillText(location.shortTitle, position.x, position.y + 27 * lineScale);
+      drawMapLabel(context, location.shortTitle, position.x, position.y + 27 * lineScale, lineScale);
 
       if (debugState.showIds) {
         context.font = `600 ${8.2 * lineScale}px ui-monospace, monospace`;

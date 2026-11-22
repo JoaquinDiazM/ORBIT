@@ -309,6 +309,33 @@ test("publicar conserva avance compatible y requiere decisión para invalidació
   assert.equal(newOffline.status, 200, JSON.stringify(newOffline.result));
 });
 
+test("la cuenta estudiante recibe la frase publicada por su docente al reabrir el mismo curso", async (t) => {
+  const runtime = await (await fixture(t)).start();
+  const { teacher, student, course } = await provision(runtime);
+  const route = `/courses/${course.id}`;
+  const maintenance = (enabled) => teacher.request(`${route}/maintenance`, { method: "PUT", body: { enabled } });
+  assert.equal((await maintenance(false)).status, 200);
+  const before = (await student.request(`${route}/edition`)).result.edition;
+  const document = (await materializeCourseEdition(before)).editorDocument;
+  const phrase = "Explora cómo se representan los vectores";
+  document.locations.find(({ id }) => id === "vector-workshop").mapInvitation = phrase;
+  const update = { baseRevision: before.revision, document };
+
+  assert.equal((await maintenance(true)).status, 200);
+  assert.equal((await student.request(`${route}/edition`)).status, 423);
+  const { result: plan } = await teacher.request(`${route}/validate`, { method: "POST", body: update });
+  assert.equal(plan.requiresDecision, false);
+  const published = await teacher.request(`${route}/publish`, { method: "POST", body: {
+    ...update, planDigest: plan.planDigest, decision: "preserve",
+  } });
+  assert.equal(published.status, 200, JSON.stringify(published.result));
+  assert.equal((await maintenance(false)).status, 200);
+  const after = (await student.request(`${route}/edition`)).result.edition;
+  assert.notEqual(after.revision, before.revision);
+  const { locations } = await materializeCourseEdition(after);
+  assert.equal(locations.find(({ id }) => id === "vector-workshop").mapInvitation, phrase);
+});
+
 test("la cuenta administradora publica solo la frase de mapa durante mantenimiento", async (t) => {
   const setup = await fixture(t);
   const runtime = await setup.start();

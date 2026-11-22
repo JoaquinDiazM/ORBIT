@@ -49,26 +49,11 @@ export function drawLearningEdge(context, curve, style, { timeSeconds, lineScale
   context.shadowColor = style.shadowColor;
   context.shadowBlur = style.shadowBlur;
   context.strokeStyle = style.color;
-  context.fillStyle = style.color;
   context.lineWidth = style.lineWidth;
   context.beginPath();
   context.moveTo(start.x, start.y);
   context.quadraticCurveTo(control.x, control.y, end.x, end.y);
   context.stroke();
-
-  // The arrow points along the tangent at the target, independently of the pulses.
-  const tangentX = end.x - control.x;
-  const tangentY = end.y - control.y;
-  const headLength = Math.min(9 * lineScale, length * 0.28);
-  const scale = headLength / Math.hypot(tangentX, tangentY);
-  const headX = tangentX * scale;
-  const headY = tangentY * scale;
-  context.beginPath();
-  context.moveTo(end.x, end.y);
-  context.lineTo(end.x - headX + headY * 0.48, end.y - headY - headX * 0.48);
-  context.lineTo(end.x - headX - headY * 0.48, end.y - headY + headX * 0.48);
-  context.closePath();
-  context.fill();
 
   if (timeSeconds !== null) {
     const muted = style.lineDash.length > 0;

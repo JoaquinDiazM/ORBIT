@@ -249,7 +249,7 @@ test("cambiar de transporte, saltar o reducir movimiento retira la estela anteri
   assert.equal(visuals.bob, 0);
 });
 
-test("la Red usa un arco dirigido, conserva el trazo discontinuo y anima pulsos sobre el arco", () => {
+test("la Red usa un arco sin punta, conserva el trazo discontinuo y anima pulsos hacia el destino", () => {
   const curve = createLearningEdgeCurve({ x: 0, y: 0 }, { x: 180, y: 0 });
   assert.deepEqual(curve.start, { x: 25, y: 0 });
   assert.deepEqual(curve.end, { x: 151, y: 0 });
@@ -266,7 +266,7 @@ test("la Red usa un arco dirigido, conserva el trazo discontinuo y anima pulsos 
   const staticCalls = record(null);
   assert.ok(staticCalls.some(([name, dash]) => name === "setLineDash" && dash === style.lineDash));
   assert.ok(staticCalls.some(([name]) => name === "quadraticCurveTo"));
-  assert.ok(staticCalls.some(([name, x, y]) => name === "moveTo" && x === curve.end.x && y === curve.end.y));
+  assert.ok(!staticCalls.some(([name]) => ["lineTo", "closePath", "fill"].includes(name)));
   const pulses = (calls) => calls.filter(([name]) => name === "arc");
   assert.deepEqual(pulses(staticCalls), []);
   const first = pulses(record(0.22));
@@ -299,6 +299,13 @@ test("el zoom reúne nombres de zona, rótulos y detalle con progreso e invitaci
   };
   assert.deepEqual(render(0.4, 1), ["Base", "L"]);
   assert.deepEqual(render(0.88, 2), ["Base", "ZONA ABIERTA", "L", "Banco"]);
+  const boundary = calls.findLastIndex(([name, style]) => name === "set:strokeStyle" && style.startsWith("rgba(255, 161, 87,"));
+  assert.ok(boundary >= 0);
+  for (const label of ["Base", "ZONA ABIERTA", "Banco"]) {
+    const outline = calls.findIndex(([name, text]) => name === "strokeText" && text === label);
+    const fill = calls.findIndex(([name, text]) => name === "fillText" && text === label);
+    assert.ok(fill > outline && outline > boundary, `${label} debe leerse sobre el borde`);
+  }
   assert.ok(render(1.3, 3).includes("E"));
   assert.ok(calls.some(([name, dash]) => name === "setLineDash" && dash.length === 2 && dash[0] === dash[1] / 2));
   assert.ok(render(1.3, 4).includes(lesson.mapInvitation));

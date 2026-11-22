@@ -260,9 +260,143 @@ Sin propuestas pendientes de clasificar.
 
 ## Cohorte inmediata
 
-Sin cohorte inmediata.
+- Versión: `1.1.1`
+- Estado de la cohorte: `cerrada`
+- IDs: `UPD-036`, `UPD-037`
+- Cierre confirmado por JoaquinDiazM: 2026-11-22.
+
+JoaquinDiazM asignó a 1.1.1 el zoom, el avance por etapas y las frases de mapamundi.
+Autorizó UPD-036 con guardado parcial en el dispositivo y dejó abierta la cohorte el 2026-11-22.
+Autorizó UPD-037 y cerró la cohorte con ambos puntos el 2026-11-22.
 
 ## Actualizaciones activas
+
+### UPD-036 — Zoom del mapamundi, avance por etapas y frases de los nodos
+
+- Estado: `en-revision`
+- Tipo: `feature`
+- Versión objetivo: `1.1.1`
+
+#### Solicitud original
+
+Al alejar el mapa deben leerse únicamente los nombres de zona, como Fourier, Base y Líneas.
+El zoom medio conserva la presentación actual. Al acercar, el perímetro del rombo de una
+lección se llena de dorado según sus etapas completadas y aparece una frase personalizada
+que se escribe de forma animada. Las misiones pasan a una sola actividad. Docentes y
+administradores pueden configurar la frase desde ORBIT Editor. El ejemplo para Banco de
+circuitos es «Análisis básico de circuitos RLC».
+
+#### Especificación elaborada por el agente
+
+- Zoom lejano: dejar solo los nombres de zona como texto del mapa. Ocultar los rótulos
+  de apertura/cierre y los de los nodos. Conservar los símbolos y la navegación.
+- Zoom medio: reproducir la presentación de 1.1.0. Zoom cercano: mantenerla y añadir
+  las frases de invitación y el avance de las lecciones. Comprobar ambos modos de navegación
+  y transiciones de zoom estables.
+- Guardar los identificadores de etapas completadas, incluidas las lecturas confirmadas
+  con Continuar. Vincularlos al curso, nodo y revisión con el alcance de la cuenta o
+  perfil. Al salir de la lección, recargar o reabrir en el mismo dispositivo, permitir
+  continuar en la primera etapa pendiente. El borde dorado recorre una fracción del
+  rombo igual al avance. Una lección ya completada muestra el borde lleno.
+- Alcance confirmado: conservar el avance parcial en el dispositivo. El servidor
+  continúa sincronizando la finalización del nodo. El avance por etapas no concede
+  recompensas ni satisface prerrequisitos por sí solo. Preservar IDs y guardados existentes.
+- Mostrar una misión como actividad única, con una finalización y sin contador de
+  etapas. La plantilla publicada contiene tres misiones y cada una ya tiene una sola
+  actividad. Comprobar compatibilidad con documentos anteriores y sus evaluaciones.
+- Una frase breve y personalizada por nodo del mapa, configurada en ORBIT Editor y
+  asociada a la edición del curso. Al entrar en zoom cercano, escribirla una vez al
+  mostrarse. Con movimiento reducido, mostrarla completa de inmediato. Respetar
+  la visibilidad del nodo y la legibilidad cuando hay varios juntos.
+- Docentes de cursos asignados y administradores autenticados pueden editar la frase.
+  Verificar permisos en el servidor y acotar el nuevo permiso del administrador a ese
+  campo. Conservar el flujo editorial y de publicación de revisiones. El ejemplo
+  corresponde a `circuit-analysis-bench` y se prepara por la interfaz de Editor.
+- Dependencias: `ContentView` conserva el avance parcial en memoria. La persistencia debe
+  pasar por `ProgressionModel` y `ProgressStorage`. Los cambios de permisos/editor online
+  requieren complementar [ADR 0013](docs/decisions/0013-self-hosted-courses-and-offline-client.md).
+
+#### Implementación y revisión
+
+- Base revisada: `14b5a12f3d501a4517c966f0b21b6f7af6f8e52a`, cierre publicado de 1.1.0.
+- Rutas propias: renderer de ORBIT, `ProgressionModel`, `ContentView`, Editor y rutas online de
+  frases. Pruebas de integración de contenido, renderer, progreso, Editor y servidor.
+- Resultado: tres niveles de zoom, borde proporcional de lección, avance parcial guardado
+  por perfil/cuenta, curso y revisión en el dispositivo, e invitaciones de texto con escritura
+  animada. Las misiones usan una actividad sin navegación por etapas. Docentes editan frases
+  en Spider y la cuenta administradora publica solo ese campo durante mantenimiento.
+- Pruebas automáticas: `npm run check` con 701 aprobadas, dos omitidas y cero fallos.
+  Se verificaron persistencia, reanudación, proporción del borde, movimiento reducido,
+  compatibilidad del Editor y una publicación administrativa aislada con «Análisis básico
+  de circuitos RLC» que conservó finalizaciones. Rechazó cuentas sin permiso, cambios fuera
+  del campo y una revisión desfasada.
+- Preflight del entorno: build `0d70696cc838572453e076c463ce56b50754382cffa56941d991b18fadf1b0d7` generado en una copia retirada tras comparar
+  fuentes y módulos de `dist`. El proceso de desarrollo existente (PID 16780, iniciado
+  desde Bash) ocupa el origen canónico. Nueve recursos coincidieron byte a byte con el
+  checkout y devolvieron HTTP 200 y `Cache-Control: no-store`. Sin lock, journal, tombstone
+  ni proceso de ORBIT iniciado por el agente.
+- Revisión manual humana: pendiente. En Edge InPrivate, abrir ORBIT como Estudiante desde
+  el servidor visible de VS Code, recorrer los tres niveles de zoom, completar una etapa
+  de Taller Vectorial y recargar para verificar el borde y la reanudación. En Editor,
+  seleccionar un nodo en Spider → Modificar y guardar la frase. Verificar su aparición al
+  acercarse en un curso de prueba publicado. La frase de Banco de circuitos se usó en
+  automatización aislada y queda como ejemplo para introducir desde Editor durante la
+  revisión humana. El puerto canónico ocupado impidió una sesión de autoría aislada de agente.
+- Solicitud de revisión del 2026-11-22: JoaquinDiazM probará en Crab que un Docente pueda
+  publicar la frase en mantenimiento y reabrir el curso en la misma sesión del servidor.
+  Revisará la frase como Estudiante tras recargar en línea. La aprobación sigue pendiente.
+- Preparación del ensayo online: `~/.local/share/orbit-manual-1.1.1-revision-noM3G1` en Crab
+  contiene el paquete verificado de la candidata y una copia restaurada del curso, con sus
+  cuentas y cuatro registros de avance. El arranque humano se hace con `./prueba iniciar`.
+  La prueba automática adicional de la cohorte ejercitó mantenimiento, publicación
+  compatible por Docente, reapertura y descarga de la frase actualizada por Estudiante
+  en una misma instancia. La prueba humana del túnel y del navegador queda pendiente.
+
+### UPD-037 — Pulir los arcos y la superposición de etiquetas del mapamundi
+
+- Estado: `en-revision`
+- Tipo: `feature`
+- Versión objetivo: `1.1.1`
+
+#### Solicitud original
+
+Quitar la punta de flecha de las conexiones en ORBIT normal. Los pulsos muestran el
+sentido. Dibujar las etiquetas de zonas y nodos por encima de los bordes del mapamundi
+para que se lean completas.
+
+#### Especificación elaborada por el agente
+
+- Mantener los arcos, pulsos y estados de línea. Quitar la terminación de flecha.
+- Componer los rótulos de zona y nodo sobre los bordes en Global y Directa, respetando
+  la visibilidad de cada nivel de zoom de UPD-036.
+- El ajuste pertenece al mapa de ORBIT. La Red y sus prerrequisitos conservan sus reglas.
+- Caso de revisión: el borde punteado cruza el rótulo «Superconductividad» cerca de
+  «Carro eléctrico» en la captura entregada por JoaquinDiazM.
+
+#### Implementación y revisión
+
+- Base revisada: `14b5a12f3d501a4517c966f0b21b6f7af6f8e52a` (1.1.0 publicada), con
+  `6ca2b7d` (UPD-036) como base local inmediata.
+- Rutas propias: `src/game/renderer.js`, `src/game/learning-edge-visuals.js`,
+  `tests/runtime-course-integration.test.mjs` y `tests/online-server.test.mjs`.
+- Resultado: ORBIT dibuja los nombres y estados de zona después de las fronteras; los
+  textos del mapa tienen un contorno discreto. Los arcos conservan la forma y los pulsos
+  direccionales. El grafo académico, la apertura territorial y el zoom siguen sus reglas.
+- Pruebas automáticas: `npm run check` completado en copia aislada, con cero fallos y dos
+  casos omitidos. Se verificaron la superposición sobre el borde punteado, la dirección de
+  los pulsos, la ausencia de puntas y la publicación de la frase en un curso en marcha.
+- Preflight del entorno: puerto local 4173 asociado al proceso de desarrollo existente
+  (PID 38680). Los módulos de renderer, arcos y frases devolvieron HTTP 200 con
+  `Cache-Control: no-store` y coincidieron con las fuentes. Sin lock, journal ni tombstone
+  de autoría. Fuente, `dist` y `build-info.json` verificados al empaquetar el build
+  `8a6e598eb670629e9f61260ab95a77c7deeff110226e98be893209b0a2dac286`. En Crab se
+  verificaron los 505 archivos y cinco recursos HTTP en loopback con `no-store`.
+  Se cerró ese servidor de prueba y se retiraron los temporales de transferencia.
+- Revisión manual humana: pendiente. En el ensayo online compartido con UPD-036,
+  comprobar que el borde punteado queda debajo del título «Superconductividad» y que
+  las conexiones tienen pulsos sin punta de flecha. Revisar el zoom en Global y Directa.
+- Observaciones del usuario: la captura mostró el título de zona parcialmente cubierto,
+  aunque el rótulo «Carro eléctrico» ya aparecía encima.
 
 ### UPD-033 — Cliente instalable para Windows con actualizaciones desde la aplicación
 
