@@ -257,84 +257,9 @@ Sin propuestas pendientes de clasificar.
 
 ## Cohorte inmediata
 
-- Versión: `1.0.2`
-- Estado de la cohorte: `cerrada`
-- IDs: `UPD-031`, `UPD-032`
-- Cierre confirmado por JoaquinDiazM: 2026-11-22.
-
-JoaquinDiazM autorizó, cerró y aprobó 1.0.2 con los puntos de versión visible y capturas.
-La publicación de la cohorte está en curso.
+Sin cohorte inmediata.
 
 ## Actualizaciones activas
-
-### UPD-031 — Sincronizar la versión visible de ORBIT
-
-- Estado: `publicando`
-- Tipo: `bug`
-- Versión objetivo: `1.0.2`
-
-#### Solicitud original
-
-La interfaz muestra 0.9.0. Corregir la versión visible y automatizar su actualización para
-que coincida en futuras publicaciones.
-
-#### Especificación elaborada por el agente
-
-- Revisar el origen de la etiqueta y la versión real del paquete desplegado. Comprobar que
-  cada build muestra su propia versión en los modos estático y online, incluido el arranque
-  con una copia PWA. Añadir una comprobación automática que detecte divergencias.
-- Preservar las revisiones e IDs del curso. El número de la próxima versión se cambia al
-  preparar la publicación de la cohorte.
-
-#### Implementación y revisión
-
-- Base revisada: `f9c3e755caabd12a4115d5327ffcf1a616aa7258`, publicación 1.0.1. La
-  etiqueta del mapa de esa copia se veía como `v1.0.1`. No se inspeccionó la instalación de Crab.
-- Rutas propias: `scripts/set-release-version.mjs`, `scripts/build.mjs`,
-  `scripts/package-server.mjs`, `tests/release-version.test.mjs` y `docs/SERVER_GUIDE.md`.
-- Resultado: el comando de release sincroniza el paquete, el lockfile y `APP_CONFIG`. El
-  build declara su versión y el empaquetador rechaza un build desfasado. En una copia temporal
-  1.0.2, la configuración servida, `build-info.json`, la huella y el paquete verificado de 499
-  archivos coincidieron. El cambio de configuración también generó otro identificador de build
-  para la caché offline. La publicación vigente es 1.0.1.
-- Pruebas automáticas: `npm run check` pasó con 692 pruebas aprobadas y 2 omitidas. El
-  empaquetado temporal usó build `8feddcddfa499e5b940007c8b471b0a4acb42292909c2a29bd0d669b2a664fab`.
-- Preflight del entorno: el origen canónico de la copia temporal devolvió HTTP 200 y
-  `Cache-Control: no-store`. Fuente y `dist/src/config.js` compartían la misma huella. El
-  servicio propio se cerró en la misma intervención y la copia temporal se retiró.
-- Revisión manual humana: JoaquinDiazM aprobó el resultado en el chat el 2026-11-22.
-
-### UPD-032 — Actualizar las capturas del README
-
-- Estado: `publicando`
-- Tipo: `documentación`
-- Versión objetivo: `1.0.2`
-
-#### Solicitud original
-
-Actualizar el README con cinco capturas. Mostrar tres vistas de ORBIT y dos del Editor.
-
-#### Especificación elaborada por el agente
-
-- ORBIT: mapa sin panel, mapa con una ventana de nodo académico y gadget de campos vectoriales.
-- Editor: dos vistas representativas de las herramientas y su interfaz vigente.
-- Capturar 1.0.1, la última versión publicada, con datos de demostración y registrar el commit.
-
-#### Implementación y revisión
-
-- Base revisada: `f9c3e755caabd12a4115d5327ffcf1a616aa7258`, publicación 1.0.1.
-- Rutas propias: `README.md`, `docs/screenshots/` y `tests/brand-assets.test.mjs`.
-- Resultado: cinco imágenes de la interfaz real en 1280 × 720. Se recorrió el mapa como
-  Estudiante para abrir Taller Vectorial y adquirir el Explorador de campos 2D. Como Docente,
-  se abrieron Spider en Mover y Bee en Electrostática. Durante el arranque local del mapa se
-  observó `TypeError: Illegal invocation` en el monitor de mantenimiento de la base publicada.
-  La interfaz permitió completar el recorrido y ese monitor no forma parte de las rutas editadas.
-- Pruebas automáticas: comprobación de dimensiones, formato, peso y texto alternativo en
-  `tests/brand-assets.test.mjs`, incluida en `npm run check`.
-- Preflight del entorno: almacenamiento inicial vacío, sin service worker activo y servicio
-  de capturas en el origen canónico. Se cerraron las pestañas y el PID 16016. La copia se retiró.
-  Puerto 4173 libre, sin lock, journal ni tombstone de autoría.
-- Revisión manual humana: JoaquinDiazM aprobó las cinco capturas en el chat el 2026-11-22.
 
 ### UPD-033 — Cliente instalable para Windows con actualizaciones desde la aplicación
 
@@ -401,4 +326,4 @@ junto con cada ficha y sus intercambios, en
 [`docs/UPDATES_HISTORY.md`](docs/UPDATES_HISTORY.md). `CHANGELOG.md` mantiene solo el resumen
 orientado a quienes usan ORBIT; los descartes no reciben versión ni entrada de changelog.
 
-La cohorte ORBIT 1.0.1 está publicada y archivada.
+La cohorte ORBIT 1.0.2 está publicada y archivada.
