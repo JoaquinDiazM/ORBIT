@@ -32,6 +32,9 @@ Incluye siempre la casilla **Nuevos updates** y déjala abierta para recibir ide
 propuesta llega sin versión, regístrala con `auto` y pregunta en la checklist del siguiente
 ciclo a qué cohorte debe pertenecer.
 Mientras haya una cohorte abierta, incluye en la checklist la decisión de cerrarla.
+Cuando una revisión humana requiera iniciar un servicio, entrega en el chat los comandos
+para su shell y entorno. Distingue Bash UCRT64 en la laptop de la terminal Linux por SSH
+en Crab e indica el directorio, el enlace esperado y cómo apagar el servicio.
 
 ## Estados permitidos
 
@@ -257,9 +260,97 @@ Sin propuestas pendientes de clasificar.
 
 ## Cohorte inmediata
 
-Sin cohorte inmediata.
+- Versión: `1.1.0`
+- Estado de la cohorte: `cerrada`
+- IDs: `UPD-034`, `UPD-035`
+- Cierre confirmado por JoaquinDiazM: 2026-11-22.
+
+JoaquinDiazM autorizó los dos cambios visuales y cerró la cohorte el 2026-11-22.
 
 ## Actualizaciones activas
+
+### UPD-034 — Animar los transportes y renombrar el Auto
+
+- Estado: `en-revision`
+- Tipo: `feature`
+- Versión objetivo: `1.1.0`
+
+#### Solicitud original
+
+Cada transporte debe tener una estela y movimientos sencillos al avanzar o estar quieto.
+El vehículo llamado Carro eléctrico pasa a llamarse Auto. JoaquinDiazM delega el diseño
+de los efectos y sugiere una estela tipo humo y ruedas que giran.
+
+#### Especificación elaborada por el agente
+
+- A pie: animación corta de pasos, polvo tenue al andar y un movimiento leve de reposo.
+- Auto: ruedas que giran con el desplazamiento y una estela corta tipo polvo. Al detenerse,
+  las ruedas dejan de girar y la estela se disipa.
+- Deslizador de radio: estela luminosa al desplazarse y oscilación suave de reposo.
+- Mantener legibilidad con movimiento reducido. Acotar los efectos y comprobar que se
+  disipan al detenerse o cambiar de transporte.
+- Preservar IDs, velocidad, colisiones, desbloqueo y compatibilidad del progreso. Los
+  efectos usan el desplazamiento efectivo y son efímeros. «Auto» es el rótulo del
+  transporte seleccionable. Spider protege el título y el contenido del nodo del depósito.
+
+#### Implementación y revisión
+
+- Base revisada: `fbbc9d8151a17a30568fa30d73d2f76948d15384`, cierre publicado de 1.0.2.
+- Rutas propias: `src/data/knowledge.js`, `src/game/game-app.js`, `src/game/renderer.js`,
+  `src/game/transport-visuals.js` y pruebas de runtime y navegación.
+- Resultado: pasos y polvo a pie, ruedas y polvo del Auto, y estela luminosa del Deslizador
+  de radio. Cada transporte tiene movimiento de reposo. Las estelas se disipan al detenerse
+  y se retiran durante un salto o cambio de transporte. El HUD y el aviso de selección
+  usan «Auto» para el ID estable `electric-cart`.
+- Pruebas automáticas: `npm run check` con 695 pruebas aprobadas, cero fallos y dos omitidas.
+  Se cubrieron el cruce en Directa, la frontera cerrada, la disipación, el cambio de vehículo
+  y el movimiento reducido.
+- Preflight del entorno: build aislado `77173de36c102268fd8b75e006d5d8874269da41d1cdb85747e5420c82261401` con versión de revisión 1.0.2.
+  Fuente y módulos de `dist` idénticos. Siete respuestas HTTP 200 con `Cache-Control: no-store`
+  en el origen canónico. PID 30268 terminado, 4173 libre, sin copia temporal, lock,
+  journal ni tombstone del agente.
+- Revisión manual humana: pendiente. Ejecutar `npm run dev` en Bash UCRT64 de la laptop y
+  abrir `http://127.0.0.1:4173/?profile=debug` en Edge InPrivate. Tras revisar la Red, ejecutar
+  `OrbitDebug.completeAll()` en la consola de ese perfil. Volver al mapa, alternar con T y
+  comprobar el rótulo «Auto», movimiento, reposo y disipación de los tres transportes.
+
+### UPD-035 — Curvar y animar las conexiones de la Red de aprendizaje
+
+- Estado: `en-revision`
+- Tipo: `feature`
+- Versión objetivo: `1.1.0`
+
+#### Solicitud original
+
+Dibujar las conexiones del árbol de conocimiento como parábolas suaves y mostrar pulsos
+sucesivos que viajen en un sentido por cada trayectoria.
+
+#### Especificación elaborada por el agente
+
+- Dibujar arcos cuadráticos leves en el mapa de ORBIT y animar pulsos desde el
+  prerrequisito hacia el nodo que depende de él.
+- Conservar extremos, filtros, estados continuo y discontinuo, marca de desbloqueo y
+  legibilidad en Global y Directa. Con movimiento reducido, conservar el arco estático.
+- El cambio es visual. Conservar el grafo académico, su apertura territorial y los
+  movimientos permitidos. Limitar la animación a las conexiones visibles.
+
+#### Implementación y revisión
+
+- Base revisada: `fbbc9d8151a17a30568fa30d73d2f76948d15384`, cierre publicado de 1.0.2.
+- Rutas propias: `src/game/renderer.js`, `src/game/learning-edge-visuals.js` y pruebas
+  de runtime y navegación.
+- Resultado: arcos cuadráticos con flecha tangente y pulsos hacia el destino. Se conservan
+  el trazo continuo o discontinuo, los filtros y «NUEVO». La geometría se reutiliza hasta un
+  cambio de proyección y se omiten los trazos fuera de la vista.
+- Pruebas automáticas: `npm run check` aprobado. Se comprobó que los pulsos recorren el arco
+  hacia el nodo dependiente, que el trazo estático respeta el estado y que las 31 conexiones de
+  la edición publicada tienen geometría finita.
+- Preflight del entorno: mismo build y sondeo del origen canónico que UPD-034.
+- Revisión manual humana: pendiente. En el perfil Debug aislado, elegir Visual → Red de
+  aprendizaje → Total. Ejecutar `OrbitDebug.completeLocation("vector-workshop")` y comprobar
+  la dirección, las conexiones continuas y discontinuas y «NUEVO». Cambiar entre Global y
+  Directa. Con movimiento reducido, comprobar que los arcos permanecen y los pulsos, las
+  estelas y el balanceo se desactivan.
 
 ### UPD-033 — Cliente instalable para Windows con actualizaciones desde la aplicación
 
@@ -316,8 +407,34 @@ adicionales. El administrador puede inicializar su servidor con el procedimiento
 
 - Si se necesita otra capa de acceso durante el piloto, confirmar qué identidad institucional
   se usará. La primera propuesta usa el enlace HTTPS y las credenciales por curso de ORBIT.
-- ¿Una aplicación que se abre desde Windows puede utilizar WebView2 internamente? La respuesta
-  permite comparar Tauri con un cliente que incluya su propio motor.
+
+#### Evaluación de memoria y portabilidad
+
+- Proyección de planificación en Windows para el programa y los procesos de WebView2.
+  Aproximadamente 250–450 MiB con el mapa y un curso activo. Aproximadamente 350–650 MiB
+  con un nodo animado o gadget activo y presencia o texto en vivo. Son estimaciones para
+  una vista de curso, recursos bajo demanda y sin videollamadas. Una sesión con varias
+  vistas, vídeo o simulaciones grandes puede superar ese rango.
+- El render actual del mapa limita la escala de píxeles a 2. A 1920 × 1080, una
+  superficie RGBA ocupa 7,9 MiB a escala 1 y 31,6 MiB a escala 2, antes de duplicación
+  de buffers y otros recursos. Medir la memoria residente privada de todo el grupo en
+  una compilación de producción con mapa, gadget, cambios de curso y sesión prolongada.
+  [Modelo de procesos de WebView2](https://learn.microsoft.com/microsoft-edge/webview2/concepts/process-model).
+  [Mediciones reproducibles de aplicaciones mínimas](https://github.com/Elanis/web-to-desktop-framework-comparison#benchmarks).
+- Decisión confirmada por JoaquinDiazM el 2026-11-22: núcleo web común y Tauri 2.
+  Conservar el núcleo compartido para mapa, gadgets,
+  cursos y sincronización. Aislar en el empaquetador las funciones de instalación,
+  actualización y almacenamiento específicas de cada plataforma. Tauri 2 es la primera
+  opción para Windows, macOS, Linux, Android e iOS. Validar el motor web de cada sistema.
+  [Motores soportados](https://v2.tauri.app/reference/webview-versions/).
+- Si una integración móvil concreta justifica dos empaquetadores, usar Tauri para
+  escritorio y Capacitor para Android e iOS con el mismo núcleo. Probar primero controles
+  táctiles, guardado offline, reanudación y sincronización en dispositivos reales.
+  En móviles, los binarios se actualizan por el canal de distribución de cada sistema.
+  [Capacitor](https://capacitorjs.com/docs/getting-started/environment-setup).
+  [Reglas de revisión de Apple](https://developer.apple.com/app-store/review/guidelines/).
+- Alcance de 1.2.0: cliente Windows. Android, iOS, Linux y macOS corresponden a
+  entregas posteriores.
 
 ## Historial
 

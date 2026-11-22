@@ -166,7 +166,7 @@ export const REWARDS = Object.freeze({
     },
     {
       id: "electric-cart",
-      title: "Carro eléctrico",
+      title: "Auto",
       description: "Aumenta la velocidad de exploración después del bloque de magnetostática.",
       speedMultiplier: 1.42,
     },

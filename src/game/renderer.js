@@ -1,4 +1,3 @@
-import { APP_CONFIG } from "../config.js";
 import { WORLD_CONFIG } from "../data/world.js";
 import { drawAreaAppearanceCanvas } from "../core/area-appearance-canvas.js";
 import {
@@ -14,6 +13,8 @@ import {
   getLocationWorldPosition,
   getNeighborArea,
 } from "../core/world-graph.js";
+import { createLearningEdgeCurve, drawLearningEdge, pointOnLearningEdge } from "./learning-edge-visuals.js";
+import { TransportVisuals } from "./transport-visuals.js";
 
 const TREE_TWO_EDGE_YELLOW = Object.freeze({
   bright: "rgba(255, 209, 102, 0.96)",
@@ -82,37 +83,6 @@ function polygonPath(context, points) {
     context.lineTo(points[index].x, points[index].y);
   }
   context.closePath();
-}
-
-function drawArrow(context, x, y, dx, dy, color, width = 2) {
-  const length = Math.hypot(dx, dy);
-  if (length < 0.001) return;
-  const unitX = dx / length;
-  const unitY = dy / length;
-  const headLength = Math.min(9, Math.max(5, length * 0.3));
-
-  context.strokeStyle = color;
-  context.fillStyle = color;
-  context.lineWidth = width;
-  context.beginPath();
-  context.moveTo(x, y);
-  context.lineTo(x + dx, y + dy);
-  context.stroke();
-
-  const tipX = x + dx;
-  const tipY = y + dy;
-  context.beginPath();
-  context.moveTo(tipX, tipY);
-  context.lineTo(
-    tipX - unitX * headLength - unitY * headLength * 0.48,
-    tipY - unitY * headLength + unitX * headLength * 0.48,
-  );
-  context.lineTo(
-    tipX - unitX * headLength + unitY * headLength * 0.48,
-    tipY - unitY * headLength - unitX * headLength * 0.48,
-  );
-  context.closePath();
-  context.fill();
 }
 
 function drawRoundedRect(context, x, y, width, height, radius) {
@@ -206,6 +176,9 @@ export function getPlayerShadowGeometry(heading, transportId = "walk") {
 }
 
 export class CanvasRenderer {
+  #learningCurves = new Map();
+  #transportVisuals = new TransportVisuals();
+
   constructor(canvas, {
     areas,
     locations,
@@ -244,6 +217,8 @@ export class CanvasRenderer {
       ? this.canonicalLocations.filter((location) => layout.visibleAreaIds.has(location.areaId))
       : this.canonicalLocations;
     this.locationById = new Map(this.locations.map((location) => [location.id, location]));
+    this.#learningCurves.clear();
+    this.#transportVisuals.reset();
   }
 
   #createStars(count) {
@@ -276,6 +251,7 @@ export class CanvasRenderer {
   render({
     camera,
     player,
+    movementDistance = 0,
     snapshot,
     nearestLocation,
     debugState,
@@ -300,14 +276,25 @@ export class CanvasRenderer {
     this.#drawAreas(snapshot, camera.zoom, animationTime, debugState, reducedMotion);
     this.#drawTreeTwoGuides(
       snapshot,
-      camera.zoom,
+      camera,
       newlyAccessibleLocationIds,
       unlockSourceLocationId,
       debugState.showGraph ? "total" : null,
+      reducedMotion ? null : animationTime,
     );
     this.#drawAreaEdges(snapshot, camera.zoom, animationTime);
+    const lineScale = 1 / camera.zoom;
+    this.#transportVisuals.update({
+      player,
+      transportId: snapshot.activeTransport.id,
+      movementDistance,
+      timeSeconds: animationTime,
+      lineScale,
+      reducedMotion,
+    });
+    this.#transportVisuals.drawTrail(context, animationTime, lineScale);
     this.#drawLocations(snapshot, nearestLocation, camera.zoom, animationTime, debugState);
-    this.#drawPlayer(player, snapshot.activeTransport, camera.zoom, animationTime);
+    this.#drawPlayer(player, snapshot.activeTransport, lineScale);
 
     context.restore();
     this.#drawVignette();
@@ -511,10 +498,11 @@ export class CanvasRenderer {
 
   #drawTreeTwoGuides(
     snapshot,
-    zoom,
+    camera,
     newlyAccessibleLocationIds,
     unlockSourceLocationId,
-    visualizationModeOverride = null,
+    visualizationModeOverride,
+    timeSeconds,
   ) {
     const edges = deriveKnowledgeGraphEdges({
       locations: this.locations,
@@ -528,72 +516,50 @@ export class CanvasRenderer {
     if (edges.length === 0) return;
 
     const context = this.context;
+    const { x, y, zoom } = camera;
     const lineScale = 1 / zoom;
+    const halfWidth = (this.width / 2 + 36) * lineScale;
+    const halfHeight = (this.height / 2 + 36) * lineScale;
     for (const edge of edges) {
-      const sourceLocation = this.locationById.get(edge.sourceId);
-      const targetLocation = this.locationById.get(edge.targetId);
-      if (!sourceLocation || !targetLocation) continue;
-      if (!snapshot.visibleLocationIds.has(sourceLocation.id)) continue;
-
-      const source = getLocationWorldPosition(
-        sourceLocation,
-        this.worldIndex,
-        WORLD_CONFIG.hexSize,
-      );
-      const target = getLocationWorldPosition(
-        targetLocation,
-        this.worldIndex,
-        WORLD_CONFIG.hexSize,
-      );
-      const distance = Math.hypot(target.x - source.x, target.y - source.y);
-      if (distance < 1) continue;
-      const unitX = (target.x - source.x) / distance;
-      const unitY = (target.y - source.y) / distance;
-      const start = { x: source.x + unitX * 25, y: source.y + unitY * 25 };
-      const end = { x: target.x - unitX * 29, y: target.y - unitY * 29 };
-      const style = getTreeTwoEdgeVisualStyle(edge.appearance, {
-        isNew: edge.isNew,
-        zoom,
-      });
-
-      context.save();
-      context.lineCap = "round";
-      context.lineJoin = "round";
-      context.setLineDash(style.lineDash);
-      context.shadowColor = style.shadowColor;
-      context.shadowBlur = style.shadowBlur;
-      drawArrow(
-        context,
-        start.x,
-        start.y,
-        end.x - start.x,
-        end.y - start.y,
-        style.color,
-        style.lineWidth,
-      );
-      context.shadowBlur = 0;
-      if (edge.appearance === "bright") {
-        if (edge.isNew) {
-          const midpointX = (start.x + end.x) / 2;
-          const midpointY = (start.y + end.y) / 2;
-          context.font = `800 ${9 * lineScale}px system-ui, sans-serif`;
-          context.textAlign = "center";
-          context.textBaseline = "middle";
-          const labelWidth = context.measureText("NUEVO").width + 10 * lineScale;
-          context.fillStyle = "rgba(5, 12, 22, 0.9)";
-          drawRoundedRect(
-            context,
-            midpointX - labelWidth / 2,
-            midpointY - 9 * lineScale,
-            labelWidth,
-            18 * lineScale,
-            5 * lineScale,
-          );
-          context.fill();
-          context.fillStyle = "rgba(255, 237, 178, 1)";
-          context.fillText("NUEVO", midpointX, midpointY);
-        }
+      let curve = this.#learningCurves.get(edge.id);
+      if (curve === undefined) {
+        const source = getLocationWorldPosition(
+          this.locationById.get(edge.sourceId), this.worldIndex, WORLD_CONFIG.hexSize,
+        );
+        const target = getLocationWorldPosition(
+          this.locationById.get(edge.targetId), this.worldIndex, WORLD_CONFIG.hexSize,
+        );
+        curve = createLearningEdgeCurve(source, target);
+        this.#learningCurves.set(edge.id, curve);
       }
+      if (!curve) continue;
+      const { left, right, top, bottom } = curve.bounds;
+      if (right < x - halfWidth || left > x + halfWidth || bottom < y - halfHeight || top > y + halfHeight) {
+        continue;
+      }
+
+      const style = getTreeTwoEdgeVisualStyle(edge.appearance, { isNew: edge.isNew, zoom });
+      drawLearningEdge(context, curve, style, { timeSeconds, lineScale });
+      if (!edge.isNew || edge.appearance !== "bright") continue;
+
+      const midpoint = pointOnLearningEdge(curve, 0.5);
+      context.save();
+      context.font = `800 ${9 * lineScale}px system-ui, sans-serif`;
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      const labelWidth = context.measureText("NUEVO").width + 10 * lineScale;
+      context.fillStyle = "rgba(5, 12, 22, 0.9)";
+      drawRoundedRect(
+        context,
+        midpoint.x - labelWidth / 2,
+        midpoint.y - 9 * lineScale,
+        labelWidth,
+        18 * lineScale,
+        5 * lineScale,
+      );
+      context.fill();
+      context.fillStyle = "rgba(255, 237, 178, 1)";
+      context.fillText("NUEVO", midpoint.x, midpoint.y);
       context.restore();
     }
   }
@@ -730,10 +696,9 @@ export class CanvasRenderer {
     context.restore();
   }
 
-  #drawPlayer(player, transport, zoom, timeSeconds) {
+  #drawPlayer(player, transport, lineScale) {
     const context = this.context;
-    const lineScale = 1 / zoom;
-    const bob = Math.sin(timeSeconds * 5.5) * 1.4 * lineScale;
+    const { bob, phase, moving } = this.#transportVisuals;
     const shadow = getPlayerShadowGeometry(player.heading, transport.id);
 
     context.save();
@@ -752,7 +717,7 @@ export class CanvasRenderer {
     );
     context.fill();
 
-    context.translate(0, bob);
+    context.translate(0, bob * lineScale);
     context.rotate(player.heading);
 
     if (transport.id === "electric-cart") {
@@ -763,10 +728,18 @@ export class CanvasRenderer {
       context.lineWidth = 2 * lineScale;
       context.stroke();
       context.fillStyle = "#1b2733";
+      context.strokeStyle = "#a5b5c2";
+      context.lineWidth = 1.45 * lineScale;
+      const spokeX = Math.cos(phase) * 3.4;
+      const spokeY = Math.sin(phase) * 3.4;
       for (const wheelX of [-12, 12]) {
         context.beginPath();
         context.arc(wheelX * lineScale, 14 * lineScale, 5 * lineScale, 0, Math.PI * 2);
         context.fill();
+        context.beginPath();
+        context.moveTo((wheelX - spokeX) * lineScale, (14 - spokeY) * lineScale);
+        context.lineTo((wheelX + spokeX) * lineScale, (14 + spokeY) * lineScale);
+        context.stroke();
       }
     } else if (transport.id === "radio-skiff") {
       context.fillStyle = "#ffb6ed";
@@ -779,14 +752,23 @@ export class CanvasRenderer {
       context.closePath();
       context.fill();
       context.stroke();
-      context.strokeStyle = "rgba(120, 227, 255, 0.7)";
+      context.fillStyle = moving ? "#c0f3ff" : "#78a7b8";
       context.beginPath();
-      context.moveTo(-24 * lineScale, -7 * lineScale);
-      context.lineTo(-42 * lineScale, -7 * lineScale);
-      context.moveTo(-24 * lineScale, 7 * lineScale);
-      context.lineTo(-42 * lineScale, 7 * lineScale);
-      context.stroke();
+      context.arc(-18 * lineScale, 0, 3 * lineScale, 0, Math.PI * 2);
+      context.fill();
     } else {
+      if (moving) {
+        const step = Math.cos(phase) * 4;
+        context.fillStyle = "#71c4dc";
+        for (const side of [-1, 1]) {
+          context.beginPath();
+          context.ellipse(
+            (-12 + step * side) * lineScale, side * 7 * lineScale,
+            4 * lineScale, 2 * lineScale, 0, 0, Math.PI * 2,
+          );
+          context.fill();
+        }
+      }
       context.fillStyle = "#f6fbff";
       context.strokeStyle = "#78e3ff";
       context.lineWidth = 2.3 * lineScale;

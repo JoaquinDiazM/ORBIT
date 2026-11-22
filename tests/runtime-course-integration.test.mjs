@@ -2,10 +2,14 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
+import { REWARDS } from "../src/data/knowledge.js";
+import { createLearningEdgeCurve, drawLearningEdge, pointOnLearningEdge } from "../src/game/learning-edge-visuals.js";
 import {
   CanvasRenderer,
+  getTreeTwoEdgeVisualStyle,
   resolveRuntimeAreaAppearance,
 } from "../src/game/renderer.js";
+import { TransportVisuals } from "../src/game/transport-visuals.js";
 
 const PERSONAL = Object.freeze({
   paletteId: "polar",
@@ -201,6 +205,77 @@ test("movimiento reducido congela de forma determinista los motivos animados", (
     assert.notEqual(animated, first);
   } finally {
     global.window = previousWindow;
+  }
+});
+
+test("las estelas aparecen con desplazamiento real, se disipan y se distinguen por transporte", () => {
+  assert.equal(REWARDS.transports.find(({ id }) => id === "electric-cart").title, "Auto");
+  for (const { id } of REWARDS.transports) {
+    const visuals = new TransportVisuals();
+    const frame = (x, movementDistance, timeSeconds) => {
+      const { calls, context } = createContextRecorder();
+      visuals.update({ player: { x, y: 0, heading: 0 }, transportId: id, movementDistance, timeSeconds, lineScale: 1 });
+      visuals.drawTrail(context, timeSeconds, 1);
+      return calls;
+    };
+    const shape = id === "radio-skiff" ? "stroke" : "arc";
+    assert.deepEqual(frame(0, 0, 1), [], id);
+    const moving = frame(9, 9, 1.1);
+    assert.ok(moving.some(([name]) => name === shape), id);
+    const phaseAtStop = visuals.phase;
+    const stopped = frame(9, 0, 1.2);
+    assert.ok(stopped.some(([name]) => name === shape), id);
+    assert.equal(visuals.phase, phaseAtStop, id);
+    assert.deepEqual(frame(9, 0, 2), [], id);
+  }
+});
+
+test("cambiar de transporte, saltar o reducir movimiento retira la estela anterior", () => {
+  const visuals = new TransportVisuals();
+  const { context, calls } = createContextRecorder();
+  const frame = (transportId, x, distance, timeSeconds, reducedMotion = false) => {
+    calls.length = 0;
+    visuals.update({ player: { x, y: 0, heading: 0 }, transportId, movementDistance: distance, timeSeconds, lineScale: 1, reducedMotion });
+    visuals.drawTrail(context, timeSeconds, 1);
+    return calls.length;
+  };
+  assert.ok(frame("walk", 4, 4, 1) > 0);
+  assert.equal(frame("electric-cart", 4, 0, 1.01), 0);
+  assert.ok(frame("electric-cart", 8, 4, 1.02) > 0);
+  assert.equal(frame("electric-cart", 800, 0, 1.03), 0);
+  assert.ok(frame("electric-cart", 804, 4, 1.04) > 0);
+  assert.equal(frame("electric-cart", 808, 4, 1.05, true), 0);
+  assert.equal(visuals.phase, 0);
+  assert.equal(visuals.bob, 0);
+});
+
+test("la Red usa un arco dirigido, conserva el trazo discontinuo y anima pulsos sobre el arco", () => {
+  const curve = createLearningEdgeCurve({ x: 0, y: 0 }, { x: 180, y: 0 });
+  assert.deepEqual(curve.start, { x: 25, y: 0 });
+  assert.deepEqual(curve.end, { x: 151, y: 0 });
+  assert.ok(pointOnLearningEdge(curve, 0.5).y > 0);
+  const short = createLearningEdgeCurve({ x: 0, y: 0 }, { x: 10, y: 0 });
+  assert.ok(short.start.x < short.end.x);
+
+  const style = getTreeTwoEdgeVisualStyle("muted");
+  const record = (timeSeconds) => {
+    const { calls, context } = createContextRecorder();
+    drawLearningEdge(context, curve, style, { timeSeconds, lineScale: 1 });
+    return calls;
+  };
+  const staticCalls = record(null);
+  assert.ok(staticCalls.some(([name, dash]) => name === "setLineDash" && dash === style.lineDash));
+  assert.ok(staticCalls.some(([name]) => name === "quadraticCurveTo"));
+  assert.ok(staticCalls.some(([name, x, y]) => name === "moveTo" && x === curve.end.x && y === curve.end.y));
+  const pulses = (calls) => calls.filter(([name]) => name === "arc");
+  assert.deepEqual(pulses(staticCalls), []);
+  const first = pulses(record(0.22));
+  const second = pulses(record(0.34));
+  assert.equal(first.length, 3);
+  for (const [index, [, x, y]] of second.entries()) {
+    assert.ok(x > first[index][1]);
+    const t = (x - curve.start.x) / curve.length;
+    assert.ok(Math.abs(y - pointOnLearningEdge(curve, t).y) < 1e-9);
   }
 });
 

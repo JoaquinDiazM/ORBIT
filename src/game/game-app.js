@@ -398,7 +398,7 @@ export class GameApp {
     this.lastTimestamp = timestamp;
 
     this.#handleActions();
-    this.#updateMovement(deltaSeconds);
+    const movementDistance = this.#updateMovement(deltaSeconds);
 
     const snapshot = this.progression.getSnapshot();
     const previousAreaId = this.currentArea?.id ?? null;
@@ -440,6 +440,7 @@ export class GameApp {
     this.renderer.render({
       camera: this.camera,
       player: { ...this.player, ...displayPlayer },
+      movementDistance,
       snapshot,
       nearestLocation: this.nearestLocation,
       debugState: this.debugState,
@@ -504,7 +505,7 @@ export class GameApp {
     if (this.ui.isBlockingModalOpen()) {
       this.player.velocityX = 0;
       this.player.velocityY = 0;
-      return;
+      return 0;
     }
 
     const axis = this.input.axis();
@@ -515,7 +516,7 @@ export class GameApp {
     this.player.velocityX = velocityX;
     this.player.velocityY = velocityY;
 
-    if (Math.abs(velocityX) + Math.abs(velocityY) < 0.001) return;
+    if (Math.abs(velocityX) + Math.abs(velocityY) < 0.001) return 0;
     this.player.heading = Math.atan2(velocityY, velocityX);
 
     const snapshot = this.progression.getSnapshot();
@@ -538,7 +539,7 @@ export class GameApp {
       if (this.#canOccupy(candidateY.x, candidateY.y, snapshot)) next = candidateY;
     }
     const canonical = previousLayout ? displayToCanonical(previousLayout, next) : next;
-    if (!canonical) return;
+    if (!canonical) return 0;
     this.player.x = canonical.x;
     this.player.y = canonical.y;
     const destinationAreaId = this.#playerArea()?.id;
@@ -548,6 +549,7 @@ export class GameApp {
         entry: this.#navigationEntry(previousAreaId, destinationAreaId, previousLayout),
       });
     }
+    return Math.hypot(next.x - display.x, next.y - display.y);
   }
 
   #canOccupy(x, y, snapshot) {

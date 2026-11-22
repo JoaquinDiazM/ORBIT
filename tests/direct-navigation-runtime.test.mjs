@@ -172,6 +172,7 @@ test("caminar cruza vecinos reorganizados, recentra preservando offset y permite
     assert.equal(h.game.navigationLayout.worldIndex.byId.get("hub").r, 0);
     assert.equal(h.game.canReturnToPreviousArea(), true);
     assert.ok(Math.abs(h.frames.at(-1).player.x - expectedOffset) < 1e-9);
+    assert.ok(Math.abs(h.frames.at(-1).movementDistance - 235 * 0.05) < 1e-9);
     h.game.input.axis = () => ({ x: -1, y: 0 });
     h.tick();
     assert.equal(h.game.currentArea.id, "hub");
@@ -294,6 +295,7 @@ test("frontera, Ctrl+clic y teletransporte rechazan destino bloqueado; noclip es
     h.game.input.axis = () => ({ x: 1, y: 0 });
     h.tick();
     assert.deepEqual(position(h.game), before);
+    assert.equal(h.frames.at(-1).movementDistance, 0);
     const target = getAreaCenter(h.game.navigationLayout.worldIndex.byId.get("n0"), SIZE);
     h.pointer(target);
     assert.deepEqual(position(h.game), before);
