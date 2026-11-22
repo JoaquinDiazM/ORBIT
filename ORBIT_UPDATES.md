@@ -247,146 +247,15 @@ El agente registra aquí las ideas del chat que aún estén por clasificar.
   Descripción:
 -->
 
-Sin propuestas pendientes de clasificar. Navegación y lanzamiento se registraron como UPD-026 y UPD-027.
+Sin propuestas pendientes de clasificar.
 
 ## Cohorte inmediata
 
-- Versión: `1.0.0`
-- Estado de la cohorte: `cerrada`
-- IDs: `UPD-027`
-- Cierre confirmado por JoaquinDiazM: 2026-11-21.
-
-La cohorte **1.0.0 alfa** está cerrada y contiene únicamente **UPD-027**. JoaquinDiazM aprobó
-la candidata en el chat tras su prueba manual y pidió hacer el push final a GitHub. La versión
-1.0.0 está preparada para publicar y archivar tras verificar el commit de release en `origin/main`.
+Sin cohorte inmediata en preparación.
 
 ## Actualizaciones activas
 
-### UPD-027 — Lanzamiento de ORBIT para usuarios reales
-
-- Estado: `publicando`
-- Tipo: `épica`
-- Versión objetivo: `1.0.0`
-- Impacto sugerido: `X`; distribución pública, cuentas y cursos compartidos.
-- Próximo responsable: el agente, para verificar el push y archivar la ficha.
-
-#### Solicitud original
-
-Release optimo
-
-Este update es inicialmente para orientarme sobre como lanzar el producto y posteriormente para aplicar dichos cambios, quiero mandar a probar esto, pero no tengo experiencia. Hazme preguntas de como se tiene que lanzar esta version de forma que el cualquiera puede llegar a github, por ejemplo, darle click a un boton y tener el software de ORBIT (Quiero lanzar ORBIT con un template basico, el curso de electromagnetismo, el cual todavia no esta construido, es para mas tarde cuando tenga tiempo de crear contenido). Al mismo tiempo quiero poder seguir haciendo actualizaciones, no solo de contenido, sino tambien de produccion, justo como hemos venido haciendo ahora. Este update va a absorber el trabajo de hacer la logica del servidor, el curso, las cuentas, etc, por lo que vamos a llamarlo el update 1.0.0.
-
-#### Especificación elaborada por el agente
-
-- Objetivo observable: una persona llega al repositorio, encuentra un acceso claro y utiliza
-  ORBIT sin preparar un entorno de desarrollo; docentes y estudiantes trabajan con cuentas y
-  cursos compartidos, y el producto sigue admitiendo actualizaciones de motor y contenido.
-- Decisiones confirmadas en este chat el 2026-09-19: ofrecer navegador y aplicación para Windows;
-  cuentas y cursos compartidos desde 1.0.0. Lanzar con una plantilla básica; el curso completo
-  de Electromagnetismo se desarrollará después y no se presentará como terminado.
-- Operación confirmada: cada equipo docente proporciona su máquina/servidor; ORBIT facilitará
-  instalarlo y mantenerlo, sin sostener un servidor global. El servidor deberá funcionar en
-  Windows y Linux desde 1.0.0. Se requiere estudiar sin conexión y sincronizar después.
-- Piloto confirmado: 10 estudiantes, 2 docentes y 2 cursos genéricos o plantilla, accesibles por
-  Internet; JoaquinDiazM probará también desde otro dispositivo. La automatización de la
-  candidata no sustituye ese piloto humano previo al lanzamiento.
-- Cuentas e ingreso confirmados: alias y contraseña, recuperación a cargo del docente; el
-  docente crea cada cuenta y la matricula. El piloto no necesita correo electrónico ni registro
-  abierto. La recuperación deberá permitir restablecer credenciales sin revelar contraseñas.
-- Flujo solicitado el 2026-10-29: docente instala ORBIT, prepara o importa un curso en Editor
-  **offline** y arranca el servicio **online** desde terminal en su máquina/servidor. Obtiene
-  un enlace de acceso con login para ORBIT y Editor online; entrega credenciales al estudiante.
-  Se debe contemplar una red universitaria con VPN previa y el retorno a offline/mantenimiento
-  para cambios que no puedan aplicarse online. `screen` es un ejemplo de operación, no una
-  dependencia elegida. Los comandos implementados están en [Servidor](docs/SERVER_GUIDE.md).
-- Monitor implementado: **Owl** muestra avance/finalización y administra estudiantes del curso.
-  Las cuentas se crean online; el Editor offline prepara borradores sin autoridad remota.
-- Decisiones confirmadas en el chat del 2026-10-29: el ensayo de un docente y un estudiante en
-  dos máquinas precede al piloto de 10 estudiantes, 2 docentes y 2 cursos; no lo reemplaza.
-  Cada docente administra sus cursos y estudiantes, con una cuenta administradora separada
-  para el servidor. El monitor registra y muestra **solo avance y finalización** para el
-  estudiante y sus docentes, sin respuestas ni intentos por actividad.
-- Compatibilidad confirmada el 2026-10-29: conservar avance al actualizar el curso; una
-  incompatibilidad requiere decisión explícita. La política actual de reset total de 0.9.0
-  no se extiende automáticamente al servidor ni a clientes desconectados de 1.0.0.
-- Baja confirmada el 2026-10-29: eliminar un estudiante borra su cuenta y avance juntos;
-  restablecer contraseña es una acción independiente. ADR 0013 define la confirmación, cuenta
-  por curso, rechazo al reconectar una cuenta eliminada y custodia de copias exportadas.
-- Decisiones confirmadas al iniciar este goal: cada cuenta de estudiante pertenece a un único
-  curso; para otro curso se usa otra cuenta. Preparar borradores y usar Owl online está permitido,
-  pero toda publicación exige mantenimiento. La aplicación Windows será instalable desde el
-  navegador (PWA), sin exigir instalador .exe.
-- Entrega autorizada: implementación completa de UPD-027 como único ID de 1.0.0 hasta
-  `en-revision`, con pruebas y preflight; sin versión, changelog ni push. Arquitectura y límites
-  en [ADR 0013](docs/decisions/0013-self-hosted-courses-and-offline-client.md).
-- Criterios de aceptación: acceso e instalación documentados; identidad y roles reales;
-  aislamiento de cursos y avances; persistencia recuperable, copias y restauración verificadas;
-  publicación de contenido y actualización del producto versionadas; migraciones, compatibilidad
-  y recuperación definidas; cliente web y descargable con reglas de progreso coherentes.
-- Fuera de alcance: contratar proveedores, publicar infraestructura o datos reales, completar
-  Electromagnetismo, colaboración simultánea de borradores, cuentas multicurso y nuevas
-  dependencias npm. Se autorizan servicios temporales propios para las pruebas de esta entrega.
-- Dependencias, invariantes o ADR: absorbe la planificación de servidor/cuentas/cursos de UPD-002,
-  cuya ficha descartada se conserva en `docs/UPDATES_HISTORY.md`. Evitar dos implementaciones
-  paralelas. Backend, autenticación y persistencia remota quedan definidos por ADR 0013 y la
-  enmienda de AGENTS.md para el modo online autorizado. Los perfiles locales existentes no
-  constituyen cuentas ni autorización.
-
-#### Preguntas bloqueantes
-
-- Resueltas: servidor propio Windows/Linux, acceso web/Windows, estudio sin conexión, escala
-  del piloto y ensayo previo, ingreso, permisos por curso, datos mínimos del monitor,
-  conservación del avance y efecto de la baja sobre cuenta/progreso.
-- Ninguna para iniciar la implementación: las respuestas posteriores fijan cuenta por curso,
-  publicación en mantenimiento y PWA. ADR 0013 concreta una operación mínima con restauración
-  fuera de línea, HTTPS, borradores por dispositivo y reconciliación explícita. Cualquier
-  ampliación material descubierta se plantea antes de implementarla.
-
-#### Implementación y revisión
-
-- Base revisada: `90d6e0b2b63df0826a4ac8c601d0439e6fa55d1a` (`HEAD = origin/main`, 0.9.0).
-- Rutas propias: `src/online/`, `src/editor/`, `src/core/`, entradas HTML y arranque/UI;
-  `scripts/online/`, CLI, build/empaquetado y ensayo; tests de esos contratos; manifiesto/iconos;
-  workflow de paquete, package.json, .gitignore, ADR 0013 y documentación consolidada.
-  Lista exacta de rutas en el índice preparado y evidencia de entrega; temporales fuera de Git.
-  El commit local opcional no se creó porque Git carece de identidad de autor configurada.
-- Resultado: implementación y automatización terminadas el 2026-11-06, con preflight
-  prístino registrado en [la entrega de UPD-027](docs/reviews/UPD-027.md). Incluye matriz de
-  requisitos, identidad del paquete y guion humano. Candidata servidor Windows/Linux, cuentas
-  por curso, Owl, mantenimiento, compatibilidad, sincronización y PWA; modo estático conservado.
-  Sin contenido académico nuevo, dependencias adicionales, aumento de versión, changelog ni push.
-  El ensayo remoto usó geminga como jdiaz, sin sudo; Windows fue WarMachine2.
-- Activación del 2026-10-29: leída la autorización y la nueva observación del usuario, se
-  precisaron flujo offline/online, monitor y cinco decisiones en el chat. El punto vuelve a
-  `faltan-detalles` por los contratos pendientes anteriores, como permite la propia solicitud.
-  README y hoja de ruta describen el flujo futuro sin presentarlo como capacidad publicada.
-  No se modificó código, contenido curricular, versión ni changelog.
-- Preparación documental solicitada el 2026-10-11, antes de reactivar el ciclo normal:
-  revisar el repositorio, reducir guías duplicadas u obsoletas y preparar el contexto de 1.0.0
-  sin tocar código. La [hoja de ruta](docs/ROADMAP.md) distingue la base verificada, las brechas
-  y el orden de diseño propuesto; no cambia este estado ni autoriza implementar el lanzamiento.
-- Pruebas automáticas: `npm run check` completo, código 0; 691 pruebas, 689 aprobadas,
-  0 fallos y 2 omisiones de symlinks por permisos Windows. Paquete extraído verificado en ambos
-  sistemas y HTTPS Windows→Linux: 2 docentes, 2 cursos, 10 cuentas, 22 actividades académicas
-  alcanzadas offline y 172 recursos comprobados. Init, backup y restore Linux verificados;
-  seis regresiones nuevas cubren identidad y cierre de sesión. Detalles y límites en el informe.
-- Preflight del entorno: fuente/dist/build-info coincidentes; diagnóstico canónico 4173 con
-  respuestas 200/no-store y cierre inmediato; sin journal/tombstone/lock de autoría. Servicios
-  de ensayo cerrados y temporales remotos propios retirados. Navegador persistente intacto.
-- Revisión manual humana: el 2026-11-21, JoaquinDiazM comunicó en el chat que probó la 1.0.0,
-  que el resultado fue satisfactorio y que la aprobaba como alfa. Mencionó errores y trabajo
-  pendiente en persistencia y contenido. Su reporte no detalla el resultado individual de
-  los pasos del informe ni acredita el piloto ampliado. El ensayo de servidor futuro usará
-  Crab y la aplicación se seguirá probando localmente en la laptop.
-- Observaciones del usuario: Pregunta 1 -> El equipo docente debe de proveer la "maquina" del servidor, ya sea una IP + puerto o lo que sea usual, este proyecto no se hace cargo de sostener un servidor global, pero si debe entregar las facilidades para que los docentes puedan instalar el servidor de su curso con soltura. Pregunta 3 -> Precisamente, hay que concretar todo eso, cambia el estado de este update continuamente a faltan-detalles para que afinemos esos detalles.
-- Observaciones del usuario 2: A pesar de que cambie el estado a autorizado no espero que realmente se pueda todavia, asi que en esta activacion no tengas miedo de mover el estado a faltan detalles nuevamente. Los nuevos detalles que he pensado es que quiero que esta version la pueda probar un docente en cooperacion un tester (Voy a ser yo mismo con dos maquinas diferentes). El esquema de esta version, que podria cambiar en el futuro, es que el docente instala ORBIT como se indica en el readme principal (El cual deberia ser actualizado con esta nueva informacion que te estoy dando), luego arma su curso ya que a este punto deberia tener acceso a ORBIT Editor pre-eliminarmente local (O lo importa, es lo que haria yo si probara ORBIT por primera vez. Es mejor modificar un curso ya coonstruido que usar las herramientas de ORBIT editor, todavia muy limitadas), posteriormente el docente en una maquina o servidor del cual este disponga podra lanzar en una terminal (Usando una screen por ejemplo) el curso ONLINE y obtendra un enlace para que el mismo pueda acceder (A ORBIT y la version online de ORBIT Editor) y los estudiantes tambien (Es posible que tengas que entrar en la tarea de diseñar una interfaz inicial de logeo, recuerda que no es necesario el registro ya que el propio profesor debe proveer dicha informacion a cada estudiante. Sobre lo segundo es posible que ORBIT Editor, particularmente el local, tenga la capacidad de crear usuarios con sus respectivas contraseñas. Añadir a ORBIT Editor una opcion de monitor para ver como le va a los estudiantes, uno monitor basico. Para mantener el esquema de animales en los submenus del editor podrias llamar a esta opcion Owl, aqui tambien puedes incluir la capacidad de crear/destruir/resetear cuentas de estudiantes). El estudiante deberia de poder empezar su experiencia con el link que el docente tendra una vez lanze el curso online en la terminal y el usuario con contraseña que tambien va a proveer el docente. El modo de ORBIT Editor "local" no necesitamos usarlo solo cuando se inicia porprimera vez un curso, tambien cuando el docente usa el boton de apagar servidor o iniciar mantencion para hacer cambios imposibles de hacer online. De hecho el modo "local" no me gusta como suena, definamos mejor modo offline y online, mas simple. Es posible que los docentes quieran lanzar el curso online en una maquina dentro de un entorno universitario protegido y que los estudiantes tengan que conectarse primero a una VPN, cuando hagas este update piensa en ese caso.
-- Observaciones del usuario 3: A las preguntas bloqueantes les falta detalle, esta vez durante la activacion envia las preguntas pertinentes y yo te dare la politica. En general el mensaje es reducir el alcance y simplificar, la version 1.0.0 es un producto minimo viable, pero lo estamos convirtiendo en algo muy high-end.
-- Respuestas posteriores del chat: «Estudiar sin conexión y sincronizar desde 1.0.0»;
-  «Ambos desde 1.0.0» (servidor Windows/Linux); «10 estudiantes, 2 docentes y 2 cursos diferentes
-  genéricos o tipo template. El piloto ya debe poder conectarse por internet, yo mismo usare un
-  dispositivo diferente a este para hacer pruebas.»
-- Respuestas de cuentas del chat: «Alias y contraseña; recuperación por docente» y «El docente
-  crea cada cuenta y la matricula».
+Sin actualizaciones activas.
 
 ## Historial
 
@@ -395,4 +264,4 @@ junto con cada ficha y sus intercambios, en
 [`docs/UPDATES_HISTORY.md`](docs/UPDATES_HISTORY.md). `CHANGELOG.md` mantiene solo el resumen
 orientado a quienes usan ORBIT; los descartes no reciben versión ni entrada de changelog.
 
-La cohorte ORBIT 0.9.0 está publicada y archivada bajo esta metodología.
+La cohorte ORBIT 1.0.0 alfa está publicada y archivada.
