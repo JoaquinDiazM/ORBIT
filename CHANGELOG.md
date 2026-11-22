@@ -2,6 +2,19 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [1.1.0] - 2026-11-22
+
+### Cambiado
+
+- A pie, el Auto y el Deslizador de radio tienen animaciones y estelas propias. El rótulo del
+  transporte seleccionable pasa a ser **Auto**.
+- La Red de aprendizaje muestra arcos suaves con pulsos desde el prerrequisito hacia el nodo
+  dependiente. Con movimiento reducido, los arcos permanecen estáticos.
+
+### Verificación
+
+- Cohorte cerrada `UPD-034` y `UPD-035`, aprobada por JoaquinDiazM.
+
 ## [1.0.2] - 2026-11-22
 
 ### Cambiado

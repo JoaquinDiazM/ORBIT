@@ -267,12 +267,13 @@ Sin propuestas pendientes de clasificar.
 
 JoaquinDiazM autorizó los dos cambios visuales y cerró la cohorte el 2026-11-22.
 JoaquinDiazM aprobó ambos resultados en el chat el 2026-11-22.
+La publicación de la cohorte está en curso.
 
 ## Actualizaciones activas
 
 ### UPD-034 — Animar los transportes y renombrar el Auto
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `1.1.0`
 
@@ -318,7 +319,7 @@ de los efectos y sugiere una estela tipo humo y ruedas que giran.
 
 ### UPD-035 — Curvar y animar las conexiones de la Red de aprendizaje
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `1.1.0`
 
