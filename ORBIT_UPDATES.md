@@ -263,12 +263,13 @@ Sin propuestas pendientes de clasificar.
 - Cierre confirmado por JoaquinDiazM: 2026-11-22.
 
 JoaquinDiazM autorizó, cerró y aprobó 1.0.2 con los puntos de versión visible y capturas.
+La publicación de la cohorte está en curso.
 
 ## Actualizaciones activas
 
 ### UPD-031 — Sincronizar la versión visible de ORBIT
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `bug`
 - Versión objetivo: `1.0.2`
 
@@ -305,7 +306,7 @@ que coincida en futuras publicaciones.
 
 ### UPD-032 — Actualizar las capturas del README
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `documentación`
 - Versión objetivo: `1.0.2`
 

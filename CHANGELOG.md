@@ -2,6 +2,19 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [1.0.2] - 2026-11-22
+
+### Cambiado
+
+- La versión visible de ORBIT se sincroniza al preparar cada release. El empaquetado verifica
+  que el build corresponda a la versión que se distribuye.
+- El README muestra cinco capturas de la interfaz publicada en 1.0.1, con mapa, lección,
+  Explorador de campos 2D, Spider y Bee.
+
+### Verificación
+
+- Cohorte cerrada `UPD-031` y `UPD-032`, aprobada por JoaquinDiazM.
+
 ## [1.0.1] - 2026-11-22
 
 ### Cambiado

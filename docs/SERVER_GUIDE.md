@@ -1,6 +1,6 @@
 # ORBIT: instalación y operación del servidor docente
 
-**ORBIT 1.0.1 alfa.** Esta guía acompaña al paquete portable. Para los ensayos de la alfa,
+**ORBIT 1.0.2 alfa.** Esta guía acompaña al paquete portable. Para los ensayos de la alfa,
 usa cuentas y datos de prueba. La evidencia se mantiene en el repositorio.
 
 ## Qué necesita cada persona
