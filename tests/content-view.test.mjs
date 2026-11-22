@@ -86,6 +86,46 @@ test("un rechazo de guardado no completa la sesión de contenido", () => {
   } finally { dom.restore(); }
 });
 
+test("Continuar guarda la lectura antes de abrir la etapa siguiente y retoma tras recrear la vista", () => {
+  const dom = installContentDOM();
+  try {
+    const body = dom.document.createElement("div");
+    const saved = [];
+    let canSave = false;
+    const options = { container: body, getPassedSteps: () => saved, onPassStep: (_location, id) => {
+      if (canSave) saved.push(id);
+      return canSave;
+    } };
+    const view = new ContentView(options);
+    view.render(lesson());
+    const continueButton = () => body.querySelectorAll("button").find(({ textContent }) => textContent === "Continuar");
+    continueButton().dispatch("click");
+    assert.match(body.textContent, /Etapa 1 de 2/);
+    canSave = true;
+    continueButton().dispatch("click");
+    assert.deepEqual(saved, ["read"]);
+    new ContentView(options).render(lesson());
+    assert.match(body.textContent, /Etapa 2 de 2/);
+    assert.ok(body.querySelector("form"));
+  } finally { dom.restore(); }
+});
+
+test("una misión con secciones históricas se presenta como una actividad sin navegación por etapas", () => {
+  const dom = installContentDOM();
+  try {
+    const body = dom.document.createElement("div");
+    const location = { ...lesson(), kind: "mission" };
+    const view = new ContentView({ container: body });
+    view.render(location);
+    assert.doesNotMatch(body.textContent, /Etapa \d|etapas disponibles/);
+    assert.match(body.textContent, /Modelo/);
+    assert.match(body.textContent, /Comprobar misión/);
+    body.querySelector('input[type="text"]').value = "3";
+    body.querySelector("form").dispatch("submit");
+    assert.match(body.textContent, /Lugar completado/);
+  } finally { dom.restore(); }
+});
+
 test("el renderer compartido monta y libera todas las estructuras y figuras registradas", () => {
   const dom = installContentDOM();
   try {

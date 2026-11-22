@@ -23,13 +23,24 @@ function appendTextParagraph(parent, text) {
   parent.append(element("p", { text }));
 }
 
-/** Shared runtime/editor renderer. Its exercise session is transient; only callbacks can persist progress. */
+function isReviewableExercise(exercise) {
+  return exercise?.type === "sequence"
+    || exercise?.presentation === "vector-field-cards"
+    || exercise?.presentation === "point-charge-field";
+}
+
+/** Shared runtime/editor renderer. Only the injected runtime callbacks persist progress. */
 export class ContentView {
-  constructor({ container, isCompleted, onComplete, playInteractionCue = () => {}, toast = () => {} }) {
+  constructor({
+    container, isCompleted, onComplete, getPassedSteps = () => [], onPassStep = () => true,
+    playInteractionCue = () => {}, toast = () => {},
+  }) {
     this.container = container;
     this.completedIds = new Set();
     this.isCompleted = isCompleted ?? ((id) => this.completedIds.has(id));
     this.onComplete = onComplete ?? ((location) => { this.completedIds.add(location.id); return { ok: true }; });
+    this.getPassedSteps = getPassedSteps;
+    this.onPassStep = onPassStep;
     this.playInteractionCue = playInteractionCue;
     this.toast = toast;
     this.locationStepStates = new Map();
@@ -66,11 +77,18 @@ export class ContentView {
   }
 
   #getLocationStepState(location) {
-    const state = normalizeLocationStepState(
-      location,
-      this.locationStepStates.get(location.id),
-      { completed: this.isCompleted(location.id) },
-    );
+    let current = this.locationStepStates.get(location.id);
+    if (!current && location.kind === "lesson") {
+      const passedStepIds = new Set(this.getPassedSteps(location.id));
+      current = {
+        activeIndex: passedStepIds.size,
+        maxUnlockedIndex: passedStepIds.size,
+        passedStepIds,
+      };
+    }
+    const state = normalizeLocationStepState(location, current, {
+      completed: this.isCompleted(location.id),
+    });
     this.locationStepStates.set(location.id, state);
     return state;
   }
@@ -84,7 +102,8 @@ export class ContentView {
     );
   }
 
-  render(location) {
+  render(location, { resume = false } = {}) {
+    if (resume && location.kind === "lesson") this.locationStepStates.delete(location.id);
     const body = this.container;
     this.#destroyInteractiveFigures();
     body.replaceChildren();
@@ -92,13 +111,37 @@ export class ContentView {
 
     const steps = getLocationSteps(location);
     const state = this.#getLocationStepState(location);
-    const activeStep = steps[state.activeIndex];
-
     const objective = element("section", { className: "lesson-section" });
     objective.append(element("h3", { text: "Objetivo de aprendizaje" }));
     appendTextParagraph(objective, location.objective);
     body.append(objective);
 
+    if (location.kind === "mission") this.#renderMission(location, steps, state);
+    else this.#renderLesson(location, steps, state);
+
+    if ((location.sources ?? []).length > 0) {
+      const sources = element("section", { className: "lesson-section" });
+      sources.append(element("h3", { text: "Fuentes de consulta" }));
+      const list = element("ul", { className: "source-list" });
+      for (const source of location.sources) {
+        const item = element("li");
+        if (source.url) {
+          const link = element("a", {
+            text: source.label,
+            attributes: { href: source.url, target: "_blank", rel: "noreferrer noopener" },
+          });
+          item.append(link);
+        } else item.textContent = source.label;
+        list.append(item);
+      }
+      sources.append(list);
+      body.append(sources);
+    }
+  }
+
+  #renderLesson(location, steps, state) {
+    const body = this.container;
+    const activeStep = steps[state.activeIndex];
     if (steps.length > 1) body.append(this.#renderStepNavigation(location, steps, state));
 
     const stepHeading = element("section", {
@@ -120,11 +163,7 @@ export class ContentView {
 
     const completed = this.isCompleted(location.id);
     const passed = state.passedStepIds.has(activeStep.id);
-    const reviewableExercise =
-      activeStep.exercise?.type === "sequence"
-      || activeStep.exercise?.presentation === "vector-field-cards"
-      || activeStep.exercise?.presentation === "point-charge-field";
-    if ((completed || passed) && reviewableExercise) {
+    if ((completed || passed) && isReviewableExercise(activeStep.exercise)) {
       body.append(
         this.#renderExercise(location, activeStep, state.activeIndex, steps.length, {
           resolved: true,
@@ -140,25 +179,21 @@ export class ContentView {
     } else if (state.activeIndex < steps.length - 1) {
       body.append(this.#renderStepContinue(location, activeStep, state.activeIndex, steps.length));
     }
+  }
 
-    if ((location.sources ?? []).length > 0) {
-      const sources = element("section", { className: "lesson-section" });
-      sources.append(element("h3", { text: "Fuentes de consulta" }));
-      const list = element("ul", { className: "source-list" });
-      for (const source of location.sources) {
-        const item = element("li");
-        if (source.url) {
-          const link = element("a", {
-            text: source.label,
-            attributes: { href: source.url, target: "_blank", rel: "noreferrer noopener" },
-          });
-          item.append(link);
-        } else item.textContent = source.label;
-        list.append(item);
+  #renderMission(location, steps, state) {
+    const completed = this.isCompleted(location.id);
+    for (const [index, step] of steps.entries()) {
+      for (const sectionData of step.sections) this.container.append(this.#renderLessonSection(sectionData));
+      if (!step.exercise || step.exercise.type === "none") continue;
+      const resolved = completed || state.passedStepIds.has(step.id);
+      if (!resolved || isReviewableExercise(step.exercise)) {
+        this.container.append(this.#renderExercise(location, step, index, steps.length, { resolved }));
+      } else if (!completed && step.exercise.explanation) {
+        this.container.append(element("p", { className: "callout", text: step.exercise.explanation }));
       }
-      sources.append(list);
-      body.append(sources);
     }
+    if (completed) this.container.append(this.#renderCompletionCard(location, steps.at(-1)?.exercise));
   }
 
   #renderStepNavigation(location, steps, state) {
@@ -226,6 +261,8 @@ export class ContentView {
     });
     button.addEventListener("click", () => {
       let state = this.#getLocationStepState(location);
+      if (location.kind === "lesson" && !this.onPassStep(location, step.id)) return;
+      state = markLocationStepPassed(state, step.id);
       state = unlockLocationStep(state, stepIndex, stepCount);
       state = selectLocationStep(state, Math.min(stepIndex + 1, stepCount - 1));
       this.#setLocationStepState(location, state);
@@ -364,7 +401,20 @@ export class ContentView {
   }
 
   #passStepOrComplete(location, step, stepIndex, stepCount, exercise, feedback) {
+    if (location.kind === "mission") {
+      const state = markLocationStepPassed(this.#getLocationStepState(location), step.id);
+      if (getLocationSteps(location).every((part) =>
+        part.exercise.type === "none" || state.passedStepIds.has(part.id))) {
+        return this.#completeLocation(location, exercise, feedback);
+      }
+      this.#setLocationStepState(location, state);
+      this.#playInteractionCue();
+      this.toast("Respuesta correcta.", "success");
+      this.render(location);
+      return true;
+    }
     if (stepIndex < stepCount - 1) {
+      if (location.kind === "lesson" && !this.onPassStep(location, step.id)) return false;
       let state = this.#getLocationStepState(location);
       state = markLocationStepPassed(state, step.id);
       state = unlockLocationStep(state, stepIndex, stepCount);
@@ -373,18 +423,18 @@ export class ContentView {
       this.toast("Actividad superada. La etapa siguiente ya está disponible.", "success");
       this.render(location);
       this.#focusActiveStep();
-      return;
+      return true;
     }
-    this.#completeLocation(location, exercise, feedback);
+    return this.#completeLocation(location, exercise, feedback);
   }
 
   #renderAtomicExercise(location, step, stepIndex, stepCount) {
     const exercise = step.exercise;
     const isFinalStep = stepIndex === stepCount - 1;
     const section = element("section", { className: "lesson-section" });
-    section.append(
-      element("h3", { text: isFinalStep ? "Misión de salida" : "Actividad de etapa" }),
-    );
+    const heading = location.kind === "mission" ? "Actividad de misión"
+      : isFinalStep ? "Misión de salida" : "Actividad de etapa";
+    section.append(element("h3", { text: heading }));
     const card = element("div", { className: "exercise-card" });
     appendTextParagraph(card, exercise.prompt);
 
@@ -395,7 +445,8 @@ export class ContentView {
     actions.append(
       element("button", {
         text:
-          exercise.buttonLabel ?? (isFinalStep ? "Comprobar y completar" : "Comprobar etapa"),
+          exercise.buttonLabel ?? (location.kind === "mission" ? "Comprobar misión"
+            : isFinalStep ? "Comprobar y completar" : "Comprobar etapa"),
         attributes: { type: "submit", "data-audio-cue": "deferred" },
       }),
     );
@@ -745,7 +796,9 @@ export class ContentView {
           const nextState = markExerciseSequenceItemPassed(exercise, sequenceState, item.id);
           this.exerciseStates.set(key, nextState);
           if (isExerciseSequenceComplete(exercise, nextState)) {
-            this.#passStepOrComplete(location, step, stepIndex, stepCount, exercise, feedback);
+            if (!this.#passStepOrComplete(location, step, stepIndex, stepCount, exercise, feedback)) {
+              this.exerciseStates.set(key, sequenceState);
+            }
           } else {
             this.#playInteractionCue();
             this.render(location);
@@ -778,10 +831,11 @@ export class ContentView {
         ? "No fue posible guardar el progreso. El lugar no se completó; libera espacio o habilita el almacenamiento y vuelve a intentarlo."
         : "El lugar ya no cumple sus condiciones de acceso.";
       this.#playInteractionCue();
-      return;
+      return false;
     }
     this.render(location);
     this.#focusActiveStep();
+    return true;
   }
 
   #focusActiveStep() {

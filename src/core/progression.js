@@ -9,6 +9,7 @@ import {
   meetsLearningPrerequisites,
 } from "./knowledge-graph.js";
 import { isLocationAllowedForProfile } from "./profile-policy.js";
+import { getLocationSteps } from "./location-steps.js";
 import { migrateProgressState } from "./progress-migrations.js";
 import { ProgressStorage, StoragePersistenceError } from "./storage.js";
 import {
@@ -39,6 +40,7 @@ function createInitialState(profile, worldIndex, { courseId, courseRevision }) {
     courseId,
     courseRevision,
     completedLocations: [],
+    passedLessonSteps: {},
     concepts: [],
     rewards: [rewardKey("transports", initialTransport)],
     debugUnlockedAreas: [],
@@ -108,6 +110,9 @@ export class ProgressionModel {
     this.acceptsUnversionedProgress = Boolean(acceptsUnversionedProgress);
     this.areas = areas;
     this.locations = locations;
+    this.lessonStepIds = new Map(locations.filter(({ kind }) => kind === "lesson").map((location) => [
+      location.id, getLocationSteps(location).slice(0, -1).map(({ id }) => id),
+    ]));
     this.concepts = CONCEPTS;
     this.rewards = REWARDS;
     this.worldIndex = createWorldIndex(this.areas);
@@ -239,6 +244,7 @@ export class ProgressionModel {
       courseId: this.courseId,
       courseRevision: this.courseRevision,
       completedLocations: uniqueKnown(migrated.completedLocations, knownLocations),
+      passedLessonSteps: {},
       concepts: uniqueKnown(migrated.concepts, knownConcepts),
       rewards: uniqueKnown(migrated.rewards, knownRewards),
       debugUnlockedAreas: uniqueKnown(migrated.debugUnlockedAreas, knownAreas),
@@ -249,6 +255,21 @@ export class ProgressionModel {
       },
       updatedAt: new Date().toISOString(),
     };
+
+    const completedLocations = new Set(state.completedLocations);
+    const savedSteps = migrated.passedLessonSteps;
+    if (savedSteps && typeof savedSteps === "object") {
+      for (const [locationId, stepIds] of this.lessonStepIds) {
+        if (!Object.hasOwn(savedSteps, locationId) || completedLocations.has(locationId)) continue;
+        const passed = savedSteps[locationId];
+        if (!Array.isArray(passed)) continue;
+        let count = 0;
+        while (count < stepIds.length && passed[count] === stepIds[count]) count += 1;
+        if (count) Object.defineProperty(state.passedLessonSteps, locationId, {
+          value: stepIds.slice(0, count), enumerable: true, writable: true, configurable: true,
+        });
+      }
+    }
 
     const initialTransportKey = rewardKey("transports", "walk");
     if (!state.rewards.includes(initialTransportKey)) state.rewards.push(initialTransportKey);
@@ -370,6 +391,27 @@ export class ProgressionModel {
     return this.state.completedLocations.includes(locationId);
   }
 
+  getPassedLessonSteps(locationId) {
+    return Object.hasOwn(this.state.passedLessonSteps, locationId)
+      ? [...this.state.passedLessonSteps[locationId]]
+      : [];
+  }
+
+  passLessonStep(locationId, stepId) {
+    const stepIds = this.lessonStepIds.get(locationId);
+    if (!stepIds || !this.isLocationAccessible(locationId)) return false;
+    if (this.isLocationCompleted(locationId)) return true;
+    const passed = this.getPassedLessonSteps(locationId);
+    if (passed.includes(stepId)) return true;
+    if (stepIds[passed.length] === undefined || stepIds[passed.length] !== stepId) return false;
+
+    const previousState = structuredClone(this.state);
+    this.state.passedLessonSteps = { ...this.state.passedLessonSteps, [locationId]: [...passed, stepId] };
+    this.#save(previousState);
+    this.#emit("lesson-step-passed", { locationId, stepId });
+    return true;
+  }
+
   getLocationPosition(locationOrId) {
     const location =
       typeof locationOrId === "string"
@@ -404,6 +446,7 @@ export class ProgressionModel {
 
     const wasCompleted = this.isLocationCompleted(locationId);
     if (!wasCompleted) this.state.completedLocations.push(locationId);
+    delete this.state.passedLessonSteps[locationId];
 
     const newlyGranted = [];
     for (const conceptId of location.grants?.concepts ?? []) {

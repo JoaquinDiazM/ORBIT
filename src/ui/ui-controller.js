@@ -139,6 +139,11 @@ export class UIController {
     this.contentView = new ContentView({
       container: this.elements.lessonBody,
       isCompleted: (id) => this.progression.isLocationCompleted(id),
+      getPassedSteps: (id) => this.progression.getPassedLessonSteps?.(id) ?? [],
+      onPassStep: (location, stepId) => {
+        const action = this.#runPersistenceAction(() => this.progression.passLessonStep(location.id, stepId));
+        return action.ok && action.value;
+      },
       onComplete: (location, exercise) => this.#completeLocationProgress(location, exercise),
       playInteractionCue: (key) => this.#playInteractionCue(key),
       toast: (...args) => this.toast(...args),
@@ -503,7 +508,7 @@ export class UIController {
   }
 
   #renderLocationBody(location) {
-    this.contentView.render(location);
+    this.contentView.render(location, { resume: true });
   }
 
   #playInteractionCue(specificAssetKey) {

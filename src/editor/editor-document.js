@@ -5,6 +5,7 @@ import {
 } from "../core/knowledge-graph.js";
 import { axialDistance, axialKey, pointInHex } from "../core/hex.js";
 import { normalizeRequirements } from "../core/requirements.js";
+import { normalizeMapInvitation } from "../core/map-invitations.js";
 import { validateProjectData } from "../core/validator.js";
 import {
   createDirectNavigationIndex,
@@ -926,6 +927,12 @@ function sanitizeLocationRecords(
       lifecycle,
       provenance: expectedProvenance,
     };
+    if (entry.mapInvitation !== undefined) {
+      const mapInvitation = normalizeMapInvitation(entry.mapInvitation);
+      if (mapInvitation === null) {
+        errors.push(issue("invalid-map-invitation", "La frase del mapamundi debe ser breve y de una línea.", `${path}.mapInvitation`));
+      } else if (mapInvitation) record.mapInvitation = mapInvitation;
+    }
     if (entry.content !== undefined) {
       errors.push(issue(
         "duplicate-content-authority",
@@ -1429,6 +1436,7 @@ function materializeEditorDocument(document, context) {
       kind: record.kind,
       title: record.title,
       shortTitle: record.shortTitle,
+      ...(record.mapInvitation ? { mapInvitation: record.mapInvitation } : {}),
       areaId: record.areaId,
       offset: { ...record.offset },
       requirements: {

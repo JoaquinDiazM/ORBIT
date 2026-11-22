@@ -580,6 +580,8 @@ export class EditorUIController {
       locationTitle: query("#editor-location-title"),
       locationShortTitle: query("#editor-location-short-title"),
       applyLocationName: query("#editor-apply-location-name"),
+      mapInvitation: query("#editor-map-invitation"),
+      saveMapInvitation: query("#editor-save-map-invitation"),
       createKind: query("#editor-create-kind"),
       createArea: query("#editor-create-area"),
       createX: query("#editor-create-x"),
@@ -886,6 +888,11 @@ export class EditorUIController {
         }),
         "Nombres del nodo actualizados sin cambiar su ID.",
       );
+    });
+    this.elements.saveMapInvitation.addEventListener("click", () => {
+      const locationId = this.app.getState().selectedLocationId;
+      this.#report(this.model.updateMapInvitation(locationId, this.elements.mapInvitation.value),
+        "Frase del mapamundi guardada en el borrador.");
     });
     this.elements.createLocation.addEventListener("click", () => {
       this.#createLocationAt({
@@ -2260,10 +2267,6 @@ export class EditorUIController {
     this.#replaceSelectOptions(this.elements.locationSelect, snapshot.locations, selected.id);
     this.#replaceSelectOptions(this.elements.connectLocation, snapshot.locations, selected.id);
     this.#replaceSelectOptions(this.elements.modifyLocation, snapshot.locations, selected.id);
-    for (const option of this.elements.modifyLocation.options) {
-      const location = snapshot.locations.find(({ id }) => id === option.value);
-      option.disabled = !this.readOnly && !EDITABLE_LOCATION_KINDS.has(location?.kind);
-    }
     const previousRenderedAreaId = this.elements.locationArea.dataset.editorRenderedValue;
     const areaCandidate = resolveEditorFormValue({
       currentValue: this.elements.locationArea.value,
@@ -2306,6 +2309,9 @@ export class EditorUIController {
     this.elements.locationTitle.disabled = !editable || this.readOnly;
     this.elements.locationShortTitle.disabled = !editable || this.readOnly;
     this.elements.applyLocationName.disabled = !editable || this.readOnly;
+    this.#syncFormValue(this.elements.mapInvitation, selected.mapInvitation ?? "", { force: locationChanged });
+    this.elements.mapInvitation.disabled = this.readOnly;
+    this.elements.saveMapInvitation.disabled = this.readOnly;
     this.contentEditor.sync(selected, snapshot);
 
     const memberIds = new Set(snapshot.learningNetworkLocationIds ?? []);

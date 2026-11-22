@@ -6,6 +6,7 @@ import { resolve, relative, isAbsolute, extname } from "node:path";
 import { createCourseEdition, materializeCourseEdition } from "../../src/core/course-edition.js";
 import { findIncompatibleLocationIds, reconcileCompletedLocations, sanitizeCompletedLocations }
   from "../../src/core/course-progress-compatibility.js";
+import { normalizeMapInvitation } from "../../src/core/map-invitations.js";
 import { isLearningLocation, learningPrerequisiteIds } from "../../src/core/knowledge-graph.js";
 import { createWorldIndex, deriveUnlockedAreaIds } from "../../src/core/world-graph.js";
 import { ServerStore } from "./store.mjs";
@@ -121,6 +122,30 @@ async function publicationPlan(state, course, body) {
       : "La edición conserva las finalizaciones existentes." };
   const planDigest = createHash("sha256").update(JSON.stringify({ courseId: course.id, ...plan })).digest("hex");
   return { plan: { ...plan, planDigest }, edition, next };
+}
+
+function applyPublication(draft, found, { plan, edition, next }) {
+  if (edition.revision !== found.edition.revision) {
+    if (found.compatibility.length >= 1000 || found.compatibility.some((step) => step.fromRevision === edition.revision)) {
+      throw apiError(409, "revision-reuse", "Esta revisión ya pertenece al historial. Prepara una edición distinta.");
+    }
+    found.compatibility.push({ fromRevision: found.edition.revision, toRevision: edition.revision,
+      invalidatedLocationIds: plan.incompatibleLocationIds });
+    for (const saved of draft.progress.filter((entry) => entry.courseId === found.id)) {
+      saved.completedLocations = reconcileCompletedLocations({ completedLocations: saved.completedLocations,
+        fromRevision: saved.revision, toRevision: edition.revision,
+        compatibility: found.compatibility, locations: next.locations });
+      saved.revision = edition.revision;
+    }
+    found.edition = edition;
+  }
+}
+
+function requireAdminCourse(state, user, courseId) {
+  requireAdmin(user);
+  const course = state.courses.find(({ id }) => id === courseId);
+  if (!course) throw apiError(404, "unknown-course", "El curso ya no está disponible.");
+  return course;
 }
 
 async function readBody(request) {
@@ -287,6 +312,45 @@ export async function createOrbitServer({
         });
         return json(response, 201, { course });
       }
+      const mapInvitations = /^\/admin\/courses\/([a-f0-9-]+)\/map-invitations$/.exec(path);
+      if (mapInvitations && method === "GET") {
+        const course = requireAdminCourse(state, auth.user, mapInvitations[1]);
+        const { locations } = await materializeCourseEdition(course.edition);
+        return json(response, 200, {
+          revision: course.edition.revision,
+          maintenance: course.maintenance,
+          locations: locations.map(({ id, shortTitle, mapInvitation }) => ({
+            id, shortTitle, mapInvitation: mapInvitation ?? "",
+          })),
+        });
+      }
+      if (mapInvitations && method === "PUT") {
+        requireAdmin(auth.user);
+        exactFields(body, ["baseRevision", "locationId", "mapInvitation"]);
+        const mapInvitation = normalizeMapInvitation(body.mapInvitation);
+        if (mapInvitation === null) throw apiError(400, "invalid-map-invitation", "Escribe una frase breve en una sola línea.");
+        const result = await mutate(async (draft, actor) => {
+          const course = requireAdminCourse(draft, actor, mapInvitations[1]);
+          if (!course.maintenance) throw apiError(409, "maintenance-required", "Activa mantenimiento desde la cuenta docente.");
+          if (body.baseRevision !== course.edition.revision) {
+            throw apiError(409, "revision-conflict", "La edición cambió. Vuelve a cargar las frases.");
+          }
+          const { editorDocument } = await materializeCourseEdition(course.edition);
+          const location = editorDocument.locations.find(({ id, lifecycle }) => id === body.locationId && lifecycle === "active");
+          if (!location) throw apiError(404, "unknown-location", "El nodo no está activo en este curso.");
+          if (mapInvitation === (location.mapInvitation ?? "")) return { revision: course.edition.revision };
+          if (mapInvitation) location.mapInvitation = mapInvitation;
+          else delete location.mapInvitation;
+          const publication = await publicationPlan(draft, course, { baseRevision: body.baseRevision, document: editorDocument });
+          if (publication.plan.requiresDecision) {
+            throw apiError(409, "map-invitation-incompatible", "La frase debe conservar las finalizaciones del curso.");
+          }
+          applyPublication(draft, course, publication);
+          return { revision: course.edition.revision };
+        });
+        return json(response, 200, result);
+      }
+
       const assignments = /^\/admin\/courses\/([a-f0-9-]+)\/teachers$/.exec(path);
       if (assignments && method === "PUT") {
         requireAdmin(auth.user); exactFields(body, ["teacherIds"]);
@@ -410,20 +474,7 @@ export async function createOrbitServer({
           if (plan.planDigest !== body.planDigest) throw apiError(409, "plan-stale", "El plan cambió; vuelve a validar el impacto.");
           const decision = plan.requiresDecision ? "reset-affected" : "preserve";
           if (body.decision !== decision) throw apiError(409, "incompatible-progress", "Confirma explícitamente la decisión del plan de publicación.", { plan });
-          if (edition.revision !== found.edition.revision) {
-            if (found.compatibility.length >= 1000 || found.compatibility.some((step) => step.fromRevision === edition.revision)) {
-              throw apiError(409, "revision-reuse", "Esta revisión ya pertenece al historial. Prepara una edición distinta.");
-            }
-            found.compatibility.push({ fromRevision: found.edition.revision, toRevision: edition.revision,
-              invalidatedLocationIds: plan.incompatibleLocationIds });
-            for (const saved of draft.progress.filter((entry) => entry.courseId === courseId)) {
-              saved.completedLocations = reconcileCompletedLocations({ completedLocations: saved.completedLocations,
-                fromRevision: saved.revision, toRevision: edition.revision,
-                compatibility: found.compatibility, locations: next.locations });
-              saved.revision = edition.revision;
-            }
-            found.edition = edition;
-          }
+          applyPublication(draft, found, { plan, edition, next });
           return { course: viewCourse(found, actor), edition: found.edition, compatibility: found.compatibility };
         });
         return json(response, 200, result);

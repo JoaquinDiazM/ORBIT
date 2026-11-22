@@ -279,6 +279,33 @@ test("la Red usa un arco dirigido, conserva el trazo discontinuo y anima pulsos 
   }
 });
 
+test("el zoom reúne nombres de zona, rótulos y detalle con progreso e invitación accesible", (t) => {
+  const previousWindow = global.window;
+  global.window = { devicePixelRatio: 1 };
+  t.after(() => { global.window = previousWindow; });
+  const { calls, context } = createContextRecorder();
+  const area = { id: "origin", q: 0, r: 0, title: "Campamento", shortTitle: "Base", color: "#214765", accent: "#8bdcf7" };
+  const lesson = { id: "bench", areaId: area.id, kind: "lesson", shortTitle: "Banco", marker: "L",
+    offset: { x: 0, y: 0 }, steps: [{ id: "read" }, { id: "apply" }], mapInvitation: "Explora el circuito" };
+  const renderer = new CanvasRenderer(createCanvas(context), { areas: [area], locations: [lesson] });
+  const snapshot = { activeTransport: { id: "walk" }, unlockedAreaIds: new Set([area.id]),
+    visibleLocationIds: new Set([lesson.id]), accessibleLocationIds: new Set([lesson.id]),
+    completedLocationIds: new Set(), state: { passedLessonSteps: { bench: ["read"] } } };
+  const render = (zoom, timeSeconds, reducedMotion = false) => {
+    calls.length = 0;
+    renderer.render({ camera: { x: 0, y: 0, zoom }, player: { x: 0, y: 0, heading: 0 }, snapshot,
+      debugState: {}, timeSeconds, reducedMotion });
+    return calls.filter(([name]) => name === "fillText").map(([, text]) => text);
+  };
+  assert.deepEqual(render(0.4, 1), ["Base", "L"]);
+  assert.deepEqual(render(0.88, 2), ["Base", "ZONA ABIERTA", "L", "Banco"]);
+  assert.ok(render(1.3, 3).includes("E"));
+  assert.ok(calls.some(([name, dash]) => name === "setLineDash" && dash.length === 2 && dash[0] === dash[1] / 2));
+  assert.ok(render(1.3, 4).includes(lesson.mapInvitation));
+  render(0.88, 5);
+  assert.ok(render(1.3, 6, true).includes(lesson.mapInvitation));
+});
+
 test("la composición runtime carga la edición, la inyecta y limita Bowerbird personal a estudiante", async () => {
   const [main, game, renderer, ui] = await Promise.all([
     readFile(new URL("../src/main.js", import.meta.url), "utf8"),

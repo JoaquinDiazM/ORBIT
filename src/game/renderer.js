@@ -178,6 +178,8 @@ export function getPlayerShadowGeometry(heading, transportId = "walk") {
 export class CanvasRenderer {
   #learningCurves = new Map();
   #transportVisuals = new TransportVisuals();
+  #invitationStarts = new Map();
+  #invitationLayouts = new Map();
 
   constructor(canvas, {
     areas,
@@ -263,6 +265,9 @@ export class CanvasRenderer {
     this.resize();
     const context = this.context;
     const animationTime = getAreaAppearanceAnimationTime(timeSeconds, { reducedMotion });
+    const overview = camera.zoom <= 0.55;
+    const detail = camera.zoom >= 1.18;
+    if (!detail) this.#invitationStarts.clear();
     context.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
     context.clearRect(0, 0, this.width, this.height);
 
@@ -273,7 +278,7 @@ export class CanvasRenderer {
     context.scale(camera.zoom, camera.zoom);
     context.translate(-camera.x, -camera.y);
 
-    this.#drawAreas(snapshot, camera.zoom, animationTime, debugState, reducedMotion);
+    this.#drawAreas(snapshot, camera.zoom, animationTime, debugState, reducedMotion, overview);
     this.#drawTreeTwoGuides(
       snapshot,
       camera,
@@ -281,6 +286,7 @@ export class CanvasRenderer {
       unlockSourceLocationId,
       debugState.showGraph ? "total" : null,
       reducedMotion ? null : animationTime,
+      overview,
     );
     this.#drawAreaEdges(snapshot, camera.zoom, animationTime);
     const lineScale = 1 / camera.zoom;
@@ -293,7 +299,7 @@ export class CanvasRenderer {
       reducedMotion,
     });
     this.#transportVisuals.drawTrail(context, animationTime, lineScale);
-    this.#drawLocations(snapshot, nearestLocation, camera.zoom, animationTime, debugState);
+    this.#drawLocations(snapshot, nearestLocation, camera, animationTime, debugState, { overview, detail, reducedMotion });
     this.#drawPlayer(player, snapshot.activeTransport, lineScale);
 
     context.restore();
@@ -348,7 +354,7 @@ export class CanvasRenderer {
     context.restore();
   }
 
-  #drawAreas(snapshot, zoom, timeSeconds, debugState, reducedMotion) {
+  #drawAreas(snapshot, zoom, timeSeconds, debugState, reducedMotion, overview) {
     const context = this.context;
     const lineScale = 1 / zoom;
 
@@ -405,6 +411,10 @@ export class CanvasRenderer {
       context.fillStyle = unlocked ? "rgba(238, 250, 255, 0.82)" : "rgba(167, 187, 201, 0.5)";
       context.font = `700 ${17 * lineScale}px system-ui, sans-serif`;
       context.fillText(area.shortTitle, center.x, center.y - WORLD_CONFIG.hexSize * 0.71);
+      if (overview) {
+        context.restore();
+        continue;
+      }
       context.font = `600 ${9.5 * lineScale}px system-ui, sans-serif`;
       context.fillStyle = unlocked
         ? withAlpha(appearance.accent, 0.78)
@@ -503,6 +513,7 @@ export class CanvasRenderer {
     unlockSourceLocationId,
     visualizationModeOverride,
     timeSeconds,
+    overview,
   ) {
     const edges = deriveKnowledgeGraphEdges({
       locations: this.locations,
@@ -540,7 +551,7 @@ export class CanvasRenderer {
 
       const style = getTreeTwoEdgeVisualStyle(edge.appearance, { isNew: edge.isNew, zoom });
       drawLearningEdge(context, curve, style, { timeSeconds, lineScale });
-      if (!edge.isNew || edge.appearance !== "bright") continue;
+      if (overview || !edge.isNew || edge.appearance !== "bright") continue;
 
       const midpoint = pointOnLearningEdge(curve, 0.5);
       context.save();
@@ -564,8 +575,9 @@ export class CanvasRenderer {
     }
   }
 
-  #drawLocations(snapshot, nearestLocation, zoom, timeSeconds, debugState) {
+  #drawLocations(snapshot, nearestLocation, camera, timeSeconds, debugState, { overview, detail, reducedMotion }) {
     const context = this.context;
+    const { zoom } = camera;
     const lineScale = 1 / zoom;
 
     for (const location of this.locations) {
@@ -574,6 +586,11 @@ export class CanvasRenderer {
       const accessible = snapshot.accessibleLocationIds.has(location.id);
       const completed = snapshot.completedLocationIds.has(location.id);
       const isNearest = nearestLocation?.id === location.id;
+      const passed = snapshot.state?.passedLessonSteps;
+      const lessonProgress = detail && location.kind === "lesson"
+        ? completed ? 1 : (Object.hasOwn(passed ?? {}, location.id) ? passed[location.id].length : 0)
+          / (location.steps?.length || 1)
+        : 0;
 
       if (isNearest) {
         const pulse = 1 + 0.14 * Math.sin(timeSeconds * 4.5);
@@ -590,8 +607,10 @@ export class CanvasRenderer {
         accessible,
         completed,
         zoom,
+        lessonProgress,
       });
 
+      if (overview) continue;
       context.save();
       context.textAlign = "center";
       context.textBaseline = "top";
@@ -608,9 +627,74 @@ export class CanvasRenderer {
       }
       context.restore();
     }
+    if (detail) this.#drawMapInvitations(snapshot, camera, timeSeconds, reducedMotion, debugState.showIds);
   }
 
-  #drawLocationMarker(location, position, { accessible, completed, zoom }) {
+  #drawMapInvitations(snapshot, camera, timeSeconds, reducedMotion, showIds) {
+    const context = this.context;
+    const scale = 1 / camera.zoom;
+    const cards = [];
+    for (const location of this.locations) {
+      if (!location.mapInvitation || !snapshot.visibleLocationIds.has(location.id)) continue;
+      const position = getLocationWorldPosition(location, this.worldIndex, WORLD_CONFIG.hexSize);
+      const x = (position.x - camera.x) * camera.zoom + this.width / 2;
+      const top = (position.y - camera.y) * camera.zoom + this.height / 2 + (showIds ? 57 : 44);
+      if (x < 0 || x > this.width || top < 0 || top + 18 > this.height) continue;
+      const layout = this.#invitationLayout(location.mapInvitation);
+      const width = Math.min(this.width - 8, layout.width + 12);
+      const height = layout.lines.length * 14 + 6;
+      if (width <= 12) continue;
+      const left = Math.max(4, Math.min(x - width / 2, this.width - width - 4));
+      const right = left + width;
+      if (top + height > this.height - 4 || cards.some((card) =>
+        left < card.right && right > card.left && top < card.bottom && top + height > card.top)) continue;
+      cards.push({ left, right, top, bottom: top + height });
+
+      if (!this.#invitationStarts.has(location.id)) this.#invitationStarts.set(location.id, timeSeconds);
+      let remaining = reducedMotion ? Infinity : 1 + Math.floor((timeSeconds - this.#invitationStarts.get(location.id)) * 34);
+      context.save();
+      context.translate(camera.x + (left - this.width / 2) * scale, camera.y + (top - this.height / 2) * scale);
+      context.scale(scale, scale);
+      context.fillStyle = "rgba(6, 16, 26, 0.94)";
+      drawRoundedRect(context, 0, 0, width, height, 5);
+      context.fill();
+      context.font = "600 11px system-ui, sans-serif";
+      context.fillStyle = "#f8e2ad";
+      context.textAlign = "left";
+      context.textBaseline = "top";
+      for (const [index, line] of layout.lines.entries()) {
+        const text = line.slice(0, Math.max(0, remaining)).join("");
+        context.fillText(text, 6, 4 + index * 14, width - 12);
+        remaining -= line.length;
+      }
+      context.restore();
+    }
+  }
+
+  #invitationLayout(text) {
+    let layout = this.#invitationLayouts.get(text);
+    if (layout) return layout;
+    const context = this.context;
+    const lines = [];
+    let line = "";
+    context.save();
+    context.font = "600 11px system-ui, sans-serif";
+    for (const word of text.split(/\s+/)) {
+      const next = line ? `${line} ${word}` : word;
+      if (line && context.measureText(next).width > 185) {
+        lines.push(line);
+        line = word;
+      } else line = next;
+    }
+    if (line) lines.push(line);
+    const width = Math.min(250, Math.max(0, ...lines.map((value) => context.measureText(value).width)));
+    context.restore();
+    layout = { width, lines: lines.map((value) => Array.from(value)) };
+    this.#invitationLayouts.set(text, layout);
+    return layout;
+  }
+
+  #drawLocationMarker(location, position, { accessible, completed, zoom, lessonProgress }) {
     const context = this.context;
     const lineScale = 1 / zoom;
     const radius = 17 * lineScale;
@@ -681,6 +765,14 @@ export class CanvasRenderer {
 
     context.fill();
     context.stroke();
+    if (lessonProgress > 0) {
+      const perimeter = 4 * Math.SQRT2 * radius;
+      context.strokeStyle = "#ffd166";
+      context.lineWidth = 3.1 * lineScale;
+      if (lessonProgress < 1) context.setLineDash([perimeter * lessonProgress, perimeter]);
+      context.stroke();
+      context.setLineDash([]);
+    }
     context.fillStyle = accessible ? "#ecfbff" : "rgba(190, 202, 210, 0.7)";
     context.font = `800 ${11.5 * lineScale}px system-ui, sans-serif`;
     context.textAlign = "center";

@@ -1,5 +1,6 @@
 import { axialDistance, pointInHex } from "../core/hex.js";
 import { ProgressStorage } from "../core/storage.js";
+import { normalizeMapInvitation } from "../core/map-invitations.js";
 import {
   DEFAULT_AREA_APPEARANCE,
   sameAreaAppearance,
@@ -765,6 +766,27 @@ export class EditorModel {
     target.title = title;
     target.shortTitle = shortTitle;
     return this.#commit(candidate, "location-renamed", { locationId, title, shortTitle });
+  }
+
+  updateMapInvitation(locationId, value) {
+    const current = this.document.locations.find(({ id }) => id === locationId);
+    if (!current || current.lifecycle !== "active") {
+      return mutationFailure(this, "map-invitation-unavailable", [
+        localIssue("map-invitation-unavailable", "Selecciona un nodo activo del mapa."),
+      ]);
+    }
+    const mapInvitation = normalizeMapInvitation(value);
+    if (mapInvitation === null) {
+      return mutationFailure(this, "invalid-map-invitation", [
+        localIssue("invalid-map-invitation", "Escribe una frase breve en una sola línea."),
+      ]);
+    }
+    if (mapInvitation === (current.mapInvitation ?? "")) return this.#success(false, { locationId });
+    const candidate = structuredClone(this.document);
+    const target = candidate.locations.find(({ id }) => id === locationId);
+    if (mapInvitation) target.mapInvitation = mapInvitation;
+    else delete target.mapInvitation;
+    return this.#commit(candidate, "map-invitation-updated", { locationId });
   }
 
   updateLocationContent(locationId, source) {

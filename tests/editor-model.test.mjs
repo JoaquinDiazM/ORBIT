@@ -84,6 +84,21 @@ test("inicializa, persiste y entrega snapshots independientes", () => {
   assert.equal(second.locations[0].offset.x, 0);
 });
 
+test("Spider guarda y deshace una frase propia aun en un nodo con nombre protegido", () => {
+  const storage = new MemoryStorage();
+  const editor = model(storage);
+  const id = "field-lens-cache";
+  const before = location(editor.getSnapshot(), id);
+  assert.equal(editor.updateMapInvitation(id, "  Explora el campo  ").ok, true);
+  const after = editor.getSnapshot();
+  assert.deepEqual(location(after, id), { ...before, mapInvitation: "Explora el campo" });
+  assert.equal(after.locations.find((entry) => entry.id === id).mapInvitation, "Explora el campo");
+  assert.equal(location(model(storage).getSnapshot(), id).mapInvitation, "Explora el campo");
+  assert.equal(editor.updateMapInvitation(id, "x".repeat(81)).ok, false);
+  assert.equal(editor.undo().ok, true);
+  assert.deepEqual(location(editor.getSnapshot(), id), before);
+});
+
 test("el perfil estudiante consulta el borrador sin persistir ni mutar", () => {
   const storage = new MemoryStorage();
   const editor = new EditorModel({

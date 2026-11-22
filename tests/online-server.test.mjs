@@ -309,6 +309,38 @@ test("publicar conserva avance compatible y requiere decisión para invalidació
   assert.equal(newOffline.status, 200, JSON.stringify(newOffline.result));
 });
 
+test("la cuenta administradora publica solo la frase de mapa durante mantenimiento", async (t) => {
+  const setup = await fixture(t);
+  const runtime = await setup.start();
+  const { admin, teacher, student, course } = await provision(runtime);
+  const courseRoute = `/courses/${course.id}`;
+  const route = `/admin/courses/${course.id}/map-invitations`;
+  const target = "circuit-analysis-bench";
+  await teacher.request(`${courseRoute}/maintenance`, { method: "PUT", body: { enabled: false } });
+  const { result: progress } = await student.request(`${courseRoute}/progress`);
+  const completed = await student.request(`${courseRoute}/progress`, { method: "PUT", body: {
+    generation: progress.generation, revision: progress.revision, completedLocations: ["vector-workshop"],
+  } });
+  assert.equal(completed.status, 200);
+  const original = (await admin.request(route)).result;
+  assert.ok(original.locations.some(({ id }) => id === target));
+  assert.equal((await student.request(route)).status, 403);
+  const body = { baseRevision: original.revision, locationId: target, mapInvitation: "Análisis básico de circuitos RLC" };
+  const edit = (actor = admin, changes = body) => actor.request(route, { method: "PUT", body: changes });
+  assert.equal((await edit(teacher)).status, 403);
+  assert.equal((await edit()).result.error.code, "maintenance-required");
+  await teacher.request(`${courseRoute}/maintenance`, { method: "PUT", body: { enabled: true } });
+  assert.equal((await edit(admin, { ...body, title: "Otro título" })).status, 400);
+  const published = await edit();
+  assert.equal(published.status, 200, JSON.stringify(published.result));
+  assert.notEqual(published.result.revision, original.revision);
+  assert.deepEqual(runtime.store.snapshot().progress[0].completedLocations, ["vector-workshop"]);
+  const { result } = await teacher.request(`${courseRoute}/edition`);
+  const materialized = await materializeCourseEdition(result.edition);
+  assert.equal(materialized.locations.find(({ id }) => id === target).mapInvitation, body.mapInvitation);
+  assert.equal((await edit()).result.error.code, "revision-conflict");
+});
+
 test("CLI exige configuración explícita y secretos fuera de argumentos", async (t) => {
   assert.equal(parseServerArguments(["--help"]).command, "help");
   assert.throws(() => parseServerArguments(["init", "--data", "x", "--password", "secret"]), /Argumento/);

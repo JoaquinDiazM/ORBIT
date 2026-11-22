@@ -265,7 +265,7 @@ export async function resolveOnlineContext({
     }
   };
   if (session.user.role === "admin") {
-    mountAdminPanel({ api, session, root: shell, documentRef, onLogout });
+    mountAdminPanel({ api, session, root: shell, documentRef, onLogout, editMapInvitations: target === "editor" });
     return new Promise(() => {});
   }
   const course = await selectCourse({ session, shell, documentRef, windowRef, requestedCourseId, forceChoice: url.searchParams.get("chooseCourse") === "1", onLogout });

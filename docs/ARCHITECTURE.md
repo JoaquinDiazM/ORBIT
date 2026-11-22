@@ -93,8 +93,9 @@ claves pertenecen al modo estático:
 El progreso guarda lugares completados, conceptos, recompensas, transporte, ajustes, posición y
 overrides Debug. Zonas abiertas, fronteras, lugares visibles/accesibles y próxima misión se
 derivan. `settings.navigationMode` y `treeTwoVisualizationMode` son preferencias independientes.
-Etapas abiertas, respuestas parciales, parámetros de figuras/Gadgets, guía **NUEVO** e historial
-de regreso Directa son efímeros.
+Las etapas de lección superadas se guardan como IDs en el dispositivo con el perfil o cuenta,
+curso y revisión. La proporción del borde dorado se deriva de esos IDs y del nodo. Respuestas,
+intentos, parámetros de figuras/Gadgets, guía **NUEVO** e historial de regreso Directa son efímeros.
 
 Las migraciones de progreso conservan IDs y compatibilidad declarada por la edición. El alias
 histórico `normal` corresponde a Estudiante; un avance de otra revisión no se reactiva. Aplicar

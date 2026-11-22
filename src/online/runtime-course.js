@@ -105,6 +105,7 @@ export async function prepareOnlineRuntime(context, {
     courseRevision: course.courseRevision,
     settings: stored.settings,
     activeTransport: stored.activeTransport,
+    passedLessonSteps: stored.courseRevision === course.courseRevision ? stored.passedLessonSteps : undefined,
     // A changed map cannot safely reuse a previous Cartesian position.
     player: stored.courseRevision === course.courseRevision ? stored.player : undefined,
   } : null;

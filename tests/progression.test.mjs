@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { ProgressionModel } from "../src/core/progression.js";
+import { getLocationSteps } from "../src/core/location-steps.js";
 import { createWorldIndex, getAreaNeighbors } from "../src/core/world-graph.js";
 import { validateProjectData } from "../src/core/validator.js";
 import { AREAS } from "../src/data/world.js";
@@ -33,6 +34,24 @@ test("el perfil nuevo comienza solamente con el Campamento Base abierto", () => 
   assert.equal(progression.isLocationAccessible("vector-workshop"), true);
   assert.equal(progression.isLocationAccessible("field-lens-cache"), true);
   assert.equal(progression.isLocationAccessible("coulomb-observatory"), false);
+});
+
+test("las etapas de lección se retoman después de recargar y la finalización conserva sus reglas", () => {
+  const storage = new MemoryStorage();
+  const first = new ProgressionModel({ profile: "student", storage });
+  const lesson = first.locations.find(({ id }) => id === "vector-workshop");
+  const steps = getLocationSteps(lesson);
+  assert.ok(steps.length > 1);
+  assert.equal(first.passLessonStep(lesson.id, steps.at(-1).id), false);
+  assert.equal(first.passLessonStep(lesson.id, steps[0].id), true);
+  assert.equal(first.passLessonStep(lesson.id, steps[0].id), true);
+  assert.equal(first.isLocationCompleted(lesson.id), false);
+  assert.equal(first.isAreaUnlocked("electrostatics"), false);
+  const resumed = new ProgressionModel({ profile: "student", storage });
+  assert.deepEqual(resumed.getPassedLessonSteps(lesson.id), [steps[0].id]);
+  assert.equal(resumed.completeLocation(lesson.id).ok, true);
+  assert.deepEqual(resumed.getPassedLessonSteps(lesson.id), []);
+  assert.equal(resumed.isAreaUnlocked("electrostatics"), true);
 });
 
 test("la Terminal de Cartografía solo existe en el perfil debug", () => {

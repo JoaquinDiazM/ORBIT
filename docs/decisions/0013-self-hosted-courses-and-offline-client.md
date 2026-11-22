@@ -69,6 +69,9 @@ El servidor almacena únicamente finalizaciones por cuenta/curso/revisión; Owl 
 y finalización. El motor deriva conceptos, recompensas y apertura. No sincronizar posiciones,
 respuestas, intentos, preferencias personales ni concesiones de Debug. Las escrituras son
 idempotentes y no permiten que un curso o una cuenta sobrescriban otros.
+UPD-036 guarda los IDs de las etapas superadas de las lecciones en el dispositivo, con la
+cuenta, curso, revisión y generación del progreso local. La sincronización y Owl conservan
+el contrato de finalizaciones de nodos.
 
 Después de un acceso válido, el estudiante puede preparar este dispositivo para estudiar sin
 conexión. La copia de curso, el progreso y su identidad se aíslan por servidor/cuenta/curso.
@@ -100,6 +103,12 @@ revisiones desconocidas se rechazan sin borrar silenciosamente su copia local.
 La publicación online no ejecuta Git, no cambia archivos fuente del repositorio ni usa el
 coordinador local que reinicia los tres perfiles. La actualización del producto y la de un
 curso son operaciones distintas, ambas con copia previa y compatibilidad comprobada.
+
+UPD-036 añade la frase del mapamundi al documento editorial como texto opcional. Docentes
+asignados la editan desde Spider. Una cuenta administradora usa un control limitado en la
+vista administrativa de ORBIT Editor. Su operación comprueba la cuenta y la revisión en la
+transacción, publica durante mantenimiento y solo acepta la frase de un nodo activo. La
+publicación exige que las finalizaciones se conserven.
 
 ### Aplicación instalable y distribución
 

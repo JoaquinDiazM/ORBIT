@@ -1,6 +1,7 @@
 import { action, announce, field, node, setFormBusy, status } from "./ui.js";
+import { MAP_INVITATION_MAX_LENGTH } from "../core/map-invitations.js";
 
-export function mountAdminPanel({ api, session, root, documentRef = document, onLogout }) {
+export function mountAdminPanel({ api, session, root, documentRef = document, onLogout, editMapInvitations = false }) {
   if (session?.user?.role !== "admin") throw new Error("Esta vista requiere una cuenta administradora.");
   let destroyed = false;
   let generation = 0;
@@ -10,7 +11,12 @@ export function mountAdminPanel({ api, session, root, documentRef = document, on
   root.replaceChildren(
     node(documentRef, "h1", { text: "Administración de ORBIT" }),
     node(documentRef, "p", { text: `Cuenta administradora: ${session.user.alias}. Asigna docentes y cursos; Owl pertenece a cada docente.` }),
-    node(documentRef, "div", { className: "online-actions" }, [refreshButton, action(documentRef, "Cerrar sesión", onLogout)]),
+    node(documentRef, "div", { className: "online-actions" }, [
+      refreshButton,
+      editMapInvitations ? node(documentRef, "a", { href: "./index.html", text: "Volver a ORBIT" })
+        : node(documentRef, "a", { href: "./editor.html", text: "ORBIT Editor" }),
+      action(documentRef, "Cerrar sesión", onLogout),
+    ]),
     message, contents,
   );
 
@@ -45,6 +51,43 @@ export function mountAdminPanel({ api, session, root, documentRef = document, on
       return control.input;
     });
     return { group, selected: () => controls.filter((input) => input.checked).map((input) => input.value) };
+  }
+
+  function mapInvitations(course) {
+    const section = node(documentRef, "section", { className: "online-form" });
+    const route = `/admin/courses/${encodeURIComponent(course.id)}/map-invitations`;
+    const load = action(documentRef, "Cargar frases del mapamundi", async () => {
+      load.disabled = true;
+      try {
+        const data = await api.request(route);
+        if (destroyed) return;
+        const locations = data.locations;
+        const select = node(documentRef, "select", {}, locations.map(({ id, shortTitle }) =>
+          node(documentRef, "option", { value: id, text: shortTitle })));
+        const invitation = field(documentRef, "Frase del mapamundi", { maxlength: MAP_INVITATION_MAX_LENGTH });
+        const readSelection = () => {
+          invitation.input.value = locations.find(({ id }) => id === select.value)?.mapInvitation ?? "";
+        };
+        select.addEventListener("change", readSelection);
+        readSelection();
+        const form = node(documentRef, "form", { className: "online-form" }, [
+          node(documentRef, "label", { className: "online-field" }, [node(documentRef, "span", { text: "Nodo" }), select]),
+          invitation.label,
+          node(documentRef, "button", { type: "submit", text: "Publicar frase", disabled: !data.maintenance }),
+        ]);
+        if (!data.maintenance) form.append(node(documentRef, "p", { text: "Activa mantenimiento desde la cuenta docente para publicar la frase." }));
+        submit(form, () => api.request(route, { method: "PUT", body: {
+          baseRevision: data.revision, locationId: select.value, mapInvitation: invitation.input.value,
+        } }));
+        section.replaceChildren(node(documentRef, "h4", { text: "Frases del mapamundi" }), form);
+      } catch (error) {
+        if (!destroyed) announce(message, error.message, true);
+      } finally {
+        if (!destroyed) load.disabled = false;
+      }
+    });
+    section.append(load);
+    return section;
   }
 
   function render(overview) {
@@ -110,6 +153,7 @@ export function mountAdminPanel({ api, session, root, documentRef = document, on
         return api.request(`/admin/courses/${encodeURIComponent(course.id)}/teachers`, { method: "PUT", body: { teacherIds } });
       });
       courseSection.append(form);
+      if (editMapInvitations) courseSection.append(mapInvitations(course));
     }
     contents.replaceChildren(teacherSection, courseSection);
   }

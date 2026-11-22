@@ -182,6 +182,12 @@ de `lesson`, `mission` y `npc`. **Editar contenido** abre la fuente académica c
 plantillas y preview. La [guía de fuente](CONTENT_SOURCE_GUIDE.md) explica la sintaxis, el
 borrador recuperable y la matemática delimitada. Renombrar conserva el cuerpo.
 
+**Frase del mapamundi** guarda una línea breve de invitación en el borrador del nodo
+activo. Se muestra en ORBIT al acercar el mapa. Puedes dejarla vacía para retirarla.
+En un servidor docente, la cuenta administradora abre **ORBIT Editor → Cursos** y
+usa **Cargar frases del mapamundi**. La publicación se realiza durante el mantenimiento
+del curso. Los docentes asignados usan Spider y el flujo normal de publicación.
+
 Los agentes realizan la autoría y el preview en esa UI real; datos/JSON externos, modelos/API
 y pruebas headless no sustituyen el recorrido. El
 [procedimiento obligatorio](CONTENT_SOURCE_GUIDE.md#procedimiento-obligatorio-para-agentes)
