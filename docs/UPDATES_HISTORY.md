@@ -2572,3 +2572,197 @@ sucesivos que viajen en un sentido por cada trayectoria.
   la dirección, las conexiones continuas y discontinuas y «NUEVO». Cambiar entre Global y
   Directa. Con movimiento reducido, comprobar que los arcos permanecen y los pulsos, las
   estelas y el balanceo se desactivan.
+
+## ORBIT 1.1.1 — 2026-11-22
+
+- Estado de la cohorte: `publicado`
+- IDs: `UPD-036`, `UPD-037`
+- Commit de release: `818994b3c395f63f442e44b9342ddd749f195536`
+- Verificación remota: origin/main y refs/heads/main coincidieron con el commit de release.
+- Revalidación: npm run check con 702 pruebas aprobadas, cero fallos y dos omitidas.
+  El build contiene la revisión 664e52c7 de Electromagnetismo con 30 frases.
+- Fichas cotejadas con el manifiesto exacto del commit de release verificado.
+
+### UPD-036 — Zoom del mapamundi, avance por etapas y frases de los nodos
+
+- Estado: `publicado`
+- Tipo: `feature`
+- Versión publicada: `1.1.1`
+- Fecha: 2026-11-22.
+- Commit de release: `818994b3c395f63f442e44b9342ddd749f195536`
+- Resultado: Tres niveles de zoom, avance por etapas, frases editables y plantilla con 30 nodos.
+- Versión objetivo: `1.1.1`
+
+#### Solicitud original
+
+Al alejar el mapa deben leerse únicamente los nombres de zona, como Fourier, Base y Líneas.
+El zoom medio conserva la presentación actual. Al acercar, el perímetro del rombo de una
+lección se llena de dorado según sus etapas completadas y aparece una frase personalizada
+que se escribe de forma animada. Las misiones pasan a una sola actividad. Docentes y
+administradores pueden configurar la frase desde ORBIT Editor. El ejemplo para Banco de
+circuitos es «Análisis básico de circuitos RLC».
+
+#### Especificación elaborada por el agente
+
+- Zoom lejano: dejar solo los nombres de zona como texto del mapa. Ocultar los rótulos
+  de apertura/cierre y los de los nodos. Conservar los símbolos y la navegación.
+- Zoom medio: reproducir la presentación de 1.1.0. Zoom cercano: mantenerla y añadir
+  las frases de invitación y el avance de las lecciones. Comprobar ambos modos de navegación
+  y transiciones de zoom estables.
+- Guardar los identificadores de etapas completadas, incluidas las lecturas confirmadas
+  con Continuar. Vincularlos al curso, nodo y revisión con el alcance de la cuenta o
+  perfil. Al salir de la lección, recargar o reabrir en el mismo dispositivo, permitir
+  continuar en la primera etapa pendiente. El borde dorado recorre una fracción del
+  rombo igual al avance. Una lección ya completada muestra el borde lleno.
+- Alcance confirmado: conservar el avance parcial en el dispositivo. El servidor
+  continúa sincronizando la finalización del nodo. El avance por etapas no concede
+  recompensas ni satisface prerrequisitos por sí solo. Preservar IDs y guardados existentes.
+- Mostrar una misión como actividad única, con una finalización y sin contador de
+  etapas. La plantilla publicada contiene tres misiones y cada una ya tiene una sola
+  actividad. Comprobar compatibilidad con documentos anteriores y sus evaluaciones.
+- Una frase breve y personalizada por nodo del mapa, configurada en ORBIT Editor y
+  asociada a la edición del curso. Al entrar en zoom cercano, escribirla una vez al
+  mostrarse. Con movimiento reducido, mostrarla completa de inmediato. Respetar
+  la visibilidad del nodo y la legibilidad cuando hay varios juntos.
+- Docentes de cursos asignados y administradores autenticados pueden editar la frase.
+  Verificar permisos en el servidor y acotar el nuevo permiso del administrador a ese
+  campo. Conservar el flujo editorial y de publicación de revisiones. El ejemplo
+  corresponde a `circuit-analysis-bench` y se prepara por la interfaz de Editor.
+- Dependencias: `ContentView` conserva el avance parcial en memoria. La persistencia debe
+  pasar por `ProgressionModel` y `ProgressStorage`. Los cambios de permisos/editor online
+  requieren complementar [ADR 0013](docs/decisions/0013-self-hosted-courses-and-offline-client.md).
+- Condición de JoaquinDiazM del 2026-11-22 sobre la aprobación funcional: completar las
+  frases de todos los nodos activos de Electromagnetismo antes del release y el changelog.
+  Se preparan desde Spider sobre las bases respectivas de la plantilla y del curso de
+  pruebas de Crab. Se preservan IDs, fuentes académicas, prerrequisitos, inventario,
+  cuentas y finalizaciones online. La incorporación editorial requiere la aplicación
+  humana prescrita por la política de autoría.
+
+#### Implementación y revisión
+
+- Base revisada: `14b5a12f3d501a4517c966f0b21b6f7af6f8e52a`, cierre publicado de 1.1.0.
+- Rutas propias: renderer de ORBIT, `ProgressionModel`, `ContentView`, Editor y rutas online de
+  frases. Pruebas de integración de contenido, renderer, progreso, Editor y servidor.
+- Resultado: tres niveles de zoom, borde proporcional de lección, avance parcial guardado
+  por perfil/cuenta, curso y revisión en el dispositivo, e invitaciones de texto con escritura
+  animada. Las misiones usan una actividad sin navegación por etapas. Docentes editan frases
+  en Spider y la cuenta administradora publica solo ese campo durante mantenimiento.
+- Pruebas automáticas: `npm run check` con 701 aprobadas, dos omitidas y cero fallos.
+  Se verificaron persistencia, reanudación, proporción del borde, movimiento reducido,
+  compatibilidad del Editor y una publicación administrativa aislada con «Análisis básico
+  de circuitos RLC» que conservó finalizaciones. Rechazó cuentas sin permiso, cambios fuera
+  del campo y una revisión desfasada.
+- Preflight del entorno: build `0d70696cc838572453e076c463ce56b50754382cffa56941d991b18fadf1b0d7` generado en una copia retirada tras comparar
+  fuentes y módulos de `dist`. El proceso de desarrollo existente (PID 16780, iniciado
+  desde Bash) ocupa el origen canónico. Nueve recursos coincidieron byte a byte con el
+  checkout y devolvieron HTTP 200 y `Cache-Control: no-store`. Sin lock, journal, tombstone
+  ni proceso de ORBIT iniciado por el agente.
+- Revisión manual humana: instrucciones iniciales en Edge InPrivate. Abrir ORBIT como Estudiante desde
+  el servidor visible de VS Code, recorrer los tres niveles de zoom, completar una etapa
+  de Taller Vectorial y recargar para verificar el borde y la reanudación. En Editor,
+  seleccionar un nodo en Spider → Modificar y guardar la frase. Verificar su aparición al
+  acercarse en un curso de prueba publicado. La frase de Banco de circuitos se usó en
+  automatización aislada y queda como ejemplo para introducir desde Editor durante la
+  revisión humana. El puerto canónico ocupado impidió una sesión de autoría aislada de agente.
+- Solicitud de revisión del 2026-11-22: JoaquinDiazM probará en Crab que un Docente pueda
+  publicar la frase en mantenimiento y reabrir el curso en la misma sesión del servidor.
+  Revisará la frase como Estudiante tras recargar en línea.
+- Preparación del ensayo online: `~/.local/share/orbit-manual-1.1.1-revision-noM3G1` en Crab
+  contiene el paquete verificado de la candidata y una copia restaurada del curso, con sus
+  cuentas y cuatro registros de avance. El arranque humano se hace con `./prueba iniciar`.
+  La prueba automática adicional de la cohorte ejercitó mantenimiento, publicación
+  compatible por Docente, reapertura y descarga de la frase actualizada por Estudiante
+  en una misma instancia.
+- Aprobación funcional comunicada por JoaquinDiazM el 2026-11-22 tras el ensayo online.
+  Confirmó el cierre limpio del servidor tras probar en Crab. La cohorte cerró con ambos IDs
+  aprobados una vez verificada la aplicación de las frases.
+
+#### Frases de Electromagnetismo
+
+- Bases: plantilla `sha256:69b473310f63fb8bb81e41d26eea6955d9f9b16c7f4a2b0430c92b96d709eb0a`
+  y curso de Crab `sha256:877c6269880089f01965760d626aeb05a71c5f11309a735e5c9a67ab24be8cea`.
+- Autoría: guardadas en **Spider → Modificar → Frase del mapamundi**. Se revisaron los
+  30 nodos activos de cada base y se conservó la frase de Taller Vectorial de Crab.
+  Banco de circuitos invita a calcular corriente y potencia en circuitos resistivos
+  porque eso cubre su fuente actual. Fasores se presenta como taller en preparación.
+- IDs: `base-camp`, `vector-workshop`, `debug-terminal`, `field-lens-cache`,
+  `coulomb-observatory`, `gauss-guide-post`, `circuit-analysis-bench`,
+  `differential-equations-lab`, `ampere-foundry`, `electric-cart-depot`,
+  `faraday-station`, `maxwell-archive`, `hertz-beacon`, `radio-skiff-hangar`,
+  `sensor-calibration-lab`, `rotating-machine-lab`, `power-network-station`,
+  `field-solver-lab`, `spectrum-workshop`, `optics-bench`, `shielding-chamber`,
+  `superconductivity-transition-lab`, `waveguide-mode-gallery`, `transmission-line-bench`,
+  `smith-chart-station`, `antenna-range`, `wireless-link-station`, `atacama-array`,
+  `lunar-relay` y `new-node-0001`.
+- Validación y preview: **Resumen** validó ambos borradores (19 zonas, 30 lugares,
+  20 conceptos). **Editar contenido** mostró la previsualización de los 24 nodos que
+  ofrecen ese control, sin editar su fuente académica.
+- Comprobación aislada: las dos exportaciones llegan a la revisión
+  `sha256:664e52c757c4d469b92e8d950373749d55ec1b53182f4532967265ccbb3b3d7c` y solo
+  cambian frases y fecha editorial frente a sus bases. No se detectaron finalizaciones
+  incompatibles. `npm run check` pasó con 702 pruebas aprobadas, cero fallos, dos
+  omisiones y build. La prueba online usa una frase distinta de la que trae la plantilla.
+- Preflight: autoría en copia temporal desde el navegador de Codex, separado de Edge,
+  con PID 27156 y Editor en `http://127.0.0.1:4173` (HTTP 200, `no-store`). Se cerraron
+  la pestaña y el proceso propios. Origen libre, sin lock, journal ni tombstone.
+  El build canónico previo a la aplicación coincide con la fuente vigente.
+- Archivo de trabajo: se completó en Spider la exportación de JoaquinDiazM desde Crab.
+  Se conservaron su frase de Taller Vectorial y los demás campos de la edición.
+- Confirmación de Crab: JoaquinDiazM publicó el curso completo y detuvo el servidor
+  limpiamente. La revisión en disco coincide con el JSON exportado desde Spider,
+  con los 30 nodos activos cubiertos y cuatro registros de avance. El historial de
+  compatibilidad no invalidó ninguna finalización.
+- Aplicación de la plantilla: importación y **Aplicar edición al curso** en el Editor
+  canónico con un perfil temporal de Edge. El plan mostró los tres perfiles sin
+  guardados. La comprobación del borrador y la comprobación de aplicación superaron
+  `npm run check`. La transacción finalizó con la misma revisión publicada en Crab.
+  Fuente, exportación de Spider, `dist` y `build-info.json` coincidieron.
+
+### UPD-037 — Pulir los arcos y la superposición de etiquetas del mapamundi
+
+- Estado: `publicado`
+- Tipo: `feature`
+- Versión publicada: `1.1.1`
+- Fecha: 2026-11-22.
+- Commit de release: `818994b3c395f63f442e44b9342ddd749f195536`
+- Resultado: Rótulos sobre los bordes y arcos direccionales con pulsos sin punta.
+- Versión objetivo: `1.1.1`
+
+#### Solicitud original
+
+Quitar la punta de flecha de las conexiones en ORBIT normal. Los pulsos muestran el
+sentido. Dibujar las etiquetas de zonas y nodos por encima de los bordes del mapamundi
+para que se lean completas.
+
+#### Especificación elaborada por el agente
+
+- Mantener los arcos, pulsos y estados de línea. Quitar la terminación de flecha.
+- Componer los rótulos de zona y nodo sobre los bordes en Global y Directa, respetando
+  la visibilidad de cada nivel de zoom de UPD-036.
+- El ajuste pertenece al mapa de ORBIT. La Red y sus prerrequisitos conservan sus reglas.
+- Caso de revisión: el borde punteado cruza el rótulo «Superconductividad» cerca de
+  «Carro eléctrico» en la captura entregada por JoaquinDiazM.
+
+#### Implementación y revisión
+
+- Base revisada: `14b5a12f3d501a4517c966f0b21b6f7af6f8e52a` (1.1.0 publicada), con
+  `6ca2b7d` (UPD-036) como base local inmediata.
+- Rutas propias: `src/game/renderer.js`, `src/game/learning-edge-visuals.js`,
+  `tests/runtime-course-integration.test.mjs` y `tests/online-server.test.mjs`.
+- Resultado: ORBIT dibuja los nombres y estados de zona después de las fronteras; los
+  textos del mapa tienen un contorno discreto. Los arcos conservan la forma y los pulsos
+  direccionales. El grafo académico, la apertura territorial y el zoom siguen sus reglas.
+- Pruebas automáticas: `npm run check` completado en copia aislada, con cero fallos y dos
+  casos omitidos. Se verificaron la superposición sobre el borde punteado, la dirección de
+  los pulsos, la ausencia de puntas y la publicación de la frase en un curso en marcha.
+- Preflight del entorno: puerto local 4173 asociado al proceso de desarrollo existente
+  (PID 38680). Los módulos de renderer, arcos y frases devolvieron HTTP 200 con
+  `Cache-Control: no-store` y coincidieron con las fuentes. Sin lock, journal ni tombstone
+  de autoría. Fuente, `dist` y `build-info.json` verificados al empaquetar el build
+  `8a6e598eb670629e9f61260ab95a77c7deeff110226e98be893209b0a2dac286`. En Crab se
+  verificaron los 505 archivos y cinco recursos HTTP en loopback con `no-store`.
+  Se cerró ese servidor de prueba y se retiraron los temporales de transferencia.
+- Revisión manual humana: aprobada por JoaquinDiazM el 2026-11-22 tras el ensayo
+  online compartido con UPD-036.
+- Observaciones del usuario: la captura mostró el título de zona parcialmente cubierto,
+  aunque el rótulo «Carro eléctrico» ya aparecía encima.
