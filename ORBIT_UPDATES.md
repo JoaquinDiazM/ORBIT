@@ -269,12 +269,13 @@ JoaquinDiazM asignó a 1.1.1 el zoom, el avance por etapas y las frases de mapam
 Autorizó UPD-036 con guardado parcial en el dispositivo y dejó abierta la cohorte el 2026-11-22.
 Autorizó UPD-037 y cerró la cohorte con ambos puntos el 2026-11-22.
 JoaquinDiazM aprobó ambos puntos y confirmó la publicación de las 30 frases en Crab.
+La publicación de la cohorte está en curso.
 
 ## Actualizaciones activas
 
 ### UPD-036 — Zoom del mapamundi, avance por etapas y frases de los nodos
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `1.1.1`
 
@@ -405,7 +406,7 @@ circuitos es «Análisis básico de circuitos RLC».
 
 ### UPD-037 — Pulir los arcos y la superposición de etiquetas del mapamundi
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `1.1.1`
 

@@ -2,6 +2,29 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [1.1.1] - 2026-11-22
+
+### Añadido
+
+- En zoom lejano, los títulos de zona son los únicos rótulos del mapamundi.
+  Al acercarlo se muestran el avance de cada lección mediante un borde dorado y
+  las frases de invitación con escritura animada.
+- La plantilla de Electromagnetismo incluye una frase en cada uno de sus 30 nodos
+  activos. Los docentes pueden editar las frases desde Spider. Los administradores
+  disponen de un control específico durante el mantenimiento del curso.
+
+### Cambiado
+
+- Las etapas superadas de una lección se guardan en el dispositivo para retomarla.
+  Cada misión se presenta como una sola actividad.
+- Los rótulos de zonas y nodos se dibujan por encima de los bordes del mapa.
+  Los arcos de la Red indican el sentido con pulsos y terminan sin punta de flecha.
+
+### Verificación
+
+- Cohorte cerrada `UPD-036` y `UPD-037`, aprobada por JoaquinDiazM.
+- La revisión de Electromagnetismo publicada en Crab conservó las finalizaciones.
+
 ## [1.1.0] - 2026-11-22
 
 ### Cambiado
