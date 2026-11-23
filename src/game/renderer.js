@@ -7,7 +7,7 @@ import {
   sanitizeAreaAppearance,
 } from "../core/area-appearance.js";
 import { axialToPixel, hexCorners, hexEdge } from "../core/hex.js";
-import { deriveKnowledgeGraphEdges } from "../core/knowledge-graph.js";
+import { deriveKnowledgeGraphEdges, isLearningLocation } from "../core/knowledge-graph.js";
 import {
   createWorldIndex,
   getLocationWorldPosition,
@@ -602,6 +602,7 @@ export class CanvasRenderer {
 
     for (const location of this.locations) {
       if (!snapshot.visibleLocationIds.has(location.id)) continue;
+      if (overview && !isLearningLocation(location)) continue;
       const position = getLocationWorldPosition(location, this.worldIndex, WORLD_CONFIG.hexSize);
       const accessible = snapshot.accessibleLocationIds.has(location.id);
       const completed = snapshot.completedLocationIds.has(location.id);

@@ -2630,7 +2630,7 @@ circuitos es «Análisis básico de circuitos RLC».
   corresponde a `circuit-analysis-bench` y se prepara por la interfaz de Editor.
 - Dependencias: `ContentView` conserva el avance parcial en memoria. La persistencia debe
   pasar por `ProgressionModel` y `ProgressStorage`. Los cambios de permisos/editor online
-  requieren complementar [ADR 0013](docs/decisions/0013-self-hosted-courses-and-offline-client.md).
+  requieren complementar [ADR 0013](decisions/0013-self-hosted-courses-and-offline-client.md).
 - Condición de JoaquinDiazM del 2026-11-22 sobre la aprobación funcional: completar las
   frases de todos los nodos activos de Electromagnetismo antes del release y el changelog.
   Se preparan desde Spider sobre las bases respectivas de la plantilla y del curso de

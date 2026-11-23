@@ -28,6 +28,7 @@ momento en que se tomó, no necesariamente la versión actual.
 - [0011 — Fuente académica y autoría de contenido](0011-academic-source-and-content-authoring.md)
 - [0012 — Navegación Global y Directa](0012-direct-world-navigation.md)
 - [0013 — Servidor docente y cliente instalable con estudio sin conexión](0013-self-hosted-courses-and-offline-client.md)
+- [0014 — Cliente de Windows con Tauri 2](0014-tauri-windows-client.md)
 
 ## Crear un ADR
 

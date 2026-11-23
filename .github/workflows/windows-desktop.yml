@@ -1,0 +1,102 @@
+name: Attach the ORBIT Windows installer
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: orbit-windows-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  desktop:
+    if: ${{ !github.event.release.prerelease }}
+    runs-on: windows-2025
+    permissions:
+      contents: write
+    env:
+      RUSTUP_TOOLCHAIN: '1.100.0'
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
+      RELEASE_DATE: ${{ github.event.release.published_at }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: rustup toolchain install 1.100.0 --profile minimal
+      - name: Test the desktop client
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml
+      - name: Build and sign the single x64 installer
+        env:
+          ORBIT_UPDATER_PUBKEY: ${{ vars.ORBIT_UPDATER_PUBKEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          if ($env:RELEASE_TAG -cne "v$version") {
+            throw "The release tag must match the version in package.json."
+          }
+          if ([string]::IsNullOrWhiteSpace($env:ORBIT_UPDATER_PUBKEY) -or
+              [string]::IsNullOrWhiteSpace($env:TAURI_SIGNING_PRIVATE_KEY)) {
+            throw "Configure the ORBIT updater signing pair before distribution."
+          }
+          $publicKey = $env:ORBIT_UPDATER_PUBKEY.Trim()
+          try { $decoded = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($publicKey)) }
+          catch { throw "ORBIT_UPDATER_PUBKEY must contain the Tauri .pub file." }
+          if ($decoded -cnotmatch '^untrusted comment: minisign public key\b') {
+            throw "ORBIT_UPDATER_PUBKEY must contain the public key only."
+          }
+          $overlay = Join-Path $env:RUNNER_TEMP 'orbit-updater.json'
+          @{
+            bundle = @{ createUpdaterArtifacts = $true }
+            plugins = @{ updater = @{ pubkey = $publicKey } }
+          } | ConvertTo-Json -Depth 6 -Compress | Set-Content -LiteralPath $overlay -Encoding utf8NoBOM
+          npm run desktop -- build --ci --target x86_64-pc-windows-msvc --config "$overlay" -- --locked
+      - name: Attach the installer before its update manifest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          $repo = 'JoaquinDiazM/ORBIT'
+          if ($env:GITHUB_REPOSITORY -ine $repo) {
+            throw "This build is configured for the official ORBIT release channel."
+          }
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $exe = @(Get-ChildItem src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis -File -Filter '*-setup.exe')
+          if ($exe.Count -ne 1) { throw "Expected one NSIS installer." }
+          $signature = (Get-Content -LiteralPath ($exe[0].FullName + '.sig') -Raw).Trim()
+          if (!$signature) { throw "The updater signature is missing." }
+          $decodedSignature = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($signature))
+          $versionPattern = '(?m)^trusted comment:[^\r\n]*\tversion:' + [regex]::Escape($version) + '(?=\t|\r?$)'
+          if ($decodedSignature -cnotmatch $versionPattern) {
+            throw "The updater signature does not identify this release version."
+          }
+          $name = 'orbit-windows-x64-setup.exe'
+          $manifestName = 'orbit-windows.json'
+          $assets = (gh release view $env:RELEASE_TAG --repo $repo --json assets | ConvertFrom-Json).assets.name
+          if ($assets -contains $manifestName) {
+            if ($assets -notcontains $name) { throw "The published manifest is missing its installer." }
+            exit 0
+          }
+          $setup = Join-Path $env:RUNNER_TEMP $name
+          $manifest = Join-Path $env:RUNNER_TEMP $manifestName
+          Copy-Item -LiteralPath $exe[0].FullName -Destination $setup
+          @{
+            version = $version
+            pub_date = $env:RELEASE_DATE
+            platforms = @{
+              'windows-x86_64' = @{
+                signature = $signature
+                url = "https://github.com/$repo/releases/download/$env:RELEASE_TAG/$name"
+              }
+            }
+          } | ConvertTo-Json -Depth 6 -Compress | Set-Content -LiteralPath $manifest -Encoding utf8NoBOM
+          gh release upload $env:RELEASE_TAG "$setup" --repo $repo --clobber
+          gh release upload $env:RELEASE_TAG "$manifest" --repo $repo

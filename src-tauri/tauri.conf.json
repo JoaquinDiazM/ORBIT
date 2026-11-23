@@ -1,0 +1,50 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "ORBIT",
+  "identifier": "io.github.joaquindiazm.orbit",
+  "version": "../package.json",
+  "build": {
+    "frontendDist": "../desktop"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "launcher",
+        "title": "ORBIT",
+        "width": 660,
+        "height": 610,
+        "minWidth": 410,
+        "minHeight": 410,
+        "center": true
+      }
+    ],
+    "security": {
+      "capabilities": ["launcher"],
+      "csp": "default-src 'none'; script-src 'self'; style-src 'self'; connect-src ipc: http://ipc.localhost; img-src 'self'; base-uri 'none'; form-action 'none'; frame-src 'none'; object-src 'none'"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "",
+      "endpoints": [
+        "https://github.com/JoaquinDiazM/ORBIT/releases/latest/download/orbit-windows.json"
+      ],
+      "requireSignedVersion": true,
+      "windows": { "installMode": "passive" }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": ["icons/icon.ico"],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["Spanish", "English"],
+        "startMenuFolder": "ORBIT"
+      },
+      "webviewInstallMode": { "type": "downloadBootstrapper", "silent": true }
+    }
+  }
+}

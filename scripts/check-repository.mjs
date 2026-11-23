@@ -12,6 +12,15 @@ const approvedDependencies = new Map([
     {
       field: "dependencies",
       decision: "docs/decisions/0005-local-katex-rendering.md",
+      label: "KaTeX",
+    },
+  ],
+  [
+    "@tauri-apps/cli",
+    {
+      field: "devDependencies",
+      decision: "docs/decisions/0014-tauri-windows-client.md",
+      label: "@tauri-apps/cli",
     },
   ],
 ]);
@@ -21,7 +30,8 @@ async function walk(directory, predicate = () => true) {
   const files = [];
   for (const entry of entries) {
     const absolute = resolve(directory, entry.name);
-    if (entry.isDirectory() && !ignoredDirectoryNames.has(entry.name)) {
+    if (entry.isDirectory() && !ignoredDirectoryNames.has(entry.name)
+      && displayPath(absolute) !== "src-tauri/target") {
       files.push(...(await walk(absolute, predicate)));
     } else if (entry.isFile() && predicate(absolute)) files.push(absolute);
   }
@@ -33,7 +43,7 @@ function displayPath(path) {
 }
 
 async function checkJavaScriptSyntax() {
-  const directories = ["src", "scripts", "tests"].map((entry) => resolve(root, entry));
+  const directories = ["src", "scripts", "tests", "desktop"].map((entry) => resolve(root, entry));
   const files = (
     await Promise.all(
       directories.map((directory) =>
@@ -102,8 +112,8 @@ async function checkPackagePolicy() {
       if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) {
         failures.push(`${field}.${packageName} debe usar una versión exacta; se encontró ${version}.`);
       }
-      if (!decisionText.includes(`KaTeX \`${version}\``)) {
-        failures.push(`${approval.decision} no respalda explícitamente KaTeX ${version}.`);
+      if (!decisionText.includes(`${approval.label} \`${version}\``)) {
+        failures.push(`${approval.decision} no respalda explícitamente ${approval.label} ${version}.`);
       }
     }
   }

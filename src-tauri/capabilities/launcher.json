@@ -1,0 +1,12 @@
+{
+  "identifier": "launcher",
+  "description": "Conexión y actualizaciones desde la pantalla local.",
+  "local": true,
+  "windows": ["launcher"],
+  "permissions": [
+    "allow-launcher-info",
+    "allow-connect-course",
+    "allow-check-updates",
+    "allow-install-update"
+  ]
+}

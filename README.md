@@ -59,6 +59,12 @@ esté adjunto a una release de GitHub, también se podrá obtener desde
 [Descargas de ORBIT](https://github.com/JoaquinDiazM/ORBIT/releases). Los estudiantes solo
 necesitan el enlace de su docente y la cuenta que reciban.
 
+## Cliente para Windows
+
+El cliente de escritorio ofrece un instalador x64 y actualizaciones dentro de ORBIT.
+La [guía de Windows](docs/DESKTOP_GUIDE.md) explica la conexión a cursos y la
+distribución del instalador firmado.
+
 ## Ejecutar el repositorio en modo estático
 
 Requisito del repositorio: Node.js 24 o posterior.

@@ -5,7 +5,7 @@ import { dirname, isAbsolute, relative, resolve } from "node:path";
 
 // Only repository inputs participate: no Git, sessions, backups, caches or existing build.
 const CHECK_INPUTS = [
-  "src", "scripts", "tests", "docs", "public", "asset_sources", ".github", "node_modules/katex",
+  "src", "scripts", "tests", "docs", "public", "desktop", "asset_sources", ".github", "node_modules/katex",
   "AGENTS.md", "README.md", "ORBIT_UPDATES.md", "CHANGELOG.md", "CONTRIBUTING.md",
   "LICENSE", "LICENSE-CONTENT.md", "package.json", "package-lock.json", "index.html", "editor.html",
   ".editorconfig", ".gitattributes", ".gitignore",

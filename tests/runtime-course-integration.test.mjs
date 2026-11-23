@@ -287,9 +287,17 @@ test("el zoom reúne nombres de zona, rótulos y detalle con progreso e invitaci
   const area = { id: "origin", q: 0, r: 0, title: "Campamento", shortTitle: "Base", color: "#214765", accent: "#8bdcf7" };
   const lesson = { id: "bench", areaId: area.id, kind: "lesson", shortTitle: "Banco", marker: "L",
     offset: { x: 0, y: 0 }, steps: [{ id: "read" }, { id: "apply" }], mapInvitation: "Explora el circuito" };
-  const renderer = new CanvasRenderer(createCanvas(context), { areas: [area], locations: [lesson] });
+  const mission = { id: "mission", areaId: area.id, kind: "mission", shortTitle: "Misión",
+    marker: "M", offset: { x: 100, y: 0 } };
+  const lateral = ["base", "debug", "npc", "transport", "gadget"].map((kind, index) => ({
+    id: kind, areaId: area.id, kind, shortTitle: kind, marker: String(index),
+    offset: { x: 50 + index * 25, y: 60 },
+  }));
+  const locations = [lesson, mission, ...lateral];
+  const renderer = new CanvasRenderer(createCanvas(context), { areas: [area], locations });
   const snapshot = { activeTransport: { id: "walk" }, unlockedAreaIds: new Set([area.id]),
-    visibleLocationIds: new Set([lesson.id]), accessibleLocationIds: new Set([lesson.id]),
+    visibleLocationIds: new Set(locations.map(({ id }) => id)),
+    accessibleLocationIds: new Set(locations.map(({ id }) => id)),
     completedLocationIds: new Set(), state: { passedLessonSteps: { bench: ["read"] } } };
   const render = (zoom, timeSeconds, reducedMotion = false) => {
     calls.length = 0;
@@ -297,8 +305,11 @@ test("el zoom reúne nombres de zona, rótulos y detalle con progreso e invitaci
       debugState: {}, timeSeconds, reducedMotion });
     return calls.filter(([name]) => name === "fillText").map(([, text]) => text);
   };
-  assert.deepEqual(render(0.4, 1), ["Base", "L"]);
-  assert.deepEqual(render(0.88, 2), ["Base", "ZONA ABIERTA", "L", "Banco"]);
+  assert.deepEqual(render(0.4, 1), ["Base", "L", "M"]);
+  assert.deepEqual(render(0.88, 2), [
+    "Base", "ZONA ABIERTA", "L", "Banco", "M", "Misión",
+    ...lateral.flatMap(({ marker, shortTitle }) => [marker, shortTitle]),
+  ]);
   const boundary = calls.findLastIndex(([name, style]) => name === "set:strokeStyle" && style.startsWith("rgba(255, 161, 87,"));
   assert.ok(boundary >= 0);
   for (const label of ["Base", "ZONA ABIERTA", "Banco"]) {

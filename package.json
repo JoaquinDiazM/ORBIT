@@ -22,7 +22,8 @@
     "validate": "node scripts/validate-content.mjs",
     "build": "node scripts/build.mjs",
     "check": "npm run validate && npm test && npm run repo-check && npm run build",
-    "repo-check": "node scripts/check-repository.mjs"
+    "repo-check": "node scripts/check-repository.mjs",
+    "desktop": "tauri"
   },
   "engines": {
     "node": ">=24"
@@ -30,5 +31,8 @@
   "license": "MIT",
   "dependencies": {
     "katex": "0.18.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.12.6"
   }
 }

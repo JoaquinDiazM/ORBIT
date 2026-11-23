@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ORBIT</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script type="module" src="./main.js"></script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>ORBIT</h1>
+        <p id="version" hidden></p>
+      </header>
+
+      <section aria-labelledby="connection-heading">
+        <h2 id="connection-heading">Conectarse a un curso</h2>
+        <form id="connect">
+          <label for="server">Dirección del servidor</label>
+          <p id="server-hint">Pega el enlace HTTPS que recibiste. Iniciarás sesión dentro del curso.</p>
+          <div class="connection">
+            <input id="server" type="url" inputmode="url" autocomplete="off" spellcheck="false"
+              aria-describedby="server-hint" placeholder="https://" maxlength="2048" required disabled>
+            <button id="open-course" type="submit" disabled>Abrir ORBIT</button>
+          </div>
+        </form>
+        <p id="connection-status" role="status"></p>
+        <div class="vpn"><span>VPN institucional</span><span>Próximamente</span></div>
+      </section>
+
+      <section aria-labelledby="updates-heading">
+        <h2 id="updates-heading">Actualizaciones</h2>
+        <p id="update-status" role="status"></p>
+        <div class="actions">
+          <button id="check-updates" class="secondary" type="button" disabled>Buscar actualizaciones</button>
+          <button id="install-update" type="button" hidden>Instalar y reiniciar</button>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

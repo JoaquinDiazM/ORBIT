@@ -260,13 +260,17 @@ Sin propuestas pendientes de clasificar.
 
 ## Cohorte inmediata
 
-Sin cohorte inmediata.
+- Versión: `1.2.0`
+- Estado de la cohorte: `abierta`
+- IDs: `UPD-033`, `UPD-038`
+
+JoaquinDiazM autorizó ambos puntos el 2026-11-22.
 
 ## Actualizaciones activas
 
 ### UPD-033 — Cliente instalable para Windows con actualizaciones desde la aplicación
 
-- Estado: `propuesto`
+- Estado: `en-revision`
 - Tipo: `feature`
 - Versión objetivo: `1.2.0`
 
@@ -317,8 +321,10 @@ adicionales. El administrador puede inicializar su servidor con el procedimiento
 
 #### Preguntas bloqueantes
 
-- Si se necesita otra capa de acceso durante el piloto, confirmar qué identidad institucional
-  se usará. La primera propuesta usa el enlace HTTPS y las credenciales por curso de ORBIT.
+- Para el primer cliente, usar el enlace HTTPS y las credenciales del curso de ORBIT.
+  La VPN institucional queda como opción informativa.
+- La distribución firmada requiere la pareja de claves del mantenedor en GitHub Actions.
+  La prueba de un cliente de revisión puede usar una pareja descartable.
 
 #### Evaluación de memoria y portabilidad
 
@@ -348,9 +354,34 @@ adicionales. El administrador puede inicializar su servidor con el procedimiento
 - Alcance de 1.2.0: cliente Windows. Android, iOS, Linux y macOS corresponden a
   entregas posteriores.
 
+#### Implementación y revisión
+
+- Base revisada: `e2f29e12fb4367d69224b03c3d31d4cac37076f9`, cierre de 1.1.1.
+- Rutas propias: `desktop/`, `src-tauri/`, workflow de instalador, guía de Windows
+  y [ADR 0014](docs/decisions/0014-tauri-windows-client.md).
+- Resultado: instalador x64 por usuario, pantalla local para HTTPS y actualizaciones
+  y ventana del curso limitada a su origen. La conexión usa las credenciales del
+  curso. La opción **VPN institucional** es informativa. El workflow adjunta un
+  solo instalador y publica su manifiesto después.
+- Pruebas automáticas: `npm run check` con 702 aprobadas, cero fallos y dos omitidas.
+  Las dos pruebas Rust pasaron. Se generó un NSIS firmado con clave descartable y
+  se verificaron su firma, versión autenticada y rechazo al alterar el binario.
+  Con GitHub simulado se comprobó el orden de entrega y el manifiesto.
+- Preflight del entorno: se ejecutó el lanzador en Windows con perfil temporal de
+  WebView2. La pantalla mostró la opción VPN y rechazó una URL HTTP. Se generó
+  `artifacts/desktop-review/ORBIT-1.2.0-revision-windows-x64.exe` con la identidad
+  separada **ORBIT Revision** y SHA-256
+  `170e5bd118c0959659b575843bf5c9007174c3eed4bb9e9300b2b23b5d038cff`.
+  Esta candidata se compiló con GNU; GitHub compilará la distribución con MSVC.
+- Revisión manual humana: instalar la candidata y abrir el enlace HTTPS de Crab
+  como Estudiante y Docente. Verificar Editor, retorno a la pantalla de conexión
+  y recuerdo del enlace al reabrir. Falta probar instalación de una actualización
+  de extremo a extremo desde una versión anterior firmada y preparar la clave
+  oficial para la distribución.
+
 ### UPD-038 — Mostrar solo lecciones y misiones en el zoom lejano
 
-- Estado: `propuesto`
+- Estado: `en-revision`
 - Tipo: `feature`
 - Versión objetivo: `1.2.0`
 
@@ -371,7 +402,19 @@ ocultar los marcadores de los lugares que no sean lecciones o misiones.
 
 #### Implementación y revisión
 
-- Resultado: pendiente de autorización e inicio de la cohorte 1.2.0.
+- Base revisada: `e2f29e12fb4367d69224b03c3d31d4cac37076f9`.
+- Rutas propias: `src/game/renderer.js` y `tests/runtime-course-integration.test.mjs`.
+- Resultado: el renderer común de Global y Directa filtra marcadores laterales antes
+  de dibujar su selección. Los filtros de progresión conservan sus reglas.
+- Pruebas automáticas: regresión con lección, misión y los cinco tipos laterales.
+  `npm run check` pasó, incluidas las pruebas de navegación Directa.
+- Preflight del entorno: 4173 libre y sin lock, journal ni tombstone. Un proceso
+  acotado devolvió HTTP 200 con `no-store` y archivos idénticos al checkout. El
+  build `507a15fe96c1884587ba96aa7021ba1ae4f06899eb9d471e7baf13e3e97dbade`
+  coincide con la fuente de renderer y edición.
+- Revisión manual humana: alejar al nivel mínimo en Global y Directa. Los títulos
+  de zona, lecciones y misiones siguen visibles. Al volver al zoom medio reaparecen
+  Base, Explorador 2D y los demás lugares visibles por progresión.
 
 ## Historial
 
