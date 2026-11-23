@@ -33,8 +33,7 @@ propuesta llega sin versión, regístrala con `auto` y pregunta en la checklist 
 ciclo a qué cohorte debe pertenecer.
 Mientras haya una cohorte abierta, incluye en la checklist la decisión de cerrarla.
 Cuando una revisión humana requiera iniciar un servicio, entrega en el chat los comandos
-para su shell y entorno. Distingue Bash UCRT64 en la laptop de la terminal Linux por SSH
-en Crab e indica el directorio, el enlace esperado y cómo apagar el servicio.
+para su shell y entorno. Indica el directorio, el enlace esperado y cómo detener el servicio.
 
 ## Estados permitidos
 
@@ -267,12 +266,14 @@ Sin propuestas pendientes de clasificar.
 
 JoaquinDiazM autorizó ambos puntos el 2026-11-22.
 El mismo día aprobó UPD-038 y confirmó la instalación y conexión de UPD-033.
+El 2026-11-23 confirmó la actualización de extremo a extremo, aprobó UPD-033
+y autorizó configurar la firma y publicar los paquetes en GitHub Releases.
 
 ## Actualizaciones activas
 
 ### UPD-033 — Cliente instalable para Windows con actualizaciones desde la aplicación
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `feature`
 - Versión objetivo: `1.2.0`
 
@@ -292,11 +293,9 @@ adicionales. El administrador puede inicializar su servidor con el procedimiento
   **VPN institucional · Próximamente**, sin solicitar credenciales.
 - Arquitectura propuesta: interfaz local de Tauri para elegir servidor y actualizar el
   cliente. Abrir ORBIT en una vista separada del mismo origen HTTPS que usa hoy y limitar
-  los permisos nativos a la interfaz local. Para Crab, publicar solo el servicio de ORBIT
-  mediante un túnel saliente con nombre estable. Escuchar en loopback y ejecutar el servicio
-  con una cuenta propia sin privilegios administrativos. Reservar SSH para operadores.
-  Verificar el rol y el curso en cada operación autorizada, limitar intentos de inicio de
-  sesión y comprobar las copias de seguridad. Esta propuesta no cambia el despliegue.
+  los permisos nativos a la interfaz local. El equipo que aloje cursos debe usar un origen
+  HTTPS estable y ejecutar el servicio con una cuenta sin privilegios administrativos.
+  El servidor comprueba el rol y el curso y limita intentos de inicio de sesión.
 - La aplicación comprueba las versiones publicadas, descarga una actualización firmada,
   verifica su autenticidad e instala al reiniciar. El avance, los borradores y la configuración
   se conservan entre versiones compatibles. El usuario solo descarga manualmente el instalador
@@ -377,16 +376,17 @@ adicionales. El administrador puede inicializar su servidor con el procedimiento
   Esta candidata se compiló con GNU; GitHub compilará la distribución con MSVC.
 - Revisión manual humana: JoaquinDiazM confirmó el 2026-11-22 que la instalación
   por el protocolo estándar y la conexión funcionaron con las rutas predeterminadas.
-  Sigue pendiente validar la actualización desde una instalación anterior firmada.
+  El 2026-11-23 confirmó que la app instalada permaneció operativa en 1.1.1 al
+  rechazar la copia modificada y que el segundo intento instaló 1.2.0 y reinició
+  correctamente. Aprobó UPD-033.
 - Ensayo aislado del 2026-11-23: el actualizador de Tauri en 1.1.1 descargó y verificó
   por HTTPS local el instalador firmado de 1.2.0. Rechazó el binario modificado y el
   manifiesto con una versión que no coincidía con la firma, y no ofreció 1.1.0.
-  Los instaladores de ensayo tienen identidad propia y una clave descartable. Queda
-  pendiente comprobar la instalación y el reinicio desde Windows con ese instalador.
-  El kit local está en `artifacts/updater-review`. Su servidor devuelve una copia
-  alterada en la primera descarga y el instalador firmado en la segunda.
-- Firma oficial: al verificar los nombres de GitHub Actions, todavía faltaban
-  `ORBIT_UPDATER_PUBKEY` y `TAURI_SIGNING_PRIVATE_KEY`.
+  Los instaladores de ensayo usaron identidad propia y una clave descartable.
+- Firma oficial: configuradas `ORBIT_UPDATER_PUBKEY` y `TAURI_SIGNING_PRIVATE_KEY`
+  en GitHub Actions. Se verificó la lectura del respaldo cifrado fuera del repositorio.
+- Documentación de distribución: el README principal guía la instalación y el
+  README de administración documenta HTTPS, cuentas, copias y actualización del servidor.
 
 ### UPD-038 — Mostrar solo lecciones y misiones en el zoom lejano
 

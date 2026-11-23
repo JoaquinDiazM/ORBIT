@@ -2161,7 +2161,7 @@ Este update es inicialmente para orientarme sobre como lanzar el producto y post
   requisitos, identidad del paquete y guion humano. Candidata servidor Windows/Linux, cuentas
   por curso, Owl, mantenimiento, compatibilidad, sincronización y PWA; modo estático conservado.
   Sin contenido académico nuevo, dependencias adicionales, aumento de versión, changelog ni push.
-  El ensayo remoto usó geminga como jdiaz, sin sudo; Windows fue WarMachine2.
+  Se verificó la ejecución del paquete extraído en Windows y Linux.
 - Activación del 2026-10-29: leída la autorización y la nueva observación del usuario, se
   precisaron flujo offline/online, monitor y cinco decisiones en el chat. El punto vuelve a
   `faltan-detalles` por los contratos pendientes anteriores, como permite la propia solicitud.
@@ -2182,8 +2182,7 @@ Este update es inicialmente para orientarme sobre como lanzar el producto y post
 - Revisión manual humana: el 2026-11-21, JoaquinDiazM comunicó en el chat que probó la 1.0.0,
   que el resultado fue satisfactorio y que la aprobaba como alfa. Mencionó errores y trabajo
   pendiente en persistencia y contenido. Su reporte no detalla el resultado individual de
-  los pasos del informe ni acredita el piloto ampliado. El ensayo de servidor futuro usará
-  Crab y la aplicación se seguirá probando localmente en la laptop.
+  los pasos del informe ni acredita el piloto ampliado.
 - Observaciones del usuario: Pregunta 1 -> El equipo docente debe de proveer la "maquina" del servidor, ya sea una IP + puerto o lo que sea usual, este proyecto no se hace cargo de sostener un servidor global, pero si debe entregar las facilidades para que los docentes puedan instalar el servidor de su curso con soltura. Pregunta 3 -> Precisamente, hay que concretar todo eso, cambia el estado de este update continuamente a faltan-detalles para que afinemos esos detalles.
 - Observaciones del usuario 2: A pesar de que cambie el estado a autorizado no espero que realmente se pueda todavia, asi que en esta activacion no tengas miedo de mover el estado a faltan detalles nuevamente. Los nuevos detalles que he pensado es que quiero que esta version la pueda probar un docente en cooperacion un tester (Voy a ser yo mismo con dos maquinas diferentes). El esquema de esta version, que podria cambiar en el futuro, es que el docente instala ORBIT como se indica en el readme principal (El cual deberia ser actualizado con esta nueva informacion que te estoy dando), luego arma su curso ya que a este punto deberia tener acceso a ORBIT Editor pre-eliminarmente local (O lo importa, es lo que haria yo si probara ORBIT por primera vez. Es mejor modificar un curso ya coonstruido que usar las herramientas de ORBIT editor, todavia muy limitadas), posteriormente el docente en una maquina o servidor del cual este disponga podra lanzar en una terminal (Usando una screen por ejemplo) el curso ONLINE y obtendra un enlace para que el mismo pueda acceder (A ORBIT y la version online de ORBIT Editor) y los estudiantes tambien (Es posible que tengas que entrar en la tarea de diseñar una interfaz inicial de logeo, recuerda que no es necesario el registro ya que el propio profesor debe proveer dicha informacion a cada estudiante. Sobre lo segundo es posible que ORBIT Editor, particularmente el local, tenga la capacidad de crear usuarios con sus respectivas contraseñas. Añadir a ORBIT Editor una opcion de monitor para ver como le va a los estudiantes, uno monitor basico. Para mantener el esquema de animales en los submenus del editor podrias llamar a esta opcion Owl, aqui tambien puedes incluir la capacidad de crear/destruir/resetear cuentas de estudiantes). El estudiante deberia de poder empezar su experiencia con el link que el docente tendra una vez lanze el curso online en la terminal y el usuario con contraseña que tambien va a proveer el docente. El modo de ORBIT Editor "local" no necesitamos usarlo solo cuando se inicia porprimera vez un curso, tambien cuando el docente usa el boton de apagar servidor o iniciar mantencion para hacer cambios imposibles de hacer online. De hecho el modo "local" no me gusta como suena, definamos mejor modo offline y online, mas simple. Es posible que los docentes quieran lanzar el curso online en una maquina dentro de un entorno universitario protegido y que los estudiantes tengan que conectarse primero a una VPN, cuando hagas este update piensa en ese caso.
 - Observaciones del usuario 3: A las preguntas bloqueantes les falta detalle, esta vez durante la activacion envia las preguntas pertinentes y yo te dare la politica. En general el mensaje es reducir el alcance y simplificar, la version 1.0.0 es un producto minimo viable, pero lo estamos convirtiendo en algo muy high-end.
@@ -2193,11 +2192,9 @@ Este update es inicialmente para orientarme sobre como lanzar el producto y post
   dispositivo diferente a este para hacer pruebas.»
 - Respuestas de cuentas del chat: «Alias y contraseña; recuperación por docente» y «El docente
   crea cada cuenta y la matricula».
-- Observación adicional de JoaquinDiazM del 2026-11-21: mantuvo el servidor en Crab más de
-  dos días, creó un curso, un docente y varios estudiantes, y completó el recorrido desde
-  varias cuentas de estudiante. Abrió ORBIT mediante el enlace en Edge y luego en la
-  aplicación instalada desde Edge. Después comunicó pérdida de acceso y dificultad al
-  relanzar la instancia de ensayo.
+- Observación adicional de JoaquinDiazM del 2026-11-21: probó el servidor durante más
+  de dos días con cuentas de docente y de estudiante y confirmó el acceso desde Edge
+  y su aplicación instalada. Después comunicó dificultades al relanzar.
 
 ## ORBIT 1.0.1 — 2026-11-22
 
@@ -2216,14 +2213,13 @@ Este update es inicialmente para orientarme sobre como lanzar el producto y post
 - Versión publicada: `1.0.1`
 - Fecha: 2026-11-22.
 - Commit de release: `98b7c7c20787ad6a372dc030c0580ef53f649b37`
-- Resultado: Relanzamiento de Crab con datos conservados, diagnóstico y reintento acotado.
+- Resultado: relanzamiento con datos conservados, diagnóstico y reintento acotado.
 - Versión objetivo: `1.0.1`
 
 #### Solicitud original
 
-El mantenedor ejecutó el servidor en Crab durante más de dos días. Después perdió el acceso y
-tuvo dificultades para volver a iniciarlo o crear otra instancia. Quiere corregir ese flujo y
-entender qué ocurrió.
+El mantenedor perdió el acceso al servidor de ensayo tras más de dos días de uso y tuvo
+fallos al relanzarlo. Solicitó recuperar el acceso y diagnosticar la interrupción.
 
 #### Especificación elaborada por el agente
 
@@ -2231,11 +2227,10 @@ entender qué ocurrió.
   curso, cuentas y avances.
 - Decisión confirmada: JoaquinDiazM autorizó UPD-028 en el chat el 2026-11-21.
 - Criterios de aceptación: distinguir en terminal la inicialización del relanzamiento con datos
-  existentes. Mostrar el enlace vigente y explicar cuándo cambia. Evitar que la vigencia del
-  certificado interno de dos días interrumpa el acceso al ensayo y facilitar el diagnóstico
-  de futuros fallos del puente, del túnel o del servidor.
-- Invariantes: preservar el directorio de datos y los permisos. Mantener la verificación TLS
-  y un único escritor por directorio. Crab es el entorno de prueba del servidor.
+  existentes. Mostrar el enlace vigente, evitar interrupciones por caducidad de certificados
+  y facilitar el diagnóstico de futuros fallos.
+- Invariantes: preservar el directorio de datos, los permisos, la verificación TLS y un
+  único escritor por directorio.
 - Fuera de alcance: cambiar el despliegue, la persistencia del producto o asignar una URL pública fija.
 
 #### Preguntas bloqueantes
@@ -2244,54 +2239,37 @@ entender qué ocurrió.
 
 #### Implementación y revisión
 
-- Diagnóstico del 2026-11-21: el historial muestra dos arranques satisfactorios con
-  `./prueba iniciar`, cada uno con un enlace temporal distinto y seguido de un cierre con
-  `Ctrl+C`. El siguiente intento fue `./prueba init`, que rechazó un directorio ya
-  inicializado e indicó `./prueba iniciar`. El archivo de estado seguía presente en Crab.
-- El lanzador anterior de Crab creaba un certificado TLS interno con dos días de vigencia y el
-  puente exigía validarlo. Con el mismo puente y certificados de prueba, un certificado vigente produjo
-  HTTP 200 y uno vencido produjo HTTP 502 mientras el servidor TLS seguía activo. Este mecanismo
-  encaja con el plazo observado. El registro disponible de la caída no permite confirmar si
-  ocurrió exactamente así en la sesión original.
+- Diagnóstico del 2026-11-21: el directorio de datos seguía válido. El comando de
+  inicialización detectó el estado existente y orientó al operador al relanzamiento.
+  Una prueba controlada reprodujo un fallo de acceso con un certificado vencido,
+  compatible con lo observado. No se pudo confirmar la causa de la sesión original.
 - Base revisada: `4c30f388a250053ab4831c58d481214991c6a2cd`, igual a `origin/main`.
-- Rutas propias: `launch.mjs` y `gateway.mjs` en `~/.local/share/orbit-manual-1.0.0/` de Crab,
-  más `ORBIT_UPDATES.md`, `docs/SERVER_GUIDE.md` y `docs/ROADMAP.md` en el checkout.
-- Resultado: el lanzador de Crab genera una clave nueva por arranque, usa un certificado interno de 3650
-  días y retira ambos archivos tras leerlos. El puente valida el certificado de esa sesión.
-  El arranque informa que el enlace es temporal, `init` orienta al curso existente y el
-  terminal distingue las señales de cierre y los errores del puente y del túnel.
-  La [guía del servidor](SERVER_GUIDE.md#relanzar-con-los-datos-existentes) explica el flujo.
-- Pruebas automáticas: en Crab, la simulación a siete días aceptó el certificado corregido.
-  El puente devolvió HTTP 200 con el certificado propio y HTTP 502 con uno ajeno, dejando
-  el código TLS en el terminal. Dos ejecuciones de `./prueba iniciar` en una raíz temporal
-  generaron enlaces HTTPS distintos. Tras iniciar sesión con la misma cuenta sintética se
-  recuperaron el mismo curso y sus 22 finalizaciones. Los procesos 39310 y 39342 cerraron con
-  `SIGINT` y liberaron sus locks. `init` rechazó el directorio existente con una instrucción
-  de relanzamiento y los bytes del estado se conservaron.
+- Rutas propias: lanzador de ensayo y documentación de relanzamiento.
+- Resultado: el lanzador informa el enlace vigente, distingue causas de cierre y muestra
+  errores específicos. La [guía del servidor](SERVER_GUIDE.md#relanzar-con-los-datos-existentes)
+  explica cómo relanzar con los mismos datos.
+- Pruebas automáticas: el lanzador aceptó una conexión con un certificado vigente y
+  rechazó uno distinto. Dos arranques consecutivos recuperaron el mismo curso y sus
+  22 finalizaciones. Se liberaron los locks al cerrar. El comando de inicialización
+  orientó al usuario a relanzar con los mismos datos y el archivo de estado se conservó.
   En el repositorio, `npm run check` en copia aislada, 689 aprobadas,
   cero fallos y dos omisiones por permisos de symlinks en Windows. La configuración de fuente
   y build coincidió, con build `9a972e22028f605f6c41bd4211ef72a135a4f469fe18ced226acfe67ed4c7713`.
-- Preflight del entorno: el lanzador instalado verificó los 499 archivos del paquete de ensayo en Crab,
-  con build `e6259a594166191eb2ee5e1f0ff06d7d6a70c79bc9ede8bfd093670624b043d5`. Las peticiones
-  de prueba comprobaron `Cache-Control: no-store`. Se retiró la raíz temporal, los dos túneles
-  y sus procesos. Los hashes de `datos/state.json` y `datos/previous.json` se conservaron.
-  En la laptop, 4173 estaba libre y no se detectaron lock, journal ni tombstone de autoría.
-  La revisión de UPD-028 usa el paquete existente en Crab.
+- Preflight del entorno: el paquete de ensayo pasó la verificación de integridad y los
+  sondeos comprobaron `Cache-Control: no-store`. Los procesos de ensayo se cerraron,
+  los archivos de estado conservaron su huella y el origen de autoría quedó libre.
 - Revisión manual humana: aprobada por JoaquinDiazM el 2026-11-22. El recorrido funcionó.
   Un intento de inicio agotó la espera con «The operation was aborted» y el siguiente arrancó
   sin cambios de configuración. El mantenedor pidió corregir este detalle dentro de UPD-028
   sin repetir el recorrido manual.
 - Corrección del 2026-11-22: el lanzador reconoce el timeout aunque la espera produzca
   un error de aborto. Indica la etapa, libera los recursos y hace un único reintento.
-  Conserva el último timeout en `ultimo-timeout.json` en el directorio del lanzador, con fecha,
-  etapa e intento. Los diagnósticos anteriores se mostraban en terminal y no se conservó
-  un log del incidente original.
+   Registra la fecha, la etapa y el intento del último timeout. No se conservó un log
+   del incidente original.
 - Revalidación aislada: se reprodujo el mensaje original al interrumpir la espera de
   la respuesta por HTTPS. El candidato se recuperó en el segundo intento con el puente
   y TLS reales. Dos timeouts consecutivos terminaron con diagnóstico persistente. Ambos
-  escenarios conservaron los datos sintéticos y liberaron los locks. Se actualizó solo el
-  lanzador para arranques futuros y se comprobó que la instancia de `code002` seguía con
-  el mismo PID. Sus páginas públicas devolvieron HTTP 200 en la comprobación de solo lectura.
+   escenarios conservaron los datos sintéticos y liberaron los locks.
 
 ### UPD-029 — Iconos para los menús de ORBIT Editor
 
@@ -2373,8 +2351,7 @@ Reubicar los datos del dispositivo y el cierre de sesión. Mostrar «Online» en
   aislado creó dos cursos y diez estudiantes, y verificó 22 actividades estudiadas offline.
 - Preflight del entorno: mismo build que UPD-029. Los sondeos de `/` y del módulo de
   sesión respondieron 200 y `Cache-Control: no-store`. Se cerró el ensayo y se liberó el
-  lock. Se conservan datos sintéticos en `%TEMP%/ORBIT-1.0.1-revision-P6y1w1/datos`
-  para revisión humana. La instancia de Crab queda a cargo del mantenedor.
+   lock. Se conservaron datos sintéticos separados para revisión humana.
 - Revisión manual humana: aprobada por JoaquinDiazM el 2026-11-22. Tras corregir el comando para
   Bash UCRT64, el mantenedor aprobó ambos puntos. El guion indicaba iniciar desde una terminal
   local y visible de VS Code
@@ -2419,7 +2396,7 @@ que coincida en futuras publicaciones.
 #### Implementación y revisión
 
 - Base revisada: `f9c3e755caabd12a4115d5327ffcf1a616aa7258`, publicación 1.0.1. La
-  etiqueta del mapa de esa copia se veía como `v1.0.1`. No se inspeccionó la instalación de Crab.
+   etiqueta del mapa de esa copia se veía como `v1.0.1`.
 - Rutas propias: `scripts/set-release-version.mjs`, `scripts/build.mjs`,
   `scripts/package-server.mjs`, `tests/release-version.test.mjs` y `docs/SERVER_GUIDE.md`.
 - Resultado: el comando de release sincroniza el paquete, el lockfile y `APP_CONFIG`. El
@@ -2634,7 +2611,7 @@ circuitos es «Análisis básico de circuitos RLC».
 - Condición de JoaquinDiazM del 2026-11-22 sobre la aprobación funcional: completar las
   frases de todos los nodos activos de Electromagnetismo antes del release y el changelog.
   Se preparan desde Spider sobre las bases respectivas de la plantilla y del curso de
-  pruebas de Crab. Se preservan IDs, fuentes académicas, prerrequisitos, inventario,
+   pruebas. Se preservan IDs, fuentes académicas, prerrequisitos, inventario,
   cuentas y finalizaciones online. La incorporación editorial requiere la aplicación
   humana prescrita por la política de autoría.
 
@@ -2664,25 +2641,17 @@ circuitos es «Análisis básico de circuitos RLC».
   acercarse en un curso de prueba publicado. La frase de Banco de circuitos se usó en
   automatización aislada y queda como ejemplo para introducir desde Editor durante la
   revisión humana. El puerto canónico ocupado impidió una sesión de autoría aislada de agente.
-- Solicitud de revisión del 2026-11-22: JoaquinDiazM probará en Crab que un Docente pueda
-  publicar la frase en mantenimiento y reabrir el curso en la misma sesión del servidor.
-  Revisará la frase como Estudiante tras recargar en línea.
-- Preparación del ensayo online: `~/.local/share/orbit-manual-1.1.1-revision-noM3G1` en Crab
-  contiene el paquete verificado de la candidata y una copia restaurada del curso, con sus
-  cuentas y cuatro registros de avance. El arranque humano se hace con `./prueba iniciar`.
-  La prueba automática adicional de la cohorte ejercitó mantenimiento, publicación
-  compatible por Docente, reapertura y descarga de la frase actualizada por Estudiante
-  en una misma instancia.
+- Revisión solicitada el 2026-11-22: publicar la frase como docente durante mantenimiento,
+  reabrir el curso y verificar la frase actualizada como estudiante. Una prueba automática
+  aislada recorrió esos pasos en una misma instancia.
 - Aprobación funcional comunicada por JoaquinDiazM el 2026-11-22 tras el ensayo online.
-  Confirmó el cierre limpio del servidor tras probar en Crab. La cohorte cerró con ambos IDs
-  aprobados una vez verificada la aplicación de las frases.
+  Ambos IDs quedaron aprobados después de verificar la aplicación de las frases.
 
 #### Frases de Electromagnetismo
 
-- Bases: plantilla `sha256:69b473310f63fb8bb81e41d26eea6955d9f9b16c7f4a2b0430c92b96d709eb0a`
-  y curso de Crab `sha256:877c6269880089f01965760d626aeb05a71c5f11309a735e5c9a67ab24be8cea`.
+- Base de la plantilla: `sha256:69b473310f63fb8bb81e41d26eea6955d9f9b16c7f4a2b0430c92b96d709eb0a`.
 - Autoría: guardadas en **Spider → Modificar → Frase del mapamundi**. Se revisaron los
-  30 nodos activos de cada base y se conservó la frase de Taller Vectorial de Crab.
+  30 nodos activos y se conservó la frase de Taller Vectorial del docente.
   Banco de circuitos invita a calcular corriente y potencia en circuitos resistivos
   porque eso cubre su fuente actual. Fasores se presenta como taller en preparación.
 - IDs: `base-camp`, `vector-workshop`, `debug-terminal`, `field-lens-cache`,
@@ -2706,16 +2675,13 @@ circuitos es «Análisis básico de circuitos RLC».
   con PID 27156 y Editor en `http://127.0.0.1:4173` (HTTP 200, `no-store`). Se cerraron
   la pestaña y el proceso propios. Origen libre, sin lock, journal ni tombstone.
   El build canónico previo a la aplicación coincide con la fuente vigente.
-- Archivo de trabajo: se completó en Spider la exportación de JoaquinDiazM desde Crab.
-  Se conservaron su frase de Taller Vectorial y los demás campos de la edición.
-- Confirmación de Crab: JoaquinDiazM publicó el curso completo y detuvo el servidor
-  limpiamente. La revisión en disco coincide con el JSON exportado desde Spider,
-  con los 30 nodos activos cubiertos y cuatro registros de avance. El historial de
-  compatibilidad no invalidó ninguna finalización.
+- Archivo de trabajo: se completó en Spider la exportación del docente y se conservaron
+  los demás campos de la edición. JoaquinDiazM confirmó la publicación del curso y la
+  conservación de todas sus finalizaciones.
 - Aplicación de la plantilla: importación y **Aplicar edición al curso** en el Editor
   canónico con un perfil temporal de Edge. El plan mostró los tres perfiles sin
   guardados. La comprobación del borrador y la comprobación de aplicación superaron
-  `npm run check`. La transacción finalizó con la misma revisión publicada en Crab.
+   `npm run check`. La transacción finalizó con la misma revisión del curso publicado.
   Fuente, exportación de Spider, `dist` y `build-info.json` coincidieron.
 
 ### UPD-037 — Pulir los arcos y la superposición de etiquetas del mapamundi
@@ -2759,9 +2725,8 @@ para que se lean completas.
   (PID 38680). Los módulos de renderer, arcos y frases devolvieron HTTP 200 con
   `Cache-Control: no-store` y coincidieron con las fuentes. Sin lock, journal ni tombstone
   de autoría. Fuente, `dist` y `build-info.json` verificados al empaquetar el build
-  `8a6e598eb670629e9f61260ab95a77c7deeff110226e98be893209b0a2dac286`. En Crab se
-  verificaron los 505 archivos y cinco recursos HTTP en loopback con `no-store`.
-  Se cerró ese servidor de prueba y se retiraron los temporales de transferencia.
+   `8a6e598eb670629e9f61260ab95a77c7deeff110226e98be893209b0a2dac286`. El paquete de ensayo
+   pasó la comprobación de integridad y las respuestas HTTP incluyeron `no-store`.
 - Revisión manual humana: aprobada por JoaquinDiazM el 2026-11-22 tras el ensayo
   online compartido con UPD-036.
 - Observaciones del usuario: la captura mostró el título de zona parcialmente cubierto,

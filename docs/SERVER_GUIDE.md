@@ -1,11 +1,11 @@
 # ORBIT: instalación y operación del servidor docente
 
-**ORBIT 1.1.1 alfa.** Esta guía acompaña al paquete portable. Para los ensayos de la alfa,
-usa cuentas y datos de prueba. La evidencia se mantiene en el repositorio.
+Esta guía acompaña al paquete portable. Usa cuentas y datos de prueba para comprobar
+el despliegue antes de abrir un curso.
 
 ## Qué necesita cada persona
 
-- Estudiante: enlace del docente, alias y contraseña; Edge o Chrome si desea instalar la aplicación.
+- Estudiante: enlace del docente, alias y contraseña. Puede usar el navegador o el cliente Windows.
 - Docente: navegador y acceso a su curso. Puede preparar borradores sin Internet en Editor offline.
 - Administrador: máquina Windows/Linux con Node.js 24, almacenamiento privado y conectividad.
   No es necesario instalar npm, Python o dependencias adicionales al usar el paquete portable.
@@ -134,9 +134,11 @@ y permisos antes de unir finalizaciones. Si la sesión caducó, vuelve a ingresa
 eliminada no puede recrearse al sincronizar. Un dispositivo que permanece desconectado no puede
 recibir de inmediato una baja o el cierre por mantenimiento.
 
-Una actualización de la aplicación se prepara aparte y entra al cerrar todas sus ventanas y
-abrirla de nuevo. No vacía avances. Una descarga incompleta conserva la copia anterior. Los
-mensajes sobre copia del curso y sesión indican si todavía queda progreso por sincronizar.
+La aplicación instalada desde el navegador se actualiza al cerrar todas sus ventanas y
+abrirla de nuevo. Una descarga incompleta conserva la copia anterior. Los mensajes sobre
+copia del curso y sesión indican si todavía queda progreso por sincronizar.
+En Windows también puedes instalar el cliente descargable, que se actualiza desde su menú
+**Servidor y actualizaciones**. [Descargar ORBIT](https://github.com/JoaquinDiazM/ORBIT/releases).
 
 ## Custodia y actualizaciones
 
