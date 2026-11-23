@@ -261,10 +261,12 @@ Sin propuestas pendientes de clasificar.
 ## Cohorte inmediata
 
 - Versión: `1.2.0`
-- Estado de la cohorte: `abierta`
+- Estado de la cohorte: `cerrada`
 - IDs: `UPD-033`, `UPD-038`
+- Cierre confirmado por JoaquinDiazM: 2026-11-22.
 
 JoaquinDiazM autorizó ambos puntos el 2026-11-22.
+El mismo día aprobó UPD-038 y confirmó la instalación y conexión de UPD-033.
 
 ## Actualizaciones activas
 
@@ -373,15 +375,22 @@ adicionales. El administrador puede inicializar su servidor con el procedimiento
   separada **ORBIT Revision** y SHA-256
   `170e5bd118c0959659b575843bf5c9007174c3eed4bb9e9300b2b23b5d038cff`.
   Esta candidata se compiló con GNU; GitHub compilará la distribución con MSVC.
-- Revisión manual humana: instalar la candidata y abrir el enlace HTTPS de Crab
-  como Estudiante y Docente. Verificar Editor, retorno a la pantalla de conexión
-  y recuerdo del enlace al reabrir. Falta probar instalación de una actualización
-  de extremo a extremo desde una versión anterior firmada y preparar la clave
-  oficial para la distribución.
+- Revisión manual humana: JoaquinDiazM confirmó el 2026-11-22 que la instalación
+  por el protocolo estándar y la conexión funcionaron con las rutas predeterminadas.
+  Sigue pendiente validar la actualización desde una instalación anterior firmada.
+- Ensayo aislado del 2026-11-23: el actualizador de Tauri en 1.1.1 descargó y verificó
+  por HTTPS local el instalador firmado de 1.2.0. Rechazó el binario modificado y el
+  manifiesto con una versión que no coincidía con la firma, y no ofreció 1.1.0.
+  Los instaladores de ensayo tienen identidad propia y una clave descartable. Queda
+  pendiente comprobar la instalación y el reinicio desde Windows con ese instalador.
+  El kit local está en `artifacts/updater-review`. Su servidor devuelve una copia
+  alterada en la primera descarga y el instalador firmado en la segunda.
+- Firma oficial: al verificar los nombres de GitHub Actions, todavía faltaban
+  `ORBIT_UPDATER_PUBKEY` y `TAURI_SIGNING_PRIVATE_KEY`.
 
 ### UPD-038 — Mostrar solo lecciones y misiones en el zoom lejano
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `feature`
 - Versión objetivo: `1.2.0`
 
@@ -412,9 +421,9 @@ ocultar los marcadores de los lugares que no sean lecciones o misiones.
   acotado devolvió HTTP 200 con `no-store` y archivos idénticos al checkout. El
   build `507a15fe96c1884587ba96aa7021ba1ae4f06899eb9d471e7baf13e3e97dbade`
   coincide con la fuente de renderer y edición.
-- Revisión manual humana: alejar al nivel mínimo en Global y Directa. Los títulos
-  de zona, lecciones y misiones siguen visibles. Al volver al zoom medio reaparecen
-  Base, Explorador 2D y los demás lugares visibles por progresión.
+- Revisión manual humana: aprobado por JoaquinDiazM el 2026-11-22. El guion de
+  revisión cubrió los marcadores de lecciones y misiones al alejar en Global y
+  Directa, y la recuperación de los marcadores laterales al volver al zoom medio.
 
 ## Historial
 
