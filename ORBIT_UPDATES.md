@@ -273,7 +273,7 @@ y autorizó configurar la firma y publicar los paquetes en GitHub Releases.
 
 ### UPD-033 — Cliente instalable para Windows con actualizaciones desde la aplicación
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `1.2.0`
 
@@ -390,7 +390,7 @@ adicionales. El administrador puede inicializar su servidor con el procedimiento
 
 ### UPD-038 — Mostrar solo lecciones y misiones en el zoom lejano
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `1.2.0`
 

@@ -2,6 +2,25 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [1.2.0] - 2026-11-23
+
+### Añadido
+
+- Cliente de ORBIT para Windows x64 con un instalador descargable y actualizaciones
+  verificadas dentro de la aplicación. Conecta con los cursos mediante su dirección HTTPS.
+- Guía de administración para desplegar el servidor, configurar HTTPS y mantener los datos.
+
+### Cambiado
+
+- En el zoom más alejado, el mapamundi conserva los títulos de zona y solo muestra los
+  marcadores visibles de lecciones y misiones. Los demás marcadores reaparecen al acercarse.
+
+### Verificación
+
+- Cohorte cerrada `UPD-033` y `UPD-038`, aprobada por JoaquinDiazM.
+- La prueba de Windows confirmó la conexión, el rechazo de una descarga alterada y
+  la instalación y el reinicio al recibir la actualización firmada.
+
 ## [1.1.1] - 2026-11-22
 
 ### Añadido
