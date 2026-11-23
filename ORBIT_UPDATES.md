@@ -268,12 +268,13 @@ Sin propuestas pendientes de clasificar.
 JoaquinDiazM asignó a 1.1.1 el zoom, el avance por etapas y las frases de mapamundi.
 Autorizó UPD-036 con guardado parcial en el dispositivo y dejó abierta la cohorte el 2026-11-22.
 Autorizó UPD-037 y cerró la cohorte con ambos puntos el 2026-11-22.
+JoaquinDiazM aprobó ambos puntos y confirmó la publicación de las 30 frases en Crab.
 
 ## Actualizaciones activas
 
 ### UPD-036 — Zoom del mapamundi, avance por etapas y frases de los nodos
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `feature`
 - Versión objetivo: `1.1.1`
 
@@ -358,8 +359,8 @@ circuitos es «Análisis básico de circuitos RLC».
   compatible por Docente, reapertura y descarga de la frase actualizada por Estudiante
   en una misma instancia.
 - Aprobación funcional comunicada por JoaquinDiazM el 2026-11-22 tras el ensayo online.
-  Confirmó el cierre limpio del servidor tras probar en Crab. La lista de la cohorte sigue
-  cerrada y la publicación espera la aplicación del contenido solicitado en este mismo ID.
+  Confirmó el cierre limpio del servidor tras probar en Crab. La cohorte cerró con ambos IDs
+  aprobados una vez verificada la aplicación de las frases.
 
 #### Frases de Electromagnetismo
 
@@ -390,10 +391,17 @@ circuitos es «Análisis básico de circuitos RLC».
   con PID 27156 y Editor en `http://127.0.0.1:4173` (HTTP 200, `no-store`). Se cerraron
   la pestaña y el proceso propios. Origen libre, sin lock, journal ni tombstone.
   El build canónico previo a la aplicación coincide con la fuente vigente.
-- Handoff: se conservaron las exportaciones temporales `ORBIT-1.1.1-frases-electromagnetismo-plantilla.json`
-  y `ORBIT-1.1.1-frases-electromagnetismo-Crab.json`. JoaquinDiazM aplica la plantilla
-  desde el Editor canónico y publica el otro borrador como Docente en mantenimiento
-  de Crab. En ORBIT online el cambio de frases debe preservar las finalizaciones.
+- Archivo de trabajo: se completó en Spider la exportación de JoaquinDiazM desde Crab.
+  Se conservaron su frase de Taller Vectorial y los demás campos de la edición.
+- Confirmación de Crab: JoaquinDiazM publicó el curso completo y detuvo el servidor
+  limpiamente. La revisión en disco coincide con el JSON exportado desde Spider,
+  con los 30 nodos activos cubiertos y cuatro registros de avance. El historial de
+  compatibilidad no invalidó ninguna finalización.
+- Aplicación de la plantilla: importación y **Aplicar edición al curso** en el Editor
+  canónico con un perfil temporal de Edge. El plan mostró los tres perfiles sin
+  guardados. La comprobación del borrador y la comprobación de aplicación superaron
+  `npm run check`. La transacción finalizó con la misma revisión publicada en Crab.
+  Fuente, exportación de Spider, `dist` y `build-info.json` coincidieron.
 
 ### UPD-037 — Pulir los arcos y la superposición de etiquetas del mapamundi
 
@@ -523,6 +531,31 @@ adicionales. El administrador puede inicializar su servidor con el procedimiento
   [Reglas de revisión de Apple](https://developer.apple.com/app-store/review/guidelines/).
 - Alcance de 1.2.0: cliente Windows. Android, iOS, Linux y macOS corresponden a
   entregas posteriores.
+
+### UPD-038 — Mostrar solo lecciones y misiones en el zoom lejano
+
+- Estado: `propuesto`
+- Tipo: `feature`
+- Versión objetivo: `1.2.0`
+
+#### Solicitud original
+
+En el nivel de zoom más alejado del mapamundi, donde se leen los nombres de zona,
+ocultar los marcadores de los lugares que no sean lecciones o misiones.
+
+#### Especificación elaborada por el agente
+
+- En zoom lejano, conservar los títulos de zona y los marcadores de lecciones y
+  misiones que ya sean visibles según la progresión. Ocultar los marcadores de
+  Base, Debug, personajes, transportes y gadgets; por ejemplo, Explorador 2D.
+- Recuperar la visualización habitual al volver a zoom medio o cercano.
+  Comprobar la transición en Global y Directa.
+- El ajuste corresponde al dibujo del mapamundi de ORBIT. Conservar los IDs,
+  el acceso por teclado, el movimiento libre y las reglas de la Red de aprendizaje.
+
+#### Implementación y revisión
+
+- Resultado: pendiente de autorización e inicio de la cohorte 1.2.0.
 
 ## Historial
 
