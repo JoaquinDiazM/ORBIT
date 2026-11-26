@@ -15,7 +15,7 @@ import {
 } from "../core/profile-policy.js";
 import { describeMissingRequirements, meetsRequirements } from "../core/requirements.js";
 import { StoragePersistenceError } from "../core/storage.js";
-import { renderMath } from "./math-renderer.js";
+import { createEquationFigure, renderMath } from "./math-renderer.js";
 import { playLocationCompletionCue } from "./audio-policy.js";
 import { GadgetHub } from "./gadget-hub.js";
 import { ContentView } from "./content-view.js";

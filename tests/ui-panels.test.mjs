@@ -2,11 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { APP_CONFIG } from "../src/config.js";
+import { ProgressionModel } from "../src/core/progression.js";
 import { StoragePersistenceError } from "../src/core/storage.js";
 import { CONCEPTS } from "../src/data/knowledge.js";
 import { LOCATIONS } from "../src/data/locations.js";
 import { AREAS } from "../src/data/world.js";
 import { UIController } from "../src/ui/ui-controller.js";
+import { installContentDOM } from "./helpers/content-dom.mjs";
 
 function makeNode(id, documentHarness) {
   const attributes = new Map();
@@ -363,6 +365,47 @@ test("la lección coexiste con menús secundarios, que siguen siendo exclusivos"
     assert.equal(getNode("visual-panel").hidden, true);
     assert.equal(getNode("help-panel").hidden, false);
   });
+});
+
+test("el Formulario dibuja las ecuaciones al completar Taller Vectorial", () => {
+  const dom = installContentDOM();
+  try {
+    const { document, getNode } = makeHarness();
+    const body = dom.document.createElement("div");
+    Object.assign(dom.document, {
+      addEventListener: document.addEventListener,
+      getElementById: document.getElementById,
+      querySelector: (selector) =>
+        selector === "#reference-body" ? body : document.querySelector(selector),
+      querySelectorAll: document.querySelectorAll,
+    });
+    const progression = new ProgressionModel({
+      profile: "student",
+      storage: { load: () => null, save() {}, clear() {} },
+    });
+    const controller = new UIController({ progression });
+
+    getNode("open-formulas").dispatch("click");
+    assert.equal(body.querySelector(".reference-count").textContent, "0 de 13 entradas disponibles");
+    assert.equal(body.querySelectorAll(".reference-card.locked").length, 13);
+
+    progression.completeLocation("vector-workshop");
+    assert.ok(progression.isLocationCompleted("vector-workshop"));
+    assert.equal(body.querySelector(".reference-count").textContent, "10 de 13 entradas disponibles");
+    const available = body.querySelectorAll(".reference-card.unlocked");
+    assert.equal(available.length, 10);
+    for (const card of available) {
+      assert.ok(card.querySelector("figure.equation-card math"));
+      assert.match(card.textContent, /Condiciones:/);
+    }
+    assert.equal(body.querySelectorAll(".reference-card.locked").length, 3);
+
+    controller.closePanel("reference-panel");
+    getNode("open-formulas").dispatch("click");
+    assert.equal(body.querySelectorAll(".reference-card.unlocked math").length, 10);
+  } finally {
+    dom.restore();
+  }
 });
 
 test("Gadgets es un panel secundario accesible y devuelve el foco a su botón", () => {
