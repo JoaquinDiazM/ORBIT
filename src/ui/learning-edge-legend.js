@@ -10,7 +10,7 @@ const PIXEL_RATIO = 2;
 export function createLearningEdgeLegend(canvases) {
   const samples = [];
   for (const canvas of canvases) {
-    const context = canvas.getContext("2d");
+    const context = canvas.getContext?.("2d");
     if (!context) continue;
     const width = canvas.width / PIXEL_RATIO;
     const height = canvas.height / PIXEL_RATIO;
