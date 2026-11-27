@@ -273,7 +273,7 @@ Sin propuestas pendientes de clasificar.
 
 ### UPD-046 — Cliente Android y controles táctiles de ORBIT
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `1.3.0`
 

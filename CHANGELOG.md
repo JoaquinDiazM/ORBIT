@@ -2,6 +2,27 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [1.3.0] - 2026-11-27
+
+### Añadido
+
+- ORBIT para Android en horizontal, con joystick fijo, toque sobre nodos al
+  alcance y doble toque sobre el mapa para viajar a zonas abiertas.
+- Acceso al contenido incluido desde el lanzador de Android y Windows.
+- En Android, acceso sin conexión a cursos preparados y guardados por cuenta.
+  Los estudiantes sincronizan su avance al reconectar. Docentes y administradores
+  conservan su avance de estudio en el dispositivo.
+
+### Limitación conocida
+
+- En Windows, abrir sin red un curso guardado del servidor puede quedarse en
+  «Conectando con ORBIT…». Abre esos cursos con conexión. La corrección está
+  prevista para 1.5.0.
+
+### Verificación
+
+- Cohorte cerrada `UPD-046`, aprobada por JoaquinDiazM con la limitación descrita.
+
 ## [1.2.4] - 2026-11-27
 
 ### Cambiado
