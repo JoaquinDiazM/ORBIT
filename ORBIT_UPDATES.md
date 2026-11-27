@@ -264,13 +264,16 @@ Sin propuestas pendientes de clasificar.
 
 ## Cohorte inmediata
 
-Sin cohorte inmediata.
+- Versión: `1.2.3`
+- Estado de la cohorte: `cerrada`
+- IDs: `UPD-041`, `UPD-042`
+- Cierre confirmado por JoaquinDiazM: 2026-11-27.
 
 ## Actualizaciones activas
 
 ### UPD-041 — Menú lateral retráctil y accesos de Contenido y Herramientas
 
-- Estado: `autorizado`
+- Estado: `aprobado`
 - Tipo: `feature`
 - Versión objetivo: `1.2.3`
 
@@ -306,15 +309,31 @@ de 1.2.3.
 
 #### Implementación y revisión
 
-- Base revisada: menú lateral de ORBIT 1.2.0.
-- Resultado: JoaquinDiazM autorizó el punto el 2026-11-27 para 1.2.3.
-- Pruebas automáticas: pendientes.
-- Preflight del entorno: pendiente.
-- Revisión manual humana: pendiente.
+- Base revisada: ORBIT 1.2.2, cierre documental `84412b1`.
+- Rutas propias: `index.html`, `src/styles.css`, `src/ui/ui-controller.js`,
+  `docs/USER_GUIDE.md`, `tests/startup.test.mjs` y `tests/ui-panels.test.mjs`.
+- Resultado: JoaquinDiazM autorizó el punto el 2026-11-27. Contenido tiene icono
+  de árbol y paneles independientes para Red y Zonas. Herramientas contiene los
+  cuatro accesos y usa π para Constantes. El menú se retrae a iconos con nombres
+  accesibles. `K` abre Red. Glosario y Ajustes quedan como accesos principales.
+  La exploración lateral y el inventario se muestran en Zonas. Commit `5608588`.
+- Pruebas automáticas: 31 comprobaciones focalizadas de arranque, paneles, foco,
+  navegación y preservación del Formulario. La suite `npm run check` de la cohorte
+  terminó con 710 aprobadas, 5 omitidas, validación de progresión y build correcto.
+- Preflight del entorno: el servicio de desarrollo existente en 127.0.0.1:4173,
+  PID 7348, devolvió HTTP 200 y `Cache-Control: no-store`, con HTML, estilos y
+  módulos idénticos a la fuente. El sondeo fue de solo lectura. No hay journal,
+  tombstone ni lock de autoría. El `dist` canónico preexistente es 1.2.0 y el dev
+  sirve `src/`. La compilación temporal aislada y el candidato 1.2.3 se construyeron
+  desde esta fuente.
+- Revisión manual humana: JoaquinDiazM aprobó UPD-041 en el chat el 2026-11-27.
+  El guion entregado para Edge externo con `npm run dev` cubría la contracción del
+  menú, los dos paneles de Contenido, los cuatro accesos de Herramientas, Glosario,
+  los atajos, el foco y el uso en una ventana estrecha.
 
 ### UPD-042 — Actualización asistida del servidor docente
 
-- Estado: `autorizado`
+- Estado: `aprobado`
 - Tipo: `infraestructura`
 - Versión objetivo: `1.2.3`
 
@@ -370,14 +389,41 @@ clientes de versiones distintas. Documentar el procedimiento en `README_ADMIN.md
 
 #### Implementación y revisión
 
-- Base revisada: ORBIT 1.2.1, respaldo y verificador de paquetes, más los contratos
-  de lanzamiento y sincronización del curso.
-- Resultado: JoaquinDiazM autorizó el punto el 2026-11-27. La prueba humana debe usar
-  una instalación de ensayo anterior y un paquete candidato verificable, y dejar
-  preparado el asistente para actualizar a 1.2.3 en el siguiente ciclo.
-- Pruebas automáticas: pendientes.
-- Preflight del entorno: pendiente.
-- Revisión manual humana: pendiente.
+- Base revisada: ORBIT 1.2.2, cierre documental `84412b1`, respaldo, verificador
+  de paquetes y contratos de lanzamiento y sincronización.
+- Rutas propias: asistente `scripts/update-server.mjs`, política de cliente, paquete
+  de servidor, cliente web y Windows, `README_ADMIN.md`, ADR 0013 y pruebas asociadas.
+- Resultado: JoaquinDiazM autorizó el punto el 2026-11-27. El asistente de Linux
+  cambia `current` bajo el lock del estado, desde GitHub o un candidato local con
+  huella adjunta. Permite conservar el respaldo y elegir compatibilidad normal o
+  versiones declaradas exactas. Los lanzadores antiguos que carecen de declaración
+  se comprueban como web. Windows servidor conserva el procedimiento manual. Commit
+  local `ba66709`.
+- Pruebas automáticas: 710 aprobadas y 5 omitidas en `npm run check` en Windows.
+  Las tres pruebas operativas de enlace pasaron en Linux. El asistente descargó
+  el release oficial 1.2.2 por etiqueta y lo activó sobre una instancia temporal
+  1.2.1. En otra instancia temporal cambió del paquete oficial 1.2.2 al candidato 1.2.3.
+  Comprobó rechazo con servidor activo, cancelación, respaldo, hash de estado
+  conservado, inicio de sesión y finalización ficticia, política exacta para web y
+  Windows declarado, y reintento idempotente. Una prueba posterior en una
+  pseudoterminal aislada verificó los prompts de contraseña, selección de release,
+  respaldo, compatibilidad y aplicación del mismo candidato. La integración nativa
+  de Windows queda pendiente de la compilación firmada.
+- Preflight del entorno: candidato local construido fuera del checkout canónico,
+  build `f90ac13c7e5d`, SHA-256
+  `75b328b023bb5448249809cf37646a3f678ce10b29af82367301b9ed619f58c2`.
+  Las instancias temporales del agente se cerraron y retiraron. Se conservan el
+  candidato y su checksum en `tmp/upd042-candidate-5802d1b757a7/` para la revisión.
+  El archivo transferido a la instancia de revisión superó la comprobación SHA-256.
+  Los procesos de desarrollo que ya estaban activos conservan su propietario.
+- Revisión manual humana: JoaquinDiazM aprobó UPD-042 en el chat el 2026-11-27.
+  El primer guion invocaba `init` por el enlace `current` y no creaba `datos/`.
+  Con el lanzador resuelto por `realpath`, inicializó la instancia separada,
+  vio el selector de release y lo interrumpió antes de descargar. Con el candidato
+  local vio ambos modos de compatibilidad, interrumpió un plan con Ctrl+C y
+  canceló otro con `n`. Luego aplicó 1.2.3 con respaldo persistente y versiones
+  exactas. Confirmó 507 archivos verificados, la misma huella de `state.json`,
+  un archivo de respaldo y `allowCompatibleClients: false`.
 
 ## Historial
 
