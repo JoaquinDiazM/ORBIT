@@ -2,6 +2,25 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [1.2.4] - 2026-11-27
+
+### Cambiado
+
+- Biblioteca reúne Gadgets, Formulario, Constantes, Símbolos y Glosario.
+- La Red distingue en el mapa y en la leyenda los arcos entre nodos completados,
+  hacia un nodo completable y hacia uno bloqueado. Los dos primeros animan
+  pulsos y los trazos grises permanecen estáticos.
+
+### Corregido
+
+- Al actualizar en Windows, el instalador da tiempo a que ORBIT cierre y
+  vuelve a abrir la aplicación cuando el reemplazo termina. Si el ejecutable
+  sigue ocupado, el instalador pide cerrar ORBIT y reintentar.
+
+### Verificación
+
+- Cohorte cerrada `UPD-043`, `UPD-044` y `UPD-045`, aprobada por JoaquinDiazM.
+
 ## [1.2.3] - 2026-11-27
 
 ### Cambiado

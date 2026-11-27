@@ -273,7 +273,7 @@ Sin propuestas pendientes de clasificar.
 
 ### UPD-043 — Biblioteca y Glosario en el menú lateral
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `1.2.4`
 
@@ -326,7 +326,7 @@ cambio a 1.2.4.
 
 ### UPD-044 — Tres estilos de conexión y leyenda animada
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `1.2.4`
 
@@ -368,12 +368,15 @@ completable → bloqueado.
   la arista causal y el funcionamiento de los tres filtros de la Red.
 - Pruebas automáticas: matriz de estados, filtros, transición Faraday → Maxwell,
   radios de pulsos, diferencias de trazado y leyenda con movimiento reducido.
+- Preflight del release: `npm run check` pasó en una copia aislada con 711
+  pruebas aprobadas y 5 omitidas en Windows. La validación de progresión,
+  la verificación del repositorio y el build de 1.2.4 también pasaron.
 - Revisión manual humana: JoaquinDiazM autorizó, aprobó y eximió la prueba
   humana adicional para esta cohorte el 2026-11-27.
 
 ### UPD-045 — Actualizar el cliente Windows sin reiniciar el equipo
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `bug`
 - Versión objetivo: `1.2.4`
 
