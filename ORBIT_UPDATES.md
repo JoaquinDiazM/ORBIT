@@ -264,108 +264,11 @@ Sin propuestas pendientes de clasificar.
 
 ## Cohorte inmediata
 
-- Versión: `1.3.0`
-- Estado de la cohorte: `cerrada`
-- IDs: `UPD-046`
-- Cierre confirmado por JoaquinDiazM: 2026-11-27.
+- Versión: `1.3.1`
+- Estado de la cohorte: `abierta`
+- IDs: `UPD-048`
 
 ## Actualizaciones activas
-
-### UPD-046 — Cliente Android y controles táctiles de ORBIT
-
-- Estado: `publicando`
-- Tipo: `feature`
-- Versión objetivo: `1.3.0`
-
-#### Solicitud original
-
-Preparar la edición de ORBIT para teléfonos Android como único update de 1.3.0.
-Adaptar la jugabilidad con un joystick, doble toque para teletransportarse y
-un toque para interactuar con un nodo al alcance. Las reglas del juego siguen
-siendo las actuales. Preparar las decisiones de diseño antes de implementar.
-
-#### Especificación elaborada por el agente
-
-- Objetivo observable: instalar ORBIT en un teléfono, abrir un curso con su
-  enlace HTTPS y jugar mediante controles táctiles durante una sesión normal.
-- Decisiones confirmadas: solo horizontal en Android, joystick fijo y doble
-  toque en el fondo. APK en GitHub y actualización del README principal.
-  Cualquier perfil puede iniciar el contenido local. Android permite reabrir
-  los cursos guardados por cuenta. Las copias de Docente y Admin
-  ofrecen estudio local del material publicado, con edición y gestión en línea.
-  JoaquinDiazM autorizó la implementación y una versión de prueba en GitHub
-  con un aviso visible que desaconseja descargarla hasta la release oficial.
-  Aprobó 1.3.0 con la limitación de reapertura offline en Windows, cuyo
-  seguimiento es `UPD-047` para 1.5.0.
-- Diseño: mapa horizontal en la primera alfa. Joystick fijo y
-  semitransparente abajo a la izquierda. Un toque sobre el marcador interactúa
-  con el nodo tocado si es accesible y el personaje está dentro de su radio.
-  Dos toques consecutivos sobre el fondo del mismo hexágono solicitan viajar
-  al centro de esa zona con la validación vigente. Pellizco para el zoom con
-  botones `+` y `−` como alternativa. Ante un panel, desplazamiento de texto
-  y teclado en pantalla tienen prioridad sobre los gestos del mapa.
-- Ruta técnica: interfaz web compartida y entrada táctil separada del teclado.
-  Android usa una actividad con WebView del sistema y contenido local empaquetado.
-  Windows incorpora una entrada al mismo contenido local empaquetado. Las vistas
-  de curso cargan el origen HTTPS de su servidor y conservan su almacenamiento
-  web. El servidor de ensayo servirá el paquete que habilita la interfaz común.
-- Distribución acordada: APK firmado en GitHub Releases. La prueba utiliza
-  un identificador separado y una clave desechable. Para la release oficial
-  se usará un `versionCode` ascendente y una clave persistente custodiada
-  fuera del repositorio.
-- Criterios de aceptación propuestos: el joystick permite movimiento continuo
-  y se neutraliza al soltar, cancelar, cambiar de aplicación o abrir un panel.
-  El toque abre solo el nodo tocado, dentro de su radio y con sus requisitos
-  satisfechos. El doble toque usa el teletransporte vigente y respeta zonas
-  abiertas y la proyección de navegación. Arrastrar, hacer zoom o tocar un
-  control del menú no dispara acciones del mapa. El teclado y ratón siguen
-  disponibles. El APK abre el curso, muestra su versión y conserva el acceso
-  y el estado que corresponden a la cuenta tras actualizar.
-- Plan de validación: pruebas automáticas del reconocimiento de gestos y sus
-  cancelaciones, reglas del motor, interfaz con teclado y `npm run check`.
-  Validar tamaños de pantalla en emulador y el recorrido completo del alumno
-  en un teléfono, con un curso en el servidor docente de ensayo. Si se incluye
-  offline, comprobar arranque con la copia preparada en modo avión y
-  sincronización al reconectar dentro del WebView de Android.
-- Fuera de alcance: iOS, adaptación táctil específica de Editor y Owl, cambios
-  curriculares y el mecanismo de actualización automática de Windows.
-- Dependencias e invariantes: ADR 0013, 0014 y 0015, movimiento libre, una sola
-  Red, fronteras canónicas y progreso versionado. Verificar JDK, SDK, Gradle y
-  firma antes de distribuir el APK. Referencias:
-  [contenido local en WebView](https://developer.android.com/develop/ui/views/layout/webapps/load-local-content),
-  [actualización de apps Android](https://developer.android.com/google/play/app-updates).
-
-#### Preguntas bloqueantes
-
-- Ninguna. La revisión y la limitación aceptada habilitan la release oficial.
-
-#### Implementación y revisión
-
-- Base revisada: ORBIT 1.2.4. El juego acepta teclado y ratón, valida por separado
-  cercanía, requisitos y zonas abiertas y ya ofrece paneles compactos. El cliente
-  nativo actual está configurado para Windows.
-- Rutas propias: mapa y acceso offline en `src/`, `android/`, `desktop/`,
-  `src-tauri/`, servidor online, flujo de prueba, README y ADR 0015.
-- Resultado: controles táctiles compartidos, actividad Android en
-  horizontal, entrada local de Windows y copias de cursos por cuenta.
-  El README principal cubre ambos modos. Los gestos conservan movimiento
-  libre, cercanía, requisitos y validación de zonas abiertas.
-- Pruebas automáticas: `npm run check` pasó en Linux (718 pruebas, una omitida)
-  y en una copia aislada de Windows (714 pruebas, cinco omitidas). GitHub
-  Actions compiló los tres paquetes del commit `7b9f85f`,
-  verificó la firma de la APK y generó el instalador separado de Windows.
-  El diagnóstico aislado en Crab verificó los recursos `no-store` y el inicio
-  y cierre de sesión HTTPS. El túnel y los datos temporales se retiraron.
-- Preflight del entorno: puerto canónico libre y sin lock, journal ni tombstone
-  de autoría. La compilación local coincide con la fuente y la revisión del
-  curso. El paquete de ensayo en Crab quedó verificado y listo para inicializar.
-- Versionado de prueba: [1.3.0-preview.1](https://github.com/JoaquinDiazM/ORBIT/releases/tag/v1.3.0-preview.1)
-  tiene el aviso acordado y los cinco adjuntos con SHA-256 verificado.
-- Revisión manual humana: JoaquinDiazM aprobó la 1.3.0 el 2026-11-27.
-  Reportó que el recorrido funcionó, incluido el curso guardado en Android.
-  En la aplicación Windows, abrir el curso sin red quedó en «Conectando con
-  ORBIT…». Edge mostró un error DNS. La aprobación acepta publicar con esa
-  limitación de Windows y reserva su corrección a `UPD-047`.
 
 ### UPD-048 — Plantilla de anillo simple en Bee
 
@@ -441,4 +344,4 @@ junto con cada ficha y sus intercambios, en
 [`docs/UPDATES_HISTORY.md`](docs/UPDATES_HISTORY.md). `CHANGELOG.md` mantiene solo el resumen
 orientado a quienes usan ORBIT; los descartes no reciben versión ni entrada de changelog.
 
-La última cohorte publicada y archivada es ORBIT 1.2.4.
+La última cohorte publicada y archivada es ORBIT 1.3.0.
