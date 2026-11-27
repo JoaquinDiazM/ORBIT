@@ -273,7 +273,7 @@ Sin propuestas pendientes de clasificar.
 
 ### UPD-046 — Cliente Android y controles táctiles de ORBIT
 
-- Estado: `en-implementacion`
+- Estado: `en-revision`
 - Tipo: `feature`
 - Versión objetivo: `1.3.0`
 
@@ -307,11 +307,10 @@ siendo las actuales. Preparar las decisiones de diseño antes de implementar.
   Windows incorpora una entrada al mismo contenido local empaquetado. Las vistas
   de curso cargan el origen HTTPS de su servidor y conservan su almacenamiento
   web. El servidor de ensayo servirá el paquete que habilita la interfaz común.
-- Distribución propuesta: APK firmado en GitHub Releases para la alfa. Definir
-  el identificador Android, un `versionCode` ascendente y la custodia de la
-  clave Android fuera del repositorio. Verificar instalación y actualización
-  sobre una instalación de ensayo conservando los datos de la app. Si el primer
-  canal es Google Play, usar AAB y acordar la firma antes de distribuir.
+- Distribución acordada: APK firmado en GitHub Releases. La prueba utiliza
+  un identificador separado y una clave desechable. Para la release oficial
+  se usará un `versionCode` ascendente y una clave persistente custodiada
+  fuera del repositorio.
 - Criterios de aceptación propuestos: el joystick permite movimiento continuo
   y se neutraliza al soltar, cancelar, cambiar de aplicación o abrir un panel.
   El toque abre solo el nodo tocado, dentro de su radio y con sus requisitos
@@ -344,16 +343,27 @@ siendo las actuales. Preparar las decisiones de diseño antes de implementar.
 - Base revisada: ORBIT 1.2.4. El juego acepta teclado y ratón, valida por separado
   cercanía, requisitos y zonas abiertas y ya ofrece paneles compactos. El cliente
   nativo actual está configurado para Windows.
-- Rutas previstas: entrada, interfaz y estilos del mapa, configuración Android
-  de Tauri, automatización de build y distribución y guías de instalación.
-- Resultado: autorización y cierre explícitos registrados el 2026-11-27.
-- Pruebas automáticas: pendiente la implementación. El registro se verifica con
-  `tests/updates-workflow.test.mjs`.
-- Preflight del entorno: no se detectó Android Studio ni el SDK en sus rutas
-  habituales en la laptop. Se puede preparar la compilación reproducible en CI
-  y usar un teléfono para la revisión. Pendiente verificar el entorno elegido.
-- Revisión manual humana: pendiente de alcance e implementación. Debe cubrir
-  entrada a un curso, movimiento, interacción, teletransporte, zoom y actualización.
+- Rutas propias: mapa y acceso offline en `src/`, `android/`, `desktop/`,
+  `src-tauri/`, servidor online, flujo de prueba, README y ADR 0015.
+- Resultado: controles táctiles compartidos, actividad Android en
+  horizontal, entrada local de Windows y copias de cursos por cuenta.
+  El README principal cubre ambos modos. Los gestos conservan movimiento
+  libre, cercanía, requisitos y validación de zonas abiertas.
+- Pruebas automáticas: `npm run check` pasó en Linux (718 pruebas, una omitida)
+  y en una copia aislada de Windows (714 pruebas, cinco omitidas). GitHub
+  Actions compiló los tres paquetes del commit `7b9f85f`,
+  verificó la firma de la APK y generó el instalador separado de Windows.
+  El diagnóstico aislado en Crab verificó los recursos `no-store` y el inicio
+  y cierre de sesión HTTPS. El túnel y los datos temporales se retiraron.
+- Preflight del entorno: puerto canónico libre y sin lock, journal ni tombstone
+  de autoría. La compilación local coincide con la fuente y la revisión del
+  curso. El paquete de ensayo en Crab quedó verificado y listo para inicializar.
+- Versionado de prueba: [1.3.0-preview.1](https://github.com/JoaquinDiazM/ORBIT/releases/tag/v1.3.0-preview.1)
+  tiene el aviso acordado y los cinco adjuntos con SHA-256 verificado. 1.2.4
+  sigue siendo la release estable. La cohorte espera la revisión humana.
+- Revisión manual humana: pendiente en un teléfono Android y en Windows.
+  Verificar los gestos, el contenido incluido en modo avión, los cursos
+  guardados para los tres roles y la sincronización de Estudiante al reconectar.
 
 ## Historial
 
