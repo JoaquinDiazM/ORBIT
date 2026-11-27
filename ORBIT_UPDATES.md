@@ -276,7 +276,7 @@ antes de publicar.
 
 ### UPD-040 — Ampliar las opciones de apariencia de Bowerbird
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `1.2.2`
 

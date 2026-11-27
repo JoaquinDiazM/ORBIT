@@ -2,6 +2,17 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [1.2.2] - 2026-11-27
+
+### Añadido
+
+- Bowerbird incorpora dos paletas, dos motivos y dos contornos para personalizar
+  las zonas. El motivo de engranajes queda estático con movimiento reducido.
+
+### Verificación
+
+- Cohorte cerrada `UPD-040`, aprobada por JoaquinDiazM.
+
 ## [1.2.1] - 2026-11-26
 
 ### Corregido
