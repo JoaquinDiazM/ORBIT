@@ -34,6 +34,8 @@ ciclo a qué cohorte debe pertenecer.
 Mientras haya una cohorte abierta, incluye en la checklist la decisión de cerrarla.
 Cuando una revisión humana requiera iniciar un servicio, entrega en el chat los comandos
 para su shell y entorno. Indica el directorio, el enlace esperado y cómo detener el servicio.
+En cada entrega de una versión publicada indica si esa cohorte requiere cambiar el paquete
+y relanzar el servidor docente, y si requiere reinstalar el cliente de Windows desde Releases.
 
 ## Estados permitidos
 
@@ -259,11 +261,159 @@ Sin propuestas pendientes de clasificar.
 
 ## Cohorte inmediata
 
-Sin cohorte inmediata.
+- Versión: `1.2.1`
+- Estado de la cohorte: `cerrada`
+- IDs: `UPD-039`
+- Cierre confirmado por JoaquinDiazM: 2026-11-26.
+
+JoaquinDiazM autorizó UPD-039 el 2026-11-26.
 
 ## Actualizaciones activas
 
-Sin actualizaciones activas.
+### UPD-039 — Mostrar las fórmulas desbloqueadas en el Formulario
+
+- Estado: `aprobado`
+- Tipo: `bug`
+- Versión objetivo: `1.2.1`
+
+#### Solicitud original
+
+Al crear un estudiante, el Formulario muestra 13 entradas bloqueadas. Al completar Taller
+Vectorial, el contador cambia a 10 de 13 disponibles, pero desaparecen todas las tarjetas.
+JoaquinDiazM solicita corregir el fallo y quiere probar el actualizador de Windows. Acepta
+relanzar el servidor si hace falta para que el curso reciba la corrección.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: el Formulario muestra las fórmulas correspondientes al progreso actual.
+- Decisiones confirmadas: corregir el fallo. La distribución normal del curso online usa
+  el paquete del servidor y requiere relanzar la instancia al cambiar de paquete. La
+  instalación desde el actualizador de Windows se puede probar por separado.
+- Criterios de aceptación: con un estudiante nuevo, el Formulario muestra 13 tarjetas
+  bloqueadas. Tras completar Taller Vectorial, muestra 10 tarjetas con ecuaciones y
+  condiciones y 3 bloqueadas con su pista. Al cerrar y reabrir el panel y al volver
+  al curso con el avance guardado se mantiene el mismo resultado, sin error de consola.
+- Fuera de alcance: cambios en fórmulas, requisitos, contenido académico, formato del
+  progreso o comportamiento del actualizador.
+- Dependencias, invariantes o ADR: conservar el estado derivado del progreso y los
+  IDs publicados. ADR 0013 y 0014 para la entrega del curso online y del cliente de Windows.
+
+#### Preguntas bloqueantes
+
+- Ninguna.
+
+#### Implementación y revisión
+
+- Base revisada: ORBIT 1.2.0, `8e0f8a5`.
+- Rutas propias: `src/ui/ui-controller.js` y `tests/ui-panels.test.mjs`.
+- Resultado: se importó `createEquationFigure` del renderizador compartido. Antes, la
+  primera tarjeta disponible lanzaba un `ReferenceError` y cortaba el renderizado del
+  listado después de mostrar el contador. Corrección y regresión en el commit local
+  `ca34d44`.
+- Pruebas automáticas: la regresión falló por ese error antes de la corrección y pasó
+  después. Con DOM simulado y progreso en memoria, confirma 13 tarjetas bloqueadas antes,
+  10 ecuaciones en MathML con sus condiciones y 3 tarjetas bloqueadas después, y las 10
+  ecuaciones al reabrir el panel. `npm run check` completó validación de progresión,
+  703 pruebas aprobadas, 2 omitidas, verificación del repositorio y build.
+- Preflight del entorno: el 2026-11-26, en la copia temporal, la página inicial y el módulo
+  corregido respondieron HTTP 200 con `Cache-Control: no-store` en
+  `http://127.0.0.1:4173` (PID 18968). Fuente, `dist` y metadatos del build aislado
+  coinciden (`a7ea536f7771`). Se cerró el listener, se eliminó la copia y se verificó
+  4173 libre, sin proceso propio, journal, tombstone ni lock residual. El `dist`
+  canónico preexistente mantiene los módulos de 1.2.0 y coincide con la fuente de la
+  edición curricular. `npm run dev` sirve el módulo corregido desde `src/`.
+- Revisión manual humana: JoaquinDiazM aprobó UPD-039 el 2026-11-26 en el chat.
+  El guion entregado para Edge externo indicaba iniciar `npm run dev` desde
+  la raíz canónica en un terminal visible de VS Code. Abrir
+  `http://127.0.0.1:4173/?profile=student` en una ventana InPrivate. Comprobar el
+  Formulario antes de Taller Vectorial, tras completarlo y al recargar la misma ventana.
+  Verificar los recuentos del criterio, las condiciones y la consola. Detener con Ctrl+C.
+- Despliegue: actualizar el paquete del servidor y relanzar la instancia docente con
+  los mismos datos. El cliente Windows instalado admite la actualización de esta versión
+  mediante el mecanismo firmado existente.
+
+### UPD-040 — Ampliar las opciones de apariencia de Bowerbird
+
+- Estado: `propuesto`
+- Tipo: `feature`
+- Versión objetivo: `1.2.2`
+
+#### Solicitud original
+
+Ampliar las opciones de Paleta, Motivo y Contorno de Bowerbird en ORBIT Editor.
+Uno de los motivos debe mostrar varios engranajes en movimiento. JoaquinDiazM asignó
+esta propuesta como único punto previsto para 1.2.2.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: elegir opciones visualmente distintas en las tres categorías y
+  comprobar su aspecto en la vista previa y en el mapa donde corresponda a su ámbito.
+- Decisiones confirmadas: ampliar las tres categorías e incluir un motivo de varios
+  engranajes animados en 1.2.2.
+- Criterios de aceptación propuestos: incorporar al menos dos opciones nuevas por
+  categoría, seleccionables con teclado y con nombre en español. Los engranajes se
+  muestran estáticos si se solicita movimiento reducido. Las selecciones existentes se
+  conservan al abrir la versión nueva. Paleta, motivo y contorno se pueden combinar.
+- Fuera de alcance: cambios de geometría, progresión, permisos, contenido o assets
+  cargados por usuarios.
+- Dependencias, invariantes o ADR: ADR 0008. Conservar IDs de apariencia, ámbitos
+  Docente/Estudiante y precedencia sobre la apariencia publicada y canónica.
+
+#### Preguntas bloqueantes
+
+- Ninguna sobre el alcance principal. Autorización pendiente.
+
+#### Implementación y revisión
+
+- Base revisada: catálogo y renderer de apariencia en ORBIT 1.2.0.
+- Resultado: propuesta registrada para la cohorte posterior.
+- Pruebas automáticas: pendientes.
+- Preflight del entorno: pendiente.
+- Revisión manual humana: pendiente.
+
+### UPD-041 — Menú lateral retráctil y accesos de Contenido y Herramientas
+
+- Estado: `faltan-detalles`
+- Tipo: `feature`
+- Versión objetivo: `1.2.3`
+
+#### Solicitud original
+
+Mejorar los iconos y títulos del menú lateral izquierdo de ORBIT, permitir retraerlo para
+mostrar solo iconos y reorganizar los accesos indicados. Como referencia visual para
+Zonas-Red se adjuntó la figura de un árbol ramificado y se propuso el título **Contenido**.
+El grupo, también llamado **Libro** en la petición, separará **Red** y **Zonas** en dos
+submenús. **Herramientas** reunirá **Gadgets**, **Formulario**, **Constantes** y
+**Símbolos**. Se propuso π como icono de Constantes. Este será uno de varios puntos
+de 1.2.3.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: acceder a los paneles con menos espacio ocupado sobre el mapa y
+  distinguir los accesos por nombre e icono.
+- Decisiones confirmadas: modo retraído de solo iconos, paneles separados de Red y
+  Zonas, y los cuatro accesos indicados bajo Herramientas.
+- Criterios de aceptación propuestos: retraer y expandir el menú con ratón o teclado.
+  Cada icono conserva un nombre accesible en modo retraído. Red y Zonas se abren por
+  separado y cada acceso de Herramientas abre su panel vigente. Glosario y Ajustes
+  conservan su posición como accesos de primer nivel.
+- Fuera de alcance: cambios al grafo académico, a las zonas o a los contenidos de los
+  paneles.
+- Dependencias, invariantes o ADR: conservar una sola Red de aprendizaje, la apertura
+  derivada de las zonas y la navegación por teclado. La imagen adjunta es temporal.
+
+#### Preguntas bloqueantes
+
+- ¿El grupo de Red y Zonas debe llamarse Contenido o Libro? Se recomienda Contenido,
+  con un icono de árbol inspirado en la referencia.
+
+#### Implementación y revisión
+
+- Base revisada: menú lateral de ORBIT 1.2.0.
+- Resultado: propuesta registrada para una cohorte posterior.
+- Pruebas automáticas: pendientes.
+- Preflight del entorno: pendiente.
+- Revisión manual humana: pendiente.
 
 ## Historial
 
@@ -272,4 +422,4 @@ junto con cada ficha y sus intercambios, en
 [`docs/UPDATES_HISTORY.md`](docs/UPDATES_HISTORY.md). `CHANGELOG.md` mantiene solo el resumen
 orientado a quienes usan ORBIT; los descartes no reciben versión ni entrada de changelog.
 
-La cohorte ORBIT 1.1.1 está publicada y archivada.
+La última cohorte publicada y archivada es ORBIT 1.2.0.
