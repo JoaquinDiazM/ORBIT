@@ -273,7 +273,7 @@ Sin propuestas pendientes de clasificar.
 
 ### UPD-041 — Menú lateral retráctil y accesos de Contenido y Herramientas
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `feature`
 - Versión objetivo: `1.2.3`
 
@@ -333,7 +333,7 @@ de 1.2.3.
 
 ### UPD-042 — Actualización asistida del servidor docente
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `infraestructura`
 - Versión objetivo: `1.2.3`
 

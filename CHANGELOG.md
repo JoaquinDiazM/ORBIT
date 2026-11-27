@@ -2,6 +2,23 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [1.2.3] - 2026-11-27
+
+### Cambiado
+
+- El menú lateral se retrae para mostrar solo iconos. Contenido abre Red y Zonas
+  por separado, y Herramientas agrupa Gadgets, Formulario, Constantes y Símbolos.
+
+### Añadido
+
+- Asistente de actualización del servidor docente en Linux. Permite elegir el
+  release, conservar un respaldo y definir la compatibilidad de los clientes.
+  Verifica el paquete antes de activarlo y conserva cursos, cuentas y avances.
+
+### Verificación
+
+- Cohorte cerrada `UPD-041` y `UPD-042`, aprobada por JoaquinDiazM.
+
 ## [1.2.2] - 2026-11-27
 
 ### Añadido
