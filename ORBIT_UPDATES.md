@@ -272,7 +272,7 @@ JoaquinDiazM autorizó UPD-039 el 2026-11-26.
 
 ### UPD-039 — Mostrar las fórmulas desbloqueadas en el Formulario
 
-- Estado: `aprobado`
+- Estado: `publicando`
 - Tipo: `bug`
 - Versión objetivo: `1.2.1`
 

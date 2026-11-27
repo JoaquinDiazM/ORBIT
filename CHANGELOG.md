@@ -2,6 +2,17 @@
 
 Todos los cambios relevantes se documentarán en este archivo.
 
+## [1.2.1] - 2026-11-26
+
+### Corregido
+
+- El Formulario vuelve a mostrar las ecuaciones y sus condiciones al completar
+  Taller Vectorial. Las fórmulas restantes conservan su indicación de desbloqueo.
+
+### Verificación
+
+- Cohorte cerrada `UPD-039`, aprobada por JoaquinDiazM.
+
 ## [1.2.0] - 2026-11-23
 
 ### Añadido
