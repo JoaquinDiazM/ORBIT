@@ -90,6 +90,43 @@ de distribuirlo.
 
 ## Copias y actualizaciones
 
+### Actualización asistida
+
+En Linux, usa una carpeta de instancia con `datos/`, `packages/` y un enlace
+`current` al paquete activo dentro de `packages/`. Instala una copia verificada
+de `scripts/update-server.mjs` en la raíz de la instancia. Si tu paquete todavía
+carece del asistente, obtén el archivo desde una copia verificada del paquete
+nuevo o desde el checkout revisado para tu ensayo.
+
+Detén el servidor con **Ctrl+C** y, desde la raíz de la instancia, ejecuta:
+
+```bash
+node update-server.mjs
+```
+
+Elige `latest` o una etiqueta como `v1.2.3`. Para ensayar con un paquete candidato,
+usa `node update-server.mjs --root DIRECTORIO_PRUEBA --archive CANDIDATO.tar.gz`.
+El archivo `CANDIDATO.tar.gz.sha256` debe estar junto al candidato. El asistente
+verifica el paquete, muestra el plan y pide confirmación antes de cambiar `current`.
+Después verifica y arranca la instancia con tus comandos habituales.
+
+- Los cursos, las cuentas y los avances permanecen en `datos/`. El docente puede
+  consultar el avance desde Owl y decide las operaciones sobre él.
+- Puedes conservar una copia privada en `backups/`. Si eliges una copia temporal,
+  se usa para comprobar la compatibilidad durante la actualización.
+- De forma predeterminada se aplica la compatibilidad habitual. La opción de
+  versión exacta controla el acceso al servidor y la reconexión offline. Exige
+  la versión web del servidor y compara también la versión de los lanzadores
+  Windows que la declaran. Los lanzadores anteriores que carecen de ese identificador
+  se comprueban como clientes web.
+- Si la comprobación falla o cancelas el plan, sigue seleccionado el paquete
+  anterior. Para recuperar un paquete tras una actualización compatible, detén
+  el servicio, apunta `current` al anterior, verifícalo y vuelve a arrancar con
+  la misma ruta de datos. Si un cambio posterior vuelve incompatibles esos datos,
+  usa un respaldo compatible según la guía de restauración.
+
+### Procedimiento manual
+
 Detén el servidor antes de respaldar, restaurar o cambiar el programa.
 
 ```text

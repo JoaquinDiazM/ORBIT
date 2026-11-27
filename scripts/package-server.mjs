@@ -6,7 +6,7 @@ import { pathToFileURL } from "node:url";
 
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const SOURCE_PATHS = [
-  "dist", "src", "node_modules/katex", "scripts/online", "scripts/orbit-server.mjs",
+  "dist", "src", "node_modules/katex", "scripts/online", "scripts/orbit-server.mjs", "scripts/update-server.mjs",
   "scripts/orbit-offline.mjs", "scripts/check-online-pilot.mjs", "scripts/serve.mjs", "scripts/repository-runtime-gate.mjs",
   "scripts/local-service-control.mjs", "scripts/verify-package.mjs", "LICENSE", "LICENSE-CONTENT.md",
 ];

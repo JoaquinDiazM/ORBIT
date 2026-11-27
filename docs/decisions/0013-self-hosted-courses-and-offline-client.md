@@ -137,6 +137,21 @@ revisión aplicable, separados de las pruebas automáticas.
 
 ## Consecuencias y regla de revisión
 
+### Actualización asistida del paquete docente
+
+UPD-042 prepara el paquete nuevo junto al anterior con el servidor detenido y mantiene
+el bloqueo de la instancia hasta activar el destino. La ruta de datos permanece estable.
+El asistente verifica el release o candidato y comprueba que el paquete nuevo puede leer
+una copia del estado. El administrador decide si conserva esa copia. La decisión docente
+sobre el avance se mantiene en la administración del curso.
+
+La política predeterminada admite clientes compatibles con el contrato del servidor.
+La opción de versiones exactas compara la versión web y, cuando el lanzador Windows la
+declara, también la de ese lanzador. Un lanzador anterior sin identificador se comprueba
+como cliente web. La comprobación se aplica a las solicitudes al servidor, incluida la
+reconexión offline. Las versiones declaradas son metadatos de compatibilidad. Las cuentas,
+los permisos, la generación del progreso y la revisión del curso conservan sus validaciones.
+
 Esta decisión amplía expresamente el límite estático para el modo online autorizado. Conserva
 movimiento, Red única, apertura derivada, IDs, fuentes académicas y separación de autoría.
 Introduce operación y custodia de datos a cargo del equipo docente, con límites explícitos.

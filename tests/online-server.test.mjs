@@ -12,6 +12,7 @@ import { hashPassword, verifyPassword, validPasswordRecord, PASSWORD_POLICY, Att
 import { materializeCourseEdition } from "../src/core/course-edition.js";
 import { parseServerArguments, runServerCli } from "../scripts/orbit-server.mjs";
 import { reconcileCompletedLocations } from "../src/core/course-progress-compatibility.js";
+import { APP_CONFIG } from "../src/config.js";
 
 const PASSWORD = "temporary-test-password-027";
 const TEMPLATE = JSON.parse(await readFile(new URL("../public/data/courses/electromagnetism-applied.edition.json", import.meta.url), "utf8"));
@@ -72,6 +73,29 @@ async function provision(runtime) {
   const student = client(runtime); await student.login("student-one");
   return { admin, teacher, student, course, teacherId: created.result.user.id, studentId: createdStudent.result.student.id };
 }
+
+test("la política exacta admite el cliente web actual y revisa lanzadores identificados", async (t) => {
+  const f = await fixture(t);
+  const runtime = await f.start({ allowCompatibleClients: false });
+  const visitor = client(runtime);
+  const body = { alias: "admin-test", password: PASSWORD };
+  const old = await visitor.request("/login", { method: "POST", body });
+  assert.equal(old.status, 409);
+  assert.equal(old.result.error.code, "web-version-mismatch");
+
+  const headers = { "X-Orbit-Web-Version": APP_CONFIG.version, "X-Orbit-Windows-Version": "0.0.1" };
+  const wrongLauncher = await visitor.request("/login", { method: "POST", body, headers });
+  assert.equal(wrongLauncher.status, 409);
+  assert.equal(wrongLauncher.result.error.code, "windows-version-mismatch");
+
+  delete headers["X-Orbit-Windows-Version"];
+  assert.equal((await visitor.request("/login", { method: "POST", body, headers })).status, 200);
+  headers["X-Orbit-Windows-Version"] = APP_CONFIG.version;
+  assert.equal((await visitor.request("/login", { method: "POST", body, headers })).status, 200);
+  assert.equal((await visitor.request("/session", {
+    headers: { "X-Orbit-Web-Version": "0.0.1" },
+  })).result.error.code, "web-version-mismatch");
+});
 
 test("scrypt fija parámetros, verifica sin plaintext y limita intentos", async () => {
   const hashed = await hashPassword(PASSWORD);

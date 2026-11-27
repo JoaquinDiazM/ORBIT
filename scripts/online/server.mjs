@@ -10,6 +10,7 @@ import { normalizeMapInvitation } from "../../src/core/map-invitations.js";
 import { isLearningLocation, learningPrerequisiteIds } from "../../src/core/knowledge-graph.js";
 import { createWorldIndex, deriveUnlockedAreaIds } from "../../src/core/world-graph.js";
 import { ServerStore } from "./store.mjs";
+import { assertClientVersion } from "./client-policy.mjs";
 import { apiError, normalizeAlias, validatePassword, hashPassword, verifyPassword,
   newToken, tokenDigest, AttemptLimiter } from "./auth.mjs";
 
@@ -166,6 +167,7 @@ async function readBody(request) {
 export async function createOrbitServer({
   dataDirectory, distDirectory, host = "127.0.0.1", port = 0, publicOrigin = null,
   tls = null, templateEdition = null, clock = Date.now, sessionMs = SESSION_MS,
+  allowCompatibleClients = true,
 } = {}) {
   const dist = await realpath(resolve(distDirectory));
   const store = await ServerStore.open(dataDirectory);
@@ -234,6 +236,7 @@ export async function createOrbitServer({
       const mutation = !["GET", "HEAD"].includes(method);
       if (mutation && request.headers.origin !== origin) throw apiError(403, "origin-rejected", "Origen de solicitud no permitido.");
       if (method === "OPTIONS" || method === "HEAD") throw apiError(405, "method-not-allowed", "Método no admitido.");
+      assertClientVersion(request.headers, allowCompatibleClients);
       const state = store.snapshot();
       if (path === "/login" && method === "POST") {
         ipLimiter.take(request.socket.remoteAddress ?? "unknown");

@@ -4,6 +4,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { hashPassword, normalizeAlias } from "./online/auth.mjs";
 import { ServerStore, createInitialServerState, diagnoseDataLock, recoverDataLock, restoreServerBackup } from "./online/store.mjs";
 import { createOrbitServer } from "./online/server.mjs";
+import { readClientPolicy } from "./online/client-policy.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const HELP = `ORBIT · servidor docente
@@ -135,8 +136,9 @@ export async function runServerCli(args, { stdout = process.stdout } = {}) {
   const tls = options["tls-cert"] ? {
     cert: await readFile(resolve(options["tls-cert"])), key: await readFile(resolve(options["tls-key"])),
   } : null;
+  const allowCompatibleClients = await readClientPolicy(ROOT);
   const runtime = await createOrbitServer({ dataDirectory, distDirectory: resolve(options.dist ?? resolve(ROOT, "dist")),
-    host: options.host, port, publicOrigin: options.origin, tls });
+    host: options.host, port, publicOrigin: options.origin, tls, allowCompatibleClients });
   stdout.write(`ORBIT online: ${runtime.origin}/\nServidor en primer plano. Ctrl+C para detener.\n`);
   let stopping = false;
   const stop = async () => {

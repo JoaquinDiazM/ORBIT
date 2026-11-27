@@ -1,3 +1,5 @@
+import { APP_CONFIG } from "../config.js";
+
 export class OrbitApiError extends Error {
   constructor(code, message, { status = 0, details = null, cause } = {}) {
     super(message, cause ? { cause } : undefined);
@@ -46,7 +48,11 @@ export class OrbitApiClient {
     if (!["GET", "POST", "PUT", "DELETE"].includes(verb)) {
       throw new TypeError("Método API no admitido.");
     }
-    const headers = { accept: "application/json" };
+    const headers = { accept: "application/json", "X-Orbit-Web-Version": APP_CONFIG.version };
+    const launcherVersion = globalThis.__orbitWindowsVersion;
+    if (typeof launcherVersion === "string" && /^\d+\.\d+\.\d+$/.test(launcherVersion)) {
+      headers["X-Orbit-Windows-Version"] = launcherVersion;
+    }
     const options = { method: verb, credentials: "same-origin", cache: "no-store", headers };
     if (verb !== "GET") {
       headers["content-type"] = "application/json";

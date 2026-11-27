@@ -135,7 +135,14 @@ async fn connect_course(launcher: WebviewWindow, address: String) -> Result<bool
     }
     let url = course_url(&address)?;
     let selected_origin = url.clone();
-    let title = format!("ORBIT · {}", url.origin().ascii_serialization());
+    let origin = url.origin().ascii_serialization();
+    let title = format!("ORBIT · {origin}");
+    let version_script = format!(
+        "if (window === window.top && location.origin === {:?}) \
+         Object.defineProperty(globalThis, '__orbitWindowsVersion', {{ value: {:?} }});",
+        origin,
+        app.package_info().version.to_string()
+    );
     let go_back = MenuItem::with_id(
         app,
         RETURN_TO_LAUNCHER,
@@ -147,6 +154,7 @@ async fn connect_course(launcher: WebviewWindow, address: String) -> Result<bool
     let menu =
         Menu::with_items(app, &[&go_back]).map_err(|_| "No se pudo preparar el menú de ORBIT.")?;
     let course = WebviewWindowBuilder::new(app, COURSE, WebviewUrl::External(url.clone()))
+        .initialization_script(version_script)
         .title(title)
         .inner_size(1200.0, 800.0)
         .min_inner_size(400.0, 380.0)
