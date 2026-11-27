@@ -50,15 +50,20 @@ test("Estudiante superpone preferencias sin mutar ni exportar el borrador Docent
     publishedAreas: editor.getSnapshot().areas,
   });
   const before = editor.exportDocument();
-  const result = session.setAreaAppearance("electrostatics", {
-    paletteId: "violet",
-    motifId: "waves",
-    contourId: "dashed",
-  });
+  const newAppearance = {
+    paletteId: "mineral-rose",
+    motifId: "gears",
+    contourId: "corners",
+  };
+  const result = session.setAreaAppearance("electrostatics", newAppearance);
 
   assert.equal(result.ok, true);
   assert.equal(session.getSnapshot().scope, "personal");
-  assert.equal(session.getAreaAppearance("electrostatics").motifId, "waves");
+  assert.deepEqual(session.getAreaAppearance("electrostatics"), newAppearance);
+  assert.deepEqual(
+    new BowerbirdPreferencesModel({ storage: personalStorage }).getAppearance("electrostatics"),
+    newAppearance,
+  );
   assert.equal(editor.exportDocument(), before);
   assert.equal(editorStorage.saveCount, 0);
   assert.equal(personalStorage.saveCount, 1);

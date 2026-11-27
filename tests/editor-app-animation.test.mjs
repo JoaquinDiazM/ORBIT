@@ -212,6 +212,22 @@ test("movimiento reducido congela el motivo canonical en Editor", () => {
   }
 });
 
+test("Bowerbird programa cuadros para engranajes solo cuando corresponde animarlos", () => {
+  const sceneAreas = createRingAreas();
+  for (const area of sceneAreas) area.appearance.motifId = "none";
+  sceneAreas[0].appearance.motifId = "gears";
+  for (const reducedMotion of [false, true]) {
+    const harness = createHarness({ sceneAreas, sceneLocations: [], reducedMotion });
+    try {
+      assert.equal(harness.app.setActiveTool("bowerbird"), true);
+      runOnlyFrame(harness.callbacks);
+      assert.equal(harness.callbacks.size, reducedMotion ? 0 : 1);
+    } finally {
+      harness.restore();
+    }
+  }
+});
+
 test("Bee distingue un clic de un intercambio mediante un umbral estable", () => {
   assert.equal(
     hasReachedBeeDragThreshold({ x: 10, y: 10 }, { x: 15, y: 14 }),

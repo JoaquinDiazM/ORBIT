@@ -1,6 +1,8 @@
+import { isAnimatedAreaAppearance } from "./area-appearance.js";
 import { hexCorners } from "./hex.js";
 
 const TWO_PI = Math.PI * 2;
+const DEFAULT_HEX_SIZE = 230;
 const DEFAULT_HEX_GAP = 4;
 
 function finite(value, fallback) {
@@ -27,6 +29,60 @@ function polygonPath(context, points) {
   context.closePath();
 }
 
+function cornerMarksPath(context, corners) {
+  const edgeFraction = 0.22;
+  context.beginPath();
+  for (const [index, corner] of corners.entries()) {
+    const previous = corners.at(index - 1);
+    const next = corners[(index + 1) % corners.length];
+    context.moveTo(
+      corner.x + (previous.x - corner.x) * edgeFraction,
+      corner.y + (previous.y - corner.y) * edgeFraction,
+    );
+    context.lineTo(corner.x, corner.y);
+    context.lineTo(
+      corner.x + (next.x - corner.x) * edgeFraction,
+      corner.y + (next.y - corner.y) * edgeFraction,
+    );
+  }
+}
+
+function gearOutline(teeth, radius) {
+  const toothShape = [
+    { offset: -0.5, depth: 0.81 },
+    { offset: -0.24, depth: 1 },
+    { offset: 0.24, depth: 1 },
+    { offset: 0.4, depth: 0.81 },
+  ];
+  return Array.from({ length: teeth }, (_, tooth) => toothShape.map(({ offset, depth }) => {
+    const angle = (tooth + offset) * TWO_PI / teeth;
+    return { x: Math.cos(angle) * radius * depth, y: Math.sin(angle) * radius * depth };
+  })).flat();
+}
+
+const GEARS = [
+  { x: -50, y: -23, teeth: 12, radius: 70, angularSpeed: 0.25, phase: 0 },
+  { x: 67, y: -31, teeth: 9, radius: 54, angularSpeed: -1 / 3, phase: Math.PI / 9 },
+  { x: 7, y: 70, teeth: 8, radius: 47, angularSpeed: -0.375, phase: Math.PI / 8 },
+].map((gear) => ({ ...gear, outline: gearOutline(gear.teeth, gear.radius) }));
+
+function drawGears(context, center, motif) {
+  context.translate(center.x, center.y);
+  context.scale(motif.sizeScale, motif.sizeScale);
+  context.lineWidth = motif.lineWidth / motif.sizeScale;
+  for (const gear of GEARS) {
+    context.save();
+    context.translate(gear.x, gear.y);
+    context.rotate(gear.phase + motif.timeSeconds * gear.angularSpeed);
+    polygonPath(context, gear.outline);
+    const hubRadius = gear.radius * 0.29;
+    context.moveTo(hubRadius, 0);
+    context.arc(0, 0, hubRadius, 0, TWO_PI);
+    context.stroke();
+    context.restore();
+  }
+}
+
 function canonicalMotifId(areaId) {
   switch (areaId) {
     case "origin":
@@ -50,8 +106,7 @@ function canonicalMotifId(areaId) {
   }
 }
 
-const ANIMATED_CANVAS_MOTIFS = new Set([
-  "waves",
+const ANIMATED_CANONICAL_MOTIFS = new Set([
   "canonical-waves",
   "canonical-orbital-arcs",
 ]);
@@ -62,10 +117,10 @@ const ANIMATED_CANVAS_MOTIFS = new Set([
  * familia concreta.
  */
 export function isAreaAppearanceCanvasAnimated(area, appearance = area?.appearance) {
-  const motifId = appearance?.motifId === "canonical" || !appearance?.motifId
-    ? canonicalMotifId(area?.id)
-    : appearance.motifId;
-  return ANIMATED_CANVAS_MOTIFS.has(motifId);
+  if (appearance?.motifId && appearance.motifId !== "canonical") {
+    return isAnimatedAreaAppearance(appearance);
+  }
+  return ANIMATED_CANONICAL_MOTIFS.has(canonicalMotifId(area?.id));
 }
 
 /**
@@ -79,7 +134,7 @@ export function createAreaAppearanceCanvasRecipe(
     center = { x: 0, y: 0 },
     zoom = 1,
     timeSeconds = 0,
-    hexSize = 230,
+    hexSize = DEFAULT_HEX_SIZE,
     hexGap = DEFAULT_HEX_GAP,
   } = {},
 ) {
@@ -88,13 +143,16 @@ export function createAreaAppearanceCanvasRecipe(
     y: finite(center?.y, 0),
   };
   const safeZoom = Math.max(0.01, finite(zoom, 1));
-  const safeHexSize = Math.max(1, finite(hexSize, 230));
+  const safeHexSize = Math.max(1, finite(hexSize, DEFAULT_HEX_SIZE));
   const safeHexGap = Math.max(0, finite(hexGap, DEFAULT_HEX_GAP));
   const lineScale = 1 / safeZoom;
   const motifId = appearance?.motifId === "canonical"
     ? canonicalMotifId(area?.id)
     : appearance?.motifId;
   const contourId = appearance?.contourId ?? "canonical";
+  let lineDash = [];
+  if (contourId === "dashed") lineDash = [13 * lineScale, 8 * lineScale];
+  else if (contourId === "dotted") lineDash = [0, 8 * lineScale];
   const accent = appearance?.accent ?? "#78e3ff";
   const color = appearance?.color ?? "#214765";
 
@@ -119,6 +177,7 @@ export function createAreaAppearanceCanvasRecipe(
       accent,
       alpha: 0.22,
       lineWidth: 1.2 * lineScale,
+      sizeScale: safeHexSize / DEFAULT_HEX_SIZE,
       order: finite(area?.order, 0),
       timeSeconds: finite(timeSeconds, 0),
     },
@@ -126,7 +185,7 @@ export function createAreaAppearanceCanvasRecipe(
       id: contourId,
       strokeStyle: withAlpha(accent, contourId === "canonical" ? 0.48 : 0.88),
       lineWidth: (contourId === "solid" ? 3.1 : 2.2) * lineScale,
-      lineDash: contourId === "dashed" ? [13 * lineScale, 8 * lineScale] : [],
+      lineDash,
       innerLineWidth: 1.35 * lineScale,
       innerCorners: contourId === "double"
         ? hexCorners(safeCenter.x, safeCenter.y, safeHexSize - 16)
@@ -186,6 +245,28 @@ function drawMotif(context, recipe) {
         }
         context.stroke();
       }
+      break;
+    case "triangular-grid": {
+      const span = 210 * motif.sizeScale;
+      const diagonalOffset = span / Math.sqrt(3);
+      const rowSpacing = 42 * motif.sizeScale;
+      const columnSpacing = rowSpacing * 2 / Math.sqrt(3);
+      context.beginPath();
+      for (let index = -6; index <= 6; index += 1) {
+        const y = center.y + index * rowSpacing;
+        const x = center.x + index * columnSpacing;
+        context.moveTo(center.x - span, y);
+        context.lineTo(center.x + span, y);
+        context.moveTo(x - diagonalOffset, center.y - span);
+        context.lineTo(x + diagonalOffset, center.y + span);
+        context.moveTo(x + diagonalOffset, center.y - span);
+        context.lineTo(x - diagonalOffset, center.y + span);
+      }
+      context.stroke();
+      break;
+    }
+    case "gears":
+      drawGears(context, center, motif);
       break;
     case "canonical-origin":
       for (let radius = 46; radius <= 166; radius += 40) {
@@ -305,8 +386,10 @@ export function drawAreaAppearanceCanvas(context, options) {
   context.save();
   context.strokeStyle = recipe.contour.strokeStyle;
   context.lineWidth = recipe.contour.lineWidth;
+  if (recipe.contour.id === "dotted") context.lineCap = "round";
   context.setLineDash(recipe.contour.lineDash);
-  polygonPath(context, recipe.corners);
+  if (recipe.contour.id === "corners") cornerMarksPath(context, recipe.corners);
+  else polygonPath(context, recipe.corners);
   context.stroke();
   if (recipe.contour.innerCorners) {
     context.lineWidth = recipe.contour.innerLineWidth;

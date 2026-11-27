@@ -11,6 +11,7 @@ import {
   AREA_APPEARANCE_CONTOURS,
   AREA_APPEARANCE_MOTIFS,
   AREA_APPEARANCE_PALETTES,
+  getAreaAppearanceAnimationTime,
   resolveAreaAppearance,
 } from "../src/core/area-appearance.js";
 
@@ -57,6 +58,9 @@ function createTraceContext() {
     "arc",
     "fillText",
     "setLineDash",
+    "translate",
+    "rotate",
+    "scale",
   ]);
   const context = new Proxy({}, {
     get(_target, property) {
@@ -175,6 +179,8 @@ test("la traza común distingue canonical y todos los motivos publicados", () =>
     ["none", { areaId: "origin", motifId: "none", strokes: 1, arcs: 0, texts: 0 }],
     ["constellation", { areaId: "origin", motifId: "constellation", strokes: 2, arcs: 6, texts: 0 }],
     ["waves", { areaId: "origin", motifId: "waves", strokes: 7, arcs: 0, texts: 0 }],
+    ["triangular-grid", { areaId: "origin", motifId: "triangular-grid", strokes: 2, arcs: 0, texts: 0 }],
+    ["gears", { areaId: "origin", motifId: "gears", strokes: 4, arcs: 3, texts: 0 }],
   ];
 
   for (const [label, expected] of cases) {
@@ -201,6 +207,8 @@ test("gradiente, alpha y ancho de cada contorno forman un contrato único", () =
     solid: { alpha: 0.88, width: 3.875, dash: [], inner: false },
     dashed: { alpha: 0.88, width: 2.75, dash: [16.25, 10], inner: false },
     double: { alpha: 0.88, width: 2.75, dash: [], inner: true },
+    dotted: { alpha: 0.88, width: 2.75, dash: [0, 10], inner: false },
+    corners: { alpha: 0.88, width: 2.75, dash: [], inner: false },
   };
 
   for (const contour of AREA_APPEARANCE_CONTOURS) {
@@ -224,6 +232,55 @@ test("gradiente, alpha y ancho de cada contorno forman un contrato único", () =
     assert.deepEqual(recipe.contour.lineDash, expected.dash);
     assert.equal(Boolean(recipe.contour.innerCorners), expected.inner);
   }
+});
+
+test("tres engranajes giran en sentidos opuestos y quedan fijos con movimiento reducido", () => {
+  const preset = appearance(BASE_AREA, { motifId: "gears" });
+  assert.equal(isAreaAppearanceCanvasAnimated(BASE_AREA, preset), true);
+
+  const anglesAt = (timeSeconds, reducedMotion = false) => {
+    const { context, trace } = createTraceContext();
+    drawAreaAppearanceCanvas(context, {
+      area: BASE_AREA,
+      appearance: preset,
+      ...BASE_OPTIONS,
+      timeSeconds: getAreaAppearanceAnimationTime(timeSeconds, { reducedMotion }),
+    });
+    return trace.filter(([name]) => name === "rotate").map(([, angle]) => angle);
+  };
+  const start = anglesAt(0);
+  const later = anglesAt(3);
+  assert.equal(start.length, 3);
+  assert.ok(later[0] > start[0]);
+  assert.ok(later[1] < start[1]);
+  assert.ok(later[2] < start[2]);
+  assert.deepEqual(anglesAt(5, true), start);
+});
+
+test("los contornos nuevos distinguen puntos redondos y marcas de esquina", () => {
+  const dots = createTraceContext();
+  drawAreaAppearanceCanvas(dots.context, {
+    area: BASE_AREA,
+    appearance: appearance(BASE_AREA, { motifId: "none", contourId: "dotted" }),
+    ...BASE_OPTIONS,
+  });
+  assert.ok(dots.trace.some(([name, property, value]) =>
+    name === "set" && property === "lineCap" && value === "round"));
+
+  const corners = createTraceContext();
+  const recipe = drawAreaAppearanceCanvas(corners.context, {
+    area: BASE_AREA,
+    appearance: appearance(BASE_AREA, { motifId: "none", contourId: "corners" }),
+    ...BASE_OPTIONS,
+  });
+  const contourPath = corners.trace.slice(corners.trace.findLastIndex(([name]) => name === "beginPath"));
+  assert.equal(count(contourPath, "moveTo"), 6);
+  assert.equal(count(contourPath, "lineTo"), 12);
+  assert.equal(count(contourPath, "closePath"), 0);
+  assert.deepEqual(
+    contourPath.filter(([name]) => name === "lineTo").filter((_, index) => index % 2 === 0),
+    recipe.corners.map(({ x, y }) => ["lineTo", x, y]),
+  );
 });
 
 test("EditorRenderer y CanvasRenderer consumen la misma primitiva sin recetas privadas", async () => {

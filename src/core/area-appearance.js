@@ -46,6 +46,20 @@ export const AREA_APPEARANCE_PALETTES = freezeCatalog([
     color: "#352e54",
     accent: "#d8c2ff",
   },
+  {
+    id: "solar-olive",
+    label: "Oliva solar",
+    description: "Verde oliva oscuro con acento amarillo claro.",
+    color: "#313c20",
+    accent: "#e6f59c",
+  },
+  {
+    id: "mineral-rose",
+    label: "Rosa mineral",
+    description: "Ciruela oscura con acento rosa luminoso.",
+    color: "#45283e",
+    accent: "#ffc4df",
+  },
 ]);
 
 export const AREA_APPEARANCE_MOTIFS = freezeCatalog([
@@ -73,6 +87,18 @@ export const AREA_APPEARANCE_MOTIFS = freezeCatalog([
     description: "Desplaza ondas suaves; queda estático con movimiento reducido.",
     animated: true,
   },
+  {
+    id: "triangular-grid",
+    label: "Trama triangular",
+    description: "Cruza líneas fijas en tres direcciones para formar triángulos.",
+    animated: false,
+  },
+  {
+    id: "gears",
+    label: "Engranajes en movimiento",
+    description: "Tres ruedas dentadas giran en sentidos opuestos. Quedan estáticas con movimiento reducido.",
+    animated: true,
+  },
 ]);
 
 export const AREA_APPEARANCE_CONTOURS = freezeCatalog([
@@ -95,6 +121,16 @@ export const AREA_APPEARANCE_CONTOURS = freezeCatalog([
     id: "double",
     label: "Doble",
     description: "Dos líneas concéntricas alrededor de la zona.",
+  },
+  {
+    id: "dotted",
+    label: "Punteado",
+    description: "Serie de puntos redondos alrededor de la zona.",
+  },
+  {
+    id: "corners",
+    label: "Esquinas",
+    description: "Resalta los seis vértices con trazos cortos.",
   },
 ]);
 

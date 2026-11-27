@@ -37,14 +37,20 @@ function contrast(first, second) {
 
 test("el catálogo Bowerbird v1 ofrece presets estables y contrastados", () => {
   assert.equal(AREA_APPEARANCE_CATALOG_VERSION, 1);
-  assert.equal(AREA_APPEARANCE_PALETTES.length, 5);
-  assert.equal(new Set(AREA_APPEARANCE_PALETTES.map(({ id }) => id)).size, 5);
+  assert.deepEqual(
+    AREA_APPEARANCE_PALETTES.map(({ id }) => id),
+    ["canonical", "polar", "aurora", "ember", "violet", "solar-olive", "mineral-rose"],
+  );
   assert.equal(AREA_APPEARANCE_MOTIFS.some(({ id }) => id === "none"), true);
   assert.equal(AREA_APPEARANCE_MOTIFS.some(({ animated }) => !animated), true);
   assert.equal(AREA_APPEARANCE_MOTIFS.some(({ animated }) => animated), true);
   assert.deepEqual(
+    AREA_APPEARANCE_MOTIFS.map(({ id }) => id),
+    ["canonical", "none", "constellation", "waves", "triangular-grid", "gears"],
+  );
+  assert.deepEqual(
     AREA_APPEARANCE_CONTOURS.map(({ id }) => id),
-    ["canonical", "solid", "dashed", "double"],
+    ["canonical", "solid", "dashed", "double", "dotted", "corners"],
   );
   for (const palette of AREA_APPEARANCE_PALETTES.filter(({ id }) => id !== "canonical")) {
     assert.ok(contrast(palette.color, palette.accent) >= 4.5, palette.id);
