@@ -27,6 +27,15 @@
         Tu navegador necesita soporte para Canvas 2D.
       </canvas>
 
+      <div id="touch-controls" class="touch-controls" role="group" aria-label="Controles táctiles del mapa">
+        <div class="touch-joystick" aria-hidden="true"><span></span></div>
+        <div class="touch-actions">
+          <button type="button" data-touch-transport aria-label="Cambiar transporte" title="Cambiar transporte">⇄</button>
+          <button type="button" data-zoom-factor="1.18" aria-label="Acercar mapa">+</button>
+          <button type="button" data-zoom-factor="0.85" aria-label="Alejar mapa">−</button>
+        </div>
+      </div>
+
       <section id="hud" class="glass-card hud-bar" aria-label="Estado de la expedición">
         <div class="hud-brand">
           <h1><span class="orbit-wordmark">ORBIT</span><span class="orbit-route"> · Electromagnetismo</span></h1>
@@ -146,6 +155,7 @@
         <span><kbd>E</kbd>: interactuar</span>
         <span><kbd>T</kbd>: transporte</span>
         <span data-debug-only hidden><kbd>F2</kbd>: debugger</span>
+        <span class="touch-hint">Joystick para moverte · toca un nodo cercano · doble toque en el fondo para saltar</span>
       </section>
 
       <div id="interaction-prompt" class="interaction-prompt" hidden>

@@ -1,5 +1,5 @@
 import { OrbitApiClient, OrbitApiError, createOnlineScope } from "./api-client.js";
-import { forgetOfflineAccess } from "./offline-store.js";
+import { activateOfflineAccount, forgetOfflineAccess } from "./offline-store.js";
 import { mountAdminPanel } from "./admin-panel.js";
 import { action, announce, createOnlineDialog, field, node, setFormBusy, status } from "./ui.js";
 
@@ -24,8 +24,7 @@ export function validateOnlineSession(candidate, serverId, { offline = false } =
   }
   const user = candidate.user;
   if (user.courseIds.some((id) => typeof id !== "string" || !id)
-    || (user.role === "student" && user.courseIds.length !== 1)
-    || (offline && user.role !== "student")) {
+    || (user.role === "student" && user.courseIds.length !== 1)) {
     throw new OrbitApiError("invalid-session", "La sesión no contiene una matrícula válida.", { status: 502 });
   }
   const seen = new Set();
@@ -112,10 +111,14 @@ export function mountOnlineSession(context, { documentRef = document, windowRef 
     announce(state, detail, error);
     if (!view.dialog.open && live.textContent !== detail) announce(live, detail, error);
   }
-  showStatus(context.offline ? "Sin conexión. El avance se sincronizará al reconectar." : "Online");
+  const studentAccount = context.session.user.role === "student";
+  showStatus(context.offline
+    ? studentAccount ? "Sin conexión. El avance se sincronizará al reconectar."
+      : "Sin conexión. Esta copia es para estudio y su avance se guarda en este dispositivo."
+    : "Online");
   view.body.append(node(documentRef, "strong", { text: context.session.user.alias }), state);
   const actions = node(documentRef, "div", { className: "online-actions" });
-  if (context.session.courses.length > 1 && !context.offline) {
+  if (context.session.courses.length > 1) {
     actions.append(action(documentRef, "Cambiar curso", () => {
       sessionEnded(windowRef, context.scope);
       const url = new URL(windowRef.location.href);
@@ -222,7 +225,7 @@ function selectCourse({ session, shell, documentRef, windowRef, requestedCourseI
 
 export async function resolveOnlineContext({
   target = "orbit", documentRef = globalThis.document, windowRef = globalThis.window,
-  offlineProvider = null, api = new OrbitApiClient(),
+  offlineProvider = null, api = new OrbitApiClient(), activateOffline = activateOfflineAccount,
 } = {}) {
   const markers = readOnlineMarkers(documentRef);
   if (!markers) return null;
@@ -241,14 +244,18 @@ export async function resolveOnlineContext({
         const cachedSession = validateOnlineSession(cached.session, markers.serverId, { offline: true });
         const course = cachedSession.courses.find((entry) => entry.id === cached.course?.id);
         if (!course || (requestedCourseId && course.id !== requestedCourseId)) throw new Error("La copia offline pertenece a otro curso.");
-        const useOffline = await new Promise((resolve) => {
+        const candidates = cached.choices?.length > 1 ? cached.choices : [cached];
+        const choice = await new Promise((resolve) => {
           shell.replaceChildren(node(documentRef, "h1", { text: "Sin conexión" }),
-            node(documentRef, "p", { text: "Puedes continuar únicamente con la cuenta y el curso descargados en este dispositivo." }),
-            action(documentRef, `Continuar sin conexión como ${cachedSession.user.alias}`, () => resolve(true)),
-            action(documentRef, "Intentar ingresar online", () => resolve(false)));
+            node(documentRef, "p", { text: "Puedes continuar con las copias guardadas de esta cuenta en el dispositivo." }),
+            ...candidates.map((candidate) => action(documentRef, candidates.length === 1
+              ? `Continuar sin conexión como ${cachedSession.user.alias}` : candidate.course.title, () => resolve(candidate))),
+            action(documentRef, "Intentar ingresar online", () => resolve(null)));
         });
-        if (useOffline) {
-          const context = { ...cached, api, session: cachedSession, course, profile: "student", scope: createOnlineScope(markers.serverId, cachedSession.user.id, course.id), offline: true };
+        if (choice) {
+          const selected = cachedSession.courses.find((entry) => entry.id === choice.course.id);
+          if (!selected || choice.session.user.id !== cachedSession.user.id) throw new Error("La copia no pertenece a esta cuenta.");
+          const context = { ...choice, api, session: cachedSession, course: selected, profile: "student", scope: createOnlineScope(markers.serverId, cachedSession.user.id, selected.id), offline: true };
           releaseAccessShell(shell, documentRef);
           mountOnlineSession(context, { documentRef, windowRef });
           return context;
@@ -257,6 +264,8 @@ export async function resolveOnlineContext({
     }
     session = await loginForm({ api, shell, serverId: markers.serverId, documentRef, initialError: error.status === 401 ? null : error });
   }
+  const offlineAccountActive = target === "orbit" && Boolean(offlineProvider);
+  if (offlineAccountActive) activateOffline(session);
   const onLogout = async () => {
     try { await endOnlineSession({ api, session, offline: false }, { windowRef }); }
     catch (error) {
@@ -265,7 +274,7 @@ export async function resolveOnlineContext({
     }
   };
   if (session.user.role === "admin") {
-    mountAdminPanel({ api, session, root: shell, documentRef, onLogout, editMapInvitations: target === "editor" });
+    mountAdminPanel({ api, session, root: shell, documentRef, onLogout, editMapInvitations: target === "editor", offlineAccountActive });
     return new Promise(() => {});
   }
   const course = await selectCourse({ session, shell, documentRef, windowRef, requestedCourseId, forceChoice: url.searchParams.get("chooseCourse") === "1", onLogout });
@@ -274,7 +283,7 @@ export async function resolveOnlineContext({
   url.searchParams.delete("profile");
   url.searchParams.delete("debug");
   windowRef.history.replaceState(null, "", url.href);
-  const context = { api, session, course, profile: session.user.role, scope: createOnlineScope(markers.serverId, session.user.id, course.id), offline: false };
+  const context = { api, session, course, profile: session.user.role, scope: createOnlineScope(markers.serverId, session.user.id, course.id), offline: false, offlineAccountActive };
   releaseAccessShell(shell, documentRef);
   mountOnlineSession(context, { documentRef, windowRef });
   return context;

@@ -1,7 +1,10 @@
 import { action, announce, field, node, setFormBusy, status } from "./ui.js";
 import { MAP_INVITATION_MAX_LENGTH } from "../core/map-invitations.js";
+import { materializeCourseEdition } from "../core/course-edition.js";
+import { assertOnlineResponseIdentity } from "./api-client.js";
+import { onlineScope, saveOfflineCourse } from "./offline-store.js";
 
-export function mountAdminPanel({ api, session, root, documentRef = document, onLogout, editMapInvitations = false }) {
+export function mountAdminPanel({ api, session, root, documentRef = document, onLogout, editMapInvitations = false, offlineAccountActive = false }) {
   if (session?.user?.role !== "admin") throw new Error("Esta vista requiere una cuenta administradora.");
   let destroyed = false;
   let generation = 0;
@@ -153,6 +156,28 @@ export function mountAdminPanel({ api, session, root, documentRef = document, on
         return api.request(`/admin/courses/${encodeURIComponent(course.id)}/teachers`, { method: "PUT", body: { teacherIds } });
       });
       courseSection.append(form);
+      if (offlineAccountActive) {
+        const save = action(documentRef, "Guardar curso para estudiar sin conexión", async () => {
+          save.disabled = true;
+          try {
+            const response = await api.request(`/admin/courses/${encodeURIComponent(course.id)}/offline-edition`);
+            assertOnlineResponseIdentity(response, { serverId: session.serverId, userId: session.user.id });
+            const { edition } = await materializeCourseEdition(response.edition);
+            if (response.course.id !== course.id || response.course.revision !== edition.revision) {
+              throw new Error("La edición recibida no coincide con este curso.");
+            }
+            if (destroyed) return;
+            const stored = saveOfflineCourse({ session, course: response.course, offlineAccountActive,
+              scope: onlineScope(session.serverId, session.user.id, course.id) }, { edition, compatibility: response.compatibility });
+            if (stored) announce(message, `${course.title} quedó guardado para estudiar sin conexión.`);
+          } catch (error) {
+            if (!destroyed) announce(message, error.message, true);
+          } finally {
+            if (!destroyed) save.disabled = false;
+          }
+        });
+        courseSection.append(save);
+      }
       if (editMapInvitations) courseSection.append(mapInvitations(course));
     }
     contents.replaceChildren(teacherSection, courseSection);

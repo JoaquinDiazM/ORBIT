@@ -134,15 +134,30 @@ async fn connect_course(launcher: WebviewWindow, address: String) -> Result<bool
         return Ok(true);
     }
     let url = course_url(&address)?;
+    open_course_window(&launcher, Some(url))
+}
+
+#[tauri::command]
+async fn open_offline(launcher: WebviewWindow) -> Result<bool, String> {
+    require_launcher(&launcher)?;
+    open_course_window(&launcher, None)
+}
+
+fn open_course_window(launcher: &WebviewWindow, url: Option<Url>) -> Result<bool, String> {
+    let app = launcher.app_handle();
+    if let Some(course) = app.get_webview_window(COURSE) {
+        let _ = course.set_focus();
+        return Ok(true);
+    }
     let selected_origin = url.clone();
-    let origin = url.origin().ascii_serialization();
-    let title = format!("ORBIT · {origin}");
-    let version_script = format!(
+    let origin = url.as_ref().map(|address| address.origin().ascii_serialization());
+    let title = format!("ORBIT · {}", origin.as_deref().unwrap_or("Sin conexión"));
+    let version_script = origin.as_ref().map(|origin| format!(
         "if (window === window.top && location.origin === {:?}) \
          Object.defineProperty(globalThis, '__orbitWindowsVersion', {{ value: {:?} }});",
         origin,
         app.package_info().version.to_string()
-    );
+    )).unwrap_or_default();
     let go_back = MenuItem::with_id(
         app,
         RETURN_TO_LAUNCHER,
@@ -153,7 +168,9 @@ async fn connect_course(launcher: WebviewWindow, address: String) -> Result<bool
     .map_err(|_| "No se pudo preparar el menú de ORBIT.")?;
     let menu =
         Menu::with_items(app, &[&go_back]).map_err(|_| "No se pudo preparar el menú de ORBIT.")?;
-    let course = WebviewWindowBuilder::new(app, COURSE, WebviewUrl::External(url.clone()))
+    let webview_url = url.clone().map(WebviewUrl::External)
+        .unwrap_or_else(|| WebviewUrl::App("orbit/index.html".into()));
+    let course = WebviewWindowBuilder::new(app, COURSE, webview_url)
         .initialization_script(version_script)
         .title(title)
         .inner_size(1200.0, 800.0)
@@ -166,7 +183,11 @@ async fn connect_course(launcher: WebviewWindow, address: String) -> Result<bool
                 }
             }
         })
-        .on_navigation(move |target| navigation_allowed(&selected_origin, target))
+        .on_navigation(move |target| match selected_origin.as_ref() {
+            Some(origin) => navigation_allowed(origin, target),
+            None => matches!((target.scheme(), target.host_str()), ("tauri", Some("localhost")) | ("http" | "https", Some("tauri.localhost")))
+                && target.path().starts_with("/orbit/"),
+        })
         .on_new_window(|_, _| NewWindowResponse::Deny)
         .disable_drag_drop_handler()
         .build()
@@ -181,7 +202,7 @@ async fn connect_course(launcher: WebviewWindow, address: String) -> Result<bool
             }
         }
     });
-    let saved = remember_server(app, &url).is_ok();
+    let saved = url.as_ref().is_none_or(|address| remember_server(app, address).is_ok());
     let _ = launcher.hide();
     Ok(saved)
 }
@@ -242,6 +263,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             launcher_info,
             connect_course,
+            open_offline,
             check_updates,
             install_update
         ])

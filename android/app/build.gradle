@@ -1,0 +1,48 @@
+plugins {
+    id 'com.android.application' version '8.13.2'
+}
+
+def preview = providers.gradleProperty('orbitPreview').map { it == 'true' }.orElse(false)
+def orbitVersion = providers.gradleProperty('orbitVersion').orElse('1.3.0')
+def orbitBuild = providers.gradleProperty('orbitVersionCode').orElse('1030001')
+
+android {
+    namespace 'io.github.joaquindiazm.orbit'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'io.github.joaquindiazm.orbit'
+        minSdk 26
+        targetSdk 35
+        versionCode orbitBuild.get().toInteger()
+        versionName orbitVersion.get()
+        resValue 'string', 'orbit_app_name', preview.get() ? 'ORBIT Prueba' : 'ORBIT'
+        if (preview.get()) applicationIdSuffix '.preview'
+    }
+    sourceSets.main.assets.srcDir(rootProject.file('../artifacts/android-assets'))
+    if (preview.get()) {
+        signingConfigs {
+            previewKey {
+                storeFile file(providers.gradleProperty('orbitPreviewKeystore').get())
+                storePassword providers.environmentVariable('ORBIT_PREVIEW_PASSWORD').get()
+                keyPassword storePassword
+                keyAlias 'orbit-preview'
+            }
+        }
+        buildTypes.release.signingConfig signingConfigs.previewKey
+    } else if (providers.environmentVariable('ORBIT_ANDROID_KEYSTORE').present) {
+        signingConfigs {
+            distribution {
+                storeFile file(providers.environmentVariable('ORBIT_ANDROID_KEYSTORE').get())
+                storePassword providers.environmentVariable('ORBIT_ANDROID_STORE_PASSWORD').get()
+                keyPassword providers.environmentVariable('ORBIT_ANDROID_KEY_PASSWORD').get()
+                keyAlias providers.environmentVariable('ORBIT_ANDROID_KEY_ALIAS').get()
+            }
+        }
+        buildTypes.release.signingConfig signingConfigs.distribution
+    }
+    buildFeatures.buildConfig true
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.14.0'
+}

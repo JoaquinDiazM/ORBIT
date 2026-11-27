@@ -1,6 +1,7 @@
 export async function setupInstallableApp({ windowRef = window, documentRef = document } = {}) {
   // Development/authoring retains its no-cache contract and never registers a worker.
   if (!documentRef.querySelector('meta[name="orbit-build"]')) return null;
+  if (documentRef.querySelector('meta[name="orbit-bundled"]')) return null;
   if (new URL(windowRef.location.href).origin === "http://127.0.0.1:4173") return null;
   const navigatorRef = windowRef.navigator;
   if (!windowRef.isSecureContext || !navigatorRef.serviceWorker) return null;

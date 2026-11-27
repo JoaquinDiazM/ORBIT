@@ -4,7 +4,9 @@
   "identifier": "io.github.joaquindiazm.orbit",
   "version": "../package.json",
   "build": {
-    "frontendDist": "../desktop"
+    "frontendDist": "../artifacts/desktop",
+    "beforeBuildCommand": "npm run build:desktop",
+    "beforeDevCommand": "npm run build:desktop"
   },
   "app": {
     "withGlobalTauri": true,
@@ -21,7 +23,7 @@
     ],
     "security": {
       "capabilities": ["launcher"],
-      "csp": "default-src 'none'; script-src 'self'; style-src 'self'; connect-src ipc: http://ipc.localhost; img-src 'self'; base-uri 'none'; form-action 'none'; frame-src 'none'; object-src 'none'"
+      "csp": "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' ipc: http://ipc.localhost; img-src 'self' data:; font-src 'self'; media-src 'self'; base-uri 'none'; form-action 'none'; frame-src 'none'; object-src 'none'"
     }
   },
   "plugins": {

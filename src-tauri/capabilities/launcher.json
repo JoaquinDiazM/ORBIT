@@ -6,6 +6,7 @@
   "permissions": [
     "allow-launcher-info",
     "allow-connect-course",
+    "allow-open-offline",
     "allow-check-updates",
     "allow-install-update"
   ]

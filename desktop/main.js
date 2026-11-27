@@ -2,6 +2,7 @@ const invoke = window.__TAURI__?.core?.invoke;
 const form = document.querySelector("#connect");
 const server = document.querySelector("#server");
 const open = document.querySelector("#open-course");
+const offline = document.querySelector("#open-offline");
 const connectionStatus = document.querySelector("#connection-status");
 const version = document.querySelector("#version");
 const check = document.querySelector("#check-updates");
@@ -10,19 +11,25 @@ const updateStatus = document.querySelector("#update-status");
 let hasSigningKey = false;
 
 async function action(status, message, work) {
-  for (const control of [server, open, check, install]) control.disabled = true;
+  for (const control of [server, open, offline, check, install]) control.disabled = true;
   status.textContent = message;
   try {
     status.textContent = await work();
   } catch (error) {
     status.textContent = typeof error === "string" ? error : "La acción no pudo completarse. Vuelve a intentarlo.";
   } finally {
-    server.disabled = open.disabled = install.disabled = false;
+    server.disabled = open.disabled = offline.disabled = install.disabled = false;
     check.disabled = !hasSigningKey;
   }
 }
 
 if (invoke) {
+  offline.addEventListener("click", () => {
+    void action(connectionStatus, "Abriendo ORBIT sin conexión…", async () => {
+      await invoke("open_offline");
+      return "";
+    });
+  });
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     const address = server.value;

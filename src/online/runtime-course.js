@@ -32,9 +32,9 @@ export async function prepareOnlineRuntime(context, {
   storageFactory = (key) => new ProgressStorage(key),
   isActive = () => true,
 } = {}) {
-  const student = context.profile === "student";
+  const student = context.session.user.role === "student";
   const route = `/courses/${encodeURIComponent(context.course.id)}`;
-  const previous = student ? readOfflineCourse(context.scope, { storageFactory }) : null;
+  const previous = readOfflineCourse(context.scope, { storageFactory });
   let [response, progress] = context.offline
     ? [context.cached ?? previous, (context.cached ?? previous)?.progress]
     : await Promise.all([
@@ -63,7 +63,7 @@ export async function prepareOnlineRuntime(context, {
     source: context.offline ? "offline-account-cache" : "online-server",
   };
   if (student) assertServerProgress(progress, { ...identity, courseId: course.courseId, revision: course.courseRevision });
-  const generation = student ? progress.generation : "teacher-preview";
+  const generation = student ? progress.generation : context.offline ? "offline-study" : "teacher-preview";
   const storage = storageFactory(onlineProgressKey(context.scope, generation));
   const storedResult = storage.loadResult();
   if (storedResult.error) throw storedResult.error;
@@ -125,7 +125,7 @@ export async function prepareOnlineRuntime(context, {
     && !retainedGenerations.some((entry) => entry.generation === previous.progress.generation)) {
     retainedGenerations.push({ generation: previous.progress.generation, revision: previous.progress.revision });
   }
-  const cache = student && !context.offline ? saveOfflineCourse(context, {
+  const cache = !context.offline ? saveOfflineCourse(context, {
     edition: materialized.edition,
     compatibility,
     progress,

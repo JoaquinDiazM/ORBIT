@@ -18,6 +18,7 @@ import {
 import { Camera2D } from "./camera.js";
 import { InputController } from "./input-controller.js";
 import { CanvasRenderer } from "./renderer.js";
+import { attachTouchControls } from "./touch-controls.js";
 
 export const LOCATION_INTERACTION_AUDIO_KEY = "mission_start";
 export const TELEPORT_AUDIO_KEY = "teleport";
@@ -218,6 +219,19 @@ export class GameApp {
     this.canvas.addEventListener("pointerup", this.onPointerUp);
     this.canvas.addEventListener("pointercancel", this.onPointerCancel);
     this.canvas.addEventListener("lostpointercapture", this.onPointerCancel);
+    const touchControls = globalThis.document?.getElementById?.("touch-controls");
+    if (touchControls) {
+      this.touch = attachTouchControls({
+        canvas: this.canvas,
+        controls: touchControls,
+        isBlocked: () => this.ui.isBlockingModalOpen(),
+        pick: (event) => this.#pickTouchTarget(event),
+        interact: (location) => this.#interactWithTouchedLocation(location),
+        teleport: (area) => this.#teleportToUnlockedArea(area),
+        zoom: (factor) => this.camera.setZoom(this.camera.zoom * factor),
+        cycleTransport: () => { this.input.actions.add("transport"); },
+      });
+    }
     this.unsubscribeProgression = this.progression.subscribe((event) => {
       if (["reset", "state-imported"].includes(event.type)) {
         this.navigationHistory = [];
@@ -275,6 +289,7 @@ export class GameApp {
           }
         },
         () => this.input.destroy(),
+        () => this.touch?.destroy(),
         () => this.unsubscribeProgression?.(),
         () => this.motionQuery?.removeEventListener?.("change", this.onMotionPreferenceChanged),
         () => window.removeEventListener("resize", this.onResize),
@@ -503,13 +518,14 @@ export class GameApp {
   }
 
   #updateMovement(deltaSeconds) {
+    const touchAxis = this.touch?.axis();
     if (this.ui.isBlockingModalOpen()) {
       this.player.velocityX = 0;
       this.player.velocityY = 0;
       return 0;
     }
 
-    const axis = this.input.axis();
+    const axis = touchAxis?.x || touchAxis?.y ? touchAxis : this.input.axis();
     const transport = this.progression.getActiveTransport();
     const speed = APP_CONFIG.baseMoveSpeed * transport.speedMultiplier;
     const velocityX = axis.x * speed;
@@ -582,6 +598,7 @@ export class GameApp {
   }
 
   #handlePointerDown(event) {
+    if (event.pointerType === "touch") return;
     this.canvas.focus({ preventScroll: true });
     if (
       event.target === this.canvas
@@ -617,6 +634,37 @@ export class GameApp {
     }
     if (!this.teleportToWorld(canonical.x, canonical.y)) return;
     this.ui.toast(`Teletransporte de depuración: ${area.title}.`, "success");
+  }
+
+  #pickTouchTarget(event) {
+    const world = this.#worldPointFromPointerEvent(event);
+    const worldIndex = this.#displayWorldIndex();
+    const { visibleLocationIds } = this.progression.getSnapshot();
+    let location = null;
+    let nearestPixels = 24;
+    for (const candidate of this.locations) {
+      if (!visibleLocationIds.has(candidate.id) || !worldIndex.byId.has(candidate.areaId)) continue;
+      const position = getLocationWorldPosition(candidate, worldIndex, WORLD_CONFIG.hexSize);
+      const distance = Math.hypot(position.x - world.x, position.y - world.y) * this.camera.zoom;
+      if (distance >= nearestPixels) continue;
+      nearestPixels = distance;
+      location = candidate;
+    }
+    return { location, area: getAreaAtWorldPosition(world.x, world.y, WORLD_CONFIG.hexSize, worldIndex) };
+  }
+
+  #interactWithTouchedLocation(location) {
+    if (!this.progression.getSnapshot().accessibleLocationIds.has(location.id)) {
+      this.ui.toast("Este lugar todavía está bloqueado.", "warning");
+      return;
+    }
+    const position = getLocationWorldPosition(location, this.#displayWorldIndex(), WORLD_CONFIG.hexSize);
+    const player = this.#displayPlayerPosition();
+    if (Math.hypot(player.x - position.x, player.y - position.y) > (location.interactionRadius ?? APP_CONFIG.interactionRadius)) {
+      this.ui.toast("Acércate a este lugar para interactuar.", "warning");
+      return;
+    }
+    openLocationWithInteractionCue(location, this.audio, this.ui);
   }
 
   #handlePointerMove(event) {

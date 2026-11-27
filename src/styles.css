@@ -152,6 +152,56 @@ code {
 }
 
 .glass-card,
+.touch-controls,
+.touch-hint {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  #controls-hint > :not(.touch-hint) { display: none; }
+  #controls-hint .touch-hint { display: inline; }
+  .touch-controls:not([hidden]) {
+    display: flex;
+    position: fixed;
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    left: max(1rem, env(safe-area-inset-left));
+    right: max(1rem, env(safe-area-inset-right));
+    justify-content: space-between;
+    align-items: end;
+    pointer-events: none;
+    z-index: 3;
+  }
+  .touch-joystick {
+    display: grid;
+    place-items: center;
+    width: clamp(5.75rem, 26vh, 8rem);
+    aspect-ratio: 1;
+    border: 2px solid #81cce6;
+    border-radius: 50%;
+    background: rgba(11, 29, 45, 0.76);
+    pointer-events: auto;
+    touch-action: none;
+  }
+  .touch-joystick span {
+    width: 37%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: #a1edff;
+    pointer-events: none;
+  }
+  .touch-actions { display: flex; gap: 0.35rem; pointer-events: auto; }
+  .touch-actions button {
+    min-width: 3rem;
+    min-height: 3rem;
+    border: 1px solid #81cce6;
+    border-radius: 0.5rem;
+    background: #112c40;
+    color: #effaff;
+    font-size: 1.375rem;
+    touch-action: manipulation;
+  }
+}
+
 .side-panel,
 .debug-panel {
   border: 1px solid var(--panel-border);

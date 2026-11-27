@@ -9,7 +9,7 @@ import { OnlineProgressSync } from "../src/online/progress-sync.js";
 import { prepareOnlineRuntime } from "../src/online/runtime-course.js";
 import { acquireOnlineRuntimeLock } from "../src/online/runtime-lock.js";
 import {
-  forgetOfflineAccess, loadOfflineContext, offlineCourseKey, onlineProgressKey,
+  activateOfflineAccount, forgetOfflineAccess, loadOfflineContext, offlineCourseKey, onlineProgressKey,
   onlineScope, readOfflineCourse, saveOfflineCourse,
 } from "../src/online/offline-store.js";
 
@@ -203,6 +203,35 @@ test("offline recupera curso y finalizaciones pendientes sin llamar a la API ni 
   assert.equal(runtime.progression.isLocationCompleted("vector-workshop"), true);
   assert.equal(runtime.course.source, "offline-account-cache");
   assert.equal(runtime.progression.profile, "student");
+});
+
+test("docentes y administradores recuperan sus cursos sin capacidades ni sincronización docente", async () => {
+  const env = memory();
+  const courses = ["one", "two"].map((id) => ({ id, title: id, revision: edition.revision, maintenance: false }));
+  const account = (role) => ({ serverId: "server", user: { id: role, alias: role, role, courseIds: ["one", "two"] }, courses });
+  const api = { request() { throw new Error("La copia de estudio no consulta al servidor"); } };
+  for (const role of ["teacher", "admin"]) {
+    const session = account(role);
+    activateOfflineAccount(session, env);
+    assert.equal(await loadOfflineContext({ serverId: "server", api }, env), null);
+    for (const course of courses) {
+      saveOfflineCourse({ session, course, offlineAccountActive: true, scope: onlineScope("server", role, course.id) }, { edition }, env);
+    }
+    const result = await loadOfflineContext({ serverId: "server", courseId: "one", api }, env);
+    assert.equal(result.session.user.role, role);
+    assert.equal(result.profile, "student");
+    assert.deepEqual(result.choices.map(({ course }) => course.id), ["two", "one"]);
+    assert.equal(result.cached.progress, null);
+    const runtime = await prepareOnlineRuntime(result, env);
+    assert.equal(runtime.progression.profile, "student");
+    assert.equal(runtime.course.courseId, "one");
+  }
+  const teacher = account("teacher");
+  activateOfflineAccount({ ...teacher, courses: [courses[1]] }, env);
+  assert.equal(await loadOfflineContext({ serverId: "server", courseId: "one", api }, env), null);
+  assert.equal((await loadOfflineContext({ serverId: "server", api }, env)).session.user.id, "teacher");
+  forgetOfflineAccess("server", env);
+  assert.equal(await loadOfflineContext({ serverId: "server", api }, env), null);
 });
 
 test("restauración cambia generación, no resucita avance y conserva copia exportable", async () => {

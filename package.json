@@ -21,6 +21,7 @@
     "test": "node --test",
     "validate": "node scripts/validate-content.mjs",
     "build": "node scripts/build.mjs",
+    "build:desktop": "npm run build && node scripts/stage-desktop.mjs",
     "check": "npm run validate && npm test && npm run repo-check && npm run build",
     "repo-check": "node scripts/check-repository.mjs",
     "desktop": "tauri"

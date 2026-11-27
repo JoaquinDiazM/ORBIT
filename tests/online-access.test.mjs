@@ -106,7 +106,7 @@ test("validación de identidad limita estudiante a un curso y separa el scope si
   assert.throws(() => validateOnlineSession(valid, "server-b"), /servidor/);
   assert.throws(() => validateOnlineSession({ ...valid, user: { ...valid.user, courseIds: ["course-a", "course-b"] } }, "server-a"), /matrícula/);
   assert.throws(() => validateOnlineSession({ ...valid, courses: [{ ...course, id: "foreign" }] }, "server-a"), /autorizados/);
-  assert.throws(() => validateOnlineSession(session("teacher"), "server-a", { offline: true }), /matrícula/);
+  assert.equal(validateOnlineSession(session("teacher"), "server-a", { offline: true }).user.role, "teacher");
   assert.notEqual(createOnlineScope("a:b", "c", "d"), createOnlineScope("a", "b:c", "d"));
   assert.throws(() => createOnlineScope("a", "", "d"), TypeError);
 });

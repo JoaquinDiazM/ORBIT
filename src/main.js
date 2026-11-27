@@ -288,7 +288,7 @@ async function startOrbitRuntime() {
     startupReady = true;
     if (onlineContext) {
       showRetainedProgress(onlineContext, onlineRuntime.recoveries);
-      if (profile === "student") {
+      if (onlineContext.session.user.role === "student") {
         onlineSync = new OnlineProgressSync({
           context: onlineContext,
           progression,

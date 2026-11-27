@@ -364,6 +364,14 @@ export async function createOrbitServer({
         });
         return json(response, 200, { course });
       }
+      const offlineEdition = /^\/admin\/courses\/([a-f0-9-]+)\/offline-edition$/.exec(path);
+      if (offlineEdition && method === "GET") {
+        requireAdmin(auth.user);
+        const course = state.courses.find(({ id }) => id === offlineEdition[1]);
+        if (!course) throw apiError(404, "not-found", "No existe ese curso.");
+        return json(response, 200, { serverId: state.serverId, userId: auth.user.id,
+          course: viewCourse(course, auth.user), edition: course.edition, compatibility: course.compatibility });
+      }
       const match = /^\/courses\/([a-f0-9-]+)\/(edition|progress|students|maintenance|validate|publish)(?:\/([a-f0-9-]+)(\/password)?)?$/.exec(path);
       if (!match) throw apiError(404, "not-found", "No existe esa operación.");
       const [, courseId, action, targetId, passwordSuffix] = match;
