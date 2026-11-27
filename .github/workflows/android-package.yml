@@ -1,0 +1,72 @@
+name: Attach the ORBIT Android APK
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: orbit-android-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  android:
+    if: ${{ !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with: { node-version: '24' }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: android-actions/setup-android@v3
+        with: { packages: 'platforms;android-36 build-tools;36.0.0' }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: '8.13' }
+      - name: Build the release web assets
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          test "$RELEASE_TAG" = "v$(node -p "require('./package.json').version")"
+          npm ci
+          npm run build
+          node scripts/stage-android.mjs
+      - name: Sign the Android release and verify the APK
+        env:
+          ORBIT_ANDROID_KEYSTORE_BASE64: ${{ secrets.ORBIT_ANDROID_KEYSTORE_BASE64 }}
+          ORBIT_ANDROID_KEY_PASSWORD: ${{ secrets.ORBIT_ANDROID_KEY_PASSWORD }}
+        run: |
+          test -n "$ORBIT_ANDROID_KEYSTORE_BASE64"
+          test -n "$ORBIT_ANDROID_KEY_PASSWORD"
+          umask 077
+          export ORBIT_ANDROID_KEYSTORE="$RUNNER_TEMP/orbit-android-release.p12"
+          trap 'rm -f "$ORBIT_ANDROID_KEYSTORE"' EXIT
+          printf '%s' "$ORBIT_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$ORBIT_ANDROID_KEYSTORE"
+          unset ORBIT_ANDROID_KEYSTORE_BASE64
+          export ORBIT_ANDROID_STORE_PASSWORD="$ORBIT_ANDROID_KEY_PASSWORD"
+          export ORBIT_ANDROID_KEY_ALIAS=orbit-release
+          read -r version version_code < <(node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            const { version } = JSON.parse(readFileSync("package.json", "utf8"));
+            const [major, minor, patch] = version.split(".").map(Number);
+            const code = major * 1_000_000 + minor * 10_000 + patch * 100 + 1;
+            if (minor > 99 || patch > 99 || code > 2_100_000_000) throw new Error("Android versionCode out of range");
+            console.log(version, code);
+          ')
+          gradle -p android :app:assembleRelease --no-daemon \
+            -PorbitVersion="$version" -PorbitVersionCode="$version_code"
+          cp android/app/build/outputs/apk/release/app-release.apk artifacts/orbit-android.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs artifacts/orbit-android.apk
+          (cd artifacts && sha256sum orbit-android.apk > orbit-android.apk.sha256)
+      - name: Attach the Android APK and its checksum
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$RELEASE_TAG" artifacts/orbit-android.apk artifacts/orbit-android.apk.sha256 --repo "$GITHUB_REPOSITORY"

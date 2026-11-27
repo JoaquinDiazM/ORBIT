@@ -18,12 +18,12 @@ Para actualizar, abre **Servidor y actualizaciones** desde la ventana del curso,
 También puedes abrir el enlace de tu curso directamente en el navegador.
 
 Desde 1.3.0, **ORBIT sin conexión** abre el contenido incluido en la aplicación.
-Para continuar un curso guardado del servidor, abre su mismo enlace HTTPS
-después de preparar los recursos en **Aplicación** y la copia del curso con red.
+En Windows 1.3.0, la reapertura sin conexión de cursos guardados del servidor
+tiene una limitación conocida. Conéctate al servidor para abrir esos cursos.
 
 ## Android desde 1.3.0
 
-Busca el APK en [Versiones y descargas](https://github.com/JoaquinDiazM/ORBIT/releases).
+Descarga el [APK de ORBIT](https://github.com/JoaquinDiazM/ORBIT/releases/latest/download/orbit-android.apk).
 Tras instalarlo, elige **Abrir curso** con su enlace HTTPS u **ORBIT sin conexión**
 para el contenido incluido. La aplicación se juega en horizontal. Usa el joystick
 para moverte, toca un nodo al alcance para interactuar y da dos toques en el
@@ -31,9 +31,10 @@ fondo de un hexágono abierto para viajar a su centro.
 
 Los cursos se guardan en el dispositivo por servidor y cuenta. En Estudiante y
 Docente se prepara el curso al abrirlo. En Administración, usa **Guardar curso
-para estudiar sin conexión**. Abre el mismo enlace para elegir tus copias al
-quedarte sin red. El estudio de las copias de Docente y Administración conserva
-avance local. Editor, Owl y la gestión del servidor usan una sesión en línea.
+para estudiar sin conexión**. Comprueba los recursos en **Aplicación** y abre el
+mismo enlace para elegir tus copias al quedarte sin red. El estudio de las
+copias de Docente y Administración conserva avance local. Editor, Owl y la
+gestión del servidor usan una sesión en línea.
 
 - [Guía de uso](docs/USER_GUIDE.md)
 - [Guía para administrar un servidor](README_ADMIN.md)

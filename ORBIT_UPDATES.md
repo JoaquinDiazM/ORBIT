@@ -273,7 +273,7 @@ Sin propuestas pendientes de clasificar.
 
 ### UPD-046 — Cliente Android y controles táctiles de ORBIT
 
-- Estado: `en-revision`
+- Estado: `aprobado`
 - Tipo: `feature`
 - Versión objetivo: `1.3.0`
 
@@ -290,11 +290,13 @@ siendo las actuales. Preparar las decisiones de diseño antes de implementar.
   enlace HTTPS y jugar mediante controles táctiles durante una sesión normal.
 - Decisiones confirmadas: solo horizontal en Android, joystick fijo y doble
   toque en el fondo. APK en GitHub y actualización del README principal.
-  Cualquier perfil puede iniciar el contenido local. Cada cuenta puede abrir
-  sus cursos guardados, en Android y Windows. Las copias de Docente y Admin
+  Cualquier perfil puede iniciar el contenido local. Android permite reabrir
+  los cursos guardados por cuenta. Las copias de Docente y Admin
   ofrecen estudio local del material publicado, con edición y gestión en línea.
   JoaquinDiazM autorizó la implementación y una versión de prueba en GitHub
   con un aviso visible que desaconseja descargarla hasta la release oficial.
+  Aprobó 1.3.0 con la limitación de reapertura offline en Windows, cuyo
+  seguimiento es `UPD-047` para 1.5.0.
 - Diseño: mapa horizontal en la primera alfa. Joystick fijo y
   semitransparente abajo a la izquierda. Un toque sobre el marcador interactúa
   con el nodo tocado si es accesible y el personaje está dentro de su radio.
@@ -335,8 +337,7 @@ siendo las actuales. Preparar las decisiones de diseño antes de implementar.
 
 #### Preguntas bloqueantes
 
-- Ninguna sobre el alcance principal. La release oficial sigue el flujo de
-  revisión; el permiso inmediato de publicación es para la versión de prueba.
+- Ninguna. La revisión y la limitación aceptada habilitan la release oficial.
 
 #### Implementación y revisión
 
@@ -359,11 +360,79 @@ siendo las actuales. Preparar las decisiones de diseño antes de implementar.
   de autoría. La compilación local coincide con la fuente y la revisión del
   curso. El paquete de ensayo en Crab quedó verificado y listo para inicializar.
 - Versionado de prueba: [1.3.0-preview.1](https://github.com/JoaquinDiazM/ORBIT/releases/tag/v1.3.0-preview.1)
-  tiene el aviso acordado y los cinco adjuntos con SHA-256 verificado. 1.2.4
-  sigue siendo la release estable. La cohorte espera la revisión humana.
-- Revisión manual humana: pendiente en un teléfono Android y en Windows.
-  Verificar los gestos, el contenido incluido en modo avión, los cursos
-  guardados para los tres roles y la sincronización de Estudiante al reconectar.
+  tiene el aviso acordado y los cinco adjuntos con SHA-256 verificado.
+- Revisión manual humana: JoaquinDiazM aprobó la 1.3.0 el 2026-11-27.
+  Reportó que el recorrido funcionó, incluido el curso guardado en Android.
+  En la aplicación Windows, abrir el curso sin red quedó en «Conectando con
+  ORBIT…». Edge mostró un error DNS. La aprobación acepta publicar con esa
+  limitación de Windows y reserva su corrección a `UPD-047`.
+
+### UPD-048 — Plantilla de anillo simple en Bee
+
+- Estado: `faltan-detalles`
+- Tipo: `feature`
+- Versión objetivo: `1.3.1`
+
+#### Solicitud original
+
+Agregar a Bee de ORBIT Editor una segunda plantilla de zonas, de anillo simple,
+junto a la disposición vigente de dos anillos bloqueados por nivel.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: Bee ofrece dos opciones y el editor muestra la geometría
+  correspondiente a la elegida. Se propone un centro y seis zonas vecinas para
+  el anillo simple.
+- Criterios propuestos: la plantilla de dos anillos sigue disponible. El anillo
+  simple se previsualiza, valida y vuelve a abrir conservando su geometría. Las
+  zonas abiertas conservan movimiento libre y fronteras transitables según la
+  regla canónica. El flujo protege nodos, IDs, requisitos y progreso existente.
+- Alcance: plantillas de zonas de Bee. Se preservan la Red académica y las reglas
+  de progresión. La disposición de base y anillo se comprobará antes de tocar
+  cartografía o guardados.
+
+#### Preguntas bloqueantes
+
+- ¿La plantilla de un centro y seis zonas se elige al crear un curso nuevo
+  o también puede aplicarse a un curso existente? Se recomienda empezar por
+  cursos nuevos. Para convertir cursos existentes, hay que definir el destino
+  de las zonas y los nodos del segundo anillo.
+
+#### Implementación y revisión
+
+- Resultado: pendiente de definición y autorización de JoaquinDiazM.
+
+### UPD-047 — Reabrir cursos guardados sin conexión en Windows
+
+- Estado: `propuesto`
+- Tipo: `bug`
+- Versión objetivo: `1.5.0`
+
+#### Solicitud original
+
+Corregir la reapertura sin conexión de cursos guardados en la aplicación
+nativa de Windows. Android ya reabre la copia guardada correctamente.
+
+#### Especificación elaborada por el agente
+
+- Síntoma: después de preparar una copia, abrir el curso sin red en Windows
+  deja la aplicación en «Conectando con ORBIT…».
+- Criterios propuestos: preparar el curso con red, cerrar la aplicación, cortar
+  la red y volver a abrir el curso desde el cliente Windows. Debe cargar la
+  copia correspondiente a la cuenta, conservar el avance offline y sincronizar
+  Estudiante al reconectar. Si falta una copia utilizable, debe informar el
+  estado y permitir volver al lanzador.
+- Alcance: cliente de Windows y sus copias de cursos. Edge está fuera del alcance.
+  Android sirve de referencia para preservar la separación por cuenta y curso.
+- Decisión: reservado por JoaquinDiazM para la cohorte 1.5.0.
+
+#### Preguntas bloqueantes
+
+- Ninguna para registrar el fallo. La autorización se decide en su cohorte.
+
+#### Implementación y revisión
+
+- Resultado: pendiente de la cohorte 1.5.0.
 
 ## Historial
 
