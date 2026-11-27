@@ -264,78 +264,9 @@ Sin propuestas pendientes de clasificar.
 
 ## Cohorte inmediata
 
-- Versión: `1.2.2`
-- Estado de la cohorte: `cerrada`
-- IDs: `UPD-040`
-- Cierre confirmado por JoaquinDiazM: 2026-11-27.
-
-JoaquinDiazM autorizó UPD-040 el 2026-11-27 y solicitó revisar el cambio en local
-antes de publicar.
+Sin cohorte inmediata.
 
 ## Actualizaciones activas
-
-### UPD-040 — Ampliar las opciones de apariencia de Bowerbird
-
-- Estado: `publicando`
-- Tipo: `feature`
-- Versión objetivo: `1.2.2`
-
-#### Solicitud original
-
-Ampliar las opciones de Paleta, Motivo y Contorno de Bowerbird en ORBIT Editor.
-Uno de los motivos debe mostrar varios engranajes en movimiento. JoaquinDiazM asignó
-esta propuesta como único punto previsto para 1.2.2.
-
-#### Especificación elaborada por el agente
-
-- Objetivo observable: elegir opciones visualmente distintas en las tres categorías y
-  comprobar su aspecto en la vista previa y en el mapa donde corresponda a su ámbito.
-- Decisiones confirmadas: ampliar las tres categorías e incluir un motivo de varios
-  engranajes animados en 1.2.2.
-- Criterios de aceptación propuestos: incorporar al menos dos opciones nuevas por
-  categoría, seleccionables con teclado y con nombre en español. Los engranajes se
-  muestran estáticos si se solicita movimiento reducido. Las selecciones existentes se
-  conservan al abrir la versión nueva. Paleta, motivo y contorno se pueden combinar.
-- Fuera de alcance: cambios de geometría, progresión, permisos, contenido o assets
-  cargados por usuarios.
-- Dependencias, invariantes o ADR: ADR 0008. Conservar IDs de apariencia, ámbitos
-  Docente/Estudiante y precedencia sobre la apariencia publicada y canónica.
-
-#### Preguntas bloqueantes
-
-- Ninguna sobre el alcance principal.
-
-#### Implementación y revisión
-
-- Base revisada: ORBIT 1.2.1, cierre documental `be547d1`.
-- Rutas propias: `src/core/area-appearance.js`, `src/core/area-appearance-canvas.js` y
-  pruebas de catálogo, Canvas, animación del Editor y sesión Bowerbird.
-- Resultado: Oliva solar y Rosa mineral; Trama triangular y Engranajes en movimiento;
-  Punteado y Esquinas. Los tres engranajes comparten el renderer entre Editor y ORBIT.
-  Los presets se añadieron al catálogo v1. Invariantes 5, 6 y 7: conservar la apariencia
-  neutral bajo bloqueo, los IDs y los guardados existentes. Commit local `23d7f7a`.
-- Pruebas automáticas: 43 focalizadas, incluidas las 252 combinaciones del catálogo,
-  trazas de los contornos nuevos, giro y reducción de movimiento, planificación de
-  cuadros y reapertura de preferencias personales. `npm run check` completó validación
-  de progresión, 706 pruebas aprobadas, 2 omitidas, verificación del repositorio y build.
-- Preflight del entorno: en una copia temporal, ORBIT, Editor Estudiante y los módulos
-  cambiados respondieron HTTP 200 con `Cache-Control: no-store` en
-  `http://127.0.0.1:4173` (PID 14604). Fuente, `dist`, `build-info.json` y el manifiesto
-  offline coinciden allí (build `b9279438baa4`). Se retiraron la copia y el proceso. 4173
-  quedó libre y el checkout canónico carece de journal, tombstone y lock de autoría.
-  Su `dist` preexistente es 1.2.0. La prueba humana con `npm run dev` sirve `src/`.
-- Revisión manual humana: JoaquinDiazM aprobó UPD-040 en el chat el 2026-11-27.
-  El guion indicaba iniciar, desde un terminal visible de VS Code,
-  `npm run dev` en la raíz canónica. En Edge externo, con una ventana InPrivate, abrir
-  `http://127.0.0.1:4173/editor.html?profile=student`, activar Bowerbird y elegir Campamento
-  Base. Comparar con teclado las dos opciones de cada categoría. Dejar Oliva solar,
-  Engranajes en movimiento y Punteado, recargar y comprobar que se guardaron. Abrir
-  ORBIT Estudiante desde el mismo origen y comprobar el motivo animado en Base.
-  En DevTools, emular `prefers-reduced-motion: reduce` para comprobar los engranajes
-  estáticos y revisar la consola. En Editor Docente comprobar el ámbito separado y
-  Deshacer con los presets de prueba. Detener con Ctrl+C.
-- Despliegue: cambio manual de paquete y relanzamiento del servidor docente.
-  El cliente Windows conserva su ruta de actualización existente.
 
 ### UPD-041 — Menú lateral retráctil y accesos de Contenido y Herramientas
 
@@ -455,4 +386,4 @@ junto con cada ficha y sus intercambios, en
 [`docs/UPDATES_HISTORY.md`](docs/UPDATES_HISTORY.md). `CHANGELOG.md` mantiene solo el resumen
 orientado a quienes usan ORBIT; los descartes no reciben versión ni entrada de changelog.
 
-La última cohorte publicada y archivada es ORBIT 1.2.1.
+La última cohorte publicada y archivada es ORBIT 1.2.2.
