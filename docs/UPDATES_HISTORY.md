@@ -2899,3 +2899,75 @@ ocultar los marcadores de los lugares que no sean lecciones o misiones.
 - Revisión manual humana: aprobado por JoaquinDiazM el 2026-11-22. El guion de
   revisión cubrió los marcadores de lecciones y misiones al alejar en Global y
   Directa, y la recuperación de los marcadores laterales al volver al zoom medio.
+
+## ORBIT 1.2.1 — 2026-11-26
+
+- Estado de la cohorte: `publicado`
+- IDs: `UPD-039`
+- Commit de release: `62b8b0c03869786eead4078a437207520bf375c2`
+
+### UPD-039 — Mostrar las fórmulas desbloqueadas en el Formulario
+
+- Estado: `publicado`
+- Tipo: `bug`
+- Versión publicada: `1.2.1`
+- Fecha: 2026-11-26.
+- Commit de release: `62b8b0c03869786eead4078a437207520bf375c2`
+- Resultado: El Formulario muestra las ecuaciones desbloqueadas tras Taller Vectorial.
+- Versión objetivo: `1.2.1`
+
+#### Solicitud original
+
+Al crear un estudiante, el Formulario muestra 13 entradas bloqueadas. Al completar Taller
+Vectorial, el contador cambia a 10 de 13 disponibles, pero desaparecen todas las tarjetas.
+JoaquinDiazM solicita corregir el fallo y quiere probar el actualizador de Windows. Acepta
+relanzar el servidor si hace falta para que el curso reciba la corrección.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: el Formulario muestra las fórmulas correspondientes al progreso actual.
+- Decisiones confirmadas: corregir el fallo. La distribución normal del curso online usa
+  el paquete del servidor y requiere relanzar la instancia al cambiar de paquete. La
+  instalación desde el actualizador de Windows se puede probar por separado.
+- Criterios de aceptación: con un estudiante nuevo, el Formulario muestra 13 tarjetas
+  bloqueadas. Tras completar Taller Vectorial, muestra 10 tarjetas con ecuaciones y
+  condiciones y 3 bloqueadas con su pista. Al cerrar y reabrir el panel y al volver
+  al curso con el avance guardado se mantiene el mismo resultado, sin error de consola.
+- Fuera de alcance: cambios en fórmulas, requisitos, contenido académico, formato del
+  progreso o comportamiento del actualizador.
+- Dependencias, invariantes o ADR: conservar el estado derivado del progreso y los
+  IDs publicados. ADR 0013 y 0014 para la entrega del curso online y del cliente de Windows.
+
+#### Preguntas bloqueantes
+
+- Ninguna.
+
+#### Implementación y revisión
+
+- Base revisada: ORBIT 1.2.0, `8e0f8a5`.
+- Rutas propias: `src/ui/ui-controller.js` y `tests/ui-panels.test.mjs`.
+- Resultado: se importó `createEquationFigure` del renderizador compartido. Antes, la
+  primera tarjeta disponible lanzaba un `ReferenceError` y cortaba el renderizado del
+  listado después de mostrar el contador. Corrección y regresión en el commit local
+  `ca34d44`.
+- Pruebas automáticas: la regresión falló por ese error antes de la corrección y pasó
+  después. Con DOM simulado y progreso en memoria, confirma 13 tarjetas bloqueadas antes,
+  10 ecuaciones en MathML con sus condiciones y 3 tarjetas bloqueadas después, y las 10
+  ecuaciones al reabrir el panel. `npm run check` completó validación de progresión,
+  703 pruebas aprobadas, 2 omitidas, verificación del repositorio y build.
+- Preflight del entorno: el 2026-11-26, en la copia temporal, la página inicial y el módulo
+  corregido respondieron HTTP 200 con `Cache-Control: no-store` en
+  `http://127.0.0.1:4173` (PID 18968). Fuente, `dist` y metadatos del build aislado
+  coinciden (`a7ea536f7771`). Se cerró el listener, se eliminó la copia y se verificó
+  4173 libre, sin proceso propio, journal, tombstone ni lock residual. El `dist`
+  canónico preexistente mantiene los módulos de 1.2.0 y coincide con la fuente de la
+  edición curricular. `npm run dev` sirve el módulo corregido desde `src/`.
+- Revisión manual humana: JoaquinDiazM aprobó UPD-039 el 2026-11-26 en el chat.
+  El guion entregado para Edge externo indicaba iniciar `npm run dev` desde
+  la raíz canónica en un terminal visible de VS Code. Abrir
+  `http://127.0.0.1:4173/?profile=student` en una ventana InPrivate. Comprobar el
+  Formulario antes de Taller Vectorial, tras completarlo y al recargar la misma ventana.
+  Verificar los recuentos del criterio, las condiciones y la consola. Detener con Ctrl+C.
+- Despliegue: actualizar el paquete del servidor y relanzar la instancia docente con
+  los mismos datos. El cliente Windows instalado admite la actualización de esta versión
+  mediante el mecanismo firmado existente.
