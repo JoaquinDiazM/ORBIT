@@ -1,3 +1,38 @@
+const BRIGHT_PULSE = Object.freeze({ radius: 2.45, color: "#fff5d1", alpha: 0.96 });
+const MUTED_PULSE = Object.freeze({ radius: 1.25, color: "#ffe19b", alpha: 0.6 });
+
+export function getTreeTwoEdgeVisualStyle(appearance, { isNew = false, zoom = 1 } = {}) {
+  const lineScale = 1 / Math.max(0.01, Number.isFinite(zoom) ? zoom : 1);
+  if (appearance === "blocked") {
+    return {
+      color: "rgba(174, 189, 204, 0.48)",
+      lineWidth: 1.4 * lineScale,
+      lineDash: [3 * lineScale, 5 * lineScale],
+      shadowColor: "transparent",
+      shadowBlur: 0,
+      pulse: null,
+    };
+  }
+  if (appearance === "muted") {
+    return {
+      color: "rgba(255, 209, 102, 0.42)",
+      lineWidth: 1.5 * lineScale,
+      lineDash: [10 * lineScale, 7 * lineScale],
+      shadowColor: isNew ? "rgba(255, 209, 102, 0.58)" : "transparent",
+      shadowBlur: isNew ? 4 * lineScale : 0,
+      pulse: MUTED_PULSE,
+    };
+  }
+  return {
+    color: "rgba(255, 209, 102, 0.96)",
+    lineWidth: 3.4 * lineScale,
+    lineDash: [],
+    shadowColor: isNew ? "rgba(255, 209, 102, 0.9)" : "rgba(255, 209, 102, 0.58)",
+    shadowBlur: (isNew ? 8 : 4) * lineScale,
+    pulse: BRIGHT_PULSE,
+  };
+}
+
 export function createLearningEdgeCurve(source, target) {
   const dx = target.x - source.x;
   const dy = target.y - source.y;
@@ -55,18 +90,17 @@ export function drawLearningEdge(context, curve, style, { timeSeconds, lineScale
   context.quadraticCurveTo(control.x, control.y, end.x, end.y);
   context.stroke();
 
-  if (timeSeconds !== null) {
-    const muted = style.lineDash.length > 0;
+  if (timeSeconds !== null && style.pulse) {
+    const { radius, color, alpha } = style.pulse;
     const pulseCount = length < 70 * lineScale ? 1 : 3;
-    const radius = (muted ? 1.25 : 2.45) * lineScale;
     context.shadowBlur = 0;
-    context.fillStyle = muted ? "#ffe19b" : "#fff5d1";
+    context.fillStyle = color;
     for (let index = 0; index < pulseCount; index += 1) {
       const t = (timeSeconds * 0.58 + curve.phase + index / pulseCount) % 1;
       const point = pointOnLearningEdge(curve, t);
-      context.globalAlpha = (muted ? 0.6 : 0.96) * Math.min(1, t * 12, (1 - t) * 12);
+      context.globalAlpha = alpha * Math.min(1, t * 12, (1 - t) * 12);
       context.beginPath();
-      context.arc(point.x, point.y, radius, 0, Math.PI * 2);
+      context.arc(point.x, point.y, radius * lineScale, 0, Math.PI * 2);
       context.fill();
     }
   }

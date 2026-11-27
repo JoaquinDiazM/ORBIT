@@ -1,10 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { REWARDS } from "../src/data/knowledge.js";
-import {
-  getPlayerShadowGeometry,
-  getTreeTwoEdgeVisualStyle,
-} from "../src/game/renderer.js";
+import { getPlayerShadowGeometry } from "../src/game/renderer.js";
+import { getTreeTwoEdgeVisualStyle } from "../src/game/learning-edge-visuals.js";
 
 const DIRECTIONS = Object.freeze([
   ["derecha", 0],
@@ -60,14 +58,19 @@ test("los perfiles de sombra cubren a pie, carro y deslizador", () => {
   assert.ok(skiff.radiusY >= cart.radiusY);
 });
 
-test("los conectores de la Red de aprendizaje comparten amarillo y distinguen estado sin depender del color", () => {
+test("los conectores de la Red distinguen los tres estados sin depender del color", () => {
   const bright = getTreeTwoEdgeVisualStyle("bright", { zoom: 1 });
   const muted = getTreeTwoEdgeVisualStyle("muted", { zoom: 1 });
+  const blocked = getTreeTwoEdgeVisualStyle("blocked", { zoom: 1 });
 
   assert.equal(bright.color, "rgba(255, 209, 102, 0.96)");
   assert.equal(muted.color, "rgba(255, 209, 102, 0.42)");
   assert.deepEqual(bright.lineDash, []);
   assert.deepEqual(muted.lineDash, [10, 7]);
+  assert.deepEqual(blocked.lineDash, [3, 5]);
+  assert.notEqual(blocked.color, muted.color);
+  assert.ok(bright.pulse.radius > muted.pulse.radius);
+  assert.equal(blocked.pulse, null);
   assert.ok(bright.lineWidth > muted.lineWidth);
   assert.ok(bright.shadowBlur > muted.shadowBlur);
 });

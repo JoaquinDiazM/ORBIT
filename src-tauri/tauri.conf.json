@@ -42,6 +42,7 @@
       "nsis": {
         "installMode": "currentUser",
         "languages": ["Spanish", "English"],
+        "installerHooks": "windows/update-hooks.nsh",
         "startMenuFolder": "ORBIT"
       },
       "webviewInstallMode": { "type": "downloadBootstrapper", "silent": true }

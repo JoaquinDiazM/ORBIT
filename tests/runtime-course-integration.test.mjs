@@ -3,13 +3,18 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { REWARDS } from "../src/data/knowledge.js";
-import { createLearningEdgeCurve, drawLearningEdge, pointOnLearningEdge } from "../src/game/learning-edge-visuals.js";
+import {
+  createLearningEdgeCurve,
+  drawLearningEdge,
+  getTreeTwoEdgeVisualStyle,
+  pointOnLearningEdge,
+} from "../src/game/learning-edge-visuals.js";
 import {
   CanvasRenderer,
-  getTreeTwoEdgeVisualStyle,
   resolveRuntimeAreaAppearance,
 } from "../src/game/renderer.js";
 import { TransportVisuals } from "../src/game/transport-visuals.js";
+import { createLearningEdgeLegend } from "../src/ui/learning-edge-legend.js";
 
 const PERSONAL = Object.freeze({
   paletteId: "polar",
@@ -277,6 +282,36 @@ test("la Red usa un arco sin punta, conserva el trazo discontinuo y anima pulsos
     const t = (x - curve.start.x) / curve.length;
     assert.ok(Math.abs(y - pointOnLearningEdge(curve, t).y) < 1e-9);
   }
+});
+
+test("la leyenda reutiliza curvas y pulsos del mapa y se detiene con movimiento reducido", () => {
+  const appearances = ["bright", "muted", "blocked"];
+  const recordings = appearances.map(createContextRecorder);
+  const render = createLearningEdgeLegend(appearances.map((appearance, index) => ({
+    width: 180,
+    height: 56,
+    dataset: { learningEdge: appearance },
+    getContext: () => recordings[index].context,
+  })));
+  const frame = (timeSeconds) => {
+    for (const { calls } of recordings) calls.length = 0;
+    render(timeSeconds);
+    return recordings.map(({ calls }) => calls.filter(([name]) => name === "arc"));
+  };
+  const pulses = frame(0.6);
+  assert.ok(pulses[0][0][3] > pulses[1][0][3]);
+  assert.deepEqual(pulses[2], []);
+  for (const [index, { calls }] of recordings.entries()) {
+    assert.ok(calls.some(([name]) => name === "quadraticCurveTo"));
+    assert.deepEqual(calls.find(([name]) => name === "setLineDash")?.[1],
+      getTreeTwoEdgeVisualStyle(appearances[index]).lineDash);
+  }
+  assert.notDeepEqual(frame(0.7)[0], pulses[0]);
+  assert.deepEqual(recordings[2].calls, []);
+  assert.deepEqual(frame(null), [[], [], []]);
+  assert.ok(recordings[0].calls.some(([name]) => name === "quadraticCurveTo"));
+  assert.deepEqual(frame(null), [[], [], []]);
+  assert.ok(recordings.every(({ calls }) => calls.length === 0));
 });
 
 test("el zoom reúne nombres de zona, rótulos y detalle con progreso e invitación accesible", (t) => {

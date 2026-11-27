@@ -19,6 +19,7 @@ import { createEquationFigure, renderMath } from "./math-renderer.js";
 import { playLocationCompletionCue } from "./audio-policy.js";
 import { GadgetHub } from "./gadget-hub.js";
 import { ContentView } from "./content-view.js";
+import { createLearningEdgeLegend } from "./learning-edge-legend.js";
 
 function element(tagName, options = {}) {
   const node = document.createElement(tagName);
@@ -76,6 +77,9 @@ export class UIController {
     this.persistenceFailureReported = false;
     this.activeReferenceView = "symbols";
     this.openDockGroups = [];
+    this.renderLearningEdgeLegend = createLearningEdgeLegend(
+      document.querySelectorAll("canvas[data-learning-edge]"),
+    );
     this.dockGroups = {
       content: {
         button: document.querySelector("#open-content"),
@@ -1153,6 +1157,10 @@ export class UIController {
   updateDebugState(debugSnapshot) {
     if (this.elements.debugPanel.hidden) return;
     this.elements.debugState.textContent = JSON.stringify(debugSnapshot, null, 2);
+  }
+
+  updateLearningEdgeLegend(timeSeconds) {
+    if (!this.elements.visualPanel.hidden) this.renderLearningEdgeLegend(timeSeconds);
   }
 
   #runPersistenceAction(action) {

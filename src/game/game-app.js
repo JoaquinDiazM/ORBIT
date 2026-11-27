@@ -449,6 +449,7 @@ export class GameApp {
       newlyAccessibleLocationIds: this.newlyAccessibleLocationIds,
       unlockSourceLocationId: this.unlockSourceLocationId,
     });
+    this.ui.updateLearningEdgeLegend?.(this.reducedMotion ? null : timestamp / 1000);
 
     if (timestamp - this.lastPositionSave >= APP_CONFIG.positionSaveIntervalMs) {
       this.#persistPlayerPosition(this.player.x, this.player.y);

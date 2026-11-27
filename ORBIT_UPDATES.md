@@ -264,11 +264,179 @@ Sin propuestas pendientes de clasificar.
 
 ## Cohorte inmediata
 
-Sin cohorte inmediata.
+- Versión: `1.2.4`
+- Estado de la cohorte: `cerrada`
+- IDs: `UPD-043`, `UPD-044`, `UPD-045`
+- Cierre confirmado por JoaquinDiazM: 2026-11-27.
 
 ## Actualizaciones activas
 
-Sin actualizaciones activas.
+### UPD-043 — Biblioteca y Glosario en el menú lateral
+
+- Estado: `aprobado`
+- Tipo: `feature`
+- Versión objetivo: `1.2.4`
+
+#### Solicitud original
+
+Renombrar **Herramientas** a **Biblioteca** en el menú lateral izquierdo de ORBIT
+y mover **Glosario** a Biblioteca como un submenú más. JoaquinDiazM asignó el
+cambio a 1.2.4.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: abrir Glosario desde **Biblioteca**, junto con Gadgets,
+  Formulario, Constantes y Símbolos.
+- Decisiones confirmadas: el nombre será **Biblioteca** y la versión objetivo
+  es 1.2.4.
+- Criterios de aceptación propuestos: el menú expandido muestra **Biblioteca**
+  y el retraído conserva ese nombre accesible. Biblioteca muestra los cinco
+  accesos. Glosario abre su panel actual con ratón y teclado. Al cerrar el
+  panel, el foco vuelve al acceso correspondiente.
+- Fuera de alcance: contenido del Glosario, estilo de los iconos y organización
+  de los demás grupos del menú.
+- Dependencias, invariantes o ADR: conservar la navegación por teclado y el
+  comportamiento de los paneles introducidos en UPD-041.
+
+#### Preguntas bloqueantes
+
+- Ninguna sobre el alcance.
+
+#### Implementación y revisión
+
+- Base revisada: ORBIT 1.2.3.
+- Rutas propias: `index.html`, `src/ui/ui-controller.js`, `docs/USER_GUIDE.md`
+  y las pruebas de arranque y paneles.
+- Resultado: JoaquinDiazM autorizó UPD-043 el 2026-11-27. El menú se llama
+  Biblioteca en sus tres rótulos y Glosario se incorpora como quinto acceso.
+  Al plegar Biblioteca, su panel abierto se cierra y el foco vuelve al grupo.
+  Commit local `752ca3e`.
+- Pruebas automáticas: 23 comprobaciones focalizadas de arranque y paneles.
+  `npm run check` pasó con 710 pruebas aprobadas y 5 omitidas en Windows,
+  verificación del repositorio, progresión alcanzable y build correcto.
+- Preflight del entorno: en la copia aislada, la fuente, `dist` y `build-info.json`
+  coinciden (build `3e7c1f65d768`). El sondeo acotado en `http://127.0.0.1:4173`
+  sirvió HTML y controlador idénticos a la fuente, con HTTP 200 y
+  `Cache-Control: no-store`. El proceso terminó y el puerto quedó libre. La raíz
+  canónica carece de journal, tombstone y lock de autoría. El `dist` canónico
+  preexistente es 1.2.0 y la revisión con `npm run dev` sirve el código del checkout.
+- Revisión manual humana: JoaquinDiazM aprobó el punto el 2026-11-27 y confirmó
+  que esta cohorte puede publicarse sin pruebas humanas adicionales. El guion
+  entregado cubría los cinco accesos, Glosario, menú retraído y devolución del foco.
+
+### UPD-044 — Tres estilos de conexión y leyenda animada
+
+- Estado: `aprobado`
+- Tipo: `feature`
+- Versión objetivo: `1.2.4`
+
+#### Solicitud original
+
+Hacer que la leyenda de **Ajustes → Visual** muestre las curvas y pulsos que
+se ven en el mapamundi. Asignar un arco amarillo continuo a completado →
+completado, un arco amarillo tenue a trazos con pulsos más pequeños a
+completado → completable, y un arco gris tenue a trazos sin pulsos a
+completable → bloqueado.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: la leyenda muestra ejemplos de las tres conexiones y
+  sus pulsos coinciden en estilo y sentido con el mapa.
+- Decisiones confirmadas: alcance visual y versión 1.2.4. Las tres conexiones
+  conservan la trayectoria curva.
+- Criterios de aceptación propuestos: clasificar las tres combinaciones de
+  estados explícitamente. Usar la misma geometría y definición de estilo en la
+  leyenda y el mapa. Los dos estados animados muestran pulsos de prerrequisito
+  a dependiente, con pulsos menores en el amarillo a trazos. Con movimiento
+  reducido, las tres muestras son estáticas. Distinguir los dos trazados por
+  patrón y por color, con sus estados descritos en texto en la leyenda.
+- Fuera de alcance: reglas de desbloqueo, prerrequisitos y filtros de la Red.
+- Dependencias, invariantes o ADR: conservar la fuente canónica de progresión
+  y la visibilidad actual de conexiones en cada modo de la Red.
+
+#### Preguntas bloqueantes
+
+- Ninguna. JoaquinDiazM autorizó y aprobó el alcance el 2026-11-27.
+
+#### Implementación y revisión
+
+- Base revisada: ORBIT 1.2.3. El grafo distingue dos estilos, el renderer
+  dibuja pulsos en ambos y la leyenda usa muestras rectas de CSS.
+- Resultado: el grafo asigna tres estilos por estado. Mapa y leyenda comparten
+  curva, trazos y pulsos. La leyenda usa el reloj del mapa cuando está visible
+  y queda estática con movimiento reducido. Se conserva la indicación NUEVO de
+  la arista causal y el funcionamiento de los tres filtros de la Red.
+- Pruebas automáticas: matriz de estados, filtros, transición Faraday → Maxwell,
+  radios de pulsos, diferencias de trazado y leyenda con movimiento reducido.
+- Revisión manual humana: JoaquinDiazM autorizó, aprobó y eximió la prueba
+  humana adicional para esta cohorte el 2026-11-27.
+
+### UPD-045 — Actualizar el cliente Windows sin reiniciar el equipo
+
+- Estado: `aprobado`
+- Tipo: `bug`
+- Versión objetivo: `1.2.4`
+
+#### Solicitud original
+
+En las actualizaciones a 1.2.2 y 1.2.3, **Instalar y reiniciar** abrió el instalador,
+que informó que carecía de permiso para cerrar ORBIT. JoaquinDiazM pudo completar
+la actualización después de reiniciar Windows. Pide evitar ese reinicio en el
+flujo habitual, con un plan robusto y verificación automatizada a cargo del agente.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: un usuario estándar actualiza y vuelve a abrir ORBIT
+  automáticamente durante la misma sesión de Windows.
+- Decisiones confirmadas: destino 1.2.4 y entrega sin prueba manual de JoaquinDiazM.
+- Diagnóstico preliminar: el actualizador Tauri fijado inicia NSIS y después
+  sale. El instalador fijado comprueba si el ejecutable sigue en uso antes de
+  copiarlo. Tauri registra fallos tanto por la coincidencia con el cierre como
+  por permisos distintos. La causa concreta en la laptop sigue por verificar.
+- Plan propuesto: reproducir ambas condiciones en un Windows aislado. Añadir
+  al instalador de destino una espera acotada por la liberación del ejecutable
+  de esa instalación, usando el hook previo de NSIS y el Restart Manager para
+  detectar el bloqueo. Si persiste, salir antes de reemplazar el binario y
+  mostrar cómo cerrar ORBIT y reintentar. Mantener instalación por usuario,
+  verificación de firma y versión y reapertura tras una instalación exitosa.
+  Aplicar el arreglo al instalador de destino permite probar la transición
+  desde el actualizador ya instalado. Un reinicio del equipo solo se contempla
+  si Windows confirma que es necesario.
+- Criterios de aceptación propuestos: probar con el instalador oficial 1.2.3
+  y el nuevo NSIS en una cuenta estándar. Ejecutar también el flujo de botón
+  extremo a extremo desde builds equivalentes a 1.2.2 y 1.2.3, con manifiesto
+  HTTPS y firma de ensayo aislados del canal oficial. Cubrir cierre normal,
+  cierre demorado, bloqueo persistente, firma inválida y reintento. Verificar
+  la versión del proceso reabierto, el servidor recordado, los datos del WebView
+  y la misma sesión de Windows. Conservar evidencia de lo ejecutado y de
+  cualquier limitación de cobertura.
+- Fuera de alcance: privilegios de administrador como requisito de uso,
+  cambios al canal de releases o a los datos del servidor docente.
+- Dependencias, invariantes o ADR: ADR 0014 y herramientas nativas de Windows.
+  Referencias: [incidencia de Tauri](https://github.com/tauri-apps/tauri/issues/16277),
+  [plantilla NSIS fijada](https://raw.githubusercontent.com/tauri-apps/tauri/tauri-cli-v2.12.6/crates/tauri-bundler/src/bundle/windows/nsis/installer.nsi)
+  y [Restart Manager](https://learn.microsoft.com/en-us/windows/win32/rstmgr/about-restart-manager).
+
+#### Preguntas bloqueantes
+
+- Ninguna. JoaquinDiazM autorizó y aprobó el alcance el 2026-11-27.
+
+#### Implementación y revisión
+
+- Base revisada: ORBIT 1.2.3, Tauri Updater 2.14.1 y Tauri CLI 2.12.6.
+- Resultado: NSIS espera por la ruta del ejecutable durante la actualización.
+  Una sesión nueva por consulta permite observar el cierre real del proceso.
+  Tras 80 esperas de 250 ms, un bloqueo persistente aborta antes de copiar el
+  reemplazo. Se conserva la reapertura del instalador y la firma de Tauri.
+- Pruebas automáticas: la prueba nativa con NSIS 3.13 pasó en Windows para
+  ejecutable libre, cierre demorado, bloqueo persistente y reintento. La
+  compilación de release vuelve a ejecutar esta prueba y comprueba la
+  transición del instalador oficial 1.2.3 al firmado de destino, su reapertura
+  y la conservación del servidor elegido. Esa prueba invoca NSIS con los
+  argumentos del actualizador. El clic de builds equivalentes de 1.2.2 y 1.2.3
+  sobre un canal HTTPS de ensayo y el WebView del curso siguen sin evidencia.
+- Revisión manual humana: JoaquinDiazM autorizó, aprobó y eximió la prueba
+  humana adicional para esta cohorte el 2026-11-27.
 
 ## Historial
 

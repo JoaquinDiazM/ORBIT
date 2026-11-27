@@ -50,6 +50,15 @@ curso sigue usando el núcleo web compartido.
 
 ## Consecuencias y revisión
 
+UPD-045 añade una espera previa en el instalador NSIS que recibe la versión
+anterior. Durante `/UPDATE` consulta el Restart Manager por la ruta exacta del
+ejecutable instalado y cede tiempo para que el proceso termine. Cada consulta
+usa una sesión cerrada antes de la siguiente. Si el archivo sigue ocupado tras
+la espera, el instalador se detiene antes de copiar el reemplazo e indica cómo
+cerrar ORBIT y reintentar. El instalador conserva la reapertura de la aplicación
+tras una actualización exitosa. El flujo original de descarga inicial sigue
+usando la comprobación de Tauri.
+
 Los mantenedores necesitan Rust, las herramientas MSVC y una clave de actualización
 custodiada para generar releases. La firma del actualizador verifica la continuidad de
 ORBIT. Un certificado Authenticode es una integración separada con Windows.

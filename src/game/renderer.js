@@ -13,43 +13,13 @@ import {
   getLocationWorldPosition,
   getNeighborArea,
 } from "../core/world-graph.js";
-import { createLearningEdgeCurve, drawLearningEdge, pointOnLearningEdge } from "./learning-edge-visuals.js";
+import {
+  createLearningEdgeCurve,
+  drawLearningEdge,
+  getTreeTwoEdgeVisualStyle,
+  pointOnLearningEdge,
+} from "./learning-edge-visuals.js";
 import { TransportVisuals } from "./transport-visuals.js";
-
-const TREE_TWO_EDGE_YELLOW = Object.freeze({
-  bright: "rgba(255, 209, 102, 0.96)",
-  muted: "rgba(255, 209, 102, 0.42)",
-});
-
-/**
- * Keeps the two learning-network states on one hue. Stroke, opacity and glow carry the
- * redundant state signal required when color perception is limited.
- */
-export function getTreeTwoEdgeVisualStyle(
-  appearance,
-  { isNew = false, zoom = 1 } = {},
-) {
-  const safeZoom = Math.max(0.01, Number.isFinite(zoom) ? zoom : 1);
-  const lineScale = 1 / safeZoom;
-  if (appearance === "muted") {
-    return {
-      color: TREE_TWO_EDGE_YELLOW.muted,
-      lineWidth: 1.5 * lineScale,
-      lineDash: [10 * lineScale, 7 * lineScale],
-      shadowColor: "rgba(255, 209, 102, 0)",
-      shadowBlur: 0,
-    };
-  }
-  return {
-    color: TREE_TWO_EDGE_YELLOW.bright,
-    lineWidth: 3.4 * lineScale,
-    lineDash: [],
-    shadowColor: isNew
-      ? "rgba(255, 209, 102, 0.9)"
-      : "rgba(255, 209, 102, 0.58)",
-    shadowBlur: (isNew ? 8 : 4) * lineScale,
-  };
-}
 
 function seededRandom(seed) {
   let state = seed >>> 0;
@@ -571,7 +541,7 @@ export class CanvasRenderer {
 
       const style = getTreeTwoEdgeVisualStyle(edge.appearance, { isNew: edge.isNew, zoom });
       drawLearningEdge(context, curve, style, { timeSeconds, lineScale });
-      if (overview || !edge.isNew || edge.appearance !== "bright") continue;
+      if (overview || !edge.isNew || edge.appearance === "blocked") continue;
 
       const midpoint = pointOnLearningEdge(curve, 0.5);
       context.save();

@@ -251,8 +251,9 @@
             </label>
           </fieldset>
           <div class="visual-legend" aria-label="Leyenda de conexiones">
-            <p><span class="visual-line-swatch bright" aria-hidden="true"></span><strong>Amarillo brillante y continuo:</strong> conexión entre nodos completados o hacia un nodo completable.</p>
-            <p><span class="visual-line-swatch muted" aria-hidden="true"></span><strong>Amarillo tenue y discontinuo:</strong> un nodo completable conduce a otro todavía bloqueado.</p>
+            <p><canvas data-learning-edge="bright" width="180" height="56" aria-hidden="true"></canvas><span><strong>Amarillo continuo.</strong> De un nodo completado a otro completado.</span></p>
+            <p><canvas data-learning-edge="muted" width="180" height="56" aria-hidden="true"></canvas><span><strong>Amarillo tenue a trazos.</strong> De un nodo completado a uno completable.</span></p>
+            <p><canvas data-learning-edge="blocked" width="180" height="56" aria-hidden="true"></canvas><span><strong>Gris tenue a trazos.</strong> De un nodo completable a uno bloqueado.</span></p>
           </div>
         </div>
       </aside>

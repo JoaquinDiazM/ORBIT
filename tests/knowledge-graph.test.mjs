@@ -117,7 +117,7 @@ test("usa solo dependencias académicas explícitas y separa apariencia de noved
       requirementKinds: ["completedLocations"],
       sourceState: "completed",
       targetState: "completable",
-      appearance: "bright",
+      appearance: "muted",
       isNew: true,
     },
   ]);
@@ -150,11 +150,11 @@ test("aplica exactamente la matriz de estados y excluye extremos ocultos", () =>
   );
   assert.equal(
     derive({ accessible: ["target"], completed: ["source"] })[0]?.appearance,
-    "bright",
+    "muted",
   );
   assert.equal(
     derive({ accessible: ["source"], completed: [] })[0]?.appearance,
-    "muted",
+    "blocked",
   );
 
   assert.deepEqual(derive({ accessible: [], completed: ["source"] }), []);
@@ -219,7 +219,7 @@ test("hidden muestra únicamente la arista causal del último desbloqueo", () =>
   });
 
   assert.deepEqual(edges.map((edge) => edge.id), ["last->target"]);
-  assert.equal(edges[0].appearance, "bright");
+  assert.equal(edges[0].appearance, "muted");
   assert.equal(edges[0].isNew, true);
 });
 
@@ -270,7 +270,7 @@ test("hidden conserva solo la causa directa aunque una cascada revele otros dest
   assert.equal(edges[0].isNew, true);
 });
 
-test("Faraday → Maxwell pasa de amarillo tenue a brillante según la progresión", () => {
+test("Faraday → Maxwell pasa de gris a amarillo tenue según la progresión", () => {
   const locationIds = ["faraday-station", "maxwell-archive"];
   for (const visualizationMode of ["direct", "total"]) {
     const before = deriveKnowledgeGraphEdges({
@@ -290,8 +290,8 @@ test("Faraday → Maxwell pasa de amarillo tenue a brillante según la progresi�
       visualizationMode,
     }).find((edge) => edge.id === "faraday-station->maxwell-archive");
 
-    assert.equal(before?.appearance, "muted", visualizationMode);
-    assert.equal(after?.appearance, "bright", visualizationMode);
+    assert.equal(before?.appearance, "blocked", visualizationMode);
+    assert.equal(after?.appearance, "muted", visualizationMode);
   }
   const hiddenBeforeUnlock = deriveKnowledgeGraphEdges({
     locations: LOCATIONS,
@@ -316,7 +316,7 @@ test("Faraday → Maxwell pasa de amarillo tenue a brillante según la progresi�
     hiddenBeforeUnlock.some((edge) => edge.id === "faraday-station->maxwell-archive"),
     false,
   );
-  assert.equal(newlyUnlocked?.appearance, "bright");
+  assert.equal(newlyUnlocked?.appearance, "muted");
   assert.equal(newlyUnlocked?.isNew, true);
 });
 

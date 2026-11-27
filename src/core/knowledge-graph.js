@@ -56,15 +56,11 @@ function locationState(locationId, visibleIds, accessibleIds, completedIds) {
 }
 
 function connectionAppearance(sourceState, targetState) {
-  if (
-    sourceState === "completed" &&
-    (targetState === "completed" || targetState === "completable")
-  ) {
-    return "bright";
+  if (sourceState === "completed") {
+    if (targetState === "completed") return "bright";
+    if (targetState === "completable") return "muted";
   }
-  if (sourceState === "completable" && targetState === "blocked") {
-    return "muted";
-  }
+  if (sourceState === "completable" && targetState === "blocked") return "blocked";
   return null;
 }
 
@@ -84,8 +80,9 @@ function isDirectConnection(source, target, areaById) {
  * En modo `hidden` se conserva únicamente la arista causal cuyo destino acaba
  * de quedar accesible y cuyo origen es el último lugar completado. Esa misma
  * arista recibe `isNew` y, por tanto, la etiqueta NUEVO:
- * - completed -> completed/completable: bright
- * - completable -> blocked: muted
+ * - completed -> completed: bright
+ * - completed -> completable: muted
+ * - completable -> blocked: blocked
  * Cualquier otra combinación, incluidos los extremos ocultos, queda fuera.
  */
 export function deriveKnowledgeGraphEdges({

@@ -59,6 +59,18 @@ jobs:
             plugins = @{ updater = @{ pubkey = $publicKey } }
           } | ConvertTo-Json -Depth 6 -Compress | Set-Content -LiteralPath $overlay -Encoding utf8NoBOM
           npm run desktop -- build --ci --target x86_64-pc-windows-msvc --config "$overlay" -- --locked
+      - name: Test the installer wait on Windows
+        run: |
+          $compiler = Join-Path $env:LOCALAPPDATA 'tauri/NSIS/makensis.exe'
+          ./tests/windows-update-hook.ps1 -Makensis $compiler
+      - name: Test the signed update from ORBIT 1.2.3
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $exe = @(Get-ChildItem src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis -File -Filter '*-setup.exe')
+          if ($exe.Count -ne 1) { throw "Expected one NSIS installer." }
+          ./tests/windows-update-transition.ps1 -Candidate $exe[0].FullName -Version $version
       - name: Attach the installer before its update manifest
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

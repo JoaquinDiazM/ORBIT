@@ -123,7 +123,7 @@ aprendizaje que se superponen sobre el mapamundi:
 - **Directo:** muestra todas las conexiones elegibles dentro de un mismo hexágono o entre dos hexágonos que comparten frontera.
 - **Total:** muestra todas las conexiones elegibles entre lugares visibles, aunque sus hexágonos no sean vecinos.
 
-Las flechas siempre apuntan desde el lugar que aporta el prerrequisito hacia el destino. Una flecha amarilla brillante y sólida conecta un nodo completado con otro completado o completable; una flecha amarilla tenue y discontinua muestra que un nodo completable conduce a otro visible pero todavía bloqueado. La etiqueta **NUEVO** identifica la relación causal del último desbloqueo. El color se acompaña de brillo, patrón de línea y texto, y cambiar el nivel visual nunca modifica el progreso. El nivel elegido se guarda en el perfil; la relación marcada como «nueva» pertenece solo a la sesión.
+Los pulsos recorren los arcos desde el prerrequisito hacia el destino. El arco amarillo continuo une dos nodos completados. El amarillo tenue a trazos, con pulsos más pequeños, va de un nodo completado a uno completable. El gris a trazos cortos va de un nodo completable a uno visible que aún está bloqueado. La leyenda de **Ajustes → Visual** muestra los tres arcos. Con movimiento reducido se dibujan estáticos. La etiqueta **NUEVO** identifica la relación causal del último desbloqueo durante la sesión. El nivel visual se guarda en el perfil y se puede cambiar sin alterar el progreso.
 
 ## Ventana principal y menú secundario
 
