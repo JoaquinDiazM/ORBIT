@@ -28,6 +28,9 @@ Indica qué debe decidir JoaquinDiazM en el paso actual, con opciones concretas 
 y señala si en ese momento no hay decisiones pendientes. Incluye versión, asignación de punto,
 detalles de alcance, autorización, aprobación o cierre solo cuando corresponda. Se puede
 seguir el ciclo completo desde el chat sin tener que abrir ni editar esta cola.
+Enumera en cada checklist los updates pendientes de autorización, incluso si JoaquinDiazM
+optó por esperar en el ciclo anterior. Identifica los puntos que requieren definir el
+alcance antes de autorizar.
 Incluye siempre la casilla **Nuevos updates** y déjala abierta para recibir ideas. Si una
 propuesta llega sin versión, regístrala con `auto` y pregunta en la checklist del siguiente
 ciclo a qué cohorte debe pertenecer.
@@ -261,13 +264,19 @@ Sin propuestas pendientes de clasificar.
 
 ## Cohorte inmediata
 
-Sin cohorte inmediata.
+- Versión: `1.2.2`
+- Estado de la cohorte: `cerrada`
+- IDs: `UPD-040`
+- Cierre confirmado por JoaquinDiazM: 2026-11-27.
+
+JoaquinDiazM autorizó UPD-040 el 2026-11-27 y solicitó revisar el cambio en local
+antes de publicar.
 
 ## Actualizaciones activas
 
 ### UPD-040 — Ampliar las opciones de apariencia de Bowerbird
 
-- Estado: `propuesto`
+- Estado: `aprobado`
 - Tipo: `feature`
 - Versión objetivo: `1.2.2`
 
@@ -294,19 +303,43 @@ esta propuesta como único punto previsto para 1.2.2.
 
 #### Preguntas bloqueantes
 
-- Ninguna sobre el alcance principal. Autorización pendiente.
+- Ninguna sobre el alcance principal.
 
 #### Implementación y revisión
 
-- Base revisada: catálogo y renderer de apariencia en ORBIT 1.2.0.
-- Resultado: propuesta registrada para la cohorte posterior.
-- Pruebas automáticas: pendientes.
-- Preflight del entorno: pendiente.
-- Revisión manual humana: pendiente.
+- Base revisada: ORBIT 1.2.1, cierre documental `be547d1`.
+- Rutas propias: `src/core/area-appearance.js`, `src/core/area-appearance-canvas.js` y
+  pruebas de catálogo, Canvas, animación del Editor y sesión Bowerbird.
+- Resultado: Oliva solar y Rosa mineral; Trama triangular y Engranajes en movimiento;
+  Punteado y Esquinas. Los tres engranajes comparten el renderer entre Editor y ORBIT.
+  Los presets se añadieron al catálogo v1. Invariantes 5, 6 y 7: conservar la apariencia
+  neutral bajo bloqueo, los IDs y los guardados existentes. Commit local `23d7f7a`.
+- Pruebas automáticas: 43 focalizadas, incluidas las 252 combinaciones del catálogo,
+  trazas de los contornos nuevos, giro y reducción de movimiento, planificación de
+  cuadros y reapertura de preferencias personales. `npm run check` completó validación
+  de progresión, 706 pruebas aprobadas, 2 omitidas, verificación del repositorio y build.
+- Preflight del entorno: en una copia temporal, ORBIT, Editor Estudiante y los módulos
+  cambiados respondieron HTTP 200 con `Cache-Control: no-store` en
+  `http://127.0.0.1:4173` (PID 14604). Fuente, `dist`, `build-info.json` y el manifiesto
+  offline coinciden allí (build `b9279438baa4`). Se retiraron la copia y el proceso. 4173
+  quedó libre y el checkout canónico carece de journal, tombstone y lock de autoría.
+  Su `dist` preexistente es 1.2.0. La prueba humana con `npm run dev` sirve `src/`.
+- Revisión manual humana: JoaquinDiazM aprobó UPD-040 en el chat el 2026-11-27.
+  El guion indicaba iniciar, desde un terminal visible de VS Code,
+  `npm run dev` en la raíz canónica. En Edge externo, con una ventana InPrivate, abrir
+  `http://127.0.0.1:4173/editor.html?profile=student`, activar Bowerbird y elegir Campamento
+  Base. Comparar con teclado las dos opciones de cada categoría. Dejar Oliva solar,
+  Engranajes en movimiento y Punteado, recargar y comprobar que se guardaron. Abrir
+  ORBIT Estudiante desde el mismo origen y comprobar el motivo animado en Base.
+  En DevTools, emular `prefers-reduced-motion: reduce` para comprobar los engranajes
+  estáticos y revisar la consola. En Editor Docente comprobar el ámbito separado y
+  Deshacer con los presets de prueba. Detener con Ctrl+C.
+- Despliegue: cambio manual de paquete y relanzamiento del servidor docente.
+  El cliente Windows conserva su ruta de actualización existente.
 
 ### UPD-041 — Menú lateral retráctil y accesos de Contenido y Herramientas
 
-- Estado: `faltan-detalles`
+- Estado: `autorizado`
 - Tipo: `feature`
 - Versión objetivo: `1.2.3`
 
@@ -324,8 +357,9 @@ de 1.2.3.
 
 - Objetivo observable: acceder a los paneles con menos espacio ocupado sobre el mapa y
   distinguir los accesos por nombre e icono.
-- Decisiones confirmadas: modo retraído de solo iconos, paneles separados de Red y
-  Zonas, y los cuatro accesos indicados bajo Herramientas.
+- Decisiones confirmadas: JoaquinDiazM eligió **Contenido** para agrupar **Red** y
+  **Zonas**, que se abrirán en paneles separados. Modo retraído de solo iconos y
+  los cuatro accesos indicados bajo **Herramientas**.
 - Criterios de aceptación propuestos: retraer y expandir el menú con ratón o teclado.
   Cada icono conserva un nombre accesible en modo retraído. Red y Zonas se abren por
   separado y cada acceso de Herramientas abre su panel vigente. Glosario y Ajustes
@@ -337,13 +371,79 @@ de 1.2.3.
 
 #### Preguntas bloqueantes
 
-- ¿El grupo de Red y Zonas debe llamarse Contenido o Libro? Se recomienda Contenido,
-  con un icono de árbol inspirado en la referencia.
+- Ninguna sobre el alcance principal.
 
 #### Implementación y revisión
 
 - Base revisada: menú lateral de ORBIT 1.2.0.
-- Resultado: propuesta registrada para una cohorte posterior.
+- Resultado: JoaquinDiazM autorizó el punto el 2026-11-27 para 1.2.3.
+- Pruebas automáticas: pendientes.
+- Preflight del entorno: pendiente.
+- Revisión manual humana: pendiente.
+
+### UPD-042 — Actualización asistida del servidor docente
+
+- Estado: `autorizado`
+- Tipo: `infraestructura`
+- Versión objetivo: `1.2.3`
+
+#### Solicitud original
+
+Tras comprobar en la instancia de ensayo la actualización del cliente Windows y el cambio
+manual del servidor de 1.2.0 a 1.2.1, JoaquinDiazM pidió un solo comando interactivo que
+sustituya los pasos manuales entre detener el servidor y verificar y arrancar la nueva
+versión. La terminal debe permitir elegir el release, qué se conserva y cómo se admiten
+clientes de versiones distintas. Documentar el procedimiento en `README_ADMIN.md`.
+
+#### Especificación elaborada por el agente
+
+- Objetivo observable: el administrador selecciona la versión y deja la instancia
+  preparada para el próximo arranque desde un único flujo en terminal.
+- Decisiones confirmadas: destino 1.2.3, ejecución con el servidor detenido y guía
+  pública de administración. El administrador elige si conserva el respaldo de la
+  actualización. Los cursos, las cuentas y los avances se conservan al actualizar.
+  La decisión sobre el reinicio del avance corresponde al docente, que puede consultar
+  el progreso desde Owl. La compatibilidad abarca al lanzador Windows y a los clientes
+  web y offline.
+- Propuesta: mostrar versión instalada y destino. Permitir elegir la última publicación
+  completa del repositorio oficial o una etiqueta exacta. Mostrar el plan antes de
+  aplicarlo. Usar la copia integral existente, comprobar los datos y la compatibilidad
+  del paquete, preparar la instalación en una carpeta aparte y activar el destino solo
+  tras completar las comprobaciones. Conservar el paquete anterior y ofrecer dejar
+  una copia persistente o usar la copia de seguridad solo durante la actualización.
+- Compatibilidad propuesta: informar por separado la versión del lanzador Windows y
+  los contratos del cliente web y offline. El lanzador abre la aplicación servida por
+  el curso. La sincronización valida generación y revisión; una política de versiones
+  debe respetar esas comprobaciones.
+- Criterios de aceptación propuestos: una actualización compatible conserva cursos,
+  cuentas y avances. Con el servicio activo, una cancelación, un paquete incompleto o
+  una incompatibilidad, la selección vigente se conserva. Repetir la misma actualización
+  es seguro. La guía cubre la primera adopción del asistente desde un paquete anterior,
+  la operación normal y la recuperación desde el paquete anterior, incluida la
+  restauración de una copia compatible cuando esté disponible.
+- Fuera de alcance propuesto: actualizaciones programadas, reinicio automático,
+  publicación de cursos y reinicio de avance como parte del cambio de paquete.
+- Dependencias, invariantes o ADR: ADR 0013 y 0014. Reutilizar el respaldo privado, el
+  bloqueo de escritor único y la verificación de paquete. Documentar el comando sin
+  rutas de instancias privadas.
+- Referencias de diseño: [GitHub Releases](https://docs.github.com/en/rest/releases/releases)
+  para selección por etiqueta y metadatos del artefacto,
+  [pg_upgrade](https://www.postgresql.org/docs/18/pgupgrade.html) para comprobación
+  previa y recuperación, y
+  [Kubernetes](https://kubernetes.io/releases/version-skew-policy/) como ejemplo de
+  compatibilidad documentada entre componentes.
+
+#### Preguntas bloqueantes
+
+- Ninguna sobre el alcance principal.
+
+#### Implementación y revisión
+
+- Base revisada: ORBIT 1.2.1, respaldo y verificador de paquetes, más los contratos
+  de lanzamiento y sincronización del curso.
+- Resultado: JoaquinDiazM autorizó el punto el 2026-11-27. La prueba humana debe usar
+  una instalación de ensayo anterior y un paquete candidato verificable, y dejar
+  preparado el asistente para actualizar a 1.2.3 en el siguiente ciclo.
 - Pruebas automáticas: pendientes.
 - Preflight del entorno: pendiente.
 - Revisión manual humana: pendiente.
