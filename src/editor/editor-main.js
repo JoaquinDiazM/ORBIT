@@ -27,6 +27,7 @@ import { EditorModel } from "./editor-model.js";
 import { EditorRenderer } from "./editor-renderer.js";
 import { EditorUIController } from "./editor-ui-controller.js";
 import { resolveOnlineContext } from "../online/access.js";
+import { activateOfflineAccount } from "../online/offline-store.js";
 import { ContentSourceSession } from "./content-source-session.js";
 import { createOnlineEditorDraftStorage, editorOnlineStorageKeys, loadOnlineEditorCourse } from "./editor-online-session.js";
 import { mountOwlPanel } from "./owl-panel.js";
@@ -82,7 +83,7 @@ function configureProfileShell(profile, editorAccess) {
 }
 
 const url = new URL(window.location.href);
-const onlineContext = await resolveOnlineContext({ target: "editor" });
+const onlineContext = await resolveOnlineContext({ target: "editor", activateOffline: activateOfflineAccount });
 const profile = onlineContext?.profile ?? resolveEditorProfile({ requestedProfile: url.searchParams.get("profile") });
 const profileCapabilities = getProfileCapabilities(profile);
 const editorAccess = profileCapabilities.editorAccess;

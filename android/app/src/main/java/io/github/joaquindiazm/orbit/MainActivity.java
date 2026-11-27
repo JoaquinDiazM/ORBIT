@@ -15,6 +15,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -22,7 +23,6 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.webkit.WebViewAssetLoader;
-import androidx.webkit.WebViewClientCompat;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -179,7 +179,7 @@ public final class MainActivity extends Activity {
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, false);
         web.setWebChromeClient(new WebChromeClient());
-        web.setWebViewClient(new WebViewClientCompat() {
+        web.setWebViewClient(new WebViewClient() {
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 return !permitted(request.getUrl());
             }

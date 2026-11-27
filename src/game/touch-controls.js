@@ -104,7 +104,7 @@ export function attachTouchControls({ canvas, controls, isBlocked, pick, interac
   listen(joystick, "pointerdown", (event) => {
     if (event.pointerType !== "touch" || joystickPointer !== null || isBlocked()) return;
     joystickPointer = event.pointerId;
-    joystick.setPointerCapture(event.pointerId);
+    joystick.setPointerCapture?.(event.pointerId);
     moveJoystick(event);
   });
   listen(joystick, "pointermove", moveJoystick);
@@ -119,7 +119,7 @@ export function attachTouchControls({ canvas, controls, isBlocked, pick, interac
   listen(canvas, "pointerdown", (event) => {
     if (event.pointerType !== "touch" || isBlocked()) return;
     event.preventDefault();
-    canvas.setPointerCapture(event.pointerId);
+    canvas.setPointerCapture?.(event.pointerId);
     gesture.down(event);
   });
   listen(canvas, "pointermove", (event) => gesture.move(event));

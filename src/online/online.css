@@ -70,6 +70,10 @@
 
 .orbit-install-controls { position: fixed; z-index: 42; bottom: 0.5rem; left: 0.5rem; max-width: min(24rem, calc(100vw - 1rem)); max-height: 50dvh; overflow: auto; border-radius: 0.65rem; padding: 0.35rem 0.65rem; font-size: 0.75rem; box-shadow: var(--shadow); }
 .orbit-install-controls p { margin-block: 0.5rem; }
+
+@media (pointer: coarse) {
+  .orbit-install-controls { left: 50%; transform: translateX(-50%); }
+}
 .orbit-install-controls button { margin: 0.2rem; }
 .online-access :focus-visible,
 .online-dialog :focus-visible,

@@ -220,7 +220,7 @@ export class GameApp {
     this.canvas.addEventListener("pointercancel", this.onPointerCancel);
     this.canvas.addEventListener("lostpointercapture", this.onPointerCancel);
     const touchControls = globalThis.document?.getElementById?.("touch-controls");
-    if (touchControls) {
+    if (touchControls?.querySelector?.(".touch-joystick")) {
       this.touch = attachTouchControls({
         canvas: this.canvas,
         controls: touchControls,

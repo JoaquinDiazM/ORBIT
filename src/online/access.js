@@ -225,7 +225,8 @@ function selectCourse({ session, shell, documentRef, windowRef, requestedCourseI
 
 export async function resolveOnlineContext({
   target = "orbit", documentRef = globalThis.document, windowRef = globalThis.window,
-  offlineProvider = null, api = new OrbitApiClient(), activateOffline = activateOfflineAccount,
+  offlineProvider = null, api = new OrbitApiClient(),
+  activateOffline = offlineProvider ? activateOfflineAccount : null,
 } = {}) {
   const markers = readOnlineMarkers(documentRef);
   if (!markers) return null;
@@ -264,8 +265,8 @@ export async function resolveOnlineContext({
     }
     session = await loginForm({ api, shell, serverId: markers.serverId, documentRef, initialError: error.status === 401 ? null : error });
   }
-  const offlineAccountActive = target === "orbit" && Boolean(offlineProvider);
-  if (offlineAccountActive) activateOffline(session);
+  const offlineAccountActive = target === "orbit" && Boolean(activateOffline);
+  activateOffline?.(session);
   const onLogout = async () => {
     try { await endOnlineSession({ api, session, offline: false }, { windowRef }); }
     catch (error) {

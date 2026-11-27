@@ -328,9 +328,9 @@ siendo las actuales. Preparar las decisiones de diseño antes de implementar.
   sincronización al reconectar dentro del WebView de Android.
 - Fuera de alcance: iOS, adaptación táctil específica de Editor y Owl, cambios
   curriculares y el mecanismo de actualización automática de Windows.
-- Dependencias e invariantes: ADR 0013 y 0014, movimiento libre, una sola Red,
-  fronteras canónicas y progreso versionado. Verificar el JDK, SDK, NDK y
-  entorno de compilación antes del primer build. Referencias:
+- Dependencias e invariantes: ADR 0013, 0014 y 0015, movimiento libre, una sola
+  Red, fronteras canónicas y progreso versionado. Verificar JDK, SDK, Gradle y
+  firma antes de distribuir el APK. Referencias:
   [contenido local en WebView](https://developer.android.com/develop/ui/views/layout/webapps/load-local-content),
   [actualización de apps Android](https://developer.android.com/google/play/app-updates).
 
