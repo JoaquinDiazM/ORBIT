@@ -106,12 +106,12 @@ También existen recompensas opcionales que no son necesarias para abrir la sigu
 
 ## Zonas y Red de aprendizaje
 
-Pulsa `K` para revisar:
+Desde **Contenido**, puedes abrir dos paneles independientes.
 
 - **Zonas:** regiones abiertas o bloqueadas por adyacencia y elegibilidad académica.
-- **Red de aprendizaje:** 22 lecciones y misiones conectadas en dirección prerrequisito → destino.
+- **Red:** lecciones y misiones conectadas en dirección prerrequisito → destino. También se abre con `K`.
 
-El panel **Zonas · Red** separa además la exploración lateral. El mundo no obliga a caminar por
+El panel **Zonas** incluye la exploración lateral y el inventario. El mundo no obliga a caminar por
 las conexiones: la red controla elegibilidad académica, no la trayectoria física dentro de una zona.
 
 ## Visualización de la red
@@ -129,15 +129,12 @@ Las flechas siempre apuntan desde el lugar que aporta el prerrequisito hacia el 
 
 Al interactuar con un lugar, su ventana principal aparece a la derecha. El menú izquierdo puede mantener abierta a la vez una única ventana secundaria:
 
-- **Zonas · Red**;
-- **Gadgets**;
-- **Símbolos**;
-- **Constantes**;
-- **Formulario**;
+- **Contenido**, que despliega **Red** y **Zonas**;
+- **Herramientas**, que despliega **Gadgets**, **Formulario**, **Constantes** y **Símbolos**;
 - **Glosario**;
 - **Ajustes**, que despliega **Visual**, **Sonido** y **Ayuda**.
 
-En escritorio puedes consultar uno de esos paneles sin cerrar la misión o lección actual. **Ajustes** se abre y se cierra con clic, `Enter` o espacio; al cerrar una vista el foco vuelve a su acceso dentro del grupo. En pantallas estrechas los paneles ocupan el espacio disponible y `Esc` cierra primero el panel visible y después el grupo Ajustes.
+En escritorio puedes consultar esos paneles con la misión o lección actual abierta. Usa **Contraer menú** para mostrar solo iconos y vuelve a pulsar el mismo control para expandirlo. Los grupos se abren con clic, `Enter` o espacio. Al cerrar una vista, el foco vuelve a su acceso. `Esc` cierra primero el panel visible y después el último grupo abierto.
 
 Los paneles **Símbolos**, **Constantes**, **Formulario** y **Glosario** permiten consultar las entradas disponibles y las condiciones de las todavía bloqueadas. Cuando se desbloquea una entrada cuya procedencia merece mostrarse, la interfaz comunica esa fuente una sola vez en ese momento. La consulta posterior conserva el contenido, pero no repite cuadros bibliográficos en cada tarjeta.
 
@@ -145,7 +142,7 @@ Las lecciones extensas se dividen en etapas. Una lectura habilita **Continuar**;
 
 ## Gadgets y transportes
 
-- Abre **Gadgets** desde el menú lateral para usar la calculadora científica, disponible desde el
+- Abre **Herramientas → Gadgets** para usar la calculadora científica, disponible desde el
   inicio, y las herramientas que hayas adquirido.
 - El **Depósito del Explorador de Campos** queda disponible en Campamento Base; interactuar y
   completarlo habilita un explorador cartesiano 2D en ese

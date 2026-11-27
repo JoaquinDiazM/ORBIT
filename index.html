@@ -68,98 +68,74 @@
         </dl>
       </section>
 
-      <nav id="orbit-menu" class="glass-card tool-dock" aria-label="Herramientas de ORBIT">
-        <button
-          id="open-knowledge"
-          class="dock-button"
-          data-mark="Z · R"
-          type="button"
-          aria-controls="knowledge-panel"
-          aria-expanded="false"
-        >Zonas · Red <kbd>K</kbd></button>
-        <button
-          id="open-gadgets"
-          class="dock-button"
-          data-mark="⌁"
-          type="button"
-          aria-controls="gadgets-panel"
-          aria-expanded="false"
-        >Gadgets</button>
-        <button
-          id="open-symbols"
-          class="dock-button"
-          data-mark="∑"
-          data-reference-view="symbols"
-          type="button"
-          aria-controls="reference-panel"
-          aria-expanded="false"
-        >Símbolos</button>
-        <button
-          id="open-constants"
-          class="dock-button"
-          data-mark="c"
-          data-reference-view="constants"
-          type="button"
-          aria-controls="reference-panel"
-          aria-expanded="false"
-        >Constantes</button>
-        <button
-          id="open-formulas"
-          class="dock-button"
-          data-mark="ƒ"
-          data-reference-view="formulas"
-          type="button"
-          aria-controls="reference-panel"
-          aria-expanded="false"
-        >Formulario</button>
-        <button
-          id="open-glossary"
-          class="dock-button"
-          data-mark="Aa"
-          data-reference-view="glossary"
-          type="button"
-          aria-controls="reference-panel"
-          aria-expanded="false"
-        >Glosario</button>
-        <button
-          id="open-settings"
-          class="dock-button"
-          data-mark="⚙"
-          type="button"
-          aria-controls="settings-tools"
-          aria-expanded="false"
-        >Ajustes</button>
-        <div
-          id="settings-tools"
-          class="dock-submenu"
-          role="group"
-          aria-labelledby="open-settings"
-          hidden
-        >
-          <button
-            id="open-visual"
-            class="dock-button"
-            data-mark="◎"
-            type="button"
-            aria-controls="visual-panel"
-            aria-expanded="false"
-          >Visual</button>
-          <button
-            id="open-sound"
-            class="dock-button"
-            data-mark="◉"
-            type="button"
-            aria-controls="sound-panel"
-            aria-expanded="false"
-          >Sonido</button>
-          <button
-            id="open-help"
-            class="dock-button"
-            data-mark="?"
-            type="button"
-            aria-controls="help-panel"
-            aria-expanded="false"
-          >Ayuda</button>
+      <nav id="orbit-menu" class="glass-card tool-dock" aria-label="Menú de ORBIT">
+        <button id="toggle-dock" class="dock-button dock-toggle" data-mark="«" type="button"
+          aria-label="Mostrar solo iconos" title="Contraer menú" aria-pressed="false">
+          <span class="dock-label">Contraer menú</span>
+        </button>
+        <button id="open-content" class="dock-button" type="button" aria-label="Contenido"
+          title="Contenido" aria-controls="content-tools" aria-expanded="false">
+          <span class="dock-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              stroke-linecap="round" stroke-linejoin="round" focusable="false">
+              <path d="M12 2v17m0-4-5-4-2-5m2 5-4-1m9 1 5-4 2-4m-2 4 5-1M12 9 9 6 8 3m4 15 5-3 5-1m-10 5-4 3m4-3v3m0-3 4 3"/>
+            </svg>
+          </span>
+          <span class="dock-label">Contenido</span>
+        </button>
+        <div id="content-tools" class="dock-submenu" role="group" aria-labelledby="open-content" hidden>
+          <button id="open-knowledge" class="dock-button" data-mark="↗"
+            type="button" aria-label="Red" title="Red (K)" aria-controls="knowledge-panel" aria-expanded="false" aria-keyshortcuts="K">
+            <span class="dock-label">Red</span><kbd aria-hidden="true">K</kbd>
+          </button>
+          <button id="open-zones" class="dock-button" data-mark="⬡"
+            type="button" aria-label="Zonas" title="Zonas" aria-controls="zones-panel" aria-expanded="false">
+            <span class="dock-label">Zonas</span>
+          </button>
+        </div>
+        <button id="open-tools" class="dock-button" data-mark="⚒"
+          type="button" aria-label="Herramientas" title="Herramientas" aria-controls="resource-tools" aria-expanded="false">
+          <span class="dock-label">Herramientas</span>
+        </button>
+        <div id="resource-tools" class="dock-submenu" role="group" aria-labelledby="open-tools" hidden>
+          <button id="open-gadgets" class="dock-button" data-mark="⌁"
+            type="button" aria-label="Gadgets" title="Gadgets" aria-controls="gadgets-panel" aria-expanded="false">
+            <span class="dock-label">Gadgets</span>
+          </button>
+          <button id="open-formulas" class="dock-button" data-mark="ƒ" data-reference-view="formulas"
+            type="button" aria-label="Formulario" title="Formulario" aria-controls="reference-panel" aria-expanded="false">
+            <span class="dock-label">Formulario</span>
+          </button>
+          <button id="open-constants" class="dock-button" data-mark="π" data-reference-view="constants"
+            type="button" aria-label="Constantes" title="Constantes" aria-controls="reference-panel" aria-expanded="false">
+            <span class="dock-label">Constantes</span>
+          </button>
+          <button id="open-symbols" class="dock-button" data-mark="∑" data-reference-view="symbols"
+            type="button" aria-label="Símbolos" title="Símbolos" aria-controls="reference-panel" aria-expanded="false">
+            <span class="dock-label">Símbolos</span>
+          </button>
+        </div>
+        <button id="open-glossary" class="dock-button" data-mark="Aa" data-reference-view="glossary"
+          type="button" aria-label="Glosario" title="Glosario" aria-controls="reference-panel" aria-expanded="false">
+          <span class="dock-label">Glosario</span>
+        </button>
+        <button id="open-settings" class="dock-button" data-mark="⚙"
+          type="button" aria-label="Ajustes" title="Ajustes" aria-controls="settings-tools" aria-expanded="false">
+          <span class="dock-label">Ajustes</span>
+        </button>
+        <div id="settings-tools" class="dock-submenu" role="group" aria-labelledby="open-settings" hidden>
+          <button id="open-visual" class="dock-button" data-mark="◎"
+            type="button" aria-label="Visual" title="Visual" aria-controls="visual-panel" aria-expanded="false">
+            <span class="dock-label">Visual</span>
+          </button>
+          <button id="open-sound" class="dock-button" data-mark="◉"
+            type="button" aria-label="Sonido" title="Sonido" aria-controls="sound-panel" aria-expanded="false">
+            <span class="dock-label">Sonido</span>
+          </button>
+          <button id="open-help" class="dock-button" data-mark="?"
+            type="button" aria-label="Ayuda" title="Ayuda" aria-controls="help-panel" aria-expanded="false">
+            <span class="dock-label">Ayuda</span>
+          </button>
         </div>
       </nav>
 
@@ -198,11 +174,23 @@
         <header class="panel-header">
           <div>
             <p class="eyebrow">Progresión derivada</p>
-            <h2 id="knowledge-title">Zonas y red de aprendizaje</h2>
+            <h2 id="knowledge-title">Red de aprendizaje</h2>
           </div>
           <button class="icon-button" data-close-panel="knowledge-panel" type="button" aria-label="Cerrar">×</button>
         </header>
         <div id="knowledge-body" class="panel-body"></div>
+      </aside>
+
+      <aside id="zones-panel" class="side-panel secondary-panel wide-panel"
+        role="dialog" aria-labelledby="zones-title" hidden>
+        <header class="panel-header">
+          <div>
+            <p class="eyebrow">Exploración</p>
+            <h2 id="zones-title">Zonas</h2>
+          </div>
+          <button class="icon-button" data-close-panel="zones-panel" type="button" aria-label="Cerrar">×</button>
+        </header>
+        <div id="zones-body" class="panel-body"></div>
       </aside>
 
       <aside

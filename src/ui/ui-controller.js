@@ -75,9 +75,27 @@ export class UIController {
     this.panelReturnFocus = new Map();
     this.persistenceFailureReported = false;
     this.activeReferenceView = "symbols";
-    this.settingsPanelIds = ["visual-panel", "sound-panel", "help-panel"];
+    this.openDockGroups = [];
+    this.dockGroups = {
+      content: {
+        button: document.querySelector("#open-content"),
+        submenu: document.querySelector("#content-tools"),
+        panels: ["knowledge-panel", "zones-panel"],
+      },
+      tools: {
+        button: document.querySelector("#open-tools"),
+        submenu: document.querySelector("#resource-tools"),
+        panels: ["gadgets-panel", "reference-panel"],
+      },
+      settings: {
+        button: document.querySelector("#open-settings"),
+        submenu: document.querySelector("#settings-tools"),
+        panels: ["visual-panel", "sound-panel", "help-panel"],
+      },
+    };
     this.secondaryPanelIds = [
       "knowledge-panel",
+      "zones-panel",
       "gadgets-panel",
       "visual-panel",
       "reference-panel",
@@ -94,8 +112,7 @@ export class UIController {
       versionBadge: document.querySelector("#orbit-version-badge"),
       profileSelect: document.querySelector("#profile-select"),
       editorLink: document.querySelector("#open-orbit-editor"),
-      settingsButton: document.querySelector("#open-settings"),
-      settingsTools: document.querySelector("#settings-tools"),
+      dockToggle: document.querySelector("#toggle-dock"),
       interactionPrompt: document.querySelector("#interaction-prompt"),
       interactionText: document.querySelector("#interaction-text"),
       lessonPanel: document.querySelector("#lesson-panel"),
@@ -104,6 +121,8 @@ export class UIController {
       lessonBody: document.querySelector("#lesson-body"),
       knowledgePanel: document.querySelector("#knowledge-panel"),
       knowledgeBody: document.querySelector("#knowledge-body"),
+      zonesPanel: document.querySelector("#zones-panel"),
+      zonesBody: document.querySelector("#zones-body"),
       gadgetsPanel: document.querySelector("#gadgets-panel"),
       gadgetsBody: document.querySelector("#gadgets-body"),
       visualPanel: document.querySelector("#visual-panel"),
@@ -191,6 +210,7 @@ export class UIController {
       this.#updateConceptProgress(event.snapshot);
       this.gadgetHub.refresh(event.snapshot);
       this.updateKnowledgePanel();
+      this.updateZonesPanel();
       this.updateReferencePanel();
       this.#updateVisualControls();
       this.#updateSoundControls();
@@ -224,11 +244,26 @@ export class UIController {
     document.querySelector("#open-knowledge").addEventListener("click", () => {
       this.toggleKnowledgePanel();
     });
+    document.querySelector("#open-zones").addEventListener("click", () => {
+      if (!this.elements.zonesPanel.hidden) this.closePanel("zones-panel");
+      else {
+        this.openPanel("zones-panel");
+        this.updateZonesPanel();
+      }
+    });
     document.querySelector("#open-gadgets").addEventListener("click", () => {
       this.toggleGadgetsPanel();
     });
-    this.elements.settingsButton.addEventListener("click", () => {
-      this.toggleSettingsMenu();
+    for (const [id, { button }] of Object.entries(this.dockGroups)) {
+      button.addEventListener("click", () => this.toggleDockGroup(id));
+    }
+    this.elements.dockToggle.addEventListener("click", () => {
+      const button = this.elements.dockToggle;
+      const collapsed = button.getAttribute("aria-pressed") !== "true";
+      document.body.dataset.dockCollapsed = String(collapsed);
+      button.setAttribute("aria-pressed", String(collapsed));
+      button.title = collapsed ? "Expandir menú" : "Contraer menú";
+      button.dataset.mark = collapsed ? "»" : "«";
     });
     document.querySelector("#open-visual").addEventListener("click", () => {
       this.toggleVisualPanel();
@@ -567,6 +602,7 @@ export class UIController {
       this.closePanel("knowledge-panel");
       return;
     }
+    if (this.dockGroups.content.submenu.hidden) this.#openDockGroup("content");
     this.openPanel("knowledge-panel");
     this.updateKnowledgePanel();
   }
@@ -576,27 +612,32 @@ export class UIController {
     else this.openPanel("gadgets-panel");
   }
 
-  toggleSettingsMenu() {
-    if (this.elements.settingsTools.hidden) {
-      this.elements.settingsTools.hidden = false;
-      this.#syncPanelControls();
-      return;
-    }
-    this.#closeSettingsMenu();
+  toggleDockGroup(id) {
+    if (this.dockGroups[id].submenu.hidden) this.#openDockGroup(id);
+    else this.#closeDockGroup(id);
   }
 
-  #closeSettingsMenu() {
-    for (const panelId of this.settingsPanelIds) {
+  #openDockGroup(id) {
+    this.dockGroups[id].submenu.hidden = false;
+    this.openDockGroups.push(id);
+    this.#syncPanelControls();
+  }
+
+  #closeDockGroup(id) {
+    const { button, submenu, panels } = this.dockGroups[id];
+    for (const panelId of panels) {
+      if (panelId === "reference-panel" && this.activeReferenceView === "glossary") continue;
       this.closePanel(panelId, { restoreFocus: false });
     }
     for (const [panelId, returnTarget] of this.panelReturnFocus) {
-      if (this.elements.settingsTools.contains(returnTarget)) {
-        this.panelReturnFocus.set(panelId, this.elements.settingsButton);
+      if (submenu.contains(returnTarget)) {
+        this.panelReturnFocus.set(panelId, button);
       }
     }
-    this.elements.settingsTools.hidden = true;
+    submenu.hidden = true;
+    this.openDockGroups = this.openDockGroups.filter((groupId) => groupId !== id);
     this.#syncPanelControls();
-    this.elements.settingsButton.focus({ preventScroll: true });
+    button.focus({ preventScroll: true });
   }
 
   updateKnowledgePanel() {
@@ -605,20 +646,30 @@ export class UIController {
     const body = this.elements.knowledgeBody;
     body.replaceChildren();
 
-    const explanation = element("p", { className: "callout" });
-    explanation.textContent =
-      "La Red de aprendizaje conecta únicamente lecciones y misiones. Una zona vecina se abre cuando contiene al menos un nodo académicamente elegible; sus personajes, gadgets y transportes quedan disponibles para interactuar. El movimiento físico sigue siendo libre.";
-    body.append(explanation);
+    body.append(element("p", {
+      className: "callout",
+      text: "La Red de aprendizaje conecta lecciones y misiones con sus prerrequisitos.",
+    }));
+    for (const location of this.locations.filter(isAcademicLocation)) {
+      body.append(this.#renderLocationCard(location, snapshot, "h3"));
+    }
+  }
 
-    const columns = element("div", { className: "knowledge-columns" });
-    const areaColumn = element("section", { className: "knowledge-column" });
-    areaColumn.append(element("h3", { text: "Zonas" }));
+  updateZonesPanel() {
+    if (this.elements.zonesPanel.hidden && !this.openPanels.includes("zones-panel")) return;
+    const snapshot = this.progression.getSnapshot();
+    const body = this.elements.zonesBody;
+    body.replaceChildren();
+    body.append(element("p", {
+      className: "callout",
+      text: "Una zona vecina se abre cuando contiene una lección o misión elegible. El movimiento dentro de la zona es libre.",
+    }));
     for (const area of [...this.areas].sort((a, b) => a.order - b.order)) {
       const unlocked = snapshot.unlockedAreaIds.has(area.id);
       const card = element("article", {
         className: `knowledge-card ${unlocked ? "unlocked" : "locked"}`,
       });
-      card.append(element("h4", { text: area.title }));
+      card.append(element("h3", { text: area.title }));
       card.append(
         element("span", {
           className: "state-chip",
@@ -627,35 +678,8 @@ export class UIController {
       );
       appendTextParagraph(card, area.subtitle);
       appendTextParagraph(card, area.unlockHint);
-      areaColumn.append(card);
+      body.append(card);
     }
-
-    const contentColumn = element("section", { className: "knowledge-column" });
-    contentColumn.append(element("h3", { text: "Red de aprendizaje" }));
-    const renderLocationCard = (location) => {
-      const visible = snapshot.visibleLocationIds.has(location.id);
-      const accessible = snapshot.accessibleLocationIds.has(location.id);
-      const completed = snapshot.completedLocationIds.has(location.id);
-      const title = visible ? location.title : "Lugar aún no revelado";
-      const state = completed ? "completado" : accessible ? "disponible" : visible ? "bloqueado" : "oculto";
-      const card = element("article", {
-        className: `knowledge-card ${completed ? "completed" : accessible ? "unlocked" : "locked"}`,
-      });
-      card.append(element("h4", { text: title }));
-      card.append(element("span", { className: "state-chip", text: state }));
-      if (visible) {
-        appendTextParagraph(card, `${locationKindLabel(location.kind)} · ${location.objective}`);
-      } else {
-        appendTextParagraph(card, "Se revelará cuando se satisfagan sus prerrequisitos.");
-      }
-      return card;
-    };
-    for (const location of this.locations.filter(isAcademicLocation)) {
-      contentColumn.append(renderLocationCard(location));
-    }
-
-    columns.append(areaColumn, contentColumn);
-    body.append(columns);
 
     const lateral = element("section", { className: "lesson-section" });
     lateral.append(element("h3", { text: "Exploración lateral" }));
@@ -666,7 +690,7 @@ export class UIController {
     for (const location of this.locations.filter(
       (entry) => !isAcademicLocation(entry) && !["base", "debug"].includes(entry.kind),
     )) {
-      lateral.append(renderLocationCard(location));
+      lateral.append(this.#renderLocationCard(location, snapshot, "h4"));
     }
     body.append(lateral);
 
@@ -676,6 +700,23 @@ export class UIController {
     for (const reward of snapshot.rewards) chips.append(this.contentView.renderRewardChip(reward));
     inventory.append(chips);
     body.append(inventory);
+  }
+
+  #renderLocationCard(location, snapshot, heading) {
+    const visible = snapshot.visibleLocationIds.has(location.id);
+    const accessible = snapshot.accessibleLocationIds.has(location.id);
+    const completed = snapshot.completedLocationIds.has(location.id);
+    const title = visible ? location.title : "Lugar aún no revelado";
+    const state = completed ? "completado" : accessible ? "disponible" : visible ? "bloqueado" : "oculto";
+    const card = element("article", {
+      className: `knowledge-card ${completed ? "completed" : accessible ? "unlocked" : "locked"}`,
+    });
+    card.append(element(heading, { text: title }));
+    card.append(element("span", { className: "state-chip", text: state }));
+    appendTextParagraph(card, visible
+      ? `${locationKindLabel(location.kind)} · ${location.objective}`
+      : "Se revelará cuando se satisfagan sus prerrequisitos.");
+    return card;
   }
 
   toggleVisualPanel() {
@@ -1102,7 +1143,8 @@ export class UIController {
       this.closePanel(panelId);
       return;
     }
-    if (!this.elements.settingsTools.hidden) this.#closeSettingsMenu();
+    const groupId = this.openDockGroups.at(-1);
+    if (groupId) this.#closeDockGroup(groupId);
   }
 
   isBlockingModalOpen() {

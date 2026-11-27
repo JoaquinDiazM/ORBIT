@@ -16,6 +16,7 @@ function makeNode(id, documentHarness) {
   const listeners = new Map();
   const node = {
     id,
+    children,
     hidden: false,
     isConnected: true,
     checked: false,
@@ -78,6 +79,7 @@ function makeHarness() {
   const panelIds = [
     "lesson-panel",
     "knowledge-panel",
+    "zones-panel",
     "gadgets-panel",
     "visual-panel",
     "reference-panel",
@@ -121,6 +123,21 @@ function makeHarness() {
   const settingsTools = getNode("settings-tools");
   settingsTools.hidden = true;
   settingsTools.append(getNode("open-visual"), getNode("open-sound"), getNode("open-help"));
+  for (const [buttonId, groupId, childIds] of [
+    ["open-content", "content-tools", ["open-knowledge", "open-zones"]],
+    ["open-tools", "resource-tools", ["open-gadgets", "open-formulas", "open-constants", "open-symbols"]],
+  ]) {
+    const button = getNode(buttonId);
+    button.setAttribute("aria-controls", groupId);
+    button.setAttribute("aria-expanded", "false");
+    controls.push(button);
+    const group = getNode(groupId);
+    group.hidden = true;
+    group.append(...childIds.map(getNode));
+  }
+  const zonesButton = getNode("open-zones");
+  zonesButton.setAttribute("aria-controls", "zones-panel");
+  controls.push(zonesButton);
 
   const visualInputs = ["hidden", "direct", "total"].map((mode) => {
     const input = getNode(`tree-two-${mode}`);
@@ -364,6 +381,55 @@ test("la lección coexiste con menús secundarios, que siguen siendo exclusivos"
     controller.openPanel("help-panel");
     assert.equal(getNode("visual-panel").hidden, true);
     assert.equal(getNode("help-panel").hidden, false);
+  });
+});
+
+test("Contenido separa los paneles de Red y Zonas y conserva el foco en modo de iconos", () => {
+  withController((controller, { getNode, document }) => {
+    const toggle = getNode("toggle-dock");
+    const content = getNode("open-content");
+    const zones = getNode("open-zones");
+    const network = getNode("open-knowledge");
+
+    toggle.dispatch("click");
+    assert.equal(document.body.dataset.dockCollapsed, "true");
+    assert.equal(toggle.getAttribute("aria-pressed"), "true");
+    content.dispatch("click");
+    assert.equal(content.getAttribute("aria-expanded"), "true");
+    document.activeElement = zones;
+    zones.dispatch("click");
+    assert.equal(getNode("zones-panel").hidden, false);
+    assert.equal(getNode("knowledge-panel").hidden, true);
+    assert.equal(getNode("zones-body").children[1].children[0].textContent, "Campamento Base");
+    document.activeElement = network;
+    network.dispatch("click");
+    assert.equal(getNode("zones-panel").hidden, true);
+    assert.equal(getNode("knowledge-panel").hidden, false);
+    assert.equal(getNode("knowledge-body").children[1].children[0].textContent, "Lugar aún no revelado");
+    controller.closeTopPanel();
+    assert.equal(document.activeElement, network);
+    controller.closeTopPanel();
+    assert.equal(document.activeElement, content);
+    assert.equal(content.getAttribute("aria-expanded"), "false");
+    toggle.dispatch("click");
+    assert.equal(document.body.dataset.dockCollapsed, "false");
+  });
+});
+
+test("Glosario permanece accesible al cerrar el grupo Herramientas", () => {
+  withController((_controller, { getNode }) => {
+    const tools = getNode("open-tools");
+    getNode("open-tools").dispatch("click");
+    assert.equal(tools.getAttribute("aria-expanded"), "true");
+    getNode("open-formulas").dispatch("click");
+    assert.equal(getNode("reference-panel").hidden, false);
+    getNode("open-tools").dispatch("click");
+    assert.equal(getNode("reference-panel").hidden, true);
+    tools.dispatch("click");
+    getNode("open-glossary").dispatch("click");
+    tools.dispatch("click");
+    assert.equal(getNode("reference-panel").hidden, false);
+    assert.equal(getNode("reference-title").textContent, "Glosario");
   });
 });
 

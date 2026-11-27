@@ -67,6 +67,7 @@ test("el shell expone todos los menús secundarios de ORBIT", async () => {
     "orbit-menu",
     "lesson-panel",
     "knowledge-panel",
+    "zones-panel",
     "gadgets-panel",
     "gadgets-body",
     "visual-panel",
@@ -74,6 +75,12 @@ test("el shell expone todos los menús secundarios de ORBIT", async () => {
     "sound-panel",
     "help-panel",
     "open-knowledge",
+    "open-zones",
+    "open-content",
+    "content-tools",
+    "open-tools",
+    "resource-tools",
+    "toggle-dock",
     "open-gadgets",
     "open-settings",
     "settings-tools",
@@ -102,8 +109,11 @@ test("el shell expone todos los menús secundarios de ORBIT", async () => {
   }
   assert.doesNotMatch(index, /Prototipo 0\.2/);
   assert.match(index, /Open Roadmap for Building Intuition and Theory/);
-  assert.match(index, />Zonas · Red\s*<kbd/);
-  assert.match(index, /Zonas y red de aprendizaje/);
+  assert.match(index, /id="open-knowledge"[^>]*aria-keyshortcuts="K"/);
+  assert.match(index, /id="open-content"[^>]*aria-controls="content-tools"/);
+  assert.match(index, /id="open-constants"[^>]*data-mark="π"/);
+  assert.match(index, /id="knowledge-title">Red de aprendizaje<\/h2>/);
+  assert.match(index, /id="zones-title">Zonas<\/h2>/);
   assert.match(index, /Red de aprendizaje/);
   assert.doesNotMatch(index, />Árboles</);
   assert.match(index, /name="tree-two-visualization" value="hidden"/);
