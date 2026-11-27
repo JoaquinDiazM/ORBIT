@@ -130,8 +130,7 @@ Las flechas siempre apuntan desde el lugar que aporta el prerrequisito hacia el 
 Al interactuar con un lugar, su ventana principal aparece a la derecha. El menú izquierdo puede mantener abierta a la vez una única ventana secundaria:
 
 - **Contenido**, que despliega **Red** y **Zonas**;
-- **Herramientas**, que despliega **Gadgets**, **Formulario**, **Constantes** y **Símbolos**;
-- **Glosario**;
+- **Biblioteca**, que despliega **Gadgets**, **Formulario**, **Constantes**, **Símbolos** y **Glosario**;
 - **Ajustes**, que despliega **Visual**, **Sonido** y **Ayuda**.
 
 En escritorio puedes consultar esos paneles con la misión o lección actual abierta. Usa **Contraer menú** para mostrar solo iconos y vuelve a pulsar el mismo control para expandirlo. Los grupos se abren con clic, `Enter` o espacio. Al cerrar una vista, el foco vuelve a su acceso. `Esc` cierra primero el panel visible y después el último grupo abierto.
@@ -142,7 +141,7 @@ Las lecciones extensas se dividen en etapas. Una lectura habilita **Continuar**;
 
 ## Gadgets y transportes
 
-- Abre **Herramientas → Gadgets** para usar la calculadora científica, disponible desde el
+- Abre **Biblioteca → Gadgets** para usar la calculadora científica, disponible desde el
   inicio, y las herramientas que hayas adquirido.
 - El **Depósito del Explorador de Campos** queda disponible en Campamento Base; interactuar y
   completarlo habilita un explorador cartesiano 2D en ese

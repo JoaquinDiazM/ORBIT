@@ -625,10 +625,7 @@ export class UIController {
 
   #closeDockGroup(id) {
     const { button, submenu, panels } = this.dockGroups[id];
-    for (const panelId of panels) {
-      if (panelId === "reference-panel" && this.activeReferenceView === "glossary") continue;
-      this.closePanel(panelId, { restoreFocus: false });
-    }
+    for (const panelId of panels) this.closePanel(panelId, { restoreFocus: false });
     for (const [panelId, returnTarget] of this.panelReturnFocus) {
       if (submenu.contains(returnTarget)) {
         this.panelReturnFocus.set(panelId, button);

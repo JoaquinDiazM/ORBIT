@@ -111,6 +111,8 @@ test("el shell expone todos los menús secundarios de ORBIT", async () => {
   assert.match(index, /Open Roadmap for Building Intuition and Theory/);
   assert.match(index, /id="open-knowledge"[^>]*aria-keyshortcuts="K"/);
   assert.match(index, /id="open-content"[^>]*aria-controls="content-tools"/);
+  assert.match(index, /id="open-tools"[^>]*aria-label="Biblioteca"[^>]*title="Biblioteca"[^>]*>\s*<span class="dock-label">Biblioteca<\/span>/);
+  assert.match(index, /id="resource-tools"[^>]*aria-labelledby="open-tools"[^>]*>(?:(?!<\/div>)[\s\S])*id="open-glossary"/);
   assert.match(index, /id="open-constants"[^>]*data-mark="π"/);
   assert.match(index, /id="knowledge-title">Red de aprendizaje<\/h2>/);
   assert.match(index, /id="zones-title">Zonas<\/h2>/);

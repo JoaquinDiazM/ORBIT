@@ -125,7 +125,7 @@ function makeHarness() {
   settingsTools.append(getNode("open-visual"), getNode("open-sound"), getNode("open-help"));
   for (const [buttonId, groupId, childIds] of [
     ["open-content", "content-tools", ["open-knowledge", "open-zones"]],
-    ["open-tools", "resource-tools", ["open-gadgets", "open-formulas", "open-constants", "open-symbols"]],
+    ["open-tools", "resource-tools", ["open-gadgets", "open-formulas", "open-constants", "open-symbols", "open-glossary"]],
   ]) {
     const button = getNode(buttonId);
     button.setAttribute("aria-controls", groupId);
@@ -416,20 +416,33 @@ test("Contenido separa los paneles de Red y Zonas y conserva el foco en modo de 
   });
 });
 
-test("Glosario permanece accesible al cerrar el grupo Herramientas", () => {
-  withController((_controller, { getNode }) => {
-    const tools = getNode("open-tools");
-    getNode("open-tools").dispatch("click");
-    assert.equal(tools.getAttribute("aria-expanded"), "true");
-    getNode("open-formulas").dispatch("click");
-    assert.equal(getNode("reference-panel").hidden, false);
-    getNode("open-tools").dispatch("click");
-    assert.equal(getNode("reference-panel").hidden, true);
-    tools.dispatch("click");
-    getNode("open-glossary").dispatch("click");
-    tools.dispatch("click");
-    assert.equal(getNode("reference-panel").hidden, false);
+test("Biblioteca abre Glosario, restaura el foco y cierra su panel al plegarse", () => {
+  withController((controller, { document, getNode }) => {
+    const library = getNode("open-tools");
+    const glossary = getNode("open-glossary");
+    const submenu = getNode("resource-tools");
+    const reference = getNode("reference-panel");
+
+    getNode("toggle-dock").dispatch("click");
+    library.dispatch("click");
+    assert.equal(library.getAttribute("aria-expanded"), "true");
+    assert.equal(submenu.hidden, false);
+    glossary.focus();
+    glossary.dispatch("click");
     assert.equal(getNode("reference-title").textContent, "Glosario");
+    assert.equal(reference.hidden, false);
+    assert.equal(glossary.getAttribute("aria-expanded"), "true");
+    controller.closeTopPanel();
+    assert.equal(document.activeElement, glossary);
+    assert.equal(reference.hidden, true);
+
+    glossary.dispatch("click");
+    library.dispatch("click");
+    assert.equal(library.getAttribute("aria-expanded"), "false");
+    assert.equal(submenu.hidden, true);
+    assert.equal(reference.hidden, true);
+    assert.equal(glossary.getAttribute("aria-expanded"), "false");
+    assert.equal(document.activeElement, library);
   });
 });
 
